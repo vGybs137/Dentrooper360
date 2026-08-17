@@ -1,7 +1,5 @@
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/constants/storage";
 import { getItem, setItem } from "@/helpers/secureStorage";
-
-const ACCESS_TOKEN_KEY = "accessToken";
-const REFRESH_TOKEN_KEY = "refreshToken";
 
 export const tokenStore = {
   getAccessToken(): Promise<string | null> {

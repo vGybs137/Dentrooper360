@@ -2,7 +2,7 @@ import type { MobilePullRequest, MobilePullResponse, MobilePushRequest } from "@
 
 import { mapPullChanges, toPullPayload, toPushPayload, type WireMobilePullResponse } from "@/helpers/sync";
 import { httpClient } from "../httpClient";
-import { SYNC_MOBILE_PULL_PATH, SYNC_MOBILE_PUSH_PATH } from "../paths";
+import { SYNC_MOBILE_PULL_PATH, SYNC_MOBILE_PUSH_PATH } from "@/constants/sync";
 
 export async function pullChanges(
   request: MobilePullRequest,

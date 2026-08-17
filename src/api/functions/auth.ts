@@ -20,7 +20,7 @@ import {
   AUTH_ME_PATH,
   AUTH_PAIR_PATH,
   AUTH_REFRESH_PATH,
-} from "../paths";
+} from "@/constants/auth";
 
 export async function login(request: LoginRequest): Promise<AuthSession> {
   const response = await httpClient.post<WireAuthSession>(

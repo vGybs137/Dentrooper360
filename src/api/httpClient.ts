@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { API_BASE_URL, API_TIMEOUT_MS } from "./config";
+import { API_BASE_URL, API_TIMEOUT_MS } from "@/constants/api";
 import {
   attachAccessToken,
   toRejectedError,
