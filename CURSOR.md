@@ -1,4 +1,4 @@
-@AGENTS.md
+READ @AGENTS.md BEFORE STARTING TO CODE.
 
 # Naming conventions
 
