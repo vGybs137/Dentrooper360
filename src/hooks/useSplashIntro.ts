@@ -27,7 +27,15 @@ export function useSplashIntro(enabled: boolean) {
     theme.semantic.motion.overlay.duration +
     theme.semantic.motion.enter.duration;
   const moveEasing = Easing.bezier(0.05, 0.7, 0.1, 1);
-  const pageSpace = theme.semantic.space.page;
+  const headingBlock =
+    theme.semantic.space.section +
+    theme.semantic.type.display.lineHeight +
+    theme.semantic.space.gap.compact +
+    theme.semantic.type.body.lineHeight;
+  const fieldsBlock =
+    theme.semantic.space.section * 2 +
+    theme.semantic.size["control-lg"] * 2 +
+    theme.semantic.space.gap.default;
 
   function start() {
     if (!enabled || started.value) {
@@ -104,13 +112,15 @@ export function useSplashIntro(enabled: boolean) {
       return { transform: [{ translateY: restY }] };
     }
 
-    const topY =
-      insets.top + pageSpace - (windowHeight - logoHeight.value) / 2;
+    const logoRestTop =
+      (windowHeight - fieldsBlock) / 2 - headingBlock - logoHeight.value;
+    const loginRestY =
+      logoRestTop - (windowHeight - logoHeight.value) / 2;
 
     return {
       transform: [
         {
-          translateY: restY + exitProgress.value * (topY - restY),
+          translateY: restY + exitProgress.value * (loginRestY - restY),
         },
       ],
     };

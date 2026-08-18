@@ -1,7 +1,14 @@
 import { type Href, useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import Animated, {
   cancelAnimation,
   Easing,
@@ -10,12 +17,15 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
-  withSpring,
   withTiming,
 } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BrandLogo, SplashFooter } from "@/components/app/BrandLogo";
+import {
+  BRAND_MARK_SIZE,
+  BrandLogo,
+  SplashFooter,
+} from "@/components/app/BrandLogo";
+import { LoginForm } from "@/components/app/LoginForm";
 import { Button, Stack, ThemedView } from "@/components/ui";
 import { useAuthStore } from "@/stores";
 import { useThemeTokens } from "@/theme";
@@ -74,13 +84,13 @@ export default function QrScannerScreen() {
   const { from } = useLocalSearchParams<{ from?: string | string[] }>();
   const fromOnboarding = isOnboardingParam(from);
   const theme = useThemeTokens();
-  const insets = useSafeAreaInsets();
   const { width: windowWidth } = useWindowDimensions();
   const setCustomerId = useAuthStore((state) => state.setCustomerId);
   const [status, setStatus] = useState<ScanStatus>("ready");
   const scanLine = useSharedValue(0);
   const pairedMark = useSharedValue(0);
   const enter = useSharedValue(0);
+  const handoff = useSharedValue(0);
   const scanInset = theme.semantic.space.inline.default;
   const viewfinderSize = Math.min(
     windowWidth - theme.semantic.space.inline.comfortable * 4,
@@ -93,11 +103,12 @@ export default function QrScannerScreen() {
   const moveMs =
     theme.semantic.motion.overlay.duration +
     theme.semantic.motion.enter.duration;
+  const moveEasing = Easing.bezier(0.05, 0.7, 0.1, 1);
 
   useEffect(() => {
     enter.value = withTiming(1, {
       duration: moveMs,
-      easing: Easing.bezier(0.05, 0.7, 0.1, 1),
+      easing: moveEasing,
     });
   }, [enter, moveMs]);
 
@@ -128,18 +139,31 @@ export default function QrScannerScreen() {
       return;
     }
 
-    pairedMark.value = withSpring(1, { damping: 14, stiffness: 180 });
-    const timeout = setTimeout(() => {
-      router.replace("/(auth)/login" as Href);
-    }, theme.semantic.motion.overlay.duration * 2);
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [pairedMark, router, status, theme.semantic.motion.overlay.duration]);
+    pairedMark.value = withTiming(
+      1,
+      {
+        duration: theme.semantic.motion.normal.duration,
+        easing: Easing.out(Easing.cubic),
+      },
+      (finished) => {
+        if (finished) {
+          runOnJS(startHandoff)();
+        }
+      },
+    );
+  }, [pairedMark, status, theme.semantic.motion.normal.duration]);
 
   const cameraStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: (1 - enter.value) * windowWidth }],
+    transform: [
+      {
+        translateX:
+          (1 - enter.value) * windowWidth - handoff.value * windowWidth,
+      },
+    ],
+  }));
+
+  const loginStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: (1 - handoff.value) * windowWidth }],
   }));
 
   const scanLineStyle = useAnimatedStyle(() => ({
@@ -160,6 +184,13 @@ export default function QrScannerScreen() {
     transform: [{ scale: interpolate(pairedMark.value, [0, 1], [0.72, 1]) }],
   }));
 
+  function startHandoff() {
+    handoff.value = withTiming(1, {
+      duration: moveMs,
+      easing: moveEasing,
+    });
+  }
+
   function leaveScanner() {
     if (fromOnboarding) {
       router.back();
@@ -178,7 +209,7 @@ export default function QrScannerScreen() {
       0,
       {
         duration: moveMs,
-        easing: Easing.bezier(0.05, 0.7, 0.1, 1),
+        easing: moveEasing,
       },
       (finished) => {
         if (finished) {
@@ -198,127 +229,135 @@ export default function QrScannerScreen() {
   }
 
   return (
-    <ThemedView
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       pointerEvents="box-none"
-      surface="sunken"
-      style={[styles.root, fromOnboarding ? styles.overlay : null]}
+      style={styles.root}
     >
-      {fromOnboarding ? null : (
-        <View
-          pointerEvents="none"
-          style={[
-            styles.logo,
-            { paddingTop: insets.top + theme.semantic.space.page },
-          ]}
-        >
-          <BrandLogo showWordmark={false} />
-        </View>
-      )}
-
-      <Animated.View
+      <ThemedView
         pointerEvents="box-none"
-        style={[styles.stage, cameraStyle]}
+        surface="sunken"
+        style={[styles.root, fromOnboarding ? styles.overlay : null]}
       >
-        <Stack space="comfortable" align="center">
-          <Pressable
-            accessibilityLabel="Scan clinic QR code"
-            accessibilityRole="button"
-            disabled={status !== "ready"}
-            onPress={pairDevice}
-          >
-            <View
-              style={{
-                width: viewfinderSize,
-                height: viewfinderSize,
-                backgroundColor: theme.palette.brand.subtle,
-                borderRadius: theme.semantic.radius.overlay,
-                overflow: "hidden",
-              }}
+        {fromOnboarding ? null : <SplashFooter />}
+
+        <LoginForm
+          contentStyle={loginStyle}
+          logo={
+            fromOnboarding ? (
+              <View style={{ height: BRAND_MARK_SIZE }} />
+            ) : (
+              <View style={styles.logoSlot}>
+                <BrandLogo showWordmark={false} />
+              </View>
+            )
+          }
+        />
+
+        <Animated.View
+          pointerEvents="box-none"
+          style={[styles.stage, cameraStyle]}
+        >
+          <Stack space="comfortable" align="center">
+            <Pressable
+              accessibilityLabel="Scan clinic QR code"
+              accessibilityRole="button"
+              disabled={status !== "ready"}
+              onPress={pairDevice}
             >
-              {status === "ready" ? (
-                <>
-                  <View style={styles.mark}>
+              <View
+                style={{
+                  width: viewfinderSize,
+                  height: viewfinderSize,
+                  backgroundColor: theme.palette.brand.subtle,
+                  borderRadius: theme.semantic.radius.overlay,
+                  overflow: "hidden",
+                }}
+              >
+                {status === "ready" ? (
+                  <>
+                    <View style={styles.mark}>
+                      <SymbolView
+                        name={{
+                          ios: "qrcode",
+                          android: "qr_code_2",
+                          web: "qr_code_2",
+                        }}
+                        size={theme.semantic.size["icon-lg"] * 2}
+                        tintColor={theme.palette.brand.default}
+                      />
+                    </View>
+                    <Animated.View
+                      style={[
+                        styles.scanLine,
+                        {
+                          left: scanInset,
+                          right: scanInset,
+                          backgroundColor: theme.palette.brand.default,
+                        },
+                        scanLineStyle,
+                      ]}
+                    />
+                  </>
+                ) : (
+                  <Animated.View style={[styles.mark, pairedMarkStyle]}>
                     <SymbolView
                       name={{
-                        ios: "qrcode",
-                        android: "qr_code_2",
-                        web: "qr_code_2",
+                        ios: "checkmark.circle.fill",
+                        android: "check_circle",
+                        web: "check_circle",
                       }}
                       size={theme.semantic.size["icon-lg"] * 2}
-                      tintColor={theme.palette.brand.default}
+                      tintColor={theme.palette.success.DEFAULT}
                     />
-                  </View>
-                  <Animated.View
-                    style={[
-                      styles.scanLine,
-                      {
-                        left: scanInset,
-                        right: scanInset,
-                        backgroundColor: theme.palette.brand.default,
-                      },
-                      scanLineStyle,
-                    ]}
-                  />
-                </>
-              ) : (
-                <Animated.View style={[styles.mark, pairedMarkStyle]}>
-                  <SymbolView
-                    name={{
-                      ios: "checkmark.circle.fill",
-                      android: "check_circle",
-                      web: "check_circle",
-                    }}
-                    size={theme.semantic.size["icon-lg"] * 2}
-                    tintColor={theme.palette.success.DEFAULT}
-                  />
-                </Animated.View>
-              )}
-              <ViewfinderCorner
-                color={frameColor}
-                placement="tl"
-                radius={theme.semantic.radius.overlay}
-                size={theme.semantic.size["icon-lg"]}
-                thickness={theme.semantic.borderWidth.strong}
-              />
-              <ViewfinderCorner
-                color={frameColor}
-                placement="tr"
-                radius={theme.semantic.radius.overlay}
-                size={theme.semantic.size["icon-lg"]}
-                thickness={theme.semantic.borderWidth.strong}
-              />
-              <ViewfinderCorner
-                color={frameColor}
-                placement="bl"
-                radius={theme.semantic.radius.overlay}
-                size={theme.semantic.size["icon-lg"]}
-                thickness={theme.semantic.borderWidth.strong}
-              />
-              <ViewfinderCorner
-                color={frameColor}
-                placement="br"
-                radius={theme.semantic.radius.overlay}
-                size={theme.semantic.size["icon-lg"]}
-                thickness={theme.semantic.borderWidth.strong}
-              />
-            </View>
-          </Pressable>
-          <Button
-            disabled={status !== "ready"}
-            label="Cancel"
-            onPress={cancelScan}
-            size="lg"
-            style={{
-              width: viewfinderSize,
-              borderRadius: theme.semantic.radius.card,
-            }}
-            tone="neutral"
-            variant="ghost"
-          />
-        </Stack>
-      </Animated.View>
-      {fromOnboarding ? null : <SplashFooter />}
-    </ThemedView>
+                  </Animated.View>
+                )}
+                <ViewfinderCorner
+                  color={frameColor}
+                  placement="tl"
+                  radius={theme.semantic.radius.overlay}
+                  size={theme.semantic.size["icon-lg"]}
+                  thickness={theme.semantic.borderWidth.strong}
+                />
+                <ViewfinderCorner
+                  color={frameColor}
+                  placement="tr"
+                  radius={theme.semantic.radius.overlay}
+                  size={theme.semantic.size["icon-lg"]}
+                  thickness={theme.semantic.borderWidth.strong}
+                />
+                <ViewfinderCorner
+                  color={frameColor}
+                  placement="bl"
+                  radius={theme.semantic.radius.overlay}
+                  size={theme.semantic.size["icon-lg"]}
+                  thickness={theme.semantic.borderWidth.strong}
+                />
+                <ViewfinderCorner
+                  color={frameColor}
+                  placement="br"
+                  radius={theme.semantic.radius.overlay}
+                  size={theme.semantic.size["icon-lg"]}
+                  thickness={theme.semantic.borderWidth.strong}
+                />
+              </View>
+            </Pressable>
+            <Button
+              disabled={status !== "ready"}
+              label="Cancel"
+              onPress={cancelScan}
+              size="lg"
+              style={{
+                width: viewfinderSize,
+                borderRadius: theme.semantic.radius.card,
+              }}
+              tone="alert"
+              variant="soft"
+            />
+          </Stack>
+        </Animated.View>
+      </ThemedView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -330,12 +369,7 @@ const styles = StyleSheet.create({
   overlay: {
     backgroundColor: "transparent",
   },
-  logo: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    left: 0,
-    zIndex: 1,
+  logoSlot: {
     alignItems: "center",
   },
   stage: {
@@ -344,6 +378,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
+    zIndex: 2,
     alignItems: "center",
     justifyContent: "center",
   },

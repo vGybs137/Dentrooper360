@@ -10,6 +10,8 @@ import { useThemeTokens } from "@/theme";
 const markLogo = require("../../assets/no-text-logo.svg");
 const wordmarkLogo = require("../../assets/text-logo.svg");
 
+export const BRAND_MARK_SIZE = 160;
+
 type BrandLogoProps = {
   showWordmark?: boolean;
   wordmarkStyle?: StyleProp<ViewStyle> | AnimatedStyle<ViewStyle>;
@@ -25,7 +27,7 @@ export function BrandLogo({
         accessibilityLabel="Dentrooper 360 mark"
         contentFit="contain"
         source={markLogo}
-        style={{ width: 160, height: 160 }}
+        style={{ width: BRAND_MARK_SIZE, height: BRAND_MARK_SIZE }}
       />
       {showWordmark ? (
         <Animated.View style={wordmarkStyle}>
