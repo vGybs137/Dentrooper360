@@ -17,17 +17,14 @@ import { BrandLogo, SplashFooter } from "@/components/app/BrandLogo";
 import { LoginForm } from "@/components/app/LoginForm";
 import { ThemedView } from "@/components/ui";
 import { hideNativeSplash } from "@/helpers/nativeSplash";
+import { isIntroFromSplash } from "@/helpers/routeParams";
 import { useSplashIntro } from "@/hooks/useSplashIntro";
-
-function isFlagParam(value: string | string[] | undefined, flag: string) {
-  return value === flag || value?.[0] === flag;
-}
 
 export default function LoginScreen() {
   const { intro } = useLocalSearchParams<{
     intro?: string | string[];
   }>();
-  const animateFromSplash = isFlagParam(intro, "1");
+  const animateFromSplash = isIntroFromSplash(intro);
   const { height: windowHeight } = useWindowDimensions();
   const splashIntro = useSplashIntro(animateFromSplash);
   const logoHeight = useSharedValue(0);

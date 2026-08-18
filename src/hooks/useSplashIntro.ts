@@ -1,6 +1,5 @@
 import { useWindowDimensions } from "react-native";
 import {
-  Easing,
   Extrapolation,
   interpolate,
   runOnJS,
@@ -11,6 +10,7 @@ import {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
 import { useThemeTokens } from "@/theme";
 
 export function useSplashIntro(enabled: boolean) {
@@ -23,10 +23,8 @@ export function useSplashIntro(enabled: boolean) {
   const logoHeight = useSharedValue(0);
   const started = useSharedValue(false);
   const holdMs = theme.semantic.motion.overlay.duration * 2;
-  const moveMs =
-    theme.semantic.motion.overlay.duration +
-    theme.semantic.motion.enter.duration;
-  const moveEasing = Easing.bezier(0.05, 0.7, 0.1, 1);
+  const moveMs = getAuthSlideDuration(theme);
+  const moveEasing = AUTH_SLIDE_EASING;
   const headingBlock =
     theme.semantic.space.section +
     theme.semantic.type.display.lineHeight +

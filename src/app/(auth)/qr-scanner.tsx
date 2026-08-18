@@ -27,6 +27,12 @@ import {
 } from "@/components/app/BrandLogo";
 import { LoginForm } from "@/components/app/LoginForm";
 import { Button, Stack, ThemedView } from "@/components/ui";
+import { isFromOnboarding } from "@/helpers/routeParams";
+import {
+  useAuthSlideTiming,
+  useSlideFromRightStyle,
+  useSlideFromRightToLeftStyle,
+} from "@/hooks/useAuthMotion";
 import { useAuthStore, useRestoreOnboarding } from "@/stores";
 import { useThemeTokens } from "@/theme";
 
@@ -34,10 +40,6 @@ const DEMO_CUSTOMER_ID = "C69B1B73-C143-4B55-8859-1A22EED3C6EA";
 const VIEWFINDER_MAX = 280;
 
 type ScanStatus = "ready" | "paired";
-
-function isOnboardingParam(value: string | string[] | undefined) {
-  return value === "onboarding" || value?.[0] === "onboarding";
-}
 
 function ViewfinderCorner({
   color,
@@ -82,9 +84,10 @@ function ViewfinderCorner({
 export default function QrScannerScreen() {
   const router = useRouter();
   const { from } = useLocalSearchParams<{ from?: string | string[] }>();
-  const fromOnboarding = isOnboardingParam(from);
+  const fromOnboarding = isFromOnboarding(from);
   const theme = useThemeTokens();
   const restoreOnboarding = useRestoreOnboarding();
+  const slideTiming = useAuthSlideTiming();
   const { width: windowWidth } = useWindowDimensions();
   const setCustomerId = useAuthStore((state) => state.setCustomerId);
   const [status, setStatus] = useState<ScanStatus>("ready");
@@ -101,17 +104,10 @@ export default function QrScannerScreen() {
     status === "paired"
       ? theme.palette.success.DEFAULT
       : theme.palette.brand.default;
-  const moveMs =
-    theme.semantic.motion.overlay.duration +
-    theme.semantic.motion.enter.duration;
-  const moveEasing = Easing.bezier(0.05, 0.7, 0.1, 1);
 
   useEffect(() => {
-    enter.value = withTiming(1, {
-      duration: moveMs,
-      easing: moveEasing,
-    });
-  }, [enter, moveMs]);
+    enter.value = withTiming(1, slideTiming);
+  }, [enter, slideTiming]);
 
   useEffect(() => {
     if (status !== "ready") {
@@ -154,18 +150,13 @@ export default function QrScannerScreen() {
     );
   }, [pairedMark, status, theme.semantic.motion.enter.duration]);
 
-  const cameraStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX:
-          (1 - enter.value) * windowWidth - handoff.value * windowWidth,
-      },
-    ],
-  }));
+  const cameraStyle = useSlideFromRightToLeftStyle(
+    enter,
+    handoff,
+    windowWidth,
+  );
 
-  const loginStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: (1 - handoff.value) * windowWidth }],
-  }));
+  const loginStyle = useSlideFromRightStyle(handoff, windowWidth);
 
   const scanLineStyle = useAnimatedStyle(() => ({
     opacity: interpolate(scanLine.value, [0, 0.1, 0.9, 1], [0, 1, 1, 0]),
@@ -192,10 +183,7 @@ export default function QrScannerScreen() {
   }
 
   function startHandoff() {
-    handoff.value = withTiming(1, {
-      duration: moveMs,
-      easing: moveEasing,
-    });
+    handoff.value = withTiming(1, slideTiming);
   }
 
   function leaveScanner() {
@@ -215,10 +203,7 @@ export default function QrScannerScreen() {
     restoreOnboarding();
     enter.value = withTiming(
       0,
-      {
-        duration: moveMs,
-        easing: moveEasing,
-      },
+      slideTiming,
       (finished) => {
         if (finished) {
           runOnJS(leaveScanner)();
