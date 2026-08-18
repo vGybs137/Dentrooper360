@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Appearance, useColorScheme } from "react-native";
 
 export type ThemeMode = "system" | "light" | "dark";
@@ -14,13 +20,14 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useColorScheme();
-  const systemResolved: ResolvedTheme = systemScheme === "dark" ? "dark" : "light";
+  const systemResolved: ResolvedTheme =
+    systemScheme === "dark" ? "dark" : "light";
 
   const [mode, setMode] = useState<ThemeMode>("system");
 
   // Drive appearance (and NativeWind dark mode) centrally.
   useEffect(() => {
-    const nextScheme = mode === "system" ? null : mode;
+    const nextScheme = mode === "system" ? "unspecified" : mode;
     Appearance.setColorScheme(nextScheme);
   }, [mode]);
 
@@ -29,7 +36,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return { mode, resolved, setMode };
   }, [mode, systemResolved]);
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
 }
 
 export function useAppTheme(): ThemeContextValue {
@@ -39,4 +48,3 @@ export function useAppTheme(): ThemeContextValue {
   }
   return value;
 }
-
