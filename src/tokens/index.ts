@@ -11,3 +11,20 @@ export {
 } from "./primitives";
 export { semantic } from "./semantic";
 export { nativewindTheme } from "./nativewindTheme";
+export {
+  darkPalette,
+  lightPalette,
+  themePalettes,
+  type ThemePalette,
+  type AccentTone,
+  type BorderTone,
+  type ForegroundTone,
+  type StatusTone,
+  type SurfaceTone,
+} from "./palette";
+export {
+  getRuntimeTheme,
+  runtimeThemes,
+  type ResolvedTheme,
+  type RuntimeTheme,
+} from "./theme";

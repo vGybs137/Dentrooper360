@@ -6,6 +6,8 @@
    NativeWind classes reference these values via `var(--token-*)`.
    Dark mode is handled via the user's OS preference (`prefers-color-scheme`). */
 :root {
+  color-scheme: light;
+
   /* Brand */
   --brand-500: #0a9e91;
   --brand-700: #06796f;
@@ -50,24 +52,28 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  --surface-default: #0b0f10;
-  --surface-sunken: #0f1517;
-  --surface-raised: #111827;
-  --surface-overlay: #0b0f10;
-  --surface-inverse: #fafafa;
+  :root {
+    color-scheme: dark;
 
-  --foreground-default: #e5e7eb;
-  --foreground-muted: #9ca3af;
-  --foreground-inverse: #0b0f10;
+    --surface-default: #0b0f10;
+    --surface-sunken: #0f1517;
+    --surface-raised: #111827;
+    --surface-overlay: #0b0f10;
+    --surface-inverse: #fafafa;
 
-  --border-subtle: #27303a;
-  --border-default: #334155;
-  --border-strong: #475569;
-  --border-focus: var(--brand-500);
+    --foreground-default: #e5e7eb;
+    --foreground-muted: #9ca3af;
+    --foreground-inverse: #0b0f10;
 
-  /* Keep alert/success/brand readable on dark surfaces */
-  --success-subtle: rgba(22, 163, 74, 0.18);
-  --alert-subtle: rgba(239, 68, 68, 0.18);
-  --brand-subtle: rgba(10, 158, 145, 0.18);
-  --accent-subtle: rgba(29, 78, 216, 0.18);
+    --border-subtle: #27303a;
+    --border-default: #334155;
+    --border-strong: #475569;
+    --border-focus: var(--brand-500);
+
+    /* Keep alert/success/brand readable on dark surfaces */
+    --success-subtle: rgba(22, 163, 74, 0.18);
+    --alert-subtle: rgba(239, 68, 68, 0.18);
+    --brand-subtle: rgba(10, 158, 145, 0.18);
+    --accent-subtle: rgba(29, 78, 216, 0.18);
+  }
 }
