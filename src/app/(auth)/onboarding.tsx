@@ -1,6 +1,9 @@
 import { type Href, useRouter } from "expo-router";
 
-import { AppScreenShell, AppSectionCard } from "@/components/app/AppScreenShell";
+import {
+  AppScreenShell,
+  AppSectionCard,
+} from "@/components/app/AppScreenShell";
 import { Button, Stack, ThemedText } from "@/components/ui";
 
 export default function OnboardingScreen() {
