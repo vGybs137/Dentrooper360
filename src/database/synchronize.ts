@@ -4,7 +4,7 @@ import {
   type SyncDatabaseChangeSet,
 } from "@nozbe/watermelondb/sync";
 
-import { pullChanges, pushChanges } from "@/api";
+import { pullChanges, pushChanges } from "@/api/functions/sync";
 import { MIGRATIONS_ENABLED_AT_VERSION } from "@/constants/sync";
 import { toPullMigration } from "@/helpers/sync";
 import type { MobilePushRequest } from "@/types/sync";

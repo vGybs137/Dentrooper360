@@ -1,14 +1,17 @@
 import axios, {
+  type AxiosInstance,
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from "axios";
 
+import { recycleTokens } from "@/helpers/sessionRefresh";
 import { hydrateAuthStore, useAuthStore } from "@/stores";
 import { ApiError, type ApiResponse, type ApiResponseError } from "@/types/api";
 
 declare module "axios" {
   interface AxiosRequestConfig {
     skipAuth?: boolean;
+    _retry?: boolean;
   }
 }
 
@@ -80,4 +83,36 @@ export function toRejectedError(error: unknown): Promise<never> {
   }
 
   return Promise.reject(error);
+}
+
+export async function retryUnauthorizedRequest(
+  client: AxiosInstance,
+  error: unknown,
+): Promise<AxiosResponse> {
+  if (!axios.isAxiosError(error)) {
+    return Promise.reject(await toRejectedError(error));
+  }
+
+  const config = error.config;
+  const status = error.response?.status ?? 0;
+
+  if (
+    !config ||
+    config.skipAuth ||
+    config._retry ||
+    status !== 401
+  ) {
+    return Promise.reject(await toRejectedError(error));
+  }
+
+  config._retry = true;
+
+  try {
+    await recycleTokens();
+    const next = await attachAccessToken(config);
+    return client.request(next);
+  } catch {
+    useAuthStore.getState().clearSession();
+    return Promise.reject(await toRejectedError(error));
+  }
 }

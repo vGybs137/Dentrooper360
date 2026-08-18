@@ -1,6 +1,7 @@
 import { hydrateAuthStore, useAuthStore } from "@/stores";
 import { ApiError } from "@/types/api";
 import type { AuthSession, AuthUser, LoginRequest, PairRequest, PairResponse } from "@/types/auth";
+import { synchronize } from "@/database/synchronize";
 
 import {
   mapAuthSession,
@@ -37,6 +38,7 @@ export async function login(request: LoginRequest): Promise<AuthSession> {
 export async function refreshSession(): Promise<AuthSession> {
   await hydrateAuthStore();
   const refreshToken = useAuthStore.getState().refreshToken;
+
   if (!refreshToken) {
     throw new ApiError("No refresh token is stored.", 401);
   }
@@ -56,6 +58,11 @@ export async function logout(): Promise<void> {
   await hydrateAuthStore();
   const store = useAuthStore.getState();
   const refreshToken = store.refreshToken;
+  const customerId = store.customerId;
+
+  if (customerId) {
+    await synchronize(customerId);
+  }
 
   try {
     if (refreshToken) {

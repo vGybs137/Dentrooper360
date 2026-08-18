@@ -4,6 +4,7 @@ import { Stack } from "expo-router";
 
 import { keepNativeSplashVisible } from "@/helpers/nativeSplash";
 import { usePeriodicSync } from "@/hooks/usePeriodicSync";
+import { useTokenRefresh } from "@/hooks/useTokenRefresh";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/theme";
 
@@ -11,6 +12,7 @@ keepNativeSplashVisible();
 
 export default function RootLayout() {
   usePeriodicSync();
+  useTokenRefresh();
   return (
     <QueryProvider>
       <ThemeProvider>

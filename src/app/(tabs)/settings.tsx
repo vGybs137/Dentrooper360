@@ -5,6 +5,7 @@ import { logout } from "@/api";
 import { AppScreenShell, AppSectionCard } from "@/components/app/AppScreenShell";
 import { Button, Stack, ThemedText } from "@/components/ui";
 import { useAppTheme, type ThemeMode } from "@/theme";
+import { ApiError } from "@/types/api";
 
 const THEME_ORDER: ThemeMode[] = ["system", "light", "dark"];
 
@@ -30,11 +31,17 @@ export default function SettingsScreen() {
   const nextMode = nextThemeMode(mode);
   const logoutMutation = useMutation({
     mutationFn: logout,
-    onSettled: () => {
+    onSuccess: () => {
       queryClient.clear();
       router.replace("/(auth)/login" as Href);
     },
   });
+  const logoutError =
+    logoutMutation.error instanceof ApiError
+      ? logoutMutation.error.message
+      : logoutMutation.isError
+        ? "Unable to sync clinic data. Stay online and try logging out again."
+        : undefined;
 
   return (
     <AppScreenShell
@@ -47,9 +54,12 @@ export default function SettingsScreen() {
         description="Sign out of this device. The clinic pairing stays saved so you can sign back in."
       >
         <Stack space="compact">
+          {logoutError ? <ThemedText tone="alert">{logoutError}</ThemedText> : null}
           <Button
             disabled={logoutMutation.isPending}
-            label={logoutMutation.isPending ? "Signing out..." : "Log out"}
+            label={
+              logoutMutation.isPending ? "Syncing and signing out..." : "Log out"
+            }
             onPress={() => {
               logoutMutation.mutate();
             }}

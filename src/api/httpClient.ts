@@ -6,6 +6,7 @@ import axios, {
 import { API_BASE_URL, API_TIMEOUT_MS } from "@/constants/api";
 import {
   attachAccessToken,
+  retryUnauthorizedRequest,
   toRejectedError,
   unwrapEnvelope,
 } from "@/helpers/httpClient";
@@ -45,9 +46,9 @@ httpClient.interceptors.response.use(
     logResponse(response);
     return unwrapEnvelope(response);
   },
-  (error) => {
+  async (error) => {
     logError(error);
-    return toRejectedError(error);
+    return retryUnauthorizedRequest(httpClient, error);
   },
 );
 
