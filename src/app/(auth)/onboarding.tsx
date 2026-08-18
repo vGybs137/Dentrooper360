@@ -1,6 +1,6 @@
-import { type Href, useRouter } from "expo-router";
+import { type Href, useFocusEffect, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { BrandLogo, useSplashFooterOffset } from "@/components/app/BrandLogo";
 import { SplashIntroLayout } from "@/components/app/SplashIntroLayout";
@@ -14,18 +14,35 @@ export default function OnboardingScreen() {
   const theme = useThemeTokens();
   const splashIntro = useSplashIntro(true);
   const footerOffset = useSplashFooterOffset();
+  const [isLeaving, setIsLeaving] = useState(false);
+  const leavingRef = useRef(false);
+  const restoreRef = useRef(splashIntro.restore);
+  restoreRef.current = splashIntro.restore;
 
   useEffect(() => {
     void hideNativeSplash();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (!leavingRef.current) {
+        return;
+      }
+
+      leavingRef.current = false;
+      restoreRef.current();
+      setIsLeaving(false);
+    }, [])
+  );
+
   return (
     <SplashIntroLayout
       enabled
       intro={splashIntro}
-      logo={<BrandLogo />}
+      logo={<BrandLogo wordmarkStyle={splashIntro.dismissWordmarkStyle} />}
     >
       <ThemedView
+        pointerEvents={isLeaving ? "none" : "auto"}
         surface="raised"
         style={{
           borderTopLeftRadius: theme.semantic.radius.dialog,
@@ -47,6 +64,7 @@ export default function OnboardingScreen() {
             </ThemedText>
           </Stack>
           <Button
+            disabled={isLeaving}
             icon={
               <SymbolView
                 name={{
@@ -59,7 +77,19 @@ export default function OnboardingScreen() {
               />
             }
             label="Scan QR Code"
-            onPress={() => router.push("/(auth)/qr-scanner" as Href)}
+            onPress={() => {
+              if (isLeaving) {
+                return;
+              }
+
+              leavingRef.current = true;
+              setIsLeaving(true);
+              splashIntro.dismiss();
+              router.push({
+                pathname: "/(auth)/qr-scanner",
+                params: { from: "onboarding" },
+              } as Href);
+            }}
             size="lg"
             style={{
               backgroundColor: theme.palette.brand.subtle,

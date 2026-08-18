@@ -25,7 +25,7 @@ export function BrandLogo({
         accessibilityLabel="Dentrooper 360 mark"
         contentFit="contain"
         source={markLogo}
-        style={{ width: 200, height: 200 }}
+        style={{ width: 160, height: 160 }}
       />
       {showWordmark ? (
         <Animated.View style={wordmarkStyle}>

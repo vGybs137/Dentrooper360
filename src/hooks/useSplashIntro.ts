@@ -1,7 +1,9 @@
+import { useWindowDimensions } from "react-native";
 import {
   Easing,
   Extrapolation,
   interpolate,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
@@ -14,14 +16,18 @@ import { useThemeTokens } from "@/theme";
 export function useSplashIntro(enabled: boolean) {
   const theme = useThemeTokens();
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
   const progress = useSharedValue(enabled ? 0 : 1);
+  const exitProgress = useSharedValue(0);
   const contentHeight = useSharedValue(0);
+  const logoHeight = useSharedValue(0);
   const started = useSharedValue(false);
   const holdMs = theme.semantic.motion.overlay.duration * 2;
   const moveMs =
     theme.semantic.motion.overlay.duration +
     theme.semantic.motion.enter.duration;
   const moveEasing = Easing.bezier(0.05, 0.7, 0.1, 1);
+  const pageSpace = theme.semantic.space.page;
 
   function start() {
     if (!enabled || started.value) {
@@ -34,7 +40,7 @@ export function useSplashIntro(enabled: boolean) {
       withTiming(1, {
         duration: moveMs,
         easing: moveEasing,
-      })
+      }),
     );
   }
 
@@ -47,15 +53,66 @@ export function useSplashIntro(enabled: boolean) {
     start();
   }
 
+  function onLogoLayout(height: number) {
+    if (height <= 0) {
+      return;
+    }
+
+    logoHeight.value = height;
+  }
+
+  function restore() {
+    if (!enabled || exitProgress.value === 0) {
+      return;
+    }
+
+    exitProgress.value = withTiming(0, {
+      duration: moveMs,
+      easing: moveEasing,
+    });
+  }
+
+  function dismiss(onFinished?: () => void) {
+    if (!enabled || exitProgress.value !== 0) {
+      onFinished?.();
+      return;
+    }
+
+    exitProgress.value = withTiming(
+      1,
+      {
+        duration: moveMs,
+        easing: moveEasing,
+      },
+      (finished) => {
+        if (finished && onFinished) {
+          runOnJS(onFinished)();
+        }
+      },
+    );
+  }
+
   const logoStyle = useAnimatedStyle(() => {
     if (!enabled) {
       return { transform: [{ translateY: 0 }] };
     }
 
-    const offset = Math.max((contentHeight.value - insets.top) / 2, 0);
+    const introOffset = Math.max((contentHeight.value - insets.top) / 2, 0);
+    const restY = -progress.value * introOffset;
+
+    if (logoHeight.value === 0) {
+      return { transform: [{ translateY: restY }] };
+    }
+
+    const topY =
+      insets.top + pageSpace - (windowHeight - logoHeight.value) / 2;
 
     return {
-      transform: [{ translateY: -progress.value * offset }],
+      transform: [
+        {
+          translateY: restY + exitProgress.value * (topY - restY),
+        },
+      ],
     };
   });
 
@@ -64,13 +121,13 @@ export function useSplashIntro(enabled: boolean) {
       return { transform: [{ translateY: 0 }] };
     }
 
+    const height = contentHeight.value === 0 ? 400 : contentHeight.value;
+
     return {
       transform: [
         {
           translateY:
-            contentHeight.value === 0
-              ? 400
-              : (1 - progress.value) * contentHeight.value,
+            (1 - progress.value * (1 - exitProgress.value)) * height,
         },
       ],
     };
@@ -86,13 +143,34 @@ export function useSplashIntro(enabled: boolean) {
     overflow: "hidden" as const,
   }));
 
+  const dismissWordmarkStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(
+      exitProgress.value,
+      [0, 0.45],
+      [1, 0],
+      Extrapolation.CLAMP
+    ),
+    height: interpolate(
+      exitProgress.value,
+      [0, 0.45],
+      [36, 0],
+      Extrapolation.CLAMP
+    ),
+    overflow: "hidden" as const,
+  }));
+
   return {
     enabled,
     progress,
+    exitProgress,
     start,
+    dismiss,
+    restore,
     onContentLayout,
+    onLogoLayout,
     logoStyle,
     contentStyle,
     wordmarkStyle,
+    dismissWordmarkStyle,
   };
 }

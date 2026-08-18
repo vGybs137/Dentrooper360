@@ -46,7 +46,13 @@ export function SplashIntroLayout({
   return (
     <ThemedView surface="sunken" style={styles.root}>
       <Animated.View style={[styles.logoStage, intro.logoStyle]}>
-        {logo}
+        <View
+          onLayout={(event) => {
+            intro.onLogoLayout(event.nativeEvent.layout.height);
+          }}
+        >
+          {logo}
+        </View>
       </Animated.View>
       <Animated.View
         onLayout={(event) => {
