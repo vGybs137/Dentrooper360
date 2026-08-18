@@ -13,16 +13,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useThemeTokens } from "@/theme";
 
-let onboardingRestore: (() => void) | null = null;
-
-export function registerOnboardingRestore(handler: (() => void) | null) {
-  onboardingRestore = handler;
-}
-
-export function restoreOnboarding() {
-  onboardingRestore?.();
-}
-
 export function useSplashIntro(enabled: boolean) {
   const theme = useThemeTokens();
   const insets = useSafeAreaInsets();

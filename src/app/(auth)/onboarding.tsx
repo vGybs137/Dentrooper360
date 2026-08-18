@@ -1,52 +1,30 @@
-import { type Href, useFocusEffect, useRouter } from "expo-router";
+import { type Href, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BrandLogo } from "@/components/app/BrandLogo";
 import { SplashIntroLayout } from "@/components/app/SplashIntroLayout";
 import { Button, Stack, ThemedText, ThemedView } from "@/components/ui";
 import { hideNativeSplash } from "@/helpers/nativeSplash";
-import { useSplashIntro, registerOnboardingRestore } from "@/hooks/useSplashIntro";
+import {
+  useAuthFlowSplashIntro,
+  useAuthFlowIsLeaving,
+  useBeginOnboardingExit,
+} from "@/stores";
 import { useThemeTokens } from "@/theme";
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const theme = useThemeTokens();
-  const splashIntro = useSplashIntro(true);
+  const splashIntro = useAuthFlowSplashIntro();
+  const isLeaving = useAuthFlowIsLeaving();
+  const beginOnboardingExit = useBeginOnboardingExit();
   const insets = useSafeAreaInsets();
-  const [isLeaving, setIsLeaving] = useState(false);
-  const leavingRef = useRef(false);
-  const restoreRef = useRef(splashIntro.restore);
-  restoreRef.current = splashIntro.restore;
 
   useEffect(() => {
     void hideNativeSplash();
   }, []);
-
-  useEffect(() => {
-    registerOnboardingRestore(() => {
-      leavingRef.current = false;
-      restoreRef.current();
-      setIsLeaving(false);
-    });
-
-    return () => {
-      registerOnboardingRestore(null);
-    };
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!leavingRef.current) {
-        return;
-      }
-
-      leavingRef.current = false;
-      restoreRef.current();
-      setIsLeaving(false);
-    }, [])
-  );
 
   return (
     <SplashIntroLayout
@@ -95,9 +73,7 @@ export default function OnboardingScreen() {
                 return;
               }
 
-              leavingRef.current = true;
-              setIsLeaving(true);
-              splashIntro.dismiss();
+              beginOnboardingExit();
               router.push({
                 pathname: "/(auth)/qr-scanner",
                 params: { from: "onboarding" },

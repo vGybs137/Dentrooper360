@@ -27,8 +27,7 @@ import {
 } from "@/components/app/BrandLogo";
 import { LoginForm } from "@/components/app/LoginForm";
 import { Button, Stack, ThemedView } from "@/components/ui";
-import { useAuthStore } from "@/stores";
-import { restoreOnboarding } from "@/hooks/useSplashIntro";
+import { useAuthStore, useRestoreOnboarding } from "@/stores";
 import { useThemeTokens } from "@/theme";
 
 const DEMO_CUSTOMER_ID = "C69B1B73-C143-4B55-8859-1A22EED3C6EA";
@@ -85,6 +84,7 @@ export default function QrScannerScreen() {
   const { from } = useLocalSearchParams<{ from?: string | string[] }>();
   const fromOnboarding = isOnboardingParam(from);
   const theme = useThemeTokens();
+  const restoreOnboarding = useRestoreOnboarding();
   const { width: windowWidth } = useWindowDimensions();
   const setCustomerId = useAuthStore((state) => state.setCustomerId);
   const [status, setStatus] = useState<ScanStatus>("ready");
