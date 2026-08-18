@@ -24,6 +24,7 @@ type ButtonTonePalette = {
 
 export type ButtonProps = Omit<PressableProps, "style"> & {
   label: string;
+  icon?: React.ReactNode;
   tone?: ButtonTone;
   variant?: ButtonVariant;
   size?: ButtonSize;
@@ -81,6 +82,7 @@ function resolveHeight(theme: ReturnType<typeof useThemeTokens>, size: ButtonSiz
 
 export function Button({
   label,
+  icon,
   tone = "brand",
   variant = "solid",
   size = "md",
@@ -126,8 +128,10 @@ export function Button({
       }}
       style={[
         {
+          flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
+          gap: theme.semantic.space.gap.compact,
           minHeight: resolveHeight(theme, size),
           paddingHorizontal: theme.semantic.space.inline.default,
           borderRadius: theme.semantic.radius.control,
@@ -145,6 +149,7 @@ export function Button({
       ]}
       {...props}
     >
+      {icon}
       <ThemedText
         className={cn("text-center", textClassName)}
         style={{ color: labelColor }}
