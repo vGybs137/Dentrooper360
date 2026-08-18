@@ -3,7 +3,7 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from "axios";
 
-import { tokenStore } from "@/stores";
+import { hydrateAuthStore, useAuthStore } from "@/stores";
 import { ApiError, type ApiResponse, type ApiResponseError } from "@/types/api";
 
 declare module "axios" {
@@ -36,7 +36,8 @@ export async function attachAccessToken(
     return config;
   }
 
-  const accessToken = await tokenStore.getAccessToken();
+  await hydrateAuthStore();
+  const accessToken = useAuthStore.getState().accessToken;
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }

@@ -1,4 +1,4 @@
-import { tokenStore } from "@/stores";
+import { hydrateAuthStore, useAuthStore } from "@/stores";
 import type {
   AuthSession,
   AuthUser,
@@ -74,9 +74,16 @@ export function toPairPayload(request: PairRequest) {
   };
 }
 
-export async function persistSession(session: AuthSession): Promise<void> {
-  await Promise.all([
-    tokenStore.setAccessToken(session.accessToken),
-    tokenStore.setRefreshToken(session.refreshToken),
-  ]);
+export async function persistSession(
+  session: AuthSession,
+  customerId?: string | null,
+): Promise<void> {
+  await hydrateAuthStore();
+
+  const store = useAuthStore.getState();
+  if (customerId !== undefined) {
+    store.setCustomerId(customerId);
+  }
+
+  store.setSession(session);
 }

@@ -1,4 +1,4 @@
-import { tokenStore } from "@/stores";
+import { hydrateAuthStore, useAuthStore } from "@/stores";
 import { ApiError } from "@/types/api";
 import type { AuthSession, AuthUser, LoginRequest, PairRequest, PairResponse } from "@/types/auth";
 
@@ -30,12 +30,13 @@ export async function login(request: LoginRequest): Promise<AuthSession> {
   );
 
   const session = mapAuthSession(response.data);
-  await persistSession(session);
+  await persistSession(session, request.customerId);
   return session;
 }
 
 export async function refreshSession(): Promise<AuthSession> {
-  const refreshToken = await tokenStore.getRefreshToken();
+  await hydrateAuthStore();
+  const refreshToken = useAuthStore.getState().refreshToken;
   if (!refreshToken) {
     throw new ApiError("No refresh token is stored.", 401);
   }
@@ -52,7 +53,9 @@ export async function refreshSession(): Promise<AuthSession> {
 }
 
 export async function logout(): Promise<void> {
-  const refreshToken = await tokenStore.getRefreshToken();
+  await hydrateAuthStore();
+  const store = useAuthStore.getState();
+  const refreshToken = store.refreshToken;
 
   try {
     if (refreshToken) {
@@ -63,7 +66,7 @@ export async function logout(): Promise<void> {
       );
     }
   } finally {
-    await tokenStore.clear();
+    store.clearSession();
   }
 }
 
@@ -74,7 +77,9 @@ export async function pairDevice(request: PairRequest): Promise<PairResponse> {
     { skipAuth: true },
   );
 
-  return mapPairResponse(response.data);
+  const pairResponse = mapPairResponse(response.data);
+  useAuthStore.getState().setCustomerId(pairResponse.customerId);
+  return pairResponse;
 }
 
 export async function getCurrentUser(): Promise<AuthUser> {

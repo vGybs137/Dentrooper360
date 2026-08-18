@@ -6,7 +6,7 @@ export {
   AUTH_PAIR_PATH,
   AUTH_REFRESH_PATH,
 } from "./auth";
-export { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from "./storage";
+export { AUTH_STORE_KEY } from "./storage";
 export {
   MIGRATIONS_ENABLED_AT_VERSION,
   SYNC_MOBILE_PULL_PATH,
