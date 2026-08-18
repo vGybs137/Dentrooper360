@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Pressable,
   type GestureResponderEvent,
@@ -88,10 +88,13 @@ export function Button({
   className,
   textClassName,
   style,
+  onPressIn,
+  onPressOut,
   ...props
 }: ButtonProps) {
   const theme = useThemeTokens();
   const tonePalette = resolveTone(theme, tone);
+  const [pressed, setPressed] = useState(false);
 
   const backgroundColor =
     variant === "solid"
@@ -101,28 +104,37 @@ export function Button({
         : "transparent";
   const borderColor =
     variant === "outline" ? tonePalette.default : "transparent";
-  const textTone =
+  const labelColor =
     variant === "solid"
-      ? tone === "neutral"
-        ? "inverse"
-        : "inverse"
+      ? tonePalette.text
       : tone === "neutral"
-        ? "default"
-        : tone;
+        ? theme.palette.foreground.default
+        : tonePalette.default;
 
   return (
     <Pressable
       accessibilityRole="button"
-      className={cn("items-center justify-center rounded-control", className)}
+      className={className}
       disabled={disabled}
-      style={({ pressed }) => [
+      onPressIn={(event) => {
+        setPressed(true);
+        onPressIn?.(event);
+      }}
+      onPressOut={(event) => {
+        setPressed(false);
+        onPressOut?.(event);
+      }}
+      style={[
         {
+          alignItems: "center",
+          justifyContent: "center",
           minHeight: resolveHeight(theme, size),
           paddingHorizontal: theme.semantic.space.inline.default,
           borderRadius: theme.semantic.radius.control,
           backgroundColor,
           borderColor,
-          borderWidth: borderColor === "transparent" ? 0 : theme.semantic.borderWidth.strong,
+          borderWidth:
+            borderColor === "transparent" ? 0 : theme.semantic.borderWidth.strong,
           opacity: disabled
             ? theme.semantic.opacity.disabled
             : pressed
@@ -135,7 +147,7 @@ export function Button({
     >
       <ThemedText
         className={cn("text-center", textClassName)}
-        tone={textTone}
+        style={{ color: labelColor }}
         variant="label"
       >
         {label}
