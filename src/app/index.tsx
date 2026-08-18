@@ -1,7 +1,10 @@
-import { useEffect } from "react";
 import { type Href, useRouter } from "expo-router";
+import { useEffect } from "react";
 
-import { AppScreenShell, AppSectionCard } from "@/components/app/AppScreenShell";
+import {
+  AppScreenShell,
+  AppSectionCard,
+} from "@/components/app/AppScreenShell";
 import { Button, Stack, ThemedText } from "@/components/ui";
 import { hideNativeSplash } from "@/helpers/nativeSplash";
 import { useStartupSessionCheck } from "@/hooks/useStartupSessionCheck";
@@ -68,6 +71,7 @@ export default function Index() {
     isPending: isSyncing,
     isSuccess: isSyncComplete,
     isError: isSyncFailed,
+    isFetchedAfterMount: hasSyncedThisVisit,
     refetch: retrySync,
     isFetching: isRetryingSync,
   } = useStartupSync(isSessionValid);
@@ -79,7 +83,7 @@ export default function Index() {
 
     if (!customerId) {
       void hideNativeSplash();
-      router.replace("/(auth)/qr-scanner" as Href);
+      router.replace("/(auth)/onboarding" as Href);
       return;
     }
 
@@ -109,7 +113,7 @@ export default function Index() {
       return;
     }
 
-    if (isSyncing) {
+    if (!hasSyncedThisVisit) {
       return;
     }
 
@@ -123,9 +127,9 @@ export default function Index() {
     isAuthenticated,
     isSessionInvalid,
     isSessionValid,
+    hasSyncedThisVisit,
     isSyncComplete,
     isSyncFailed,
-    isSyncing,
     isValidatingSession,
     router,
   ]);

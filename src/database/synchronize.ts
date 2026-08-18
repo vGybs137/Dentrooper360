@@ -4,7 +4,7 @@ import {
   type SyncDatabaseChangeSet,
 } from "@nozbe/watermelondb/sync";
 
-import { pullChanges, pushChanges } from "@/api";
+import { pullChanges, pushChanges } from "@/api/functions/sync";
 import { MIGRATIONS_ENABLED_AT_VERSION } from "@/constants/sync";
 import { toPullMigration } from "@/helpers/sync";
 import type { MobilePushRequest } from "@/types/sync";
@@ -38,12 +38,24 @@ async function runSynchronize(customerId: string): Promise<void> {
   });
 }
 
+let inFlight: Promise<void> | null = null;
+
 export async function synchronize(customerId: string): Promise<void> {
-  try {
-    await runSynchronize(customerId);
-  } catch {
-    await runSynchronize(customerId);
+  if (inFlight) {
+    return inFlight;
   }
+
+  inFlight = (async () => {
+    try {
+      await runSynchronize(customerId);
+    } catch {
+      await runSynchronize(customerId);
+    }
+  })().finally(() => {
+    inFlight = null;
+  });
+
+  return inFlight;
 }
 
 export function hasUnsyncedChanges(): Promise<boolean> {

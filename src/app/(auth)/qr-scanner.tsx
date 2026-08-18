@@ -1,10 +1,16 @@
 import { type Href, useRouter } from "expo-router";
 
-import { AppScreenShell, AppSectionCard } from "@/components/app/AppScreenShell";
+import {
+  AppScreenShell,
+  AppSectionCard,
+} from "@/components/app/AppScreenShell";
 import { Button, Stack, ThemedText } from "@/components/ui";
+import { useAuthStore } from "@/stores";
 
 export default function QrScannerScreen() {
   const router = useRouter();
+
+  const setCustomerId = useAuthStore((state) => state.setCustomerId);
 
   return (
     <AppScreenShell
@@ -19,12 +25,15 @@ export default function QrScannerScreen() {
         <Stack space="compact">
           <Button
             label="Simulate successful scan"
-            onPress={() => router.push("/(auth)/login" as Href)}
+            onPress={() => {
+              setCustomerId("C69B1B73-C143-4B55-8859-1A22EED3C6EA");
+              router.push("/(auth)/login" as Href);
+            }}
             tone="success"
           />
           <ThemedText tone="muted">
-            Add camera permission handling and scan error states on this screen
-            when you wire the real scanner.
+            Pairing stores the clinic customer ID and continues to login. Clinic
+            data is synced after the user signs in, not after a successful scan.
           </ThemedText>
         </Stack>
       </AppSectionCard>

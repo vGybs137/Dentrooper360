@@ -14,6 +14,7 @@ type PersistedAuthState = {
   customerId: string | null;
   accessToken: string | null;
   refreshToken: string | null;
+  expiresAt: string | null;
 };
 
 type AuthStoreState = PersistedAuthState & {
@@ -42,6 +43,7 @@ export const useAuthStore = create<AuthStoreState>()(
       customerId: null,
       accessToken: null,
       refreshToken: null,
+      expiresAt: null,
       hasHydrated: false,
       setHasHydrated: (value) => set({ hasHydrated: value }),
       setCustomerId: (customerId) => set({ customerId }),
@@ -53,12 +55,14 @@ export const useAuthStore = create<AuthStoreState>()(
           user: session.user,
           accessToken: session.accessToken,
           refreshToken: session.refreshToken,
+          expiresAt: session.expiresAt.toISOString(),
         }),
       clearSession: () =>
         set({
           user: null,
           accessToken: null,
           refreshToken: null,
+          expiresAt: null,
         }),
       clearAll: () =>
         set({
@@ -66,16 +70,18 @@ export const useAuthStore = create<AuthStoreState>()(
           customerId: null,
           accessToken: null,
           refreshToken: null,
+          expiresAt: null,
         }),
     }),
     {
       name: AUTH_STORE_KEY,
       storage: securePersistStorage,
-      partialize: ({ user, customerId, accessToken, refreshToken }) => ({
+      partialize: ({ user, customerId, accessToken, refreshToken, expiresAt }) => ({
         user,
         customerId,
         accessToken,
         refreshToken,
+        expiresAt,
       }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
@@ -116,6 +122,16 @@ export function useAccessToken() {
 
 export function useRefreshToken() {
   return useAuthStore((state) => state.refreshToken);
+}
+
+export function useAccessTokenExpiresAt(): Date | null {
+  const expiresAt = useAuthStore((state) => state.expiresAt);
+  return expiresAt ? new Date(expiresAt) : null;
+}
+
+export function getAccessTokenExpiresAt(): Date | null {
+  const expiresAt = useAuthStore.getState().expiresAt;
+  return expiresAt ? new Date(expiresAt) : null;
 }
 
 export function useHasHydrated() {

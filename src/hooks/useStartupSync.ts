@@ -17,7 +17,13 @@ export function useStartupSync(sessionValid: boolean) {
 
   return useQuery({
     queryKey: queryKeys.sync.startup(customerId ?? ""),
-    queryFn: () => synchronize(customerId!),
+    queryFn: async () => {
+      await synchronize(customerId!);
+      return true;
+    },
     enabled: shouldSync,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: "always",
   });
 }
