@@ -66,7 +66,7 @@ export default function LoginScreen() {
         splashIntro.progress.value,
         [0, 0.2],
         [0, 1],
-        Extrapolation.CLAMP
+        Extrapolation.CLAMP,
       ),
       transform: [
         {

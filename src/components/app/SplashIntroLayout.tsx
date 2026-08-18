@@ -54,6 +54,7 @@ export function SplashIntroLayout({
           {logo}
         </View>
       </Animated.View>
+      <SplashFooter />
       <Animated.View
         onLayout={(event) => {
           intro.onContentLayout(event.nativeEvent.layout.height);
@@ -62,7 +63,6 @@ export function SplashIntroLayout({
       >
         {children}
       </Animated.View>
-      <SplashFooter />
     </ThemedView>
   );
 }
@@ -89,5 +89,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
+    zIndex: 1,
   },
 });

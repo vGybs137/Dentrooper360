@@ -1,21 +1,18 @@
 import { useMutation } from "@tanstack/react-query";
 import { type Href, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { type ReactNode, useEffect, useState, type ComponentProps } from "react";
 import {
-  Pressable,
-  View,
-} from "react-native";
+  type ComponentProps,
+  type ReactNode,
+  useEffect,
+  useState,
+} from "react";
+import { Pressable, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { login } from "@/api";
-import {
-  Button,
-  Stack,
-  TextField,
-  ThemedText,
-} from "@/components/ui";
+import { Button, Stack, TextField, ThemedText } from "@/components/ui";
 import { useStartupSync } from "@/hooks/useStartupSync";
 import { useCustomerId } from "@/stores";
 import { useThemeTokens } from "@/theme";

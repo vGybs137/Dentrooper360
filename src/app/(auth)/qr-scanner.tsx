@@ -28,6 +28,7 @@ import {
 import { LoginForm } from "@/components/app/LoginForm";
 import { Button, Stack, ThemedView } from "@/components/ui";
 import { useAuthStore } from "@/stores";
+import { restoreOnboarding } from "@/hooks/useSplashIntro";
 import { useThemeTokens } from "@/theme";
 
 const DEMO_CUSTOMER_ID = "C69B1B73-C143-4B55-8859-1A22EED3C6EA";
@@ -142,16 +143,16 @@ export default function QrScannerScreen() {
     pairedMark.value = withTiming(
       1,
       {
-        duration: theme.semantic.motion.normal.duration,
+        duration: theme.semantic.motion.enter.duration,
         easing: Easing.out(Easing.cubic),
       },
       (finished) => {
         if (finished) {
-          runOnJS(startHandoff)();
+          runOnJS(scheduleHandoff)();
         }
       },
     );
-  }, [pairedMark, status, theme.semantic.motion.normal.duration]);
+  }, [pairedMark, status, theme.semantic.motion.enter.duration]);
 
   const cameraStyle = useAnimatedStyle(() => ({
     transform: [
@@ -184,6 +185,12 @@ export default function QrScannerScreen() {
     transform: [{ scale: interpolate(pairedMark.value, [0, 1], [0.72, 1]) }],
   }));
 
+  function scheduleHandoff() {
+    setTimeout(() => {
+      startHandoff();
+    }, theme.semantic.motion.normal.duration);
+  }
+
   function startHandoff() {
     handoff.value = withTiming(1, {
       duration: moveMs,
@@ -205,6 +212,7 @@ export default function QrScannerScreen() {
       return;
     }
 
+    restoreOnboarding();
     enter.value = withTiming(
       0,
       {

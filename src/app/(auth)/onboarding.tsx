@@ -1,19 +1,20 @@
 import { type Href, useFocusEffect, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BrandLogo, useSplashFooterOffset } from "@/components/app/BrandLogo";
+import { BrandLogo } from "@/components/app/BrandLogo";
 import { SplashIntroLayout } from "@/components/app/SplashIntroLayout";
 import { Button, Stack, ThemedText, ThemedView } from "@/components/ui";
 import { hideNativeSplash } from "@/helpers/nativeSplash";
-import { useSplashIntro } from "@/hooks/useSplashIntro";
+import { useSplashIntro, registerOnboardingRestore } from "@/hooks/useSplashIntro";
 import { useThemeTokens } from "@/theme";
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const theme = useThemeTokens();
   const splashIntro = useSplashIntro(true);
-  const footerOffset = useSplashFooterOffset();
+  const insets = useSafeAreaInsets();
   const [isLeaving, setIsLeaving] = useState(false);
   const leavingRef = useRef(false);
   const restoreRef = useRef(splashIntro.restore);
@@ -21,6 +22,18 @@ export default function OnboardingScreen() {
 
   useEffect(() => {
     void hideNativeSplash();
+  }, []);
+
+  useEffect(() => {
+    registerOnboardingRestore(() => {
+      leavingRef.current = false;
+      restoreRef.current();
+      setIsLeaving(false);
+    });
+
+    return () => {
+      registerOnboardingRestore(null);
+    };
   }, []);
 
   useFocusEffect(
@@ -49,7 +62,7 @@ export default function OnboardingScreen() {
           borderTopRightRadius: theme.semantic.radius.dialog,
           paddingTop: theme.semantic.space.section,
           paddingHorizontal: theme.semantic.space.inline.comfortable,
-          paddingBottom: theme.semantic.space.section + footerOffset,
+          paddingBottom: theme.semantic.space.section + insets.bottom,
         }}
       >
         <Stack space="comfortable">
