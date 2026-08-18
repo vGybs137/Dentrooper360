@@ -42,8 +42,7 @@ export default function Index() {
     }
 
     if (!isAuthenticated) {
-      void hideNativeSplash();
-      router.replace("/(auth)/login" as Href);
+      router.replace("/(auth)/login?intro=1" as Href);
       return;
     }
 
@@ -52,9 +51,8 @@ export default function Index() {
     }
 
     if (isSessionInvalid) {
-      void hideNativeSplash();
       useAuthStore.getState().clearSession();
-      router.replace("/(auth)/login" as Href);
+      router.replace("/(auth)/login?intro=1" as Href);
       return;
     }
 
