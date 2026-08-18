@@ -11,6 +11,11 @@
       "icon": "./assets/expo.icon",
       "config": {
         "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
       }
     },
     "android": {
@@ -41,6 +46,9 @@
       [
         "expo-build-properties",
         {
+          "android": {
+            "usesCleartextTraffic": true
+          },
           "ios": {
             "extraPods": [
               {

@@ -1,7 +1,10 @@
-import { useEffect } from "react";
 import { type Href, useRouter } from "expo-router";
+import { useEffect } from "react";
 
-import { AppScreenShell, AppSectionCard } from "@/components/app/AppScreenShell";
+import {
+  AppScreenShell,
+  AppSectionCard,
+} from "@/components/app/AppScreenShell";
 import { Button, Stack, ThemedText } from "@/components/ui";
 import { hideNativeSplash } from "@/helpers/nativeSplash";
 import { useStartupSessionCheck } from "@/hooks/useStartupSessionCheck";
@@ -80,7 +83,7 @@ export default function Index() {
 
     if (!customerId) {
       void hideNativeSplash();
-      router.replace("/(auth)/qr-scanner" as Href);
+      router.replace("/(auth)/onboarding" as Href);
       return;
     }
 
