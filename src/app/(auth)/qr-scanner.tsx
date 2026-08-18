@@ -87,18 +87,20 @@ export default function QrScannerScreen() {
       >
         {fromOnboarding ? null : <SplashFooter />}
 
-        <LoginForm
-          contentStyle={loginStyle}
-          logo={
-            fromOnboarding ? (
-              <View style={{ height: BRAND_MARK_SIZE }} />
-            ) : (
-              <View className="items-center">
-                <BrandLogo showWordmark={false} />
-              </View>
-            )
-          }
-        />
+        {status === "paired" ? (
+          <LoginForm
+            contentStyle={loginStyle}
+            logo={
+              fromOnboarding ? (
+                <View style={{ height: BRAND_MARK_SIZE }} />
+              ) : (
+                <View className="items-center">
+                  <BrandLogo showWordmark={false} />
+                </View>
+              )
+            }
+          />
+        ) : null}
 
         <Animated.View
           className="absolute inset-0 z-overlay items-center justify-center"

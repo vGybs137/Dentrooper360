@@ -6,6 +6,7 @@ import {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
@@ -41,20 +42,21 @@ export function useQrScannerMotion({
   const pairedMark = useSharedValue(0);
   const enter = useSharedValue(0);
   const handoff = useSharedValue(0);
-
-  const startHandoff = useCallback(() => {
-    handoff.value = withTiming(1, slideTiming);
-  }, [handoff, slideTiming]);
-
-  const scheduleHandoff = useCallback(() => {
-    setTimeout(() => {
-      startHandoff();
-    }, theme.semantic.motion.normal.duration);
-  }, [startHandoff, theme.semantic.motion.normal.duration]);
+  const tickMs = theme.semantic.motion.enter.duration;
+  const pauseMs = theme.semantic.motion.normal.duration;
 
   useEffect(() => {
     enter.value = withTiming(1, slideTiming);
   }, [enter, slideTiming]);
+
+  useEffect(() => {
+    return () => {
+      cancelAnimation(enter);
+      cancelAnimation(handoff);
+      cancelAnimation(pairedMark);
+      cancelAnimation(scanLine);
+    };
+  }, [enter, handoff, pairedMark, scanLine]);
 
   useEffect(() => {
     if (status !== "ready") {
@@ -83,19 +85,17 @@ export function useQrScannerMotion({
       return;
     }
 
-    pairedMark.value = withTiming(
-      1,
-      {
-        duration: theme.semantic.motion.enter.duration,
-        easing: Easing.out(Easing.cubic),
-      },
-      (finished) => {
-        if (finished) {
-          runOnJS(scheduleHandoff)();
-        }
-      },
-    );
-  }, [pairedMark, scheduleHandoff, status, theme.semantic.motion.enter.duration]);
+    pairedMark.value = withTiming(1, {
+      duration: tickMs,
+      easing: Easing.out(Easing.cubic),
+    });
+    handoff.value = withDelay(tickMs + pauseMs, withTiming(1, slideTiming));
+
+    return () => {
+      cancelAnimation(pairedMark);
+      cancelAnimation(handoff);
+    };
+  }, [handoff, pairedMark, pauseMs, slideTiming, status, tickMs]);
 
   const cameraStyle = useSlideFromRightToLeftStyle(
     enter,
