@@ -68,6 +68,7 @@ export default function Index() {
     isPending: isSyncing,
     isSuccess: isSyncComplete,
     isError: isSyncFailed,
+    isFetchedAfterMount: hasSyncedThisVisit,
     refetch: retrySync,
     isFetching: isRetryingSync,
   } = useStartupSync(isSessionValid);
@@ -109,7 +110,7 @@ export default function Index() {
       return;
     }
 
-    if (isSyncing) {
+    if (!hasSyncedThisVisit) {
       return;
     }
 
@@ -123,9 +124,9 @@ export default function Index() {
     isAuthenticated,
     isSessionInvalid,
     isSessionValid,
+    hasSyncedThisVisit,
     isSyncComplete,
     isSyncFailed,
-    isSyncing,
     isValidatingSession,
     router,
   ]);

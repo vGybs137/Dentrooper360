@@ -23,8 +23,8 @@ export default function QrScannerScreen() {
             tone="success"
           />
           <ThemedText tone="muted">
-            Add camera permission handling and scan error states on this screen
-            when you wire the real scanner.
+            Pairing stores the clinic customer ID and continues to login. Clinic
+            data is synced after the user signs in, not after a successful scan.
           </ThemedText>
         </Stack>
       </AppSectionCard>

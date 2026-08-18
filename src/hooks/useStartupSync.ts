@@ -19,5 +19,8 @@ export function useStartupSync(sessionValid: boolean) {
     queryKey: queryKeys.sync.startup(customerId ?? ""),
     queryFn: () => synchronize(customerId!),
     enabled: shouldSync,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: "always",
   });
 }
