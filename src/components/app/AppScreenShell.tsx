@@ -1,6 +1,9 @@
 import React from "react";
+import { Platform } from "react-native";
+import { useSegments } from "expo-router";
 
 import { Card, Container, Screen, Stack, ThemedText } from "@/components/ui";
+import { BOTTOM_TAB_INSET } from "@/constants/navigation";
 
 export type AppScreenShellProps = {
   eyebrow?: string;
@@ -17,8 +20,12 @@ export function AppScreenShell({
   children,
   scroll = true,
 }: AppScreenShellProps) {
+  const segments = useSegments();
+  const bottomInset =
+    Platform.OS === "web" && segments[0] === "(tabs)" ? BOTTOM_TAB_INSET : 0;
+
   return (
-    <Screen scroll={scroll}>
+    <Screen bottomInset={bottomInset} scroll={scroll}>
       <Container>
         <Stack space="comfortable">
           <Stack space="compact">

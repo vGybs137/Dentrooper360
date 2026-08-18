@@ -1,4 +1,5 @@
-export type SurfaceTone = "default" | "sunken" | "raised" | "overlay" | "inverse";
+export type SurfaceTone =
+  "default" | "sunken" | "raised" | "overlay" | "inverse";
 export type ForegroundTone = "default" | "muted" | "inverse";
 export type BorderTone = "subtle" | "default" | "strong" | "focus";
 export type AccentTone = "default" | "subtle" | "strong" | "text";
@@ -17,7 +18,7 @@ export type ThemePalette = {
 export const lightPalette: ThemePalette = {
   surface: {
     default: "#ffffff",
-    sunken: "#f4f4f5",
+    sunken: "#fbfbfb",
     raised: "#ffffff",
     overlay: "#ffffff",
     inverse: "#18181b",

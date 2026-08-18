@@ -13,6 +13,7 @@ export type ScreenProps = {
   surface?: SurfaceTone;
   scroll?: boolean;
   inset?: ScreenInset;
+  bottomInset?: number;
   className?: string;
   contentClassName?: string;
   contentContainerStyle?: ScrollViewProps["contentContainerStyle"];
@@ -24,6 +25,7 @@ export function Screen({
   surface = "default",
   scroll = false,
   inset = "default",
+  bottomInset = 0,
   className,
   contentClassName,
   contentContainerStyle,
@@ -32,6 +34,7 @@ export function Screen({
   const theme = useThemeTokens();
   const contentPadding = theme.semantic.space.page;
   const backgroundColor = theme.palette.surface[surface];
+  const bottomPadding = contentPadding + bottomInset;
 
   if (scroll) {
     return (
@@ -44,7 +47,8 @@ export function Screen({
           contentContainerStyle={[
             {
               flexGrow: 1,
-              paddingVertical: contentPadding,
+              paddingTop: contentPadding,
+              paddingBottom: bottomPadding,
               paddingHorizontal: theme.semantic.space.inline[inset],
             },
             contentContainerStyle,
@@ -66,7 +70,8 @@ export function Screen({
         className={cn("flex-1", contentClassName)}
         style={{
           flex: 1,
-          paddingVertical: contentPadding,
+          paddingTop: contentPadding,
+          paddingBottom: bottomPadding,
           paddingHorizontal: theme.semantic.space.inline[inset],
         }}
       >
