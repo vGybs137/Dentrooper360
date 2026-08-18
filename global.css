@@ -1,3 +1,73 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Design tokens as CSS variables.
+   NativeWind classes reference these values via `var(--token-*)`.
+   Dark mode is handled via the user's OS preference (`prefers-color-scheme`). */
+:root {
+  /* Brand */
+  --brand-500: #0a9e91;
+  --brand-700: #06796f;
+  --brand-subtle: rgba(10, 158, 145, 0.12);
+  --brand-text: #ffffff;
+
+  /* Accents (secondary brand color) */
+  --accent-500: #1d4ed8; /* indigo-700-ish */
+  --accent-700: #1e40af; /* indigo-800-ish */
+  --accent-subtle: rgba(29, 78, 216, 0.12);
+  --accent-text: #ffffff;
+
+  /* Success */
+  --success-500: #16a34a;
+  --success-700: #15803d;
+  --success-subtle: rgba(22, 163, 74, 0.12);
+  --success-text: #ffffff;
+
+  /* Alert */
+  --alert-500: #ef4444;
+  --alert-700: #dc2626;
+  --alert-subtle: rgba(239, 68, 68, 0.12);
+  --alert-text: #ffffff;
+
+  /* Surfaces */
+  --surface-default: #ffffff;
+  --surface-sunken: #f4f4f5;
+  --surface-raised: #ffffff;
+  --surface-overlay: #ffffff;
+  --surface-inverse: #18181b;
+
+  /* Foreground */
+  --foreground-default: #18181b;
+  --foreground-muted: #71717a;
+  --foreground-inverse: #fafafa;
+
+  /* Borders */
+  --border-subtle: #e4e4e7;
+  --border-default: #d4d4d8;
+  --border-strong: #a1a1aa;
+  --border-focus: var(--brand-500);
+}
+
+@media (prefers-color-scheme: dark) {
+  --surface-default: #0b0f10;
+  --surface-sunken: #0f1517;
+  --surface-raised: #111827;
+  --surface-overlay: #0b0f10;
+  --surface-inverse: #fafafa;
+
+  --foreground-default: #e5e7eb;
+  --foreground-muted: #9ca3af;
+  --foreground-inverse: #0b0f10;
+
+  --border-subtle: #27303a;
+  --border-default: #334155;
+  --border-strong: #475569;
+  --border-focus: var(--brand-500);
+
+  /* Keep alert/success/brand readable on dark surfaces */
+  --success-subtle: rgba(22, 163, 74, 0.18);
+  --alert-subtle: rgba(239, 68, 68, 0.18);
+  --brand-subtle: rgba(10, 158, 145, 0.18);
+  --accent-subtle: rgba(29, 78, 216, 0.18);
+}
