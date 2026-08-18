@@ -38,12 +38,24 @@ async function runSynchronize(customerId: string): Promise<void> {
   });
 }
 
+let inFlight: Promise<void> | null = null;
+
 export async function synchronize(customerId: string): Promise<void> {
-  try {
-    await runSynchronize(customerId);
-  } catch {
-    await runSynchronize(customerId);
+  if (inFlight) {
+    return inFlight;
   }
+
+  inFlight = (async () => {
+    try {
+      await runSynchronize(customerId);
+    } catch {
+      await runSynchronize(customerId);
+    }
+  })().finally(() => {
+    inFlight = null;
+  });
+
+  return inFlight;
 }
 
 export function hasUnsyncedChanges(): Promise<boolean> {
