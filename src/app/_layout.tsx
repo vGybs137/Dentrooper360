@@ -2,8 +2,11 @@ import "../../global.css";
 
 import { Stack } from "expo-router";
 
+import { keepNativeSplashVisible } from "@/helpers/nativeSplash";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/theme";
+
+keepNativeSplashVisible();
 
 export default function RootLayout() {
   return (
