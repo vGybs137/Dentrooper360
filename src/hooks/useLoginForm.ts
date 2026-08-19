@@ -1,8 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
 import { type Href, useRouter } from "expo-router";
 import { useState } from "react";
 
-import { login } from "@/api";
+import { useLoginMutation } from "@/hooks/useLoginMutation";
 import { useStartupSync } from "@/hooks/useStartupSync";
 import { useCustomerId } from "@/stores";
 import { ApiError } from "@/types/api";
@@ -15,25 +14,7 @@ export function useLoginForm() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [hasSignedIn, setHasSignedIn] = useState(false);
 
-  const loginMutation = useMutation({
-    mutationFn: () => {
-      if (!customerId) {
-        throw new ApiError(
-          "Pair this device with a clinic before signing in.",
-          400,
-        );
-      }
-
-      return login({
-        customerId,
-        username: username.trim(),
-        password,
-      });
-    },
-    onSuccess: () => {
-      setHasSignedIn(true);
-    },
-  });
+  const loginMutation = useLoginMutation(customerId);
 
   const {
     isPending: isSyncing,
@@ -81,7 +62,10 @@ export function useLoginForm() {
       setIsPasswordVisible((visible) => !visible);
     },
     submit: () => {
-      loginMutation.mutate();
+      loginMutation.mutate(
+        { username: username.trim(), password },
+        { onSuccess: () => setHasSignedIn(true) },
+      );
     },
     dismissLoginError: () => {
       loginMutation.reset();

@@ -1,11 +1,9 @@
-import { useMutation } from "@tanstack/react-query";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { type Href, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import Animated from "react-native-reanimated";
 
-import { pairDevice } from "@/api";
 import { AuthScreenShell } from "@/components/app/AuthScreenShell";
 import { BRAND_MARK_SIZE, BrandLogo } from "@/components/app/BrandLogo";
 import { FeedbackOverlay } from "@/components/app/FeedbackOverlay";
@@ -14,10 +12,10 @@ import { QrViewfinder } from "@/components/app/QrViewfinder";
 import { getDeviceInfo, getOrCreateDeviceId } from "@/helpers/deviceId";
 import { isFromOnboarding } from "@/helpers/routeParams";
 import { useLoginLogoRestLayout } from "@/hooks/useAuthLogoRestOffset";
+import { usePairMutation } from "@/hooks/usePairMutation";
 import { useQrScannerMotion } from "@/hooks/useQrScannerMotion";
 import { useRestoreOnboarding } from "@/stores";
 import { useThemeTokens } from "@/theme";
-import type { PairRequest } from "@/types/auth";
 
 const VIEWFINDER_MAX = 280;
 
@@ -39,9 +37,7 @@ export default function QrScannerScreen() {
   const [scanError, setScanError] = useState<string | null>(null);
   const latestBarcodeRef = useRef<string | null>(null);
 
-  const pairMutation = useMutation({
-    mutationFn: (request: PairRequest) => pairDevice(request),
-  });
+  const pairMutation = usePairMutation();
 
   const GUID_RE = useMemo(
     () =>
