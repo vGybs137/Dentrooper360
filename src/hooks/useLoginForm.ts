@@ -83,6 +83,9 @@ export function useLoginForm() {
     submit: () => {
       loginMutation.mutate();
     },
+    dismissLoginError: () => {
+      loginMutation.reset();
+    },
     retrySync: () => {
       void retrySync();
     },

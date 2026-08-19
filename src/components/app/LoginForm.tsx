@@ -9,8 +9,61 @@ import { lockIcon, personIcon, visibilityIcon } from "@/constants";
 import { useLoginForm } from "@/hooks/useLoginForm";
 import { useThemeTokens } from "@/theme";
 
-import { LoginSuccessOverlay } from "./LoginSuccessOverlay";
+import {
+  FeedbackOverlay,
+  type FeedbackOverlayProps,
+} from "./FeedbackOverlay";
 import { useSplashFooterOffset } from "./BrandLogo";
+
+function getLoginFeedbackOverlay(
+  form: ReturnType<typeof useLoginForm>,
+): FeedbackOverlayProps | null {
+  if (form.isSigningIn) {
+    return {
+      stage: "loading",
+      title: "Signing in...",
+      message: "Please wait while we sign you in.",
+    };
+  }
+
+  if (form.loginError && !form.hasSignedIn) {
+    return {
+      stage: "error",
+      title: "Sign-in failed",
+      message: form.loginError,
+      onRetry: form.dismissLoginError,
+    };
+  }
+
+  if (form.isSyncFailed) {
+    return {
+      stage: "error",
+      title: "Sync failed",
+      message: "Unable to finish preparing your clinic data.",
+      onRetry: form.retrySync,
+      isRetrying: form.isRetryingSync,
+    };
+  }
+
+  if (form.isAppReady) {
+    return {
+      stage: "success",
+      title: "Success!",
+      message: "Your app is ready to open.",
+      onContinue: form.continueToApp,
+    };
+  }
+
+  if (form.isSyncingNow) {
+    return {
+      stage: "loading",
+      title: "Preparing workspace...",
+      message: "Syncing clinic data with the server.",
+    };
+  }
+
+  return null;
+}
 
 type LoginFormProps = {
   logo?: ReactNode;
@@ -121,11 +174,6 @@ export function LoginForm({
             }
             value={form.password}
           />
-          {form.loginError ? (
-            <ThemedText align="center" tone="alert">
-              {form.loginError}
-            </ThemedText>
-          ) : null}
         </Stack>
       </Animated.View>
       <Animated.View
@@ -142,28 +190,13 @@ export function LoginForm({
         ) : null}
       </Animated.View>
       {(() => {
-        const overlayStage = form.isSyncFailed
-          ? "syncFailed"
-          : form.isAppReady
-            ? "ready"
-            : form.isSyncingNow
-              ? "syncing"
-              : form.isSigningIn
-                ? "signingIn"
-                : null;
+        const overlay = getLoginFeedbackOverlay(form);
 
-        if (!overlayStage) {
+        if (!overlay) {
           return null;
         }
 
-        return (
-          <LoginSuccessOverlay
-            stage={overlayStage}
-            isRetrying={form.isRetryingSync}
-            onContinue={form.continueToApp}
-            onRetry={form.retrySync}
-          />
-        );
+        return <FeedbackOverlay {...overlay} />;
       })()}
     </View>
   );
