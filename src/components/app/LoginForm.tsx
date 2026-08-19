@@ -1,12 +1,13 @@
 import { SymbolView } from "expo-symbols";
 import { type ComponentProps, type ReactNode } from "react";
+import { Controller } from "react-hook-form";
 import { Pressable, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button, Stack, TextField, ThemedText } from "@/components/ui";
 import { lockIcon, personIcon, visibilityIcon } from "@/constants";
-import { useLoginForm } from "@/hooks/useLoginForm";
+import { useLoginForm, type LoginFormState } from "@/hooks/useLoginForm";
 import { useThemeTokens } from "@/theme";
 
 import {
@@ -16,7 +17,7 @@ import {
 import { useSplashFooterOffset } from "./BrandLogo";
 
 function getLoginFeedbackOverlay(
-  form: ReturnType<typeof useLoginForm>,
+  form: LoginFormState,
 ): FeedbackOverlayProps | null {
   if (form.isSigningIn) {
     return {
@@ -80,7 +81,14 @@ export function LoginForm({
   const theme = useThemeTokens();
   const insets = useSafeAreaInsets();
   const footerOffset = useSplashFooterOffset();
-  const form = useLoginForm();
+  const login = useLoginForm();
+  const { control, formState } = login.form;
+  const fieldsEditable = !login.isSigningIn && !login.hasSignedIn;
+  const canSubmit =
+    Boolean(login.customerId) &&
+    formState.isValid &&
+    !login.isSigningIn &&
+    !login.hasSignedIn;
 
   return (
     <View className="flex-1">
@@ -111,69 +119,87 @@ export function LoginForm({
         style={contentStyle}
       >
         <Stack space="default">
-          {!form.customerId ? (
+          {!login.customerId ? (
             <Stack space="compact">
               <ThemedText align="center" tone="muted">
                 Pair this device with a clinic QR code before signing in.
               </ThemedText>
               <Button
                 label="Scan clinic QR"
-                onPress={form.goToQrScanner}
+                onPress={login.goToQrScanner}
                 tone="brand"
                 variant="outline"
               />
             </Stack>
           ) : null}
-          <TextField
-            autoCapitalize="none"
-            autoComplete="username"
-            autoCorrect={false}
-            editable={!form.isSigningIn && !form.hasSignedIn}
-            leading={
-              <SymbolView
-                name={personIcon}
-                size={theme.semantic.size.icon}
-                tintColor={theme.palette.foreground.muted}
-              />
-            }
-            onChangeText={form.setUsername}
-            placeholder="Username"
-            size="lg"
-            textContentType="username"
-            value={form.username}
-          />
-          <TextField
-            autoComplete="password"
-            editable={!form.isSigningIn && !form.hasSignedIn}
-            leading={
-              <SymbolView
-                name={lockIcon}
-                size={theme.semantic.size.icon}
-                tintColor={theme.palette.foreground.muted}
-              />
-            }
-            onChangeText={form.setPassword}
-            placeholder="Password"
-            secureTextEntry={!form.isPasswordVisible}
-            size="lg"
-            textContentType="password"
-            trailing={
-              <Pressable
-                accessibilityLabel={
-                  form.isPasswordVisible ? "Hide password" : "Show password"
+          <Controller
+            control={control}
+            name="username"
+            rules={{ required: true }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextField
+                autoCapitalize="none"
+                autoComplete="username"
+                autoCorrect={false}
+                editable={fieldsEditable}
+                leading={
+                  <SymbolView
+                    name={personIcon}
+                    size={theme.semantic.size.icon}
+                    tintColor={theme.palette.foreground.muted}
+                  />
                 }
-                accessibilityRole="button"
-                hitSlop={theme.semantic.space.inset.compact}
-                onPress={form.togglePasswordVisibility}
-              >
-                <SymbolView
-                  name={visibilityIcon(form.isPasswordVisible)}
-                  size={theme.semantic.size.icon}
-                  tintColor={theme.palette.foreground.muted}
-                />
-              </Pressable>
-            }
-            value={form.password}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                placeholder="Username"
+                size="lg"
+                textContentType="username"
+                value={value}
+              />
+            )}
+          />
+          <Controller
+            control={control}
+            name="password"
+            rules={{ required: true }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextField
+                autoComplete="password"
+                editable={fieldsEditable}
+                leading={
+                  <SymbolView
+                    name={lockIcon}
+                    size={theme.semantic.size.icon}
+                    tintColor={theme.palette.foreground.muted}
+                  />
+                }
+                onBlur={onBlur}
+                onChangeText={onChange}
+                placeholder="Password"
+                secureTextEntry={!login.isPasswordVisible}
+                size="lg"
+                textContentType="password"
+                trailing={
+                  <Pressable
+                    accessibilityLabel={
+                      login.isPasswordVisible
+                        ? "Hide password"
+                        : "Show password"
+                    }
+                    accessibilityRole="button"
+                    hitSlop={theme.semantic.space.inset.compact}
+                    onPress={login.togglePasswordVisibility}
+                  >
+                    <SymbolView
+                      name={visibilityIcon(login.isPasswordVisible)}
+                      size={theme.semantic.size.icon}
+                      tintColor={theme.palette.foreground.muted}
+                    />
+                  </Pressable>
+                }
+                value={value}
+              />
+            )}
           />
         </Stack>
       </Animated.View>
@@ -181,17 +207,17 @@ export function LoginForm({
         className="flex-1 px-inline-comfortable"
         style={[{ paddingBottom: footerOffset }, contentStyle]}
       >
-        {!form.hasSignedIn ? (
+        {!login.hasSignedIn ? (
           <Button
-            disabled={!form.canSubmit}
-            label={form.isSigningIn ? "Signing in..." : "Login"}
-            onPress={form.submit}
+            disabled={!canSubmit}
+            label={login.isSigningIn ? "Signing in..." : "Login"}
+            onPress={login.submit}
             size="lg"
           />
         ) : null}
       </Animated.View>
       {(() => {
-        const overlay = getLoginFeedbackOverlay(form);
+        const overlay = getLoginFeedbackOverlay(login);
 
         if (!overlay) {
           return null;

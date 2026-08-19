@@ -1,4 +1,5 @@
 import { type Href, useRouter } from "expo-router";
+import { useForm } from "react-hook-form";
 import { useState } from "react";
 
 import { useLoginMutation } from "@/hooks/useLoginMutation";
@@ -6,13 +7,21 @@ import { useStartupSync } from "@/hooks/useStartupSync";
 import { useCustomerId } from "@/stores";
 import { ApiError } from "@/types/api";
 
+type LoginFields = {
+  username: string;
+  password: string;
+};
+
 export function useLoginForm() {
   const router = useRouter();
   const customerId = useCustomerId();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [hasSignedIn, setHasSignedIn] = useState(false);
+
+  const form = useForm<LoginFields>({
+    defaultValues: { username: "", password: "" },
+    mode: "onChange",
+  });
 
   const loginMutation = useLoginMutation(customerId);
 
@@ -30,12 +39,6 @@ export function useLoginForm() {
     hasSignedIn && (isSyncing || isRetryingSync || !hasSyncedThisVisit);
   const isAppReady =
     hasSignedIn && hasSyncedThisVisit && isSyncComplete && !isSyncFailed;
-  const canSubmit =
-    Boolean(customerId) &&
-    username.trim().length > 0 &&
-    password.length > 0 &&
-    !isSigningIn &&
-    !hasSignedIn;
   const loginError =
     loginMutation.error instanceof ApiError
       ? loginMutation.error.message
@@ -45,8 +48,7 @@ export function useLoginForm() {
 
   return {
     customerId,
-    username,
-    password,
+    form,
     isPasswordVisible,
     hasSignedIn,
     isSigningIn,
@@ -54,19 +56,16 @@ export function useLoginForm() {
     isAppReady,
     isSyncFailed,
     isRetryingSync,
-    canSubmit,
     loginError,
-    setUsername,
-    setPassword,
     togglePasswordVisibility: () => {
       setIsPasswordVisible((visible) => !visible);
     },
-    submit: () => {
+    submit: form.handleSubmit((data) => {
       loginMutation.mutate(
-        { username: username.trim(), password },
+        { username: data.username.trim(), password: data.password },
         { onSuccess: () => setHasSignedIn(true) },
       );
-    },
+    }),
     dismissLoginError: () => {
       loginMutation.reset();
     },
