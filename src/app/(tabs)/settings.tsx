@@ -7,7 +7,6 @@ import {
   AppSectionCard,
 } from "@/components/app/AppScreenShell";
 import { Button, Stack, ThemedText } from "@/components/ui";
-import { useAuthStore } from "@/stores";
 import { useAppTheme, type ThemeMode } from "@/theme";
 import { ApiError } from "@/types/api";
 
@@ -37,10 +36,9 @@ export default function SettingsScreen() {
     mutationFn: logout,
     onSuccess: () => {
       queryClient.clear();
-      router.replace("/(auth)/onboarding" as Href);
+      router.replace("/(auth)/login" as Href);
     },
   });
-  const clearAll = useAuthStore((state) => state.clearAll);
   const logoutError =
     logoutMutation.error instanceof ApiError
       ? logoutMutation.error.message
@@ -70,7 +68,6 @@ export default function SettingsScreen() {
                 : "Log out"
             }
             onPress={() => {
-              clearAll();
               logoutMutation.mutate();
             }}
             tone="alert"
