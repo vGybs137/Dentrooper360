@@ -1,7 +1,15 @@
 import { Image } from "expo-image";
 import { SymbolView } from "expo-symbols";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
+import Animated, {
+  cancelAnimation,
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
 import { Button, Card, Stack, ThemedText } from "@/components/ui";
 import { useThemeTokens } from "@/theme";
@@ -29,8 +37,10 @@ export type FeedbackOverlayProps = {
   message: string;
   onContinue?: () => void;
   onRetry?: () => void;
+  onDismiss?: () => void;
   isRetrying?: boolean;
   autoContinueMs?: number;
+  autoDismissMs?: number;
   continueLabel?: string;
   retryLabel?: string;
 };
@@ -41,43 +51,90 @@ export function FeedbackOverlay({
   message,
   onContinue,
   onRetry,
+  onDismiss,
   isRetrying = false,
   autoContinueMs = 1800,
+  autoDismissMs = autoContinueMs,
   continueLabel = "Continue",
   retryLabel = "Try again",
 }: FeedbackOverlayProps) {
   const theme = useThemeTokens();
-  const didContinueRef = useRef(false);
+  const didAutoActionRef = useRef(false);
 
   const isSuccess = stage === "success";
   const isError = stage === "error";
 
   const badgeSize = theme.semantic.size["control-lg"];
   const badgeIconSize = theme.semantic.size.icon * 1.2;
+  const tickMs = theme.semantic.motion.enter.duration;
+  const badgeProgress = useSharedValue(0);
 
   const badgeColor = isError
     ? theme.palette.alert.DEFAULT
     : theme.palette.brand.default;
 
-  // useEffect(() => {
-  //   if (!isSuccess || !onContinue) {
-  //     return;
-  //   }
+  useEffect(() => {
+    if (!isSuccess && !isError) {
+      badgeProgress.value = 0;
+      return;
+    }
 
-  //   didContinueRef.current = false;
-  //   const t = setTimeout(() => {
-  //     if (!didContinueRef.current) {
-  //       didContinueRef.current = true;
-  //       onContinue();
-  //     }
-  //   }, autoContinueMs);
+    badgeProgress.value = 0;
+    badgeProgress.value = withTiming(1, {
+      duration: tickMs,
+      easing: Easing.out(Easing.cubic),
+    });
 
-  //   return () => clearTimeout(t);
-  // }, [autoContinueMs, isSuccess, onContinue]);
+    return () => {
+      cancelAnimation(badgeProgress);
+    };
+  }, [badgeProgress, isError, isSuccess, tickMs]);
+
+  const badgeIconStyle = useAnimatedStyle(() => ({
+    opacity: badgeProgress.value,
+    transform: [{ scale: interpolate(badgeProgress.value, [0, 1], [0.72, 1]) }],
+  }));
+
+  useEffect(() => {
+    if (!isSuccess || !onContinue) {
+      return;
+    }
+
+    didAutoActionRef.current = false;
+    const t = setTimeout(() => {
+      if (!didAutoActionRef.current) {
+        didAutoActionRef.current = true;
+        onContinue();
+      }
+    }, autoContinueMs);
+
+    return () => clearTimeout(t);
+  }, [autoContinueMs, isSuccess, onContinue]);
+
+  useEffect(() => {
+    if (!isError || !onDismiss) {
+      return;
+    }
+
+    didAutoActionRef.current = false;
+    const t = setTimeout(() => {
+      if (!didAutoActionRef.current) {
+        didAutoActionRef.current = true;
+        onDismiss();
+      }
+    }, autoDismissMs);
+
+    return () => clearTimeout(t);
+  }, [autoDismissMs, isError, onDismiss]);
 
   function handleContinue() {
-    didContinueRef.current = true;
+    didAutoActionRef.current = true;
     onContinue?.();
+  }
+
+  function handleRetry() {
+    didAutoActionRef.current = true;
+    onRetry?.();
   }
 
   return (
@@ -108,17 +165,21 @@ export function FeedbackOverlay({
           }}
         >
           {isSuccess ? (
-            <SymbolView
-              name={checkIcon}
-              size={badgeIconSize}
-              tintColor={theme.palette.brand.text}
-            />
+            <Animated.View style={badgeIconStyle}>
+              <SymbolView
+                name={checkIcon}
+                size={badgeIconSize}
+                tintColor={theme.palette.brand.text}
+              />
+            </Animated.View>
           ) : isError ? (
-            <SymbolView
-              name={errorIcon}
-              size={badgeIconSize}
-              tintColor={theme.palette.alert.text}
-            />
+            <Animated.View style={badgeIconStyle}>
+              <SymbolView
+                name={errorIcon}
+                size={badgeIconSize}
+                tintColor={theme.palette.alert.text}
+              />
+            </Animated.View>
           ) : (
             <ActivityIndicator color={theme.palette.brand.text} size="small" />
           )}
@@ -146,23 +207,32 @@ export function FeedbackOverlay({
           </Stack>
         </Stack>
 
-        {isError ? (
-          <Button
-            disabled={isRetrying}
-            label={isRetrying ? "Retrying..." : retryLabel}
-            onPress={onRetry}
-            size="md"
-            style={{ minWidth: 130 }}
-            tone="brand"
-          />
-        ) : isSuccess ? (
-          <Button
-            label={continueLabel}
-            onPress={handleContinue}
-            size="md"
-            style={{ minWidth: 130 }}
-          />
-        ) : null}
+        <View
+          style={{
+            minHeight: theme.semantic.size.control,
+            minWidth: 130,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {isError ? (
+            <Button
+              disabled={isRetrying}
+              label={isRetrying ? "Retrying..." : retryLabel}
+              onPress={handleRetry}
+              size="md"
+              style={{ minWidth: 130 }}
+              tone="brand"
+            />
+          ) : isSuccess ? (
+            <Button
+              label={continueLabel}
+              onPress={handleContinue}
+              size="md"
+              style={{ minWidth: 130 }}
+            />
+          ) : null}
+        </View>
 
         <View className="items-center">
           <Image

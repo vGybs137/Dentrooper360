@@ -32,6 +32,7 @@ function getLoginFeedbackOverlay(
       title: "Sign-in failed",
       message: form.loginError,
       onRetry: form.dismissLoginError,
+      onDismiss: form.dismissLoginError,
     };
   }
 
