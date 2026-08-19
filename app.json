@@ -36,6 +36,12 @@
     "plugins": [
       "expo-router",
       [
+        "expo-camera",
+        {
+          "barcodeScannerEnabled": true
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",

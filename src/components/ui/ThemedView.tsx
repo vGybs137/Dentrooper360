@@ -56,8 +56,12 @@ export function ThemedView({
               ? "transparent"
               : theme.palette.border[borderTone],
           borderWidth,
-          borderRadius: resolveRadius(radius, theme),
-          padding: resolveInset(inset, theme),
+          ...(radius === "none"
+            ? null
+            : { borderRadius: resolveRadius(radius, theme) }),
+          ...(inset === "none"
+            ? null
+            : { padding: resolveInset(inset, theme) }),
         },
         style,
       ]}

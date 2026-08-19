@@ -18,7 +18,7 @@ export default function RootLayout() {
       <ThemeProvider>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
-          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(auth)" options={{ animation: "none" }} />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="appointments/[id]" />
           <Stack.Screen name="patients/[id]" />

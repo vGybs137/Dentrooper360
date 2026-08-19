@@ -23,6 +23,8 @@ export type TextFieldProps = TextInputProps & {
   error?: string;
   size?: FieldSize;
   variant?: FieldVariant;
+  leading?: React.ReactNode;
+  trailing?: React.ReactNode;
   className?: string;
   containerClassName?: string;
   style?: StyleProp<ViewStyle>;
@@ -46,6 +48,8 @@ export function TextField({
   error,
   size = "md",
   variant = "outline",
+  leading,
+  trailing,
   className,
   containerClassName,
   style,
@@ -78,20 +82,24 @@ export function TextField({
               variant === "soft"
                 ? theme.palette.surface.sunken
                 : theme.palette.surface.raised,
-            justifyContent: "center",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.semantic.space.gap.compact,
             paddingHorizontal: theme.semantic.space.inline.default,
           },
           style,
         ]}
       >
+        {leading}
         <TextInput
           className={cn("text-body", className)}
           placeholderTextColor={
             placeholderTextColor ?? theme.palette.foreground.muted
           }
-          style={inputStyle}
+          style={[inputStyle, { flex: 1 }]}
           {...props}
         />
+        {trailing}
       </View>
       {error ? (
         <ThemedText tone="alert" variant="label">

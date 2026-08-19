@@ -20,10 +20,23 @@ function getExpoDevHost(): string | null {
   return host || null;
 }
 
+function isLikelyPhoneReachableHost(host: string): boolean {
+  return host.startsWith("192.168.") || host === "localhost" || host === "127.0.0.1";
+}
+
 function resolveDevApiUrl(): string {
   const expoHost = getExpoDevHost();
-  if (expoHost) {
+
+  if (expoHost && isLikelyPhoneReachableHost(expoHost)) {
     return `http://${expoHost}:${DEFAULT_API_PORT}`;
+  }
+
+  if (expoHost && __DEV__) {
+    console.warn(
+      `[api] Expo host ${expoHost} is not a shared Wi-Fi address. ` +
+        `Set EXPO_PUBLIC_API_URL to your machine's Wi-Fi IP, for example ` +
+        `http://192.168.x.x:${DEFAULT_API_PORT}.`,
+    );
   }
 
   return DEFAULT_API_URL;

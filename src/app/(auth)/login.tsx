@@ -1,144 +1,91 @@
-import { useEffect, useState } from "react";
-import { type Href, useRouter } from "expo-router";
-import { useMutation } from "@tanstack/react-query";
+import { useLocalSearchParams } from "expo-router";
+import { useEffect } from "react";
+import { useWindowDimensions } from "react-native";
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
 
-import { login } from "@/api";
-import { AppScreenShell, AppSectionCard } from "@/components/app/AppScreenShell";
-import { Button, Stack, TextField, ThemedText } from "@/components/ui";
-import { useStartupSync } from "@/hooks/useStartupSync";
-import { useCustomerId } from "@/stores";
-import { ApiError } from "@/types/api";
+import { AuthScreenShell } from "@/components/app/AuthScreenShell";
+import { BrandLogo } from "@/components/app/BrandLogo";
+import { LoginForm } from "@/components/app/LoginForm";
+import { hideNativeSplash } from "@/helpers/nativeSplash";
+import { isIntroFromSplash } from "@/helpers/routeParams";
+import {
+  useLoginLogoIntroStyle,
+  useLoginLogoRestLayout,
+} from "@/hooks/useAuthLogoRestOffset";
+import { useSplashIntro } from "@/hooks/useSplashIntro";
 
 export default function LoginScreen() {
-  const router = useRouter();
-  const customerId = useCustomerId();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [hasSignedIn, setHasSignedIn] = useState(false);
-
-  const loginMutation = useMutation({
-    mutationFn: () => {
-      if (!customerId) {
-        throw new ApiError("Pair this device with a clinic before signing in.", 400);
-      }
-
-      return login({
-        customerId,
-        username: username.trim(),
-        password,
-      });
-    },
-    onSuccess: () => {
-      setHasSignedIn(true);
-    },
-  });
-
-  const {
-    isPending: isSyncing,
-    isSuccess: isSyncComplete,
-    isError: isSyncFailed,
-    isFetchedAfterMount: hasSyncedThisVisit,
-    refetch: retrySync,
-    isFetching: isRetryingSync,
-  } = useStartupSync(hasSignedIn);
+  const { intro } = useLocalSearchParams<{
+    intro?: string | string[];
+  }>();
+  const animateFromSplash = isIntroFromSplash(intro);
+  const { height: windowHeight } = useWindowDimensions();
+  const splashIntro = useSplashIntro(animateFromSplash);
+  const logoHeight = useSharedValue(0);
+  const onLogoLayout = useLoginLogoRestLayout();
+  const logoStyle = useLoginLogoIntroStyle(
+    animateFromSplash,
+    windowHeight,
+    splashIntro.progress,
+    logoHeight,
+  );
 
   useEffect(() => {
-    if (!hasSignedIn || isSyncFailed || !hasSyncedThisVisit || !isSyncComplete) {
-      return;
+    void hideNativeSplash();
+
+    if (animateFromSplash) {
+      splashIntro.start();
+    }
+    // start() is guarded by a shared value, so it is safe across renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only run for the splash intro
+  }, [animateFromSplash]);
+
+  const incomingStyle = useAnimatedStyle(() => {
+    if (!animateFromSplash) {
+      return { opacity: 1, transform: [{ translateY: 0 }] };
     }
 
-    router.replace("/(tabs)/schedule" as Href);
-  }, [hasSignedIn, hasSyncedThisVisit, isSyncComplete, isSyncFailed, router]);
-
-  const isSigningIn = loginMutation.isPending;
-  const isSyncingNow = hasSignedIn && (isSyncing || isRetryingSync || !hasSyncedThisVisit);
-  const canSubmit =
-    Boolean(customerId) &&
-    username.trim().length > 0 &&
-    password.length > 0 &&
-    !isSigningIn &&
-    !hasSignedIn;
-  const loginError =
-    loginMutation.error instanceof ApiError
-      ? loginMutation.error.message
-      : loginMutation.isError
-        ? "Unable to sign in. Check your credentials and try again."
-        : undefined;
+    return {
+      opacity: interpolate(
+        splashIntro.progress.value,
+        [0, 0.2],
+        [0, 1],
+        Extrapolation.CLAMP,
+      ),
+      transform: [
+        {
+          translateY: (1 - splashIntro.progress.value) * windowHeight,
+        },
+      ],
+    };
+  });
 
   return (
-    <AppScreenShell
-      description="Authenticate the paired user here, then sync clinic data before opening the main app."
-      eyebrow="Authentication flow"
-      title="Login"
-    >
-      <AppSectionCard
-        title="Credentials"
-        description="Sign in with your clinic account. Data is synced after a successful login, not after pairing."
-      >
-        <Stack space="default">
-          {!customerId ? (
-            <Stack space="compact">
-              <ThemedText tone="muted">
-                Pair this device with a clinic QR code before signing in.
-              </ThemedText>
-              <Button
-                label="Scan clinic QR"
-                onPress={() => router.replace("/(auth)/qr-scanner" as Href)}
-                tone="brand"
-                variant="outline"
-              />
-            </Stack>
-          ) : null}
-          <TextField
-            autoCapitalize="none"
-            autoComplete="username"
-            editable={!isSigningIn && !hasSignedIn}
-            label="Email or username"
-            onChangeText={setUsername}
-            placeholder="doctor@clinic.com"
-            value={username}
-          />
-          <TextField
-            autoComplete="password"
-            editable={!isSigningIn && !hasSignedIn}
-            label="Password"
-            onChangeText={setPassword}
-            placeholder="Enter password"
-            secureTextEntry
-            value={password}
-          />
-          {loginError ? <ThemedText tone="alert">{loginError}</ThemedText> : null}
-          {hasSignedIn ? (
-            <Stack space="compact">
-              <ThemedText tone="muted">
-                {isSyncFailed
-                  ? "Unable to sync clinic data. Check your connection and try again."
-                  : isSyncingNow
-                    ? "Syncing clinic data with the server..."
-                    : "Sync complete. Opening the app..."}
-              </ThemedText>
-              {isSyncFailed ? (
-                <Button
-                  disabled={isRetryingSync}
-                  label={isRetryingSync ? "Retrying sync..." : "Retry sync"}
-                  onPress={() => {
-                    void retrySync();
-                  }}
-                  tone="brand"
-                />
-              ) : null}
-            </Stack>
-          ) : (
-            <Button
-              disabled={!canSubmit}
-              label={isSigningIn ? "Signing in..." : "Sign in"}
-              onPress={() => {
-                loginMutation.mutate();
-              }}
+    <AuthScreenShell footerVisibility="always">
+      <LoginForm
+        contentStyle={incomingStyle}
+        logo={
+          <Animated.View
+            className="items-center"
+            onLayout={(event) => {
+              logoHeight.value = event.nativeEvent.layout.height;
+              onLogoLayout(event);
+            }}
+            style={logoStyle}
+          >
+            <BrandLogo
+              showWordmark={animateFromSplash}
+              wordmarkStyle={splashIntro.wordmarkStyle}
             />
-          )}
-        </Stack>
-      </AppSectionCard>
-    </AppScreenShell>
+          </Animated.View>
+        }
+        onFieldsLayout={splashIntro.onContentLayout}
+      />
+    </AuthScreenShell>
   );
 }

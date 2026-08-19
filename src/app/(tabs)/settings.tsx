@@ -1,8 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { type Href, useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 
 import { logout } from "@/api";
-import { AppScreenShell, AppSectionCard } from "@/components/app/AppScreenShell";
+import {
+  AppScreenShell,
+  AppSectionCard,
+} from "@/components/app/AppScreenShell";
 import { Button, Stack, ThemedText } from "@/components/ui";
 import { useAppTheme, type ThemeMode } from "@/theme";
 import { ApiError } from "@/types/api";
@@ -54,11 +57,15 @@ export default function SettingsScreen() {
         description="Sign out of this device. The clinic pairing stays saved so you can sign back in."
       >
         <Stack space="compact">
-          {logoutError ? <ThemedText tone="alert">{logoutError}</ThemedText> : null}
+          {logoutError ? (
+            <ThemedText tone="alert">{logoutError}</ThemedText>
+          ) : null}
           <Button
             disabled={logoutMutation.isPending}
             label={
-              logoutMutation.isPending ? "Syncing and signing out..." : "Log out"
+              logoutMutation.isPending
+                ? "Syncing and signing out..."
+                : "Log out"
             }
             onPress={() => {
               logoutMutation.mutate();

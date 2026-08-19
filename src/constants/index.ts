@@ -5,7 +5,16 @@ export {
   AUTH_ME_PATH,
   AUTH_PAIR_PATH,
   AUTH_REFRESH_PATH,
+  DEMO_CUSTOMER_ID,
+  PRODUCT_ID,
 } from "./auth";
+export {
+  checkCircleIcon,
+  lockIcon,
+  personIcon,
+  qrCodeIcon,
+  visibilityIcon,
+} from "./icons";
 export { AUTH_STORE_KEY } from "./storage";
 export {
   MIGRATIONS_ENABLED_AT_VERSION,

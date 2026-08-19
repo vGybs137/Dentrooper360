@@ -1,10 +1,7 @@
 import { type Href, useRouter } from "expo-router";
 import { useEffect } from "react";
 
-import {
-  AppScreenShell,
-  AppSectionCard,
-} from "@/components/app/AppScreenShell";
+import { BrandedSplash } from "@/components/app/BrandLogo";
 import { Button, Stack, ThemedText } from "@/components/ui";
 import { hideNativeSplash } from "@/helpers/nativeSplash";
 import { useStartupSessionCheck } from "@/hooks/useStartupSessionCheck";
@@ -15,47 +12,6 @@ import {
   useHasHydrated,
   useIsAuthenticated,
 } from "@/stores";
-
-type StartupStatusFlags = {
-  hasHydrated: boolean;
-  hasCustomerId: boolean;
-  isAuthenticated: boolean;
-  isValidatingSession: boolean;
-  isSessionInvalid: boolean;
-  isSyncing: boolean;
-  isSyncFailed: boolean;
-  isSyncComplete: boolean;
-};
-
-function getStartupStatusMessage({
-  hasHydrated,
-  hasCustomerId,
-  isAuthenticated,
-  isValidatingSession,
-  isSessionInvalid,
-  isSyncing,
-  isSyncFailed,
-  isSyncComplete,
-}: StartupStatusFlags): string {
-  switch (true) {
-    case !hasHydrated:
-      return "Loading saved customer and session data...";
-    case !hasCustomerId || !isAuthenticated:
-      return "Routing to the appropriate screen...";
-    case isValidatingSession:
-      return "Validating session with the server...";
-    case isSessionInvalid:
-      return "Session expired. Redirecting to login...";
-    case isSyncing:
-      return "Syncing clinic data with the server...";
-    case isSyncFailed:
-      return "Unable to sync clinic data. Check your connection and try again.";
-    case isSyncComplete:
-      return "Sync complete. Opening the app...";
-    default:
-      return "Preparing to sync clinic data...";
-  }
-}
 
 export default function Index() {
   const router = useRouter();
@@ -68,7 +24,6 @@ export default function Index() {
     isError: isSessionInvalid,
   } = useStartupSessionCheck();
   const {
-    isPending: isSyncing,
     isSuccess: isSyncComplete,
     isError: isSyncFailed,
     isFetchedAfterMount: hasSyncedThisVisit,
@@ -82,14 +37,12 @@ export default function Index() {
     }
 
     if (!customerId) {
-      void hideNativeSplash();
       router.replace("/(auth)/onboarding" as Href);
       return;
     }
 
     if (!isAuthenticated) {
-      void hideNativeSplash();
-      router.replace("/(auth)/login" as Href);
+      router.replace("/(auth)/login?intro=1" as Href);
       return;
     }
 
@@ -98,9 +51,8 @@ export default function Index() {
     }
 
     if (isSessionInvalid) {
-      void hideNativeSplash();
       useAuthStore.getState().clearSession();
-      router.replace("/(auth)/login" as Href);
+      router.replace("/(auth)/login?intro=1" as Href);
       return;
     }
 
@@ -134,41 +86,23 @@ export default function Index() {
     router,
   ]);
 
-  const statusMessage = getStartupStatusMessage({
-    hasHydrated,
-    hasCustomerId: Boolean(customerId),
-    isAuthenticated,
-    isValidatingSession,
-    isSessionInvalid,
-    isSyncing: isSyncing || isRetryingSync,
-    isSyncFailed,
-    isSyncComplete,
-  });
-
   return (
-    <AppScreenShell
-      description="Checking the persisted clinic pairing and session state, then synchronizing local data before routing the user into the app."
-      eyebrow="Flow start"
-      title="Splash Screen"
-    >
-      <AppSectionCard
-        title="Startup check"
-        description="The splash screen validates stored tokens, pulls and pushes clinic data, then opens the main app."
-      >
-        <Stack space="compact">
-          <ThemedText tone="muted">{statusMessage}</ThemedText>
-          {isSyncFailed ? (
-            <Button
-              label={isRetryingSync ? "Retrying sync..." : "Retry sync"}
-              tone="brand"
-              disabled={isRetryingSync}
-              onPress={() => {
-                void retrySync();
-              }}
-            />
-          ) : null}
+    <BrandedSplash>
+      {isSyncFailed ? (
+        <Stack space="compact" align="center">
+          <ThemedText align="center" tone="muted">
+            Unable to sync clinic data. Check your connection and try again.
+          </ThemedText>
+          <Button
+            disabled={isRetryingSync}
+            label={isRetryingSync ? "Retrying sync..." : "Retry sync"}
+            onPress={() => {
+              void retrySync();
+            }}
+            tone="brand"
+          />
         </Stack>
-      </AppSectionCard>
-    </AppScreenShell>
+      ) : null}
+    </BrandedSplash>
   );
 }
