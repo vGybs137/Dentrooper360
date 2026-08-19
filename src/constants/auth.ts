@@ -7,3 +7,5 @@ export const AUTH_ME_PATH = "/api/auth/me";
 export const ACCESS_TOKEN_LIFETIME_MS = 15 * 60 * 1000;
 export const TOKEN_REFRESH_LEAD_MS = 2 * 60 * 1000;
 export const TOKEN_REFRESH_CHECK_INTERVAL_MS = 60 * 1000;
+
+export const DEMO_CUSTOMER_ID = "C69B1B73-C143-4B55-8859-1A22EED3C6EA";

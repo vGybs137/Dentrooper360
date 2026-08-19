@@ -3,6 +3,7 @@ import { Pressable, View, type StyleProp, type ViewStyle } from "react-native";
 import Animated, { type AnimatedStyle } from "react-native-reanimated";
 
 import { Button, Stack } from "@/components/ui";
+import { checkCircleIcon, qrCodeIcon } from "@/constants";
 import type { QrScanStatus } from "@/hooks/useQrScannerMotion";
 import { useThemeTokens } from "@/theme";
 
@@ -96,11 +97,7 @@ export function QrViewfinder({
             <>
               <View className="absolute inset-0 items-center justify-center">
                 <SymbolView
-                  name={{
-                    ios: "qrcode",
-                    android: "qr_code_2",
-                    web: "qr_code_2",
-                  }}
+                  name={qrCodeIcon}
                   size={iconSize}
                   tintColor={theme.palette.brand.default}
                 />
@@ -123,11 +120,7 @@ export function QrViewfinder({
               style={pairedMarkStyle}
             >
               <SymbolView
-                name={{
-                  ios: "checkmark.circle.fill",
-                  android: "check_circle",
-                  web: "check_circle",
-                }}
+                name={checkCircleIcon}
                 size={iconSize}
                 tintColor={theme.palette.success.DEFAULT}
               />

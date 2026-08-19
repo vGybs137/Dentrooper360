@@ -10,6 +10,7 @@ import {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { BRAND_WORDMARK_HEIGHT } from "@/components/app/BrandLogo";
 import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
 import { useThemeTokens } from "@/theme";
 
@@ -146,7 +147,7 @@ export function useSplashIntro(enabled: boolean) {
       ? interpolate(progress.value, [0, 0.45], [1, 0], Extrapolation.CLAMP)
       : 0,
     height: enabled
-      ? interpolate(progress.value, [0, 0.45], [36, 0], Extrapolation.CLAMP)
+      ? interpolate(progress.value, [0, 0.45], [BRAND_WORDMARK_HEIGHT, 0], Extrapolation.CLAMP)
       : 0,
     overflow: "hidden" as const,
   }));
@@ -161,7 +162,7 @@ export function useSplashIntro(enabled: boolean) {
     height: interpolate(
       exitProgress.value,
       [0, 0.45],
-      [36, 0],
+      [BRAND_WORDMARK_HEIGHT, 0],
       Extrapolation.CLAMP
     ),
     overflow: "hidden" as const,

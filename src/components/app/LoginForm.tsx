@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { login } from "@/api";
 import { Button, Stack, TextField, ThemedText } from "@/components/ui";
+import { lockIcon, personIcon, visibilityIcon } from "@/constants";
 import { useStartupSync } from "@/hooks/useStartupSync";
 import { useCustomerId } from "@/stores";
 import { useThemeTokens } from "@/theme";
@@ -163,11 +164,7 @@ export function LoginForm({
             editable={!isSigningIn && !hasSignedIn}
             leading={
               <SymbolView
-                name={{
-                  ios: "person.crop.circle",
-                  android: "account_circle",
-                  web: "account_circle",
-                }}
+                name={personIcon}
                 size={theme.semantic.size.icon}
                 tintColor={theme.palette.foreground.muted}
               />
@@ -183,11 +180,7 @@ export function LoginForm({
             editable={!isSigningIn && !hasSignedIn}
             leading={
               <SymbolView
-                name={{
-                  ios: "lock.fill",
-                  android: "lock",
-                  web: "lock",
-                }}
+                name={lockIcon}
                 size={theme.semantic.size.icon}
                 tintColor={theme.palette.foreground.muted}
               />
@@ -209,13 +202,7 @@ export function LoginForm({
                 }}
               >
                 <SymbolView
-                  name={{
-                    ios: isPasswordVisible ? "eye.slash" : "eye",
-                    android: isPasswordVisible
-                      ? "visibility_off"
-                      : "visibility",
-                    web: isPasswordVisible ? "visibility_off" : "visibility",
-                  }}
+                  name={visibilityIcon(isPasswordVisible)}
                   size={theme.semantic.size.icon}
                   tintColor={theme.palette.foreground.muted}
                 />

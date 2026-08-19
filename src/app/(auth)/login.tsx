@@ -1,11 +1,6 @@
 import { useLocalSearchParams } from "expo-router";
 import { useEffect } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  useWindowDimensions,
-} from "react-native";
+import { useWindowDimensions } from "react-native";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -13,9 +8,9 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 
-import { BrandLogo, SplashFooter } from "@/components/app/BrandLogo";
+import { AuthScreenShell } from "@/components/app/AuthScreenShell";
+import { BrandLogo } from "@/components/app/BrandLogo";
 import { LoginForm } from "@/components/app/LoginForm";
-import { ThemedView } from "@/components/ui";
 import { hideNativeSplash } from "@/helpers/nativeSplash";
 import { isIntroFromSplash } from "@/helpers/routeParams";
 import { useSplashIntro } from "@/hooks/useSplashIntro";
@@ -74,44 +69,26 @@ export default function LoginScreen() {
   });
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={styles.flex}
-    >
-      <ThemedView surface="sunken" style={styles.root}>
-        <LoginForm
-          contentStyle={incomingStyle}
-          logo={
-            <Animated.View
-              onLayout={(event) => {
-                logoHeight.value = event.nativeEvent.layout.height;
-                logoRestY.value = event.nativeEvent.layout.y;
-              }}
-              style={[styles.logo, logoStyle]}
-            >
-              <BrandLogo
-                showWordmark={animateFromSplash}
-                wordmarkStyle={splashIntro.wordmarkStyle}
-              />
-            </Animated.View>
-          }
-          onFieldsLayout={splashIntro.onContentLayout}
-        />
-        <SplashFooter />
-      </ThemedView>
-    </KeyboardAvoidingView>
+    <AuthScreenShell>
+      <LoginForm
+        contentStyle={incomingStyle}
+        logo={
+          <Animated.View
+            className="items-center"
+            onLayout={(event) => {
+              logoHeight.value = event.nativeEvent.layout.height;
+              logoRestY.value = event.nativeEvent.layout.y;
+            }}
+            style={logoStyle}
+          >
+            <BrandLogo
+              showWordmark={animateFromSplash}
+              wordmarkStyle={splashIntro.wordmarkStyle}
+            />
+          </Animated.View>
+        }
+        onFieldsLayout={splashIntro.onContentLayout}
+      />
+    </AuthScreenShell>
   );
 }
-
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  root: {
-    flex: 1,
-    overflow: "hidden",
-  },
-  logo: {
-    alignItems: "center",
-  },
-});

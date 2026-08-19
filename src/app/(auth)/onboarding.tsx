@@ -1,11 +1,12 @@
 import { type Href, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useEffect } from "react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { AuthBottomSheet } from "@/components/app/AuthBottomSheet";
 import { BrandLogo } from "@/components/app/BrandLogo";
 import { SplashIntroLayout } from "@/components/app/SplashIntroLayout";
-import { Button, Stack, ThemedText, ThemedView } from "@/components/ui";
+import { Button, Stack, ThemedText } from "@/components/ui";
+import { qrCodeIcon } from "@/constants";
 import { hideNativeSplash } from "@/helpers/nativeSplash";
 import {
   useAuthFlowSplashIntro,
@@ -20,7 +21,6 @@ export default function OnboardingScreen() {
   const splashIntro = useAuthFlowSplashIntro();
   const isLeaving = useAuthFlowIsLeaving();
   const beginOnboardingExit = useBeginOnboardingExit();
-  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     void hideNativeSplash();
@@ -32,17 +32,7 @@ export default function OnboardingScreen() {
       intro={splashIntro}
       logo={<BrandLogo wordmarkStyle={splashIntro.dismissWordmarkStyle} />}
     >
-      <ThemedView
-        pointerEvents={isLeaving ? "none" : "auto"}
-        surface="raised"
-        style={{
-          borderTopLeftRadius: theme.semantic.radius.dialog,
-          borderTopRightRadius: theme.semantic.radius.dialog,
-          paddingTop: theme.semantic.space.section,
-          paddingHorizontal: theme.semantic.space.inline.comfortable,
-          paddingBottom: theme.semantic.space.section + insets.bottom,
-        }}
-      >
+      <AuthBottomSheet pointerEvents={isLeaving ? "none" : "auto"}>
         <Stack space="comfortable">
           <Stack space="default">
             <ThemedText align="center" tone="brand" variant="title">
@@ -58,11 +48,7 @@ export default function OnboardingScreen() {
             disabled={isLeaving}
             icon={
               <SymbolView
-                name={{
-                  ios: "qrcode",
-                  android: "qr_code_2",
-                  web: "qr_code_2",
-                }}
+                name={qrCodeIcon}
                 size={theme.semantic.size.icon}
                 tintColor={theme.palette.brand.default}
               />
@@ -88,7 +74,7 @@ export default function OnboardingScreen() {
             variant="outline"
           />
         </Stack>
-      </ThemedView>
+      </AuthBottomSheet>
     </SplashIntroLayout>
   );
 }

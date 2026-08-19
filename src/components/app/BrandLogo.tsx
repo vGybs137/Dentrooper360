@@ -11,6 +11,8 @@ const markLogo = require("../../assets/no-text-logo.svg");
 const wordmarkLogo = require("../../assets/text-logo.svg");
 
 export const BRAND_MARK_SIZE = 160;
+export const BRAND_WORDMARK_WIDTH = 280;
+export const BRAND_WORDMARK_HEIGHT = 36;
 
 type BrandLogoProps = {
   showWordmark?: boolean;
@@ -35,7 +37,10 @@ export function BrandLogo({
             accessibilityLabel="Dentrooper 360"
             contentFit="contain"
             source={wordmarkLogo}
-            style={{ width: 280, height: 36 }}
+            style={{
+              width: BRAND_WORDMARK_WIDTH,
+              height: BRAND_WORDMARK_HEIGHT,
+            }}
           />
         </Animated.View>
       ) : null}
