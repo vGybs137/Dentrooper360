@@ -66,6 +66,7 @@ export function toLoginPayload(request: LoginRequest) {
 export function toPairPayload(request: PairRequest) {
   return {
     customer_id: request.customerId,
+    product_id: request.productId,
     device_id: request.deviceId,
     device_name: request.deviceName,
     platform: request.platform,

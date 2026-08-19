@@ -1,5 +1,6 @@
 import { SymbolView } from "expo-symbols";
-import { Pressable, View, type StyleProp, type ViewStyle } from "react-native";
+import { type ReactNode } from "react";
+import { View, type StyleProp, type ViewStyle } from "react-native";
 import Animated, { type AnimatedStyle } from "react-native-reanimated";
 
 import { Button, Stack } from "@/components/ui";
@@ -56,7 +57,7 @@ type QrViewfinderProps = {
   scanInset: number;
   scanLineStyle: StyleProp<AnimatedStyle<ViewStyle>>;
   pairedMarkStyle: StyleProp<AnimatedStyle<ViewStyle>>;
-  onSimulateScan: () => void;
+  cameraPreview?: ReactNode;
   onCancel: () => void;
 };
 
@@ -67,7 +68,7 @@ export function QrViewfinder({
   scanInset,
   scanLineStyle,
   pairedMarkStyle,
-  onSimulateScan,
+  cameraPreview,
   onCancel,
 }: QrViewfinderProps) {
   const theme = useThemeTokens();
@@ -78,23 +79,18 @@ export function QrViewfinder({
 
   return (
     <Stack align="center" space="comfortable">
-      <Pressable
-        accessibilityLabel="Scan clinic QR code"
-        accessibilityRole="button"
-        disabled={status !== "ready"}
-        onPress={onSimulateScan}
+      <View
+        className="overflow-hidden"
+        style={{
+          width: viewfinderSize,
+          height: viewfinderSize,
+          backgroundColor: theme.palette.brand.subtle,
+          borderRadius: theme.semantic.radius.overlay,
+        }}
       >
-        <View
-          className="overflow-hidden"
-          style={{
-            width: viewfinderSize,
-            height: viewfinderSize,
-            backgroundColor: theme.palette.brand.subtle,
-            borderRadius: theme.semantic.radius.overlay,
-          }}
-        >
-          {status === "ready" ? (
-            <>
+        {status === "ready" ? (
+          <>
+            {cameraPreview ?? (
               <View className="absolute inset-0 items-center justify-center">
                 <SymbolView
                   name={qrCodeIcon}
@@ -102,42 +98,42 @@ export function QrViewfinder({
                   tintColor={theme.palette.brand.default}
                 />
               </View>
-              <Animated.View
-                className="absolute h-0.5"
-                style={[
-                  {
-                    left: scanInset,
-                    right: scanInset,
-                    backgroundColor: theme.palette.brand.default,
-                  },
-                  scanLineStyle,
-                ]}
-              />
-            </>
-          ) : (
+            )}
             <Animated.View
-              className="absolute inset-0 items-center justify-center"
-              style={pairedMarkStyle}
-            >
-              <SymbolView
-                name={checkCircleIcon}
-                size={iconSize}
-                tintColor={theme.palette.success.DEFAULT}
-              />
-            </Animated.View>
-          )}
-          {(["tl", "tr", "bl", "br"] as const).map((placement) => (
-            <ViewfinderCorner
-              key={placement}
-              color={frameColor}
-              placement={placement}
-              radius={cornerRadius}
-              size={cornerSize}
-              thickness={cornerThickness}
+              className="absolute h-0.5"
+              style={[
+                {
+                  left: scanInset,
+                  right: scanInset,
+                  backgroundColor: theme.palette.brand.default,
+                },
+                scanLineStyle,
+              ]}
             />
-          ))}
-        </View>
-      </Pressable>
+          </>
+        ) : (
+          <Animated.View
+            className="absolute inset-0 items-center justify-center"
+            style={pairedMarkStyle}
+          >
+            <SymbolView
+              name={checkCircleIcon}
+              size={iconSize}
+              tintColor={theme.palette.success.DEFAULT}
+            />
+          </Animated.View>
+        )}
+        {(["tl", "tr", "bl", "br"] as const).map((placement) => (
+          <ViewfinderCorner
+            key={placement}
+            color={frameColor}
+            placement={placement}
+            radius={cornerRadius}
+            size={cornerSize}
+            thickness={cornerThickness}
+          />
+        ))}
+      </View>
       <Button
         disabled={status !== "ready"}
         label="Cancel"

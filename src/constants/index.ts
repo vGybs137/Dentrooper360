@@ -6,6 +6,7 @@ export {
   AUTH_PAIR_PATH,
   AUTH_REFRESH_PATH,
   DEMO_CUSTOMER_ID,
+  PRODUCT_ID,
 } from "./auth";
 export {
   checkCircleIcon,
