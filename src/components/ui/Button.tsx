@@ -1,11 +1,18 @@
-import React, { useState } from "react";
+import React, { useCallback, useRef } from "react";
 import {
   Pressable,
+  View,
   type GestureResponderEvent,
+  type LayoutRectangle,
   type PressableProps,
   type StyleProp,
   type ViewStyle,
 } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
 import { useThemeTokens } from "@/theme";
 import { cn } from "@/utils/cn";
@@ -80,6 +87,9 @@ function resolveHeight(theme: ReturnType<typeof useThemeTokens>, size: ButtonSiz
   }
 }
 
+const RIPPLE_DURATION = 400;
+const RIPPLE_OPACITY = 0.18;
+
 export function Button({
   label,
   icon,
@@ -96,7 +106,52 @@ export function Button({
 }: ButtonProps) {
   const theme = useThemeTokens();
   const tonePalette = resolveTone(theme, tone);
-  const [pressed, setPressed] = useState(false);
+  const layoutRef = useRef<LayoutRectangle | null>(null);
+
+  const rippleScale = useSharedValue(0);
+  const rippleOpacity = useSharedValue(0);
+  const rippleX = useSharedValue(0);
+  const rippleY = useSharedValue(0);
+  const rippleRadius = useSharedValue(0);
+
+  const startRipple = useCallback(
+    (x: number, y: number) => {
+      const layout = layoutRef.current;
+      if (!layout) return;
+
+      const dx = Math.max(x, layout.width - x);
+      const dy = Math.max(y, layout.height - y);
+      const radius = Math.sqrt(dx * dx + dy * dy);
+
+      rippleX.value = x;
+      rippleY.value = y;
+      rippleRadius.value = radius;
+      rippleScale.value = 0;
+      rippleOpacity.value = RIPPLE_OPACITY;
+      rippleScale.value = withTiming(1, { duration: RIPPLE_DURATION });
+    },
+    [rippleOpacity, rippleRadius, rippleScale, rippleX, rippleY],
+  );
+
+  const endRipple = useCallback(() => {
+    rippleOpacity.value = withTiming(0, { duration: 250 });
+  }, [rippleOpacity]);
+
+  const rippleStyle = useAnimatedStyle(() => {
+    const d = rippleRadius.value * 2;
+    return {
+      position: "absolute",
+      left: rippleX.value - rippleRadius.value,
+      top: rippleY.value - rippleRadius.value,
+      width: d,
+      height: d,
+      borderRadius: rippleRadius.value,
+      backgroundColor:
+        variant === "solid" ? "rgba(255,255,255,1)" : "rgba(0,0,0,1)",
+      opacity: rippleOpacity.value,
+      transform: [{ scale: rippleScale.value }],
+    };
+  });
 
   const backgroundColor =
     variant === "solid"
@@ -118,12 +173,16 @@ export function Button({
       accessibilityRole="button"
       className={className}
       disabled={disabled}
+      onLayout={(e) => {
+        layoutRef.current = e.nativeEvent.layout;
+      }}
       onPressIn={(event) => {
-        setPressed(true);
+        const { locationX, locationY } = event.nativeEvent;
+        startRipple(locationX, locationY);
         onPressIn?.(event);
       }}
       onPressOut={(event) => {
-        setPressed(false);
+        endRipple();
         onPressOut?.(event);
       }}
       style={[
@@ -138,25 +197,27 @@ export function Button({
           backgroundColor,
           borderColor,
           borderWidth:
-            borderColor === "transparent" ? 0 : theme.semantic.borderWidth.strong,
-          opacity: disabled
-            ? theme.semantic.opacity.disabled
-            : pressed
-              ? 0.82
-              : 1,
+            borderColor === "transparent"
+              ? 0
+              : theme.semantic.borderWidth.strong,
+          opacity: disabled ? theme.semantic.opacity.disabled : 1,
+          overflow: "hidden",
         },
         style,
       ]}
       {...props}
     >
-      {icon}
-      <ThemedText
-        className={cn("text-center", textClassName)}
-        style={{ color: labelColor }}
-        variant="label"
-      >
-        {label}
-      </ThemedText>
+      <Animated.View pointerEvents="none" style={rippleStyle} />
+      <View style={{ flexDirection: "row", alignItems: "center", gap: theme.semantic.space.gap.compact }}>
+        {icon}
+        <ThemedText
+          className={cn("text-center", textClassName)}
+          style={{ color: labelColor }}
+          variant="label"
+        >
+          {label}
+        </ThemedText>
+      </View>
     </Pressable>
   );
 }
