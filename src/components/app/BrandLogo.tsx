@@ -79,15 +79,9 @@ export function SplashFooter() {
 
   return (
     <View
+      className="absolute inset-x-0 bottom-0 items-center"
       pointerEvents="none"
-      style={{
-        position: "absolute",
-        right: 0,
-        bottom: 0,
-        left: 0,
-        alignItems: "center",
-        paddingBottom: theme.semantic.space.page + insets.bottom,
-      }}
+      style={{ paddingBottom: theme.semantic.space.page + insets.bottom }}
     >
       <SplashAttribution />
     </View>

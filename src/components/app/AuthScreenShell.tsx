@@ -8,16 +8,18 @@ import {
 import { SplashFooter } from "@/components/app/BrandLogo";
 import { ThemedView } from "@/components/ui";
 
+export type AuthFooterVisibility = "always" | "hidden" | "underSheet";
+
 type AuthScreenShellProps = {
   children: ReactNode;
-  showFooter?: boolean;
+  footerVisibility?: AuthFooterVisibility;
   transparent?: boolean;
   pointerEvents?: ViewProps["pointerEvents"];
 };
 
 export function AuthScreenShell({
   children,
-  showFooter = true,
+  footerVisibility = "always",
   transparent = false,
   pointerEvents,
 }: AuthScreenShellProps) {
@@ -33,7 +35,7 @@ export function AuthScreenShell({
         style={transparent ? { backgroundColor: "transparent" } : undefined}
         surface="sunken"
       >
-        {showFooter ? <SplashFooter /> : null}
+        {footerVisibility !== "hidden" ? <SplashFooter /> : null}
         {children}
       </ThemedView>
     </KeyboardAvoidingView>

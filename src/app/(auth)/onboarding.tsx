@@ -28,7 +28,6 @@ export default function OnboardingScreen() {
 
   return (
     <SplashIntroLayout
-      enabled
       intro={splashIntro}
       logo={<BrandLogo wordmarkStyle={splashIntro.dismissWordmarkStyle} />}
     >

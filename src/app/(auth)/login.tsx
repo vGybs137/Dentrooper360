@@ -66,7 +66,7 @@ export default function LoginScreen() {
   });
 
   return (
-    <AuthScreenShell>
+    <AuthScreenShell footerVisibility="always">
       <LoginForm
         contentStyle={incomingStyle}
         logo={

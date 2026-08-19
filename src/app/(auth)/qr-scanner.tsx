@@ -68,8 +68,8 @@ export default function QrScannerScreen() {
 
   return (
     <AuthScreenShell
+      footerVisibility={fromOnboarding ? "hidden" : "always"}
       pointerEvents="box-none"
-      showFooter={!fromOnboarding}
       transparent={fromOnboarding}
     >
       {status === "paired" ? (
