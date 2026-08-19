@@ -1,23 +1,13 @@
-import { useMutation } from "@tanstack/react-query";
-import { type Href, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import {
-  type ComponentProps,
-  type ReactNode,
-  useEffect,
-  useState,
-} from "react";
+import { type ComponentProps, type ReactNode } from "react";
 import { Pressable, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { login } from "@/api";
 import { Button, Stack, TextField, ThemedText } from "@/components/ui";
 import { lockIcon, personIcon, visibilityIcon } from "@/constants";
-import { useStartupSync } from "@/hooks/useStartupSync";
-import { useCustomerId } from "@/stores";
+import { useLoginForm } from "@/hooks/useLoginForm";
 import { useThemeTokens } from "@/theme";
-import { ApiError } from "@/types/api";
 
 import { useSplashFooterOffset } from "./BrandLogo";
 
@@ -32,94 +22,21 @@ export function LoginForm({
   contentStyle,
   onFieldsLayout,
 }: LoginFormProps) {
-  const router = useRouter();
-  const customerId = useCustomerId();
   const theme = useThemeTokens();
   const insets = useSafeAreaInsets();
   const footerOffset = useSplashFooterOffset();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [hasSignedIn, setHasSignedIn] = useState(false);
-  const fieldGap = theme.semantic.space.section;
-  const inline = theme.semantic.space.inline.comfortable;
-
-  const loginMutation = useMutation({
-    mutationFn: () => {
-      if (!customerId) {
-        throw new ApiError(
-          "Pair this device with a clinic before signing in.",
-          400,
-        );
-      }
-
-      return login({
-        customerId,
-        username: username.trim(),
-        password,
-      });
-    },
-    onSuccess: () => {
-      setHasSignedIn(true);
-    },
-  });
-
-  const {
-    isPending: isSyncing,
-    isSuccess: isSyncComplete,
-    isError: isSyncFailed,
-    isFetchedAfterMount: hasSyncedThisVisit,
-    refetch: retrySync,
-    isFetching: isRetryingSync,
-  } = useStartupSync(hasSignedIn);
-
-  useEffect(() => {
-    if (
-      !hasSignedIn ||
-      isSyncFailed ||
-      !hasSyncedThisVisit ||
-      !isSyncComplete
-    ) {
-      return;
-    }
-
-    router.replace("/(tabs)/schedule" as Href);
-  }, [hasSignedIn, hasSyncedThisVisit, isSyncComplete, isSyncFailed, router]);
-
-  const isSigningIn = loginMutation.isPending;
-  const isSyncingNow =
-    hasSignedIn && (isSyncing || isRetryingSync || !hasSyncedThisVisit);
-  const canSubmit =
-    Boolean(customerId) &&
-    username.trim().length > 0 &&
-    password.length > 0 &&
-    !isSigningIn &&
-    !hasSignedIn;
-  const loginError =
-    loginMutation.error instanceof ApiError
-      ? loginMutation.error.message
-      : loginMutation.isError
-        ? "Unable to sign in. Check your credentials and try again."
-        : undefined;
+  const form = useLoginForm();
 
   return (
-    <View style={{ flex: 1 }}>
+    <View className="flex-1">
       <View
-        style={{
-          flex: 1,
-          justifyContent: "flex-end",
-          paddingTop: insets.top + theme.semantic.space.page,
-        }}
+        className="flex-1 justify-end"
+        style={{ paddingTop: insets.top + theme.semantic.space.page }}
       >
         {logo}
         <Animated.View
-          style={[
-            {
-              paddingHorizontal: inline,
-              paddingTop: fieldGap,
-            },
-            contentStyle,
-          ]}
+          className="px-inline-comfortable pt-section"
+          style={contentStyle}
         >
           <Stack space="compact">
             <ThemedText align="center" variant="display">
@@ -132,26 +49,21 @@ export function LoginForm({
         </Animated.View>
       </View>
       <Animated.View
+        className="px-inline-comfortable py-section"
         onLayout={(event) => {
           onFieldsLayout?.(event.nativeEvent.layout.height);
         }}
-        style={[
-          {
-            paddingHorizontal: inline,
-            paddingVertical: fieldGap,
-          },
-          contentStyle,
-        ]}
+        style={contentStyle}
       >
         <Stack space="default">
-          {!customerId ? (
+          {!form.customerId ? (
             <Stack space="compact">
               <ThemedText align="center" tone="muted">
                 Pair this device with a clinic QR code before signing in.
               </ThemedText>
               <Button
                 label="Scan clinic QR"
-                onPress={() => router.replace("/(auth)/qr-scanner" as Href)}
+                onPress={form.goToQrScanner}
                 tone="brand"
                 variant="outline"
               />
@@ -161,7 +73,7 @@ export function LoginForm({
             autoCapitalize="none"
             autoComplete="username"
             autoCorrect={false}
-            editable={!isSigningIn && !hasSignedIn}
+            editable={!form.isSigningIn && !form.hasSignedIn}
             leading={
               <SymbolView
                 name={personIcon}
@@ -169,15 +81,15 @@ export function LoginForm({
                 tintColor={theme.palette.foreground.muted}
               />
             }
-            onChangeText={setUsername}
+            onChangeText={form.setUsername}
             placeholder="Username"
             size="lg"
             textContentType="username"
-            value={username}
+            value={form.username}
           />
           <TextField
             autoComplete="password"
-            editable={!isSigningIn && !hasSignedIn}
+            editable={!form.isSigningIn && !form.hasSignedIn}
             leading={
               <SymbolView
                 name={lockIcon}
@@ -185,64 +97,54 @@ export function LoginForm({
                 tintColor={theme.palette.foreground.muted}
               />
             }
-            onChangeText={setPassword}
+            onChangeText={form.setPassword}
             placeholder="Password"
-            secureTextEntry={!isPasswordVisible}
+            secureTextEntry={!form.isPasswordVisible}
             size="lg"
             textContentType="password"
             trailing={
               <Pressable
                 accessibilityLabel={
-                  isPasswordVisible ? "Hide password" : "Show password"
+                  form.isPasswordVisible ? "Hide password" : "Show password"
                 }
                 accessibilityRole="button"
                 hitSlop={theme.semantic.space.inset.compact}
-                onPress={() => {
-                  setIsPasswordVisible((visible) => !visible);
-                }}
+                onPress={form.togglePasswordVisibility}
               >
                 <SymbolView
-                  name={visibilityIcon(isPasswordVisible)}
+                  name={visibilityIcon(form.isPasswordVisible)}
                   size={theme.semantic.size.icon}
                   tintColor={theme.palette.foreground.muted}
                 />
               </Pressable>
             }
-            value={password}
+            value={form.password}
           />
-          {loginError ? (
+          {form.loginError ? (
             <ThemedText align="center" tone="alert">
-              {loginError}
+              {form.loginError}
             </ThemedText>
           ) : null}
         </Stack>
       </Animated.View>
       <Animated.View
-        style={[
-          {
-            flex: 1,
-            paddingHorizontal: inline,
-            paddingBottom: footerOffset,
-          },
-          contentStyle,
-        ]}
+        className="flex-1 px-inline-comfortable"
+        style={[{ paddingBottom: footerOffset }, contentStyle]}
       >
-        {hasSignedIn ? (
+        {form.hasSignedIn ? (
           <Stack space="compact">
             <ThemedText align="center" tone="muted">
-              {isSyncFailed
+              {form.isSyncFailed
                 ? "Unable to sync clinic data. Check your connection and try again."
-                : isSyncingNow
+                : form.isSyncingNow
                   ? "Syncing clinic data with the server..."
                   : "Sync complete. Opening the app..."}
             </ThemedText>
-            {isSyncFailed ? (
+            {form.isSyncFailed ? (
               <Button
-                disabled={isRetryingSync}
-                label={isRetryingSync ? "Retrying sync..." : "Retry sync"}
-                onPress={() => {
-                  void retrySync();
-                }}
+                disabled={form.isRetryingSync}
+                label={form.isRetryingSync ? "Retrying sync..." : "Retry sync"}
+                onPress={form.retrySync}
                 size="lg"
                 tone="brand"
               />
@@ -250,11 +152,9 @@ export function LoginForm({
           </Stack>
         ) : (
           <Button
-            disabled={!canSubmit}
-            label={isSigningIn ? "Signing in..." : "Login"}
-            onPress={() => {
-              loginMutation.mutate();
-            }}
+            disabled={!form.canSubmit}
+            label={form.isSigningIn ? "Signing in..." : "Login"}
+            onPress={form.submit}
             size="lg"
           />
         )}
