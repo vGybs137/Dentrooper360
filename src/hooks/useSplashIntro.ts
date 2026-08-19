@@ -1,6 +1,5 @@
 import { useWindowDimensions } from "react-native";
 import {
-  Easing,
   Extrapolation,
   interpolate,
   runOnJS,
@@ -11,17 +10,10 @@ import {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { BRAND_WORDMARK_HEIGHT } from "@/components/app/BrandLogo";
+import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
+import { getEstimatedLoginLogoRestTranslateY, getLoginLogoRestTranslateY } from "@/hooks/useAuthLogoRestOffset";
 import { useThemeTokens } from "@/theme";
-
-let onboardingRestore: (() => void) | null = null;
-
-export function registerOnboardingRestore(handler: (() => void) | null) {
-  onboardingRestore = handler;
-}
-
-export function restoreOnboarding() {
-  onboardingRestore?.();
-}
 
 export function useSplashIntro(enabled: boolean) {
   const theme = useThemeTokens();
@@ -33,10 +25,8 @@ export function useSplashIntro(enabled: boolean) {
   const logoHeight = useSharedValue(0);
   const started = useSharedValue(false);
   const holdMs = theme.semantic.motion.overlay.duration * 2;
-  const moveMs =
-    theme.semantic.motion.overlay.duration +
-    theme.semantic.motion.enter.duration;
-  const moveEasing = Easing.bezier(0.05, 0.7, 0.1, 1);
+  const moveMs = getAuthSlideDuration(theme);
+  const moveEasing = AUTH_SLIDE_EASING;
   const headingBlock =
     theme.semantic.space.section +
     theme.semantic.type.display.lineHeight +
@@ -122,10 +112,18 @@ export function useSplashIntro(enabled: boolean) {
       return { transform: [{ translateY: restY }] };
     }
 
-    const logoRestTop =
-      (windowHeight - fieldsBlock) / 2 - headingBlock - logoHeight.value;
+    const measuredLoginRestY = getLoginLogoRestTranslateY(
+      windowHeight,
+      logoHeight.value,
+    );
     const loginRestY =
-      logoRestTop - (windowHeight - logoHeight.value) / 2;
+      measuredLoginRestY ??
+      getEstimatedLoginLogoRestTranslateY(
+        windowHeight,
+        logoHeight.value,
+        headingBlock,
+        fieldsBlock,
+      );
 
     return {
       transform: [
@@ -158,7 +156,7 @@ export function useSplashIntro(enabled: boolean) {
       ? interpolate(progress.value, [0, 0.45], [1, 0], Extrapolation.CLAMP)
       : 0,
     height: enabled
-      ? interpolate(progress.value, [0, 0.45], [36, 0], Extrapolation.CLAMP)
+      ? interpolate(progress.value, [0, 0.45], [BRAND_WORDMARK_HEIGHT, 0], Extrapolation.CLAMP)
       : 0,
     overflow: "hidden" as const,
   }));
@@ -173,7 +171,7 @@ export function useSplashIntro(enabled: boolean) {
     height: interpolate(
       exitProgress.value,
       [0, 0.45],
-      [36, 0],
+      [BRAND_WORDMARK_HEIGHT, 0],
       Extrapolation.CLAMP
     ),
     overflow: "hidden" as const,

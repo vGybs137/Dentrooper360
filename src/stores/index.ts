@@ -10,3 +10,12 @@ export {
   useIsAuthenticated,
   useRefreshToken,
 } from "./authStore";
+export {
+  getAuthFlowSplashIntro,
+  useAuthFlowSplashIntro,
+  useAuthFlowStore,
+  useAuthFlowIsLeaving,
+  useBeginOnboardingExit,
+  useRestoreOnboarding,
+} from "./authFlowStore";
+export type { SplashIntro } from "./authFlowStore";

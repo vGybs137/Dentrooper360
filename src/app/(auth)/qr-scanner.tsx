@@ -1,406 +1,108 @@
 import { type Href, useLocalSearchParams, useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
-import { useEffect, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  useWindowDimensions,
-  View,
-} from "react-native";
-import Animated, {
-  cancelAnimation,
-  Easing,
-  interpolate,
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from "react-native-reanimated";
+import { useCallback } from "react";
+import { useWindowDimensions, View } from "react-native";
+import Animated from "react-native-reanimated";
 
-import {
-  BRAND_MARK_SIZE,
-  BrandLogo,
-  SplashFooter,
-} from "@/components/app/BrandLogo";
+import { AuthScreenShell } from "@/components/app/AuthScreenShell";
+import { BRAND_MARK_SIZE, BrandLogo } from "@/components/app/BrandLogo";
 import { LoginForm } from "@/components/app/LoginForm";
-import { Button, Stack, ThemedView } from "@/components/ui";
-import { useAuthStore } from "@/stores";
-import { restoreOnboarding } from "@/hooks/useSplashIntro";
+import { QrViewfinder } from "@/components/app/QrViewfinder";
+import { DEMO_CUSTOMER_ID } from "@/constants";
+import { isFromOnboarding } from "@/helpers/routeParams";
+import { useLoginLogoRestLayout } from "@/hooks/useAuthLogoRestOffset";
+import { useQrScannerMotion } from "@/hooks/useQrScannerMotion";
+import { useAuthStore, useRestoreOnboarding } from "@/stores";
 import { useThemeTokens } from "@/theme";
 
-const DEMO_CUSTOMER_ID = "C69B1B73-C143-4B55-8859-1A22EED3C6EA";
 const VIEWFINDER_MAX = 280;
-
-type ScanStatus = "ready" | "paired";
-
-function isOnboardingParam(value: string | string[] | undefined) {
-  return value === "onboarding" || value?.[0] === "onboarding";
-}
-
-function ViewfinderCorner({
-  color,
-  radius,
-  size,
-  thickness,
-  placement,
-}: {
-  color: string;
-  radius: number;
-  size: number;
-  thickness: number;
-  placement: "tl" | "tr" | "bl" | "br";
-}) {
-  const isTop = placement.startsWith("t");
-  const isLeft = placement.endsWith("l");
-
-  return (
-    <View
-      style={{
-        position: "absolute",
-        top: isTop ? 0 : undefined,
-        bottom: isTop ? undefined : 0,
-        left: isLeft ? 0 : undefined,
-        right: isLeft ? undefined : 0,
-        width: size,
-        height: size,
-        borderColor: color,
-        borderTopWidth: isTop ? thickness : 0,
-        borderBottomWidth: isTop ? 0 : thickness,
-        borderLeftWidth: isLeft ? thickness : 0,
-        borderRightWidth: isLeft ? 0 : thickness,
-        borderTopLeftRadius: placement === "tl" ? radius : 0,
-        borderTopRightRadius: placement === "tr" ? radius : 0,
-        borderBottomLeftRadius: placement === "bl" ? radius : 0,
-        borderBottomRightRadius: placement === "br" ? radius : 0,
-      }}
-    />
-  );
-}
 
 export default function QrScannerScreen() {
   const router = useRouter();
   const { from } = useLocalSearchParams<{ from?: string | string[] }>();
-  const fromOnboarding = isOnboardingParam(from);
+  const fromOnboarding = isFromOnboarding(from);
   const theme = useThemeTokens();
+  const restoreOnboarding = useRestoreOnboarding();
   const { width: windowWidth } = useWindowDimensions();
   const setCustomerId = useAuthStore((state) => state.setCustomerId);
-  const [status, setStatus] = useState<ScanStatus>("ready");
-  const scanLine = useSharedValue(0);
-  const pairedMark = useSharedValue(0);
-  const enter = useSharedValue(0);
-  const handoff = useSharedValue(0);
+  const onLoginLogoRestLayout = useLoginLogoRestLayout();
   const scanInset = theme.semantic.space.inline.default;
   const viewfinderSize = Math.min(
     windowWidth - theme.semantic.space.inline.comfortable * 4,
     VIEWFINDER_MAX,
   );
-  const frameColor =
-    status === "paired"
-      ? theme.palette.success.DEFAULT
-      : theme.palette.brand.default;
-  const moveMs =
-    theme.semantic.motion.overlay.duration +
-    theme.semantic.motion.enter.duration;
-  const moveEasing = Easing.bezier(0.05, 0.7, 0.1, 1);
 
-  useEffect(() => {
-    enter.value = withTiming(1, {
-      duration: moveMs,
-      easing: moveEasing,
-    });
-  }, [enter, moveMs]);
-
-  useEffect(() => {
-    if (status !== "ready") {
-      cancelAnimation(scanLine);
-      return;
-    }
-
-    scanLine.value = 0;
-    scanLine.value = withRepeat(
-      withTiming(1, {
-        duration: theme.semantic.motion.overlay.duration * 4,
-        easing: Easing.inOut(Easing.quad),
-      }),
-      -1,
-      true,
-    );
-
-    return () => {
-      cancelAnimation(scanLine);
-    };
-  }, [scanLine, status, theme.semantic.motion.overlay.duration]);
-
-  useEffect(() => {
-    if (status !== "paired") {
-      pairedMark.value = 0;
-      return;
-    }
-
-    pairedMark.value = withTiming(
-      1,
-      {
-        duration: theme.semantic.motion.enter.duration,
-        easing: Easing.out(Easing.cubic),
-      },
-      (finished) => {
-        if (finished) {
-          runOnJS(scheduleHandoff)();
-        }
-      },
-    );
-  }, [pairedMark, status, theme.semantic.motion.enter.duration]);
-
-  const cameraStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX:
-          (1 - enter.value) * windowWidth - handoff.value * windowWidth,
-      },
-    ],
-  }));
-
-  const loginStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: (1 - handoff.value) * windowWidth }],
-  }));
-
-  const scanLineStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(scanLine.value, [0, 0.1, 0.9, 1], [0, 1, 1, 0]),
-    transform: [
-      {
-        translateY: interpolate(
-          scanLine.value,
-          [0, 1],
-          [scanInset, viewfinderSize - scanInset - 2],
-        ),
-      },
-    ],
-  }));
-
-  const pairedMarkStyle = useAnimatedStyle(() => ({
-    opacity: pairedMark.value,
-    transform: [{ scale: interpolate(pairedMark.value, [0, 1], [0.72, 1]) }],
-  }));
-
-  function scheduleHandoff() {
-    setTimeout(() => {
-      startHandoff();
-    }, theme.semantic.motion.normal.duration);
-  }
-
-  function startHandoff() {
-    handoff.value = withTiming(1, {
-      duration: moveMs,
-      easing: moveEasing,
-    });
-  }
-
-  function leaveScanner() {
+  const leaveScanner = useCallback(() => {
     if (fromOnboarding) {
       router.back();
       return;
     }
 
     router.replace("/(auth)/login" as Href);
-  }
+  }, [fromOnboarding, router]);
 
-  function cancelScan() {
-    if (status !== "ready") {
-      return;
-    }
+  const {
+    status,
+    cameraStyle,
+    loginStyle,
+    scanLineStyle,
+    pairedMarkStyle,
+    cancelScan,
+    simulateScan,
+  } = useQrScannerMotion({
+    windowWidth,
+    viewfinderSize,
+    scanInset,
+    onRestoreOnboarding: restoreOnboarding,
+    onLeaveScanner: leaveScanner,
+  });
 
-    restoreOnboarding();
-    enter.value = withTiming(
-      0,
-      {
-        duration: moveMs,
-        easing: moveEasing,
-      },
-      (finished) => {
-        if (finished) {
-          runOnJS(leaveScanner)();
-        }
-      },
-    );
-  }
+  const frameColor =
+    status === "paired"
+      ? theme.palette.success.DEFAULT
+      : theme.palette.brand.default;
 
-  function pairDevice() {
-    if (status !== "ready") {
-      return;
-    }
-
-    setStatus("paired");
+  function handleSimulateScan() {
+    simulateScan();
     setCustomerId(DEMO_CUSTOMER_ID);
   }
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    <AuthScreenShell
+      footerVisibility={fromOnboarding ? "hidden" : "always"}
       pointerEvents="box-none"
-      style={styles.root}
+      transparent={fromOnboarding}
     >
-      <ThemedView
-        pointerEvents="box-none"
-        surface="sunken"
-        style={[styles.root, fromOnboarding ? styles.overlay : null]}
-      >
-        {fromOnboarding ? null : <SplashFooter />}
-
+      {status === "paired" ? (
         <LoginForm
           contentStyle={loginStyle}
           logo={
             fromOnboarding ? (
               <View style={{ height: BRAND_MARK_SIZE }} />
             ) : (
-              <View style={styles.logoSlot}>
+              <View className="items-center" onLayout={onLoginLogoRestLayout}>
                 <BrandLogo showWordmark={false} />
               </View>
             )
           }
         />
+      ) : null}
 
-        <Animated.View
-          pointerEvents="box-none"
-          style={[styles.stage, cameraStyle]}
-        >
-          <Stack space="comfortable" align="center">
-            <Pressable
-              accessibilityLabel="Scan clinic QR code"
-              accessibilityRole="button"
-              disabled={status !== "ready"}
-              onPress={pairDevice}
-            >
-              <View
-                style={{
-                  width: viewfinderSize,
-                  height: viewfinderSize,
-                  backgroundColor: theme.palette.brand.subtle,
-                  borderRadius: theme.semantic.radius.overlay,
-                  overflow: "hidden",
-                }}
-              >
-                {status === "ready" ? (
-                  <>
-                    <View style={styles.mark}>
-                      <SymbolView
-                        name={{
-                          ios: "qrcode",
-                          android: "qr_code_2",
-                          web: "qr_code_2",
-                        }}
-                        size={theme.semantic.size["icon-lg"] * 2}
-                        tintColor={theme.palette.brand.default}
-                      />
-                    </View>
-                    <Animated.View
-                      style={[
-                        styles.scanLine,
-                        {
-                          left: scanInset,
-                          right: scanInset,
-                          backgroundColor: theme.palette.brand.default,
-                        },
-                        scanLineStyle,
-                      ]}
-                    />
-                  </>
-                ) : (
-                  <Animated.View style={[styles.mark, pairedMarkStyle]}>
-                    <SymbolView
-                      name={{
-                        ios: "checkmark.circle.fill",
-                        android: "check_circle",
-                        web: "check_circle",
-                      }}
-                      size={theme.semantic.size["icon-lg"] * 2}
-                      tintColor={theme.palette.success.DEFAULT}
-                    />
-                  </Animated.View>
-                )}
-                <ViewfinderCorner
-                  color={frameColor}
-                  placement="tl"
-                  radius={theme.semantic.radius.overlay}
-                  size={theme.semantic.size["icon-lg"]}
-                  thickness={theme.semantic.borderWidth.strong}
-                />
-                <ViewfinderCorner
-                  color={frameColor}
-                  placement="tr"
-                  radius={theme.semantic.radius.overlay}
-                  size={theme.semantic.size["icon-lg"]}
-                  thickness={theme.semantic.borderWidth.strong}
-                />
-                <ViewfinderCorner
-                  color={frameColor}
-                  placement="bl"
-                  radius={theme.semantic.radius.overlay}
-                  size={theme.semantic.size["icon-lg"]}
-                  thickness={theme.semantic.borderWidth.strong}
-                />
-                <ViewfinderCorner
-                  color={frameColor}
-                  placement="br"
-                  radius={theme.semantic.radius.overlay}
-                  size={theme.semantic.size["icon-lg"]}
-                  thickness={theme.semantic.borderWidth.strong}
-                />
-              </View>
-            </Pressable>
-            <Button
-              disabled={status !== "ready"}
-              label="Cancel"
-              onPress={cancelScan}
-              size="lg"
-              style={{
-                width: viewfinderSize,
-                borderRadius: theme.semantic.radius.card,
-              }}
-              tone="alert"
-              variant="soft"
-            />
-          </Stack>
-        </Animated.View>
-      </ThemedView>
-    </KeyboardAvoidingView>
+      <Animated.View
+        className="absolute inset-0 z-overlay items-center justify-center"
+        pointerEvents="box-none"
+        style={cameraStyle}
+      >
+        <QrViewfinder
+          frameColor={frameColor}
+          onCancel={cancelScan}
+          onSimulateScan={handleSimulateScan}
+          pairedMarkStyle={pairedMarkStyle}
+          scanInset={scanInset}
+          scanLineStyle={scanLineStyle}
+          status={status}
+          viewfinderSize={viewfinderSize}
+        />
+      </Animated.View>
+    </AuthScreenShell>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    overflow: "hidden",
-  },
-  overlay: {
-    backgroundColor: "transparent",
-  },
-  logoSlot: {
-    alignItems: "center",
-  },
-  stage: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    zIndex: 2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  scanLine: {
-    position: "absolute",
-    height: 2,
-  },
-  mark: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
