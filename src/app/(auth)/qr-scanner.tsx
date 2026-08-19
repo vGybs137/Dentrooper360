@@ -9,6 +9,7 @@ import { LoginForm } from "@/components/app/LoginForm";
 import { QrViewfinder } from "@/components/app/QrViewfinder";
 import { DEMO_CUSTOMER_ID } from "@/constants";
 import { isFromOnboarding } from "@/helpers/routeParams";
+import { useLoginLogoRestLayout } from "@/hooks/useAuthLogoRestOffset";
 import { useQrScannerMotion } from "@/hooks/useQrScannerMotion";
 import { useAuthStore, useRestoreOnboarding } from "@/stores";
 import { useThemeTokens } from "@/theme";
@@ -23,6 +24,7 @@ export default function QrScannerScreen() {
   const restoreOnboarding = useRestoreOnboarding();
   const { width: windowWidth } = useWindowDimensions();
   const setCustomerId = useAuthStore((state) => state.setCustomerId);
+  const onLoginLogoRestLayout = useLoginLogoRestLayout();
   const scanInset = theme.semantic.space.inline.default;
   const viewfinderSize = Math.min(
     windowWidth - theme.semantic.space.inline.comfortable * 4,
@@ -77,7 +79,7 @@ export default function QrScannerScreen() {
             fromOnboarding ? (
               <View style={{ height: BRAND_MARK_SIZE }} />
             ) : (
-              <View className="items-center">
+              <View className="items-center" onLayout={onLoginLogoRestLayout}>
                 <BrandLogo showWordmark={false} />
               </View>
             )

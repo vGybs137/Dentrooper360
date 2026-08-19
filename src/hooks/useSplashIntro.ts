@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BRAND_WORDMARK_HEIGHT } from "@/components/app/BrandLogo";
 import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
+import { getLoginLogoRestTranslateY } from "@/hooks/useAuthLogoRestOffset";
 import { useThemeTokens } from "@/theme";
 
 export function useSplashIntro(enabled: boolean) {
@@ -26,15 +27,6 @@ export function useSplashIntro(enabled: boolean) {
   const holdMs = theme.semantic.motion.overlay.duration * 2;
   const moveMs = getAuthSlideDuration(theme);
   const moveEasing = AUTH_SLIDE_EASING;
-  const headingBlock =
-    theme.semantic.space.section +
-    theme.semantic.type.display.lineHeight +
-    theme.semantic.space.gap.compact +
-    theme.semantic.type.body.lineHeight;
-  const fieldsBlock =
-    theme.semantic.space.section * 2 +
-    theme.semantic.size["control-lg"] * 2 +
-    theme.semantic.space.gap.default;
 
   function start() {
     if (!enabled || started.value) {
@@ -111,10 +103,11 @@ export function useSplashIntro(enabled: boolean) {
       return { transform: [{ translateY: restY }] };
     }
 
-    const logoRestTop =
-      (windowHeight - fieldsBlock) / 2 - headingBlock - logoHeight.value;
-    const loginRestY =
-      logoRestTop - (windowHeight - logoHeight.value) / 2;
+    const measuredLoginRestY = getLoginLogoRestTranslateY(
+      windowHeight,
+      logoHeight.value,
+    );
+    const loginRestY = measuredLoginRestY ?? restY;
 
     return {
       transform: [
