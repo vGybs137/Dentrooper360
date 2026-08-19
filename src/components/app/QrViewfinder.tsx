@@ -4,7 +4,7 @@ import { View, type StyleProp, type ViewStyle } from "react-native";
 import Animated, { type AnimatedStyle } from "react-native-reanimated";
 
 import { Button, Stack } from "@/components/ui";
-import { checkCircleIcon, qrCodeIcon } from "@/constants";
+import { qrCodeIcon } from "@/constants";
 import type { QrScanStatus } from "@/hooks/useQrScannerMotion";
 import { useThemeTokens } from "@/theme";
 
@@ -56,7 +56,6 @@ type QrViewfinderProps = {
   frameColor: string;
   scanInset: number;
   scanLineStyle: StyleProp<AnimatedStyle<ViewStyle>>;
-  pairedMarkStyle: StyleProp<AnimatedStyle<ViewStyle>>;
   cameraPreview?: ReactNode;
   onCancel: () => void;
 };
@@ -67,7 +66,6 @@ export function QrViewfinder({
   frameColor,
   scanInset,
   scanLineStyle,
-  pairedMarkStyle,
   cameraPreview,
   onCancel,
 }: QrViewfinderProps) {
@@ -111,18 +109,7 @@ export function QrViewfinder({
               ]}
             />
           </>
-        ) : (
-          <Animated.View
-            className="absolute inset-0 items-center justify-center"
-            style={pairedMarkStyle}
-          >
-            <SymbolView
-              name={checkCircleIcon}
-              size={iconSize}
-              tintColor={theme.palette.success.DEFAULT}
-            />
-          </Animated.View>
-        )}
+        ) : null}
         {(["tl", "tr", "bl", "br"] as const).map((placement) => (
           <ViewfinderCorner
             key={placement}

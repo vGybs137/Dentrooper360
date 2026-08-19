@@ -6,7 +6,10 @@ import Animated from "react-native-reanimated";
 
 import { AuthScreenShell } from "@/components/app/AuthScreenShell";
 import { BRAND_MARK_SIZE, BrandLogo } from "@/components/app/BrandLogo";
-import { FeedbackOverlay } from "@/components/app/FeedbackOverlay";
+import {
+  FeedbackOverlay,
+  type FeedbackOverlayProps,
+} from "@/components/app/FeedbackOverlay";
 import { LoginForm } from "@/components/app/LoginForm";
 import { QrViewfinder } from "@/components/app/QrViewfinder";
 import { getDeviceInfo, getOrCreateDeviceId } from "@/helpers/deviceId";
@@ -34,7 +37,9 @@ export default function QrScannerScreen() {
   );
 
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
-  const [scanError, setScanError] = useState<string | null>(null);
+  const [scanFeedback, setScanFeedback] = useState<FeedbackOverlayProps | null>(
+    null,
+  );
   const latestBarcodeRef = useRef<string | null>(null);
 
   const pairMutation = usePairMutation();
@@ -111,7 +116,6 @@ export default function QrScannerScreen() {
     cameraStyle,
     loginStyle,
     scanLineStyle,
-    pairedMarkStyle,
     cancelScan,
     simulateScan,
   } = useQrScannerMotion({
@@ -121,6 +125,11 @@ export default function QrScannerScreen() {
     onRestoreOnboarding: restoreOnboarding,
     onLeaveScanner: leaveScanner,
   });
+
+  const dismissFeedback = useCallback(() => {
+    setScanFeedback(null);
+    latestBarcodeRef.current = null;
+  }, []);
 
   const handleBarcodeScanned = useCallback(
     async (result: { data?: string | null } | null) => {
@@ -140,11 +149,25 @@ export default function QrScannerScreen() {
       const validated = parseValidatedQrPayload(data);
       if (!validated) {
         latestBarcodeRef.current = data;
-        setScanError("The scanned QR code is not a valid registration code.");
+        setScanFeedback({
+          stage: "error",
+          title: "Invalid QR Code",
+          message: "The scanned QR code is not a valid registration code.",
+          onRetry: dismissFeedback,
+          onDismiss: dismissFeedback,
+          retryLabel: "Try again",
+          autoDismissMs: 3000,
+        });
         return;
       }
 
       latestBarcodeRef.current = data;
+
+      setScanFeedback({
+        stage: "loading",
+        title: "Pairing device...",
+        message: "Registering this device with your clinic.",
+      });
 
       try {
         const deviceId = await getOrCreateDeviceId();
@@ -160,19 +183,31 @@ export default function QrScannerScreen() {
           xApiKey: validated.xApiKey,
         });
 
-        simulateScan();
+        setScanFeedback({
+          stage: "success",
+          title: "Device paired!",
+          message: "Your device has been registered successfully.",
+          autoContinueMs: 1500,
+          onContinue: () => {
+            setScanFeedback(null);
+            simulateScan();
+          },
+        });
       } catch {
         latestBarcodeRef.current = null;
-        setScanError("Pairing failed. Please try scanning again.");
+        setScanFeedback({
+          stage: "error",
+          title: "Pairing failed",
+          message:
+            "Unable to register your device. Please check the QR code and try again.",
+          onRetry: dismissFeedback,
+          onDismiss: dismissFeedback,
+          retryLabel: "Try again",
+        });
       }
     },
-    [pairMutation, parseValidatedQrPayload, simulateScan, status],
+    [dismissFeedback, pairMutation, parseValidatedQrPayload, simulateScan, status],
   );
-
-  const dismissScanError = useCallback(() => {
-    setScanError(null);
-    latestBarcodeRef.current = null;
-  }, []);
 
   const frameColor =
     status === "paired"
@@ -223,7 +258,6 @@ export default function QrScannerScreen() {
           }
           frameColor={frameColor}
           onCancel={cancelScan}
-          pairedMarkStyle={pairedMarkStyle}
           scanInset={scanInset}
           scanLineStyle={scanLineStyle}
           status={status}
@@ -231,17 +265,7 @@ export default function QrScannerScreen() {
         />
       </Animated.View>
 
-      {scanError ? (
-        <FeedbackOverlay
-          autoDismissMs={3000}
-          message={scanError}
-          onDismiss={dismissScanError}
-          onRetry={dismissScanError}
-          retryLabel="Try again"
-          stage="error"
-          title="Invalid QR Code"
-        />
-      ) : null}
+      {scanFeedback ? <FeedbackOverlay {...scanFeedback} /> : null}
     </AuthScreenShell>
   );
 }

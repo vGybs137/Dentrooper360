@@ -9,8 +9,8 @@ import { Button, Stack, ThemedText } from "@/components/ui";
 import { qrCodeIcon } from "@/constants";
 import { hideNativeSplash } from "@/helpers/nativeSplash";
 import {
-  useAuthFlowSplashIntro,
   useAuthFlowIsLeaving,
+  useAuthFlowSplashIntro,
   useBeginOnboardingExit,
 } from "@/stores";
 import { useThemeTokens } from "@/theme";

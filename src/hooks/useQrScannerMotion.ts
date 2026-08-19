@@ -6,7 +6,6 @@ import {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
@@ -39,11 +38,8 @@ export function useQrScannerMotion({
   const slideTiming = useAuthSlideTiming();
   const [status, setStatus] = useState<QrScanStatus>("ready");
   const scanLine = useSharedValue(0);
-  const pairedMark = useSharedValue(0);
   const enter = useSharedValue(0);
   const handoff = useSharedValue(0);
-  const tickMs = theme.semantic.motion.enter.duration;
-  const pauseMs = theme.semantic.motion.normal.duration;
 
   useEffect(() => {
     enter.value = withTiming(1, slideTiming);
@@ -53,10 +49,9 @@ export function useQrScannerMotion({
     return () => {
       cancelAnimation(enter);
       cancelAnimation(handoff);
-      cancelAnimation(pairedMark);
       cancelAnimation(scanLine);
     };
-  }, [enter, handoff, pairedMark, scanLine]);
+  }, [enter, handoff, scanLine]);
 
   useEffect(() => {
     if (status !== "ready") {
@@ -81,21 +76,15 @@ export function useQrScannerMotion({
 
   useEffect(() => {
     if (status !== "paired") {
-      pairedMark.value = 0;
       return;
     }
 
-    pairedMark.value = withTiming(1, {
-      duration: tickMs,
-      easing: Easing.out(Easing.cubic),
-    });
-    handoff.value = withDelay(tickMs + pauseMs, withTiming(1, slideTiming));
+    handoff.value = withTiming(1, slideTiming);
 
     return () => {
-      cancelAnimation(pairedMark);
       cancelAnimation(handoff);
     };
-  }, [handoff, pairedMark, pauseMs, slideTiming, status, tickMs]);
+  }, [handoff, slideTiming, status]);
 
   const cameraStyle = useSlideFromRightToLeftStyle(
     enter,
@@ -116,11 +105,6 @@ export function useQrScannerMotion({
         ),
       },
     ],
-  }));
-
-  const pairedMarkStyle = useAnimatedStyle(() => ({
-    opacity: pairedMark.value,
-    transform: [{ scale: interpolate(pairedMark.value, [0, 1], [0.72, 1]) }],
   }));
 
   const cancelScan = useCallback(() => {
@@ -155,7 +139,6 @@ export function useQrScannerMotion({
     cameraStyle,
     loginStyle,
     scanLineStyle,
-    pairedMarkStyle,
     cancelScan,
     simulateScan,
   };
