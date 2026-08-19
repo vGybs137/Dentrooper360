@@ -32,6 +32,20 @@ export function getLoginLogoRestTranslateY(
   return loginLogoRestY.value - centeredTop;
 }
 
+export function getEstimatedLoginLogoRestTranslateY(
+  windowHeight: number,
+  logoHeight: number,
+  headingBlock: number,
+  fieldsBlock: number,
+): number {
+  "worklet";
+
+  const logoRestTop =
+    (windowHeight - fieldsBlock) / 2 - headingBlock - logoHeight;
+
+  return logoRestTop - (windowHeight - logoHeight) / 2;
+}
+
 export function useLoginLogoRestLayout() {
   return useCallback((event: LayoutChangeEvent) => {
     registerLoginLogoRest(

@@ -40,6 +40,7 @@ export const useAuthFlowStore = create<AuthFlowStoreState>((set) => ({
   syncSplashIntro: (intro, handlers) => {
     splashIntroRef = intro;
     splashHandlersRef = handlers;
+    set({ splashIntroReady: intro !== null });
   },
   setSplashIntroReady: (ready) => set({ splashIntroReady: ready }),
   beginOnboardingExit: () => {
@@ -53,14 +54,7 @@ export const useAuthFlowStore = create<AuthFlowStoreState>((set) => ({
 }));
 
 export function useAuthFlowSplashIntro(): SplashIntro {
-  const splashIntroReady = useAuthFlowStore((state) => state.splashIntroReady);
-
-  if (!splashIntroReady) {
-    throw new Error(
-      "Auth flow splash intro is not ready. Ensure AuthFlowSplashBridge is mounted.",
-    );
-  }
-
+  useAuthFlowStore((state) => state.splashIntroReady);
   return getAuthFlowSplashIntro();
 }
 

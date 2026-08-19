@@ -15,10 +15,12 @@ export function getSlideFromRightOffset(
   progress: number,
   width: number,
 ): number {
+  "worklet";
   return (1 - progress) * width;
 }
 
 export function getSlideToLeftOffset(progress: number, width: number): number {
+  "worklet";
   return -progress * width;
 }
 
@@ -27,6 +29,7 @@ export function getSlideFromRightToLeftOffset(
   exitProgress: number,
   width: number,
 ): number {
+  "worklet";
   return getSlideFromRightOffset(enterProgress, width) + getSlideToLeftOffset(
     exitProgress,
     width,
