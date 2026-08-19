@@ -9,6 +9,7 @@ import { lockIcon, personIcon, visibilityIcon } from "@/constants";
 import { useLoginForm } from "@/hooks/useLoginForm";
 import { useThemeTokens } from "@/theme";
 
+import { LoginSuccessOverlay } from "./LoginSuccessOverlay";
 import { useSplashFooterOffset } from "./BrandLogo";
 
 type LoginFormProps = {
@@ -131,34 +132,39 @@ export function LoginForm({
         className="flex-1 px-inline-comfortable"
         style={[{ paddingBottom: footerOffset }, contentStyle]}
       >
-        {form.hasSignedIn ? (
-          <Stack space="compact">
-            <ThemedText align="center" tone="muted">
-              {form.isSyncFailed
-                ? "Unable to sync clinic data. Check your connection and try again."
-                : form.isSyncingNow
-                  ? "Syncing clinic data with the server..."
-                  : "Sync complete. Opening the app..."}
-            </ThemedText>
-            {form.isSyncFailed ? (
-              <Button
-                disabled={form.isRetryingSync}
-                label={form.isRetryingSync ? "Retrying sync..." : "Retry sync"}
-                onPress={form.retrySync}
-                size="lg"
-                tone="brand"
-              />
-            ) : null}
-          </Stack>
-        ) : (
+        {!form.hasSignedIn ? (
           <Button
             disabled={!form.canSubmit}
             label={form.isSigningIn ? "Signing in..." : "Login"}
             onPress={form.submit}
             size="lg"
           />
-        )}
+        ) : null}
       </Animated.View>
+      {(() => {
+        const overlayStage = form.isSyncFailed
+          ? "syncFailed"
+          : form.isAppReady
+            ? "ready"
+            : form.isSyncingNow
+              ? "syncing"
+              : form.isSigningIn
+                ? "signingIn"
+                : null;
+
+        if (!overlayStage) {
+          return null;
+        }
+
+        return (
+          <LoginSuccessOverlay
+            stage={overlayStage}
+            isRetrying={form.isRetryingSync}
+            onContinue={form.continueToApp}
+            onRetry={form.retrySync}
+          />
+        );
+      })()}
     </View>
   );
 }

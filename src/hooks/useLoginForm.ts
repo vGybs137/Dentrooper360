@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { type Href, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { login } from "@/api";
 import { useStartupSync } from "@/hooks/useStartupSync";
@@ -44,22 +44,11 @@ export function useLoginForm() {
     isFetching: isRetryingSync,
   } = useStartupSync(hasSignedIn);
 
-  useEffect(() => {
-    if (
-      !hasSignedIn ||
-      isSyncFailed ||
-      !hasSyncedThisVisit ||
-      !isSyncComplete
-    ) {
-      return;
-    }
-
-    router.replace("/(tabs)/schedule" as Href);
-  }, [hasSignedIn, hasSyncedThisVisit, isSyncComplete, isSyncFailed, router]);
-
   const isSigningIn = loginMutation.isPending;
   const isSyncingNow =
     hasSignedIn && (isSyncing || isRetryingSync || !hasSyncedThisVisit);
+  const isAppReady =
+    hasSignedIn && hasSyncedThisVisit && isSyncComplete && !isSyncFailed;
   const canSubmit =
     Boolean(customerId) &&
     username.trim().length > 0 &&
@@ -81,6 +70,7 @@ export function useLoginForm() {
     hasSignedIn,
     isSigningIn,
     isSyncingNow,
+    isAppReady,
     isSyncFailed,
     isRetryingSync,
     canSubmit,
@@ -95,6 +85,9 @@ export function useLoginForm() {
     },
     retrySync: () => {
       void retrySync();
+    },
+    continueToApp: () => {
+      router.replace("/(tabs)/schedule" as Href);
     },
     goToQrScanner: () => {
       router.replace("/(auth)/qr-scanner" as Href);
