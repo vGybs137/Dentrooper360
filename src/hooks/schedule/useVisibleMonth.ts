@@ -1,6 +1,9 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { NativeSyntheticEvent } from "react-native";
-import type { PagerViewOnPageSelectedEventData } from "react-native-pager-view";
+import type {
+  PageScrollStateChangedNativeEventData,
+  PagerViewOnPageSelectedEventData,
+} from "react-native-pager-view";
 
 import {
   addMonths,
@@ -27,8 +30,12 @@ export type UseVisibleMonthResult = {
   initialIndex: number;
   pageIndex: number;
   visibleMonth: YearMonth;
+  isDragging: boolean;
   onPageSelected: (
     event: NativeSyntheticEvent<PagerViewOnPageSelectedEventData>,
+  ) => void;
+  onPageScrollStateChanged: (
+    event: NativeSyntheticEvent<PageScrollStateChangedNativeEventData>,
   ) => void;
   setPageIndex: (index: number) => void;
 };
@@ -50,6 +57,7 @@ export function useVisibleMonth(
 
   const initialIndex = MONTH_PAGER_RADIUS;
   const [pageIndex, setPageIndex] = useState(initialIndex);
+  const [isDragging, setIsDragging] = useState(false);
 
   const visibleMonth = months[pageIndex] ?? center;
 
@@ -60,12 +68,21 @@ export function useVisibleMonth(
     [],
   );
 
+  const onPageScrollStateChanged = useCallback(
+    (event: NativeSyntheticEvent<PageScrollStateChangedNativeEventData>) => {
+      setIsDragging(event.nativeEvent.pageScrollState !== "idle");
+    },
+    [],
+  );
+
   return {
     months,
     initialIndex,
     pageIndex,
     visibleMonth,
+    isDragging,
     onPageSelected,
+    onPageScrollStateChanged,
     setPageIndex,
   };
 }

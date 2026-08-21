@@ -16,11 +16,15 @@ export type MonthPagerProps = {
   pageIndex: number;
   weekStartsOn?: WeekdayIndex;
   onPageSelected: MonthPagerOnPageSelected;
+  onPageScrollStateChanged?: MonthPagerOnPageScrollStateChanged;
 };
 
-type MonthPagerOnPageSelected = React.ComponentProps<
-  typeof PagerView
->["onPageSelected"];
+type MonthPagerOnPageSelected = NonNullable<
+  React.ComponentProps<typeof PagerView>["onPageSelected"]
+>;
+type MonthPagerOnPageScrollStateChanged = NonNullable<
+  React.ComponentProps<typeof PagerView>["onPageScrollStateChanged"]
+>;
 
 /** How many neighbor pages keep a mounted MonthGrid. */
 const RENDER_RADIUS = 1;
@@ -35,6 +39,7 @@ export function MonthPager({
   pageIndex,
   weekStartsOn = 0,
   onPageSelected,
+  onPageScrollStateChanged,
 }: MonthPagerProps) {
   return (
     <PagerView
@@ -42,6 +47,7 @@ export function MonthPager({
       initialPage={initialIndex}
       offscreenPageLimit={RENDER_RADIUS}
       onPageSelected={onPageSelected}
+      onPageScrollStateChanged={onPageScrollStateChanged}
     >
       {months.map((yearMonth, index) => {
         const shouldRender = Math.abs(index - pageIndex) <= RENDER_RADIUS;

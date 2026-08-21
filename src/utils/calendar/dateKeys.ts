@@ -67,6 +67,16 @@ export function startOfMonth(yearMonth: YearMonth): CalendarDate {
   return { year: yearMonth.year, month: yearMonth.month, day: 1 };
 }
 
+/** Local midnight at the first day of the month. */
+export function startOfMonthDate(yearMonth: YearMonth): Date {
+  return new Date(yearMonth.year, yearMonth.month, 1);
+}
+
+/** Local midnight at the first day of the following month (exclusive end). */
+export function startOfNextMonthDate(yearMonth: YearMonth): Date {
+  return new Date(yearMonth.year, yearMonth.month + 1, 1);
+}
+
 export function daysInMonth(yearMonth: YearMonth): number {
   return new Date(yearMonth.year, yearMonth.month + 1, 0).getDate();
 }

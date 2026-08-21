@@ -20,6 +20,8 @@ export {
   sameDay,
   sameYearMonth,
   startOfMonth,
+  startOfMonthDate,
+  startOfNextMonthDate,
   toCalendarDate,
   toDayKey,
   toLocalDate,
