@@ -15,7 +15,7 @@ export default function ScheduleScreen() {
       scroll={false}
       style={{ backgroundColor: theme.palette.surface.default }}
     >
-      <MonthCalendar />
+      <MonthCalendar weekStartsOn={1} />
     </Screen>
   );
 }

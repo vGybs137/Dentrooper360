@@ -1,35 +1,54 @@
-import BottomSheet from "@gorhom/bottom-sheet";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, type LayoutChangeEvent } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { runOnJS, useSharedValue } from "react-native-reanimated";
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 
 import { useMonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
-import { useSelectedCalendarDay } from "@/hooks/schedule/useSelectedCalendarDay";
 import { useVisibleMonth } from "@/hooks/schedule/useVisibleMonth";
+import { useCalendarSelectionStore } from "@/stores/calendarSelectionStore";
 import { useThemeTokens } from "@/theme";
 import {
+  buildMonthGrid,
+  MONTH_GRID_COLS,
+  MONTH_GRID_ROWS,
   parseDayKey,
-  toMonthKey,
+  sameYearMonth,
   toYearMonth,
+  type DayKey,
   type WeekdayIndex,
+  type YearMonth,
 } from "@/utils/calendar";
 
-import { DayEventsSheet } from "./DayEventsSheet";
+import {
+  DayEventsSheet,
+  type DayEventsSheetHandle,
+} from "./DayEventsSheet";
 import { MonthCalendarHeader } from "./MonthCalendarHeader";
-import { MonthPager } from "./MonthPager";
-import { PagerShrinkProvider } from "./PagerShrinkContext";
-import { PagerTransformHost } from "./PagerTransformHost";
+import { MonthPager, type MonthPagerHandle } from "./MonthPager";
 import { WeekdayHeader } from "./WeekdayHeader";
 
 export type MonthCalendarProps = {
   weekStartsOn?: WeekdayIndex;
 };
 
-/**
- * Full-screen month calendar with horizontal paging and a day-events sheet.
- * Sheet opens only on swipe-up (max 45%); calendar visually shrinks via scaleY.
- */
+function weekRowForDay(
+  yearMonth: YearMonth,
+  weekStartsOn: WeekdayIndex,
+  dayKey: DayKey,
+): number {
+  const grid = buildMonthGrid(yearMonth, { weekStartsOn });
+  const index = grid.cells.findIndex((cell) => cell.dayKey === dayKey);
+  if (index < 0) return 0;
+  return Math.floor(index / MONTH_GRID_COLS);
+}
+
+/** Full-screen month calendar with horizontal paging and day-events sheet. */
 export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
   const theme = useThemeTokens();
   const centerMonth = toYearMonth(new Date());
@@ -43,72 +62,174 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     onPageScrollStateChanged,
   } = useVisibleMonth(centerMonth);
 
-  const { cache, ensureVisibleWindow } = useMonthAppointmentsCache({
-    fallbackColor: theme.palette.brand.default,
-    isDragging,
-  });
+  const { cache, ensureVisibleWindow, getEventsForDay } =
+    useMonthAppointmentsCache({
+      fallbackColor: theme.palette.brand.default,
+      isDragging,
+    });
 
-  const { selectedDayKey } = useSelectedCalendarDay();
+  const selectedDayKey = useCalendarSelectionStore((s) => s.selectedDayKey);
+  const events = getEventsForDay(selectedDayKey);
 
-  const sheetRef = useRef<BottomSheet>(null);
-  const [sheetIndex, setSheetIndex] = useState(-1);
+  const sheetRef = useRef<DayEventsSheetHandle>(null);
+  const pagerRef = useRef<MonthPagerHandle>(null);
+  const isDraggingRef = useRef(isDragging);
+  isDraggingRef.current = isDragging;
+
   const animatedIndex = useSharedValue(-1);
   const animatedPosition = useSharedValue(0);
-  const [pagerHostHeight, setPagerHostHeight] = useState(0);
+  const pagerHeightSV = useSharedValue(0);
+  const sheetSnapHeightSV = useSharedValue(0);
+  const selectedRowSV = useSharedValue(
+    weekRowForDay(visibleMonth, weekStartsOn, selectedDayKey),
+  );
+  /** 0–1 open amount while the calendar swipe is actively driving the sheet. */
+  const dragProgressSV = useSharedValue(0);
+  const calendarDragActiveSV = useSharedValue(0);
 
-  const dayEvents = useMemo(() => {
-    const { year, month } = parseDayKey(selectedDayKey);
-    const monthKey = toMonthKey({ year, month });
-    return cache[monthKey]?.[selectedDayKey] ?? [];
-  }, [cache, selectedDayKey]);
+  const [hostHeight, setHostHeight] = useState(0);
+  const [chromeHeight, setChromeHeight] = useState(0);
+  const [pagerHeight, setPagerHeight] = useState(0);
+
+  /** Sheet fills everything below header + weekday + the pinned week row. */
+  const sheetSnapHeight = useMemo(() => {
+    if (hostHeight <= 0 || pagerHeight <= 0) return 0;
+    const weekHeight = pagerHeight / MONTH_GRID_ROWS;
+    return Math.max(0, Math.round(hostHeight - chromeHeight - weekHeight));
+  }, [chromeHeight, hostHeight, pagerHeight]);
+
+  useEffect(() => {
+    sheetSnapHeightSV.value = sheetSnapHeight;
+  }, [sheetSnapHeight, sheetSnapHeightSV]);
 
   useEffect(() => {
     ensureVisibleWindow(visibleMonth);
   }, [ensureVisibleWindow, visibleMonth]);
 
-  /** Keep controlled index aligned with animation target to avoid snap-back flicker. */
-  const syncSheetIndex = useCallback((next: number) => {
-    setSheetIndex((prev) => (prev === next ? prev : next));
+  useEffect(() => {
+    selectedRowSV.value = weekRowForDay(
+      visibleMonth,
+      weekStartsOn,
+      selectedDayKey,
+    );
+  }, [selectedDayKey, selectedRowSV, visibleMonth, weekStartsOn]);
+
+  const setSheetHeight = useCallback((height: number) => {
+    if (isDraggingRef.current) return;
+    sheetRef.current?.setHeight(height);
   }, []);
 
-  const openSheet = useCallback(() => {
-    syncSheetIndex(0);
-    sheetRef.current?.snapToIndex(0);
-  }, [syncSheetIndex]);
-
-  const handleSheetChange = useCallback(
-    (index: number) => {
-      syncSheetIndex(index);
-    },
-    [syncSheetIndex],
-  );
-
-  const handleSheetAnimate = useCallback(
-    (_fromIndex: number, toIndex: number) => {
-      // Update before animation finishes so a parent re-render cannot re-snap to 0.
-      syncSheetIndex(toIndex);
-    },
-    [syncSheetIndex],
-  );
-
-  const handlePagerHostLayout = useCallback((event: LayoutChangeEvent) => {
-    setPagerHostHeight(event.nativeEvent.layout.height);
+  const settleSheetOpen = useCallback(() => {
+    if (isDraggingRef.current) return;
+    sheetRef.current?.open();
   }, []);
 
-  // Vertical-only open gesture; fails on horizontal so MonthPager keeps X swipes.
-  const openSheetGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .enabled(sheetIndex < 0)
-        .activeOffsetY(-14)
-        .failOffsetX([-18, 18])
-        .onEnd((event) => {
-          if (event.translationY < -36 || event.velocityY < -450) {
-            runOnJS(openSheet)();
-          }
-        }),
-    [openSheet, sheetIndex],
+  const settleSheetClosed = useCallback(() => {
+    sheetRef.current?.close();
+  }, []);
+
+  const handleDayPress = useCallback(
+    (dayKey: DayKey) => {
+      const date = parseDayKey(dayKey);
+      const targetMonth: YearMonth = { year: date.year, month: date.month };
+      if (sameYearMonth(targetMonth, visibleMonth)) return;
+
+      const targetIndex = months.findIndex((month) =>
+        sameYearMonth(month, targetMonth),
+      );
+      if (targetIndex >= 0) {
+        pagerRef.current?.setPage(targetIndex);
+      }
+    },
+    [months, visibleMonth],
   );
+
+  const onHostLayout = useCallback((event: LayoutChangeEvent) => {
+    setHostHeight(event.nativeEvent.layout.height);
+  }, []);
+
+  const onChromeLayout = useCallback((event: LayoutChangeEvent) => {
+    setChromeHeight(event.nativeEvent.layout.height);
+  }, []);
+
+  const onPagerSlotLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const next = event.nativeEvent.layout.height;
+      pagerHeightSV.value = next;
+      setPagerHeight(next);
+    },
+    [pagerHeightSV],
+  );
+
+  /**
+   * While the calendar swipe is active, follow the finger.
+   * Otherwise follow the sheet's animatedIndex so open/close stay in sync.
+   */
+  const weekClipStyle = useAnimatedStyle(() => {
+    const fromSheet = interpolate(
+      animatedIndex.value,
+      [-1, 0],
+      [0, 1],
+      Extrapolation.CLAMP,
+    );
+    const progress =
+      calendarDragActiveSV.value > 0 ? dragProgressSV.value : fromSheet;
+    const full = Math.max(pagerHeightSV.value, 1);
+    const week = full / MONTH_GRID_ROWS;
+    return {
+      height: interpolate(progress, [0, 1], [full, week]),
+      overflow: "hidden" as const,
+    };
+  });
+
+  const weekPinStyle = useAnimatedStyle(() => {
+    const fromSheet = interpolate(
+      animatedIndex.value,
+      [-1, 0],
+      [0, 1],
+      Extrapolation.CLAMP,
+    );
+    const progress =
+      calendarDragActiveSV.value > 0 ? dragProgressSV.value : fromSheet;
+    const full = Math.max(pagerHeightSV.value, 1);
+    const week = full / MONTH_GRID_ROWS;
+    return {
+      height: full,
+      transform: [{ translateY: -selectedRowSV.value * week * progress }],
+    };
+  });
+
+  const openSwipeGesture = Gesture.Pan()
+    .activeOffsetY([-10, 10])
+    .failOffsetX([-20, 20])
+    .onUpdate((event) => {
+      const snap = sheetSnapHeightSV.value;
+      if (snap <= 0) return;
+      calendarDragActiveSV.value = 1;
+      const height = Math.min(snap, Math.max(0, -event.translationY));
+      dragProgressSV.value = height / snap;
+      scheduleOnRN(setSheetHeight, height);
+    })
+    .onEnd((event) => {
+      const snap = sheetSnapHeightSV.value;
+      if (snap <= 0) {
+        calendarDragActiveSV.value = 0;
+        return;
+      }
+      const height = Math.min(snap, Math.max(0, -event.translationY));
+      const progress = height / snap;
+      const shouldOpen = progress > 0.2 || event.velocityY < -800;
+      // Hand off to the sheet animation so the week restores/collapses with it.
+      calendarDragActiveSV.value = 0;
+      if (shouldOpen) {
+        scheduleOnRN(settleSheetOpen);
+      } else {
+        scheduleOnRN(settleSheetClosed);
+      }
+    })
+    .onFinalize(() => {
+      calendarDragActiveSV.value = 0;
+    });
 
   return (
     <View
@@ -117,43 +238,43 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
         width: "100%",
         alignSelf: "stretch",
       }}
+      onLayout={onHostLayout}
     >
-      <MonthCalendarHeader yearMonth={visibleMonth} />
-      <WeekdayHeader weekStartsOn={weekStartsOn} />
-      <View style={{ flex: 1 }}>
-        <PagerShrinkProvider animatedIndex={animatedIndex}>
-          <PagerTransformHost
-            animatedIndex={animatedIndex}
-            hostHeight={pagerHostHeight}
-            onLayout={handlePagerHostLayout}
-          >
-            <GestureDetector gesture={openSheetGesture}>
-              <View style={{ flex: 1 }}>
-                <MonthPager
-                  months={months}
-                  initialIndex={initialIndex}
-                  pageIndex={pageIndex}
-                  weekStartsOn={weekStartsOn}
-                  appointmentsCache={cache}
-                  onPageSelected={onPageSelected}
-                  onPageScrollStateChanged={onPageScrollStateChanged}
-                />
-              </View>
-            </GestureDetector>
-          </PagerTransformHost>
-        </PagerShrinkProvider>
+      <View onLayout={onChromeLayout}>
+        <MonthCalendarHeader yearMonth={visibleMonth} />
+        <WeekdayHeader weekStartsOn={weekStartsOn} />
+      </View>
 
+      <GestureDetector gesture={openSwipeGesture}>
+        <View style={{ flex: 1 }} onLayout={onPagerSlotLayout}>
+          <Animated.View style={weekClipStyle}>
+            <Animated.View style={weekPinStyle}>
+              <MonthPager
+                ref={pagerRef}
+                months={months}
+                initialIndex={initialIndex}
+                pageIndex={pageIndex}
+                weekStartsOn={weekStartsOn}
+                appointmentsCache={cache}
+                onDayPress={handleDayPress}
+                onPageSelected={onPageSelected}
+                onPageScrollStateChanged={onPageScrollStateChanged}
+              />
+            </Animated.View>
+          </Animated.View>
+        </View>
+      </GestureDetector>
+
+      {sheetSnapHeight > 0 ? (
         <DayEventsSheet
-          sheetRef={sheetRef}
-          selectedDayKey={selectedDayKey}
-          events={dayEvents}
-          index={sheetIndex}
-          onChange={handleSheetChange}
-          onAnimate={handleSheetAnimate}
+          ref={sheetRef}
+          dayKey={selectedDayKey}
+          events={events}
+          snapHeight={sheetSnapHeight}
           animatedIndex={animatedIndex}
           animatedPosition={animatedPosition}
         />
-      </View>
+      ) : null}
     </View>
   );
 }

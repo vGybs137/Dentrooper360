@@ -1,5 +1,6 @@
-import { type Href, useRouter } from "expo-router";
+import { memo } from "react";
 import { Pressable, View } from "react-native";
+import { useRouter, type Href } from "expo-router";
 
 import { ThemedText } from "@/components/ui";
 import { useThemeTokens } from "@/theme";
@@ -11,7 +12,7 @@ export type DayEventListItemProps = {
   event: MonthDayEventPreview;
 };
 
-export function DayEventListItem({ event }: DayEventListItemProps) {
+function DayEventListItemComponent({ event }: DayEventListItemProps) {
   const theme = useThemeTokens();
   const router = useRouter();
 
@@ -23,16 +24,18 @@ export function DayEventListItem({ event }: DayEventListItemProps) {
       style={{
         flexDirection: "row",
         alignItems: "center",
-        gap: theme.semantic.space.stack.compact,
-        paddingVertical: theme.semantic.space.stack.compact,
-        paddingHorizontal: theme.semantic.space.inline.compact,
+        gap: 12,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.palette.border.subtle,
       }}
     >
       <View
         style={{
-          width: 3,
+          width: 4,
           alignSelf: "stretch",
-          minHeight: 28,
+          minHeight: 36,
           borderRadius: 2,
           backgroundColor: event.color,
         }}
@@ -48,3 +51,5 @@ export function DayEventListItem({ event }: DayEventListItemProps) {
     </Pressable>
   );
 }
+
+export const DayEventListItem = memo(DayEventListItemComponent);

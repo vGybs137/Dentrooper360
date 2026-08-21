@@ -39,16 +39,20 @@ export function WeekdayHeader({ weekStartsOn = 0 }: WeekdayHeaderProps) {
         marginBottom: theme.semantic.space.stack.compact,
       }}
     >
-      {labels.map((label, index) => (
-        <View
-          key={`${label}-${index}`}
-          style={{ flex: 1, alignItems: "center" }}
-        >
-          <ThemedText tone="muted" variant="label">
-            {label}
-          </ThemedText>
-        </View>
-      ))}
+      {labels.map((label, index) => {
+        const weekday = ((weekStartsOn + index) % 7) as WeekdayIndex;
+        const isSunday = weekday === 0;
+        return (
+          <View
+            key={`${label}-${index}`}
+            style={{ flex: 1, alignItems: "center" }}
+          >
+            <ThemedText tone={isSunday ? "alert" : "muted"} variant="label">
+              {label}
+            </ThemedText>
+          </View>
+        );
+      })}
     </View>
   );
 }

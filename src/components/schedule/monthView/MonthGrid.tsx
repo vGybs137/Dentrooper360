@@ -31,12 +31,14 @@ export type MonthGridProps = {
   weekStartsOn?: WeekdayIndex;
   /** Full month cache so in/out-of-month cells can resolve neighbor days. */
   appointmentsCache?: MonthAppointmentsCache;
+  onDayPress?: (dayKey: DayKey) => void;
 };
 
 export function MonthGrid({
   yearMonth,
   weekStartsOn = 0,
   appointmentsCache = {},
+  onDayPress,
 }: MonthGridProps) {
   const theme = useThemeTokens();
   const [{ width, height }, setSize] = useState({ width: 0, height: 0 });
@@ -109,6 +111,7 @@ export function MonthGrid({
                       columnIndex={columnIndex}
                       rowIndex={rowIndex}
                       events={eventsForDay(appointmentsCache, cell.dayKey)}
+                      onDayPress={onDayPress}
                     />
                   );
                 })}
