@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { View, type LayoutChangeEvent } from "react-native";
 
 import { useThemeTokens } from "@/theme";
@@ -14,20 +14,18 @@ import {
 import { DayCell } from "./DayCell";
 import type { MonthDayEventPreview } from "./types";
 
+const EMPTY_DAY_EVENTS: MonthDayEventPreview[] = [];
+
 export type MonthGridProps = {
   yearMonth: YearMonth;
   weekStartsOn?: WeekdayIndex;
-  selectedDayKey?: DayKey | null;
   eventsByDay?: Record<DayKey, MonthDayEventPreview[]>;
-  onDayPress?: (dayKey: DayKey) => void;
 };
 
 export function MonthGrid({
   yearMonth,
   weekStartsOn = 0,
-  selectedDayKey = null,
   eventsByDay = {},
-  onDayPress,
 }: MonthGridProps) {
   const theme = useThemeTokens();
   const borderColor = theme.palette.border.default;
@@ -46,10 +44,8 @@ export function MonthGrid({
     return next;
   }, [grid.cells]);
 
-  const cellWidth =
-    width > 0 ? Math.floor(width / MONTH_GRID_COLS) : 0;
-  const cellHeight =
-    height > 0 ? Math.floor(height / MONTH_GRID_ROWS) : 0;
+  const cellWidth = width > 0 ? Math.floor(width / MONTH_GRID_COLS) : 0;
+  const cellHeight = height > 0 ? Math.floor(height / MONTH_GRID_ROWS) : 0;
   const ready = cellWidth > 0 && cellHeight > 0;
 
   const onLayout = (event: LayoutChangeEvent) => {
@@ -93,9 +89,7 @@ export function MonthGrid({
                   height={cellHeight}
                   columnIndex={columnIndex}
                   rowIndex={rowIndex}
-                  events={eventsByDay[cell.dayKey] ?? []}
-                  selected={selectedDayKey === cell.dayKey}
-                  onPress={onDayPress}
+                  events={eventsByDay[cell.dayKey] ?? EMPTY_DAY_EVENTS}
                 />
               ))}
             </View>

@@ -1,14 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { View } from "react-native";
 
 import { useVisibleMonth } from "@/hooks/schedule/useVisibleMonth";
-import {
-  toDayKey,
-  todayCalendarDate,
-  toYearMonth,
-  type DayKey,
-  type WeekdayIndex,
-} from "@/utils/calendar";
+import { toYearMonth, type WeekdayIndex } from "@/utils/calendar";
 
 import { MonthCalendarHeader } from "./MonthCalendarHeader";
 import { MonthPager } from "./MonthPager";
@@ -20,15 +14,13 @@ export type MonthCalendarProps = {
 
 /**
  * Full-screen month calendar with horizontal paging.
- * Header label is derived from the settled pager page only (no I/O).
+ * Header follows the settled page; day selection lives in Zustand
+ * so only the previous/next DayCell re-render on tap.
  */
 export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
   const centerMonth = toYearMonth(new Date());
   const { months, initialIndex, pageIndex, visibleMonth, onPageSelected } =
     useVisibleMonth(centerMonth);
-  const [selectedDayKey, setSelectedDayKey] = useState<DayKey>(() =>
-    toDayKey(todayCalendarDate()),
-  );
 
   return (
     <View
@@ -45,8 +37,6 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
         initialIndex={initialIndex}
         pageIndex={pageIndex}
         weekStartsOn={weekStartsOn}
-        selectedDayKey={selectedDayKey}
-        onDayPress={setSelectedDayKey}
         onPageSelected={onPageSelected}
       />
     </View>

@@ -4,7 +4,6 @@ import PagerView from "react-native-pager-view";
 
 import {
   toMonthKey,
-  type DayKey,
   type WeekdayIndex,
   type YearMonth,
 } from "@/utils/calendar";
@@ -16,8 +15,6 @@ export type MonthPagerProps = {
   initialIndex: number;
   pageIndex: number;
   weekStartsOn?: WeekdayIndex;
-  selectedDayKey?: DayKey | null;
-  onDayPress?: (dayKey: DayKey) => void;
   onPageSelected: MonthPagerOnPageSelected;
 };
 
@@ -29,16 +26,14 @@ type MonthPagerOnPageSelected = React.ComponentProps<
 const RENDER_RADIUS = 1;
 
 /**
- * Horizontal snapped month pages. Grids are empty of events in Step 3;
- * only nearby pages mount a real MonthGrid for scroll performance.
+ * Horizontal snapped month pages.
+ * Only nearby pages mount a real MonthGrid for scroll performance.
  */
 export function MonthPager({
   months,
   initialIndex,
   pageIndex,
   weekStartsOn = 0,
-  selectedDayKey = null,
-  onDayPress,
   onPageSelected,
 }: MonthPagerProps) {
   return (
@@ -61,9 +56,7 @@ export function MonthPager({
               <MonthGrid
                 yearMonth={yearMonth}
                 weekStartsOn={weekStartsOn}
-                selectedDayKey={selectedDayKey}
                 eventsByDay={{}}
-                onDayPress={onDayPress}
               />
             ) : (
               <View style={{ flex: 1 }} />

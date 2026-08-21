@@ -19,3 +19,8 @@ export {
   useRestoreOnboarding,
 } from "./authFlowStore";
 export type { SplashIntro } from "./authFlowStore";
+export {
+  selectCalendarDay,
+  useCalendarSelectionStore,
+  useIsCalendarDaySelected,
+} from "./calendarSelectionStore";

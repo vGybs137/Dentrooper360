@@ -1,9 +1,13 @@
-import React, { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { Pressable, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { ThemedText } from "@/components/ui";
+import {
+  selectCalendarDay,
+  useIsCalendarDaySelected,
+} from "@/stores/calendarSelectionStore";
 import { useThemeTokens } from "@/theme";
-import type { DayCellModel, DayKey } from "@/utils/calendar";
+import type { DayCellModel } from "@/utils/calendar";
 
 import { DayEventChip } from "./DayEventChip";
 import type { MonthDayEventPreview } from "./types";
@@ -15,25 +19,22 @@ export type DayCellProps = {
   columnIndex: number;
   rowIndex: number;
   events?: MonthDayEventPreview[];
-  selected?: boolean;
-  onPress?: (dayKey: DayKey) => void;
   style?: StyleProp<ViewStyle>;
 };
 
 const MAX_VISIBLE_EVENTS = 3;
 
-export function DayCell({
+function DayCellComponent({
   cell,
   width,
   height,
   columnIndex,
   rowIndex,
   events = [],
-  selected = false,
-  onPress,
   style,
 }: DayCellProps) {
   const theme = useThemeTokens();
+  const selected = useIsCalendarDaySelected(cell.dayKey);
   const muted = !cell.inCurrentMonth;
   const borderColor = theme.palette.border.default;
   const visibleEvents = events.slice(0, MAX_VISIBLE_EVENTS);
@@ -63,8 +64,7 @@ export function DayCell({
       accessibilityLabel={`${cell.dayKey}${cell.isToday ? ", today" : ""}${
         events.length ? `, ${events.length} events` : ""
       }`}
-      disabled={!onPress}
-      onPress={() => onPress?.(cell.dayKey)}
+      onPress={() => selectCalendarDay(cell.dayKey)}
       style={[
         {
           width,
@@ -118,3 +118,5 @@ export function DayCell({
     </Pressable>
   );
 }
+
+export const DayCell = memo(DayCellComponent);
