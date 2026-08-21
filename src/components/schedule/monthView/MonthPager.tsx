@@ -32,10 +32,14 @@ export type MonthPagerProps = {
   appointmentsCache?: MonthAppointmentsCache;
   scrollEnabled?: boolean;
   onDayPress?: DayPressHandler;
+  onPageScroll?: MonthPagerOnPageScroll;
   onPageSelected: MonthPagerOnPageSelected;
   onPageScrollStateChanged?: MonthPagerOnPageScrollStateChanged;
 };
 
+type MonthPagerOnPageScroll = NonNullable<
+  React.ComponentProps<typeof PagerView>["onPageScroll"]
+>;
 type MonthPagerOnPageSelected = NonNullable<
   React.ComponentProps<typeof PagerView>["onPageSelected"]
 >;
@@ -59,6 +63,7 @@ const MonthPagerInner = forwardRef<MonthPagerHandle, MonthPagerProps>(
       appointmentsCache = {},
       scrollEnabled = true,
       onDayPress,
+      onPageScroll,
       onPageSelected,
       onPageScrollStateChanged,
     },
@@ -116,6 +121,7 @@ const MonthPagerInner = forwardRef<MonthPagerHandle, MonthPagerProps>(
         scrollEnabled={scrollEnabled}
         offscreenPageLimit={MONTH_VIEW_PAGER_RENDER_RADIUS}
         pageMargin={pageMargin}
+        onPageScroll={onPageScroll}
         onPageSelected={onPageSelected}
         onPageScrollStateChanged={onPageScrollStateChanged}
       >

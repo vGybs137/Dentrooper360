@@ -59,7 +59,9 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     initialIndex,
     pageIndex,
     visibleMonth,
+    headerMonth: pagerHeaderMonth,
     isDragging: isMonthDragging,
+    onPageScroll,
     onPageSelected,
     onPageScrollStateChanged,
     setPageIndex: setMonthPageIndex,
@@ -88,10 +90,10 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const selectedMonthKey = selectedDayKey.slice(0, 7);
   const headerMonth = useMemo(() => {
-    if (!sheetOpen) return visibleMonth;
+    if (!sheetOpen) return pagerHeaderMonth;
     const [year, month] = selectedMonthKey.split("-").map(Number);
     return { year, month: month - 1 };
-  }, [selectedMonthKey, sheetOpen, visibleMonth]);
+  }, [pagerHeaderMonth, selectedMonthKey, sheetOpen]);
   const headerMonthKey = `${headerMonth.year}-${headerMonth.month}`;
 
   const sheetRef = useRef<DayEventsSheetHandle>(null);
@@ -227,10 +229,11 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
         sameYearMonth(month, targetMonth),
       );
       if (targetIndex >= 0) {
+        setMonthPageIndex(targetIndex);
         pagerRef.current?.setPage(targetIndex);
       }
     },
-    [months, settleSheetOpen, visibleMonth],
+    [months, setMonthPageIndex, settleSheetOpen, visibleMonth],
   );
 
   /** Sheet already open: tap only changes the selected day (and sheet list). */
@@ -445,6 +448,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
                   appointmentsCache={cache}
                   scrollEnabled={!sheetOpen}
                   onDayPress={handleDayPress}
+                  onPageScroll={onPageScroll}
                   onPageSelected={onPageSelected}
                   onPageScrollStateChanged={onPageScrollStateChanged}
                 />
