@@ -19,12 +19,12 @@ export type MonthCalendarProps = {
 };
 
 /**
- * Full-screen month calendar with horizontal paging (Step 3).
- * Header still shows the session center month; Step 4 syncs it to the pager.
+ * Full-screen month calendar with horizontal paging.
+ * Header label is derived from the settled pager page only (no I/O).
  */
 export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
   const centerMonth = toYearMonth(new Date());
-  const { months, initialIndex, pageIndex, onPageSelected } =
+  const { months, initialIndex, pageIndex, visibleMonth, onPageSelected } =
     useVisibleMonth(centerMonth);
   const [selectedDayKey, setSelectedDayKey] = useState<DayKey>(() =>
     toDayKey(todayCalendarDate()),
@@ -38,7 +38,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
         alignSelf: "stretch",
       }}
     >
-      <MonthCalendarHeader yearMonth={centerMonth} />
+      <MonthCalendarHeader yearMonth={visibleMonth} />
       <WeekdayHeader weekStartsOn={weekStartsOn} />
       <MonthPager
         months={months}
