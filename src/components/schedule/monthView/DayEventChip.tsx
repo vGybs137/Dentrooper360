@@ -1,4 +1,3 @@
-import React from "react";
 import { View } from "react-native";
 
 import { ThemedText } from "@/components/ui";
@@ -10,28 +9,37 @@ export type DayEventChipProps = {
   event: MonthDayEventPreview;
 };
 
-/** Compact in-cell event bar for the month grid. */
+/** Compact in-cell event: type-color left rail + title. */
 export function DayEventChip({ event }: DayEventChipProps) {
   const theme = useThemeTokens();
 
   return (
     <View
       style={{
-        borderRadius: theme.semantic.radius.control,
-        paddingHorizontal: 3,
-        paddingVertical: 1,
-        backgroundColor: event.color,
-        minHeight: 14,
-        justifyContent: "center",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 3,
+        minHeight: 12,
+        overflow: "hidden",
       }}
     >
+      <View
+        style={{
+          width: 2,
+          alignSelf: "stretch",
+          minHeight: 10,
+          borderRadius: 1,
+          backgroundColor: event.color,
+        }}
+      />
       <ThemedText
         numberOfLines={1}
         style={{
-          color: theme.palette.foreground.inverse,
+          flex: 1,
+          color: theme.palette.foreground.default,
           fontSize: 9,
           lineHeight: 11,
-          fontWeight: "600",
+          fontWeight: "500",
         }}
       >
         {event.title}

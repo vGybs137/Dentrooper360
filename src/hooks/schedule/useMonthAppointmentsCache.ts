@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Q } from "@nozbe/watermelondb";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { MonthDayEventPreview } from "@/components/schedule/monthView/types";
 import database from "@/database";
@@ -100,15 +100,18 @@ export function useMonthAppointmentsCache({
     }
   };
 
-  const publishMonth = useCallback((monthKey: MonthKey, appointments: Appointment[]) => {
-    appointmentsByMonthRef.current.set(monthKey, appointments);
-    const dayMap = buildDayMap(
-      appointments,
-      typeColorsRef.current,
-      fallbackColorRef.current,
-    );
-    setCache((prev) => ({ ...prev, [monthKey]: dayMap }));
-  }, []);
+  const publishMonth = useCallback(
+    (monthKey: MonthKey, appointments: Appointment[]) => {
+      appointmentsByMonthRef.current.set(monthKey, appointments);
+      const dayMap = buildDayMap(
+        appointments,
+        typeColorsRef.current,
+        fallbackColorRef.current,
+      );
+      setCache((prev) => ({ ...prev, [monthKey]: dayMap }));
+    },
+    [],
+  );
 
   const republishAllMonths = useCallback(() => {
     setCache((prev) => {

@@ -1,11 +1,10 @@
 import React, { useEffect } from "react";
 import { View } from "react-native";
 
-import { ThemedText } from "@/components/ui";
 import { useMonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
 import { useVisibleMonth } from "@/hooks/schedule/useVisibleMonth";
 import { useThemeTokens } from "@/theme";
-import { toMonthKey, toYearMonth, type WeekdayIndex } from "@/utils/calendar";
+import { toYearMonth, type WeekdayIndex } from "@/utils/calendar";
 
 import { MonthCalendarHeader } from "./MonthCalendarHeader";
 import { MonthPager } from "./MonthPager";
@@ -17,7 +16,7 @@ export type MonthCalendarProps = {
 
 /**
  * Full-screen month calendar with horizontal paging.
- * Step 6: WatermelonDB cache for ±1 month (debug overlay; grid paint is Step 7).
+ * Appointments paint from the WatermelonDB month cache into each day cell.
  */
 export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
   const theme = useThemeTokens();
@@ -32,11 +31,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     onPageScrollStateChanged,
   } = useVisibleMonth(centerMonth);
 
-  const {
-    loadedMonthKeys,
-    ensureVisibleWindow,
-    getEventCountForMonth,
-  } = useMonthAppointmentsCache({
+  const { cache, ensureVisibleWindow } = useMonthAppointmentsCache({
     fallbackColor: theme.palette.brand.default,
     isDragging,
   });
@@ -44,13 +39,6 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
   useEffect(() => {
     ensureVisibleWindow(visibleMonth);
   }, [ensureVisibleWindow, visibleMonth]);
-
-  const debugLine =
-    loadedMonthKeys.length === 0
-      ? "Cache: (loading…)"
-      : `Cache: ${loadedMonthKeys
-          .map((key) => `${key}(${getEventCountForMonth(key)})`)
-          .join(" · ")}`;
 
   return (
     <View
@@ -62,16 +50,12 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     >
       <MonthCalendarHeader yearMonth={visibleMonth} />
       <WeekdayHeader weekStartsOn={weekStartsOn} />
-      <ThemedText tone="muted" variant="label" style={{ marginBottom: 6 }}>
-        {debugLine}
-        {isDragging ? " · dragging" : ""}
-        {` · focus ${toMonthKey(visibleMonth)}`}
-      </ThemedText>
       <MonthPager
         months={months}
         initialIndex={initialIndex}
         pageIndex={pageIndex}
         weekStartsOn={weekStartsOn}
+        appointmentsCache={cache}
         onPageSelected={onPageSelected}
         onPageScrollStateChanged={onPageScrollStateChanged}
       />

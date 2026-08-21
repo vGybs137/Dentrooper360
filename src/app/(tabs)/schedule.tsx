@@ -1,5 +1,5 @@
-import { Platform } from "react-native";
 import { useSegments } from "expo-router";
+import { Platform } from "react-native";
 
 import { MonthCalendar } from "@/components/schedule/monthView";
 import { Screen } from "@/components/ui";

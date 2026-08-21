@@ -2,6 +2,7 @@ import React from "react";
 import { View } from "react-native";
 import PagerView from "react-native-pager-view";
 
+import type { MonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
 import {
   toMonthKey,
   type WeekdayIndex,
@@ -15,6 +16,7 @@ export type MonthPagerProps = {
   initialIndex: number;
   pageIndex: number;
   weekStartsOn?: WeekdayIndex;
+  appointmentsCache?: MonthAppointmentsCache;
   onPageSelected: MonthPagerOnPageSelected;
   onPageScrollStateChanged?: MonthPagerOnPageScrollStateChanged;
 };
@@ -38,6 +40,7 @@ export function MonthPager({
   initialIndex,
   pageIndex,
   weekStartsOn = 0,
+  appointmentsCache = {},
   onPageSelected,
   onPageScrollStateChanged,
 }: MonthPagerProps) {
@@ -62,7 +65,7 @@ export function MonthPager({
               <MonthGrid
                 yearMonth={yearMonth}
                 weekStartsOn={weekStartsOn}
-                eventsByDay={{}}
+                appointmentsCache={appointmentsCache}
               />
             ) : (
               <View style={{ flex: 1 }} />

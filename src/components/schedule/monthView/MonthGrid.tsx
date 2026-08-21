@@ -1,12 +1,14 @@
 import { useMemo, useState } from "react";
 import { View, type LayoutChangeEvent } from "react-native";
 
+import type { MonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
 import { useThemeTokens } from "@/theme";
 import {
   buildMonthGrid,
   MONTH_GRID_COLS,
   MONTH_GRID_ROWS,
   type DayKey,
+  type MonthKey,
   type WeekdayIndex,
   type YearMonth,
 } from "@/utils/calendar";
@@ -16,16 +18,25 @@ import type { MonthDayEventPreview } from "./types";
 
 const EMPTY_DAY_EVENTS: MonthDayEventPreview[] = [];
 
+function eventsForDay(
+  cache: MonthAppointmentsCache,
+  dayKey: DayKey,
+): MonthDayEventPreview[] {
+  const monthKey = dayKey.slice(0, 7) as MonthKey;
+  return cache[monthKey]?.[dayKey] ?? EMPTY_DAY_EVENTS;
+}
+
 export type MonthGridProps = {
   yearMonth: YearMonth;
   weekStartsOn?: WeekdayIndex;
-  eventsByDay?: Record<DayKey, MonthDayEventPreview[]>;
+  /** Full month cache so in/out-of-month cells can resolve neighbor days. */
+  appointmentsCache?: MonthAppointmentsCache;
 };
 
 export function MonthGrid({
   yearMonth,
   weekStartsOn = 0,
-  eventsByDay = {},
+  appointmentsCache = {},
 }: MonthGridProps) {
   const theme = useThemeTokens();
   const borderColor = theme.palette.border.default;
@@ -89,7 +100,7 @@ export function MonthGrid({
                   height={cellHeight}
                   columnIndex={columnIndex}
                   rowIndex={rowIndex}
-                  events={eventsByDay[cell.dayKey] ?? EMPTY_DAY_EVENTS}
+                  events={eventsForDay(appointmentsCache, cell.dayKey)}
                 />
               ))}
             </View>
