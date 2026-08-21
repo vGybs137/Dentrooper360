@@ -1,6 +1,8 @@
 import React, {
   forwardRef,
+  memo,
   useImperativeHandle,
+  useMemo,
   useRef,
   type ComponentRef,
 } from "react";
@@ -11,17 +13,16 @@ import type { MonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmen
 import { useThemeTokens } from "@/theme";
 import {
   toMonthKey,
-  type DayKey,
   type WeekdayIndex,
   type YearMonth,
 } from "@/utils/calendar";
 
+import { MONTH_VIEW_PAGER_RENDER_RADIUS } from "@/constants/schedule";
+import type { DayPressHandler, MonthPagerHandle } from "@/types/schedule";
+
 import { MonthGrid } from "./MonthGrid";
 
-export type MonthPagerHandle = {
-  setPage: (index: number) => void;
-  setPageWithoutAnimation: (index: number) => void;
-};
+export type { MonthPagerHandle };
 
 export type MonthPagerProps = {
   months: YearMonth[];
@@ -30,7 +31,7 @@ export type MonthPagerProps = {
   weekStartsOn?: WeekdayIndex;
   appointmentsCache?: MonthAppointmentsCache;
   scrollEnabled?: boolean;
-  onDayPress?: (dayKey: DayKey, alreadySelected: boolean) => void;
+  onDayPress?: DayPressHandler;
   onPageSelected: MonthPagerOnPageSelected;
   onPageScrollStateChanged?: MonthPagerOnPageScrollStateChanged;
 };
@@ -42,17 +43,14 @@ type MonthPagerOnPageScrollStateChanged = NonNullable<
   React.ComponentProps<typeof PagerView>["onPageScrollStateChanged"]
 >;
 
-/** How many neighbor pages keep a mounted MonthGrid. */
-const RENDER_RADIUS = 1;
-
 type PagerViewRef = ComponentRef<typeof PagerView>;
 
 /**
  * Horizontal snapped month pages.
  * Only nearby pages mount a real MonthGrid for scroll performance.
  */
-export const MonthPager = forwardRef<MonthPagerHandle, MonthPagerProps>(
-  function MonthPager(
+const MonthPagerInner = forwardRef<MonthPagerHandle, MonthPagerProps>(
+  function MonthPagerInner(
     {
       months,
       initialIndex,
@@ -68,7 +66,6 @@ export const MonthPager = forwardRef<MonthPagerHandle, MonthPagerProps>(
   ) {
     const theme = useThemeTokens();
     const pagerRef = useRef<PagerViewRef>(null);
-    // Gap between adjacent months while swiping (matches in-grid cell spacing feel).
     const pageMargin = theme.semantic.space.stack.compact;
 
     useImperativeHandle(
@@ -84,25 +81,16 @@ export const MonthPager = forwardRef<MonthPagerHandle, MonthPagerProps>(
       [],
     );
 
-    return (
-      <PagerView
-        ref={pagerRef}
-        style={{ flex: 1 }}
-        initialPage={initialIndex}
-        scrollEnabled={scrollEnabled}
-        offscreenPageLimit={RENDER_RADIUS}
-        pageMargin={pageMargin}
-        onPageSelected={onPageSelected}
-        onPageScrollStateChanged={onPageScrollStateChanged}
-      >
-        {months.map((yearMonth, index) => {
-          const shouldRender = Math.abs(index - pageIndex) <= RENDER_RADIUS;
-
+    const pages = useMemo(
+      () =>
+        months.map((yearMonth, index) => {
+          const shouldRender =
+            Math.abs(index - pageIndex) <= MONTH_VIEW_PAGER_RENDER_RADIUS;
           return (
             <View
               key={toMonthKey(yearMonth)}
               collapsable={false}
-              style={{ flex: 1 }}
+              className="flex-1"
             >
               {shouldRender ? (
                 <MonthGrid
@@ -112,12 +100,29 @@ export const MonthPager = forwardRef<MonthPagerHandle, MonthPagerProps>(
                   onDayPress={onDayPress}
                 />
               ) : (
-                <View style={{ flex: 1 }} />
+                <View className="flex-1" />
               )}
             </View>
           );
-        })}
+        }),
+      [appointmentsCache, months, onDayPress, pageIndex, weekStartsOn],
+    );
+
+    return (
+      <PagerView
+        ref={pagerRef}
+        style={{ flex: 1 }}
+        initialPage={initialIndex}
+        scrollEnabled={scrollEnabled}
+        offscreenPageLimit={MONTH_VIEW_PAGER_RENDER_RADIUS}
+        pageMargin={pageMargin}
+        onPageSelected={onPageSelected}
+        onPageScrollStateChanged={onPageScrollStateChanged}
+      >
+        {pages}
       </PagerView>
     );
   },
 );
+
+export const MonthPager = memo(MonthPagerInner);

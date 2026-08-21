@@ -48,6 +48,7 @@ export {
 export {
   buildWeekCells,
   buildWeekWindow,
+  focusMonthForWeek,
   WEEK_DAYS,
   WEEK_PAGER_RADIUS,
   type BuildWeekCellsOptions,

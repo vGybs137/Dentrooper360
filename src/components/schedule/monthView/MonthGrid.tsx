@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { View, type LayoutChangeEvent } from "react-native";
 
 import type { MonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
@@ -8,33 +8,23 @@ import {
   MONTH_GRID_COLS,
   MONTH_GRID_ROWS,
   type DayKey,
-  type MonthKey,
   type WeekdayIndex,
   type YearMonth,
 } from "@/utils/calendar";
 
 import { DayCell } from "./DayCell";
-import type { MonthDayEventPreview } from "./types";
-
-const EMPTY_DAY_EVENTS: MonthDayEventPreview[] = [];
-
-function eventsForDay(
-  cache: MonthAppointmentsCache,
-  dayKey: DayKey,
-): MonthDayEventPreview[] {
-  const monthKey = dayKey.slice(0, 7) as MonthKey;
-  return cache[monthKey]?.[dayKey] ?? EMPTY_DAY_EVENTS;
-}
+import { eventsForDay } from "@/helpers/scheduleEvents";
+import type { DayPressHandler } from "@/types/schedule";
 
 export type MonthGridProps = {
   yearMonth: YearMonth;
   weekStartsOn?: WeekdayIndex;
   /** Full month cache so in/out-of-month cells can resolve neighbor days. */
   appointmentsCache?: MonthAppointmentsCache;
-  onDayPress?: (dayKey: DayKey, alreadySelected: boolean) => void;
+  onDayPress?: DayPressHandler;
 };
 
-export function MonthGrid({
+function MonthGridComponent({
   yearMonth,
   weekStartsOn = 0,
   appointmentsCache = {},
@@ -56,7 +46,6 @@ export function MonthGrid({
     return next;
   }, [grid.cells]);
 
-  // Floor + distribute remainder so the grid fills measured size (no bottom/side gap).
   const baseCellWidth = width > 0 ? Math.floor(width / MONTH_GRID_COLS) : 0;
   const baseCellHeight = height > 0 ? Math.floor(height / MONTH_GRID_ROWS) : 0;
   const widthRemainder =
@@ -65,25 +54,27 @@ export function MonthGrid({
     height > 0 ? height - baseCellHeight * MONTH_GRID_ROWS : 0;
   const ready = baseCellWidth > 0 && baseCellHeight > 0;
 
-  const onLayout = (event: LayoutChangeEvent) => {
+  const rootStyle = useMemo(
+    () => ({
+      borderRadius: theme.semantic.radius.card,
+      backgroundColor: theme.palette.surface.default,
+    }),
+    [theme],
+  );
+
+  const onLayout = useCallback((event: LayoutChangeEvent) => {
     const { width: nextWidth, height: nextHeight } = event.nativeEvent.layout;
     setSize((prev) =>
       prev.width === nextWidth && prev.height === nextHeight
         ? prev
         : { width: nextWidth, height: nextHeight },
     );
-  };
+  }, []);
 
   return (
     <View
-      style={{
-        flex: 1,
-        width: "100%",
-        alignSelf: "stretch",
-        borderRadius: theme.semantic.radius.card,
-        overflow: "hidden",
-        backgroundColor: theme.palette.surface.default,
-      }}
+      className="w-full flex-1 self-stretch overflow-hidden"
+      style={rootStyle}
       onLayout={onLayout}
     >
       {ready
@@ -122,3 +113,5 @@ export function MonthGrid({
     </View>
   );
 }
+
+export const MonthGrid = memo(MonthGridComponent);

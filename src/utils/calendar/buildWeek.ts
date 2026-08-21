@@ -42,6 +42,12 @@ export function buildWeekCells(
   return cells;
 }
 
+/** Primary month for muted styling: mid-week day (stable for the week page). */
+export function focusMonthForWeek(weekStartKey: DayKey): YearMonth {
+  const mid = addDays(parseDayKey(weekStartKey), 3);
+  return { year: mid.year, month: mid.month };
+}
+
 /** Weeks before/after the center week in the pager window. */
 export const WEEK_PAGER_RADIUS = 120;
 

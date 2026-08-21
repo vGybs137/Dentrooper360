@@ -17,10 +17,19 @@ import {
   selectCalendarDay,
   useCalendarSelectionStore,
 } from "@/stores/calendarSelectionStore";
+import { MONTH_VIEW_SHEET_SWAP_PROGRESS } from "@/constants/schedule";
+import { SheetOpenProgressContext } from "@/contexts/SheetOpenProgressContext";
+import {
+  weekRowForDay,
+  yearMonthFromDayKey,
+} from "@/helpers/scheduleCalendar";
+import type {
+  DayEventsSheetHandle,
+  MonthPagerHandle,
+  WeekPagerHandle,
+} from "@/types/schedule";
 import {
   addDays,
-  buildMonthGrid,
-  MONTH_GRID_COLS,
   MONTH_GRID_ROWS,
   parseDayKey,
   sameYearMonth,
@@ -30,38 +39,17 @@ import {
   weekStartDayKey,
   type DayKey,
   type WeekdayIndex,
-  type YearMonth,
 } from "@/utils/calendar";
 
-import {
-  DayEventsSheet,
-  type DayEventsSheetHandle,
-} from "./DayEventsSheet";
+import { DayEventsSheet } from "./DayEventsSheet";
 import { MonthCalendarHeader } from "./MonthCalendarHeader";
-import { MonthPager, type MonthPagerHandle } from "./MonthPager";
-import { SheetOpenProgressContext } from "./SheetOpenProgressContext";
+import { MonthPager } from "./MonthPager";
 import { WeekdayHeader } from "./WeekdayHeader";
-import { WeekPager, type WeekPagerHandle } from "./WeekPager";
+import { WeekPager } from "./WeekPager";
 
 export type MonthCalendarProps = {
   weekStartsOn?: WeekdayIndex;
 };
-
-function weekRowForDay(
-  yearMonth: YearMonth,
-  weekStartsOn: WeekdayIndex,
-  dayKey: DayKey,
-): number {
-  const grid = buildMonthGrid(yearMonth, { weekStartsOn });
-  const index = grid.cells.findIndex((cell) => cell.dayKey === dayKey);
-  if (index < 0) return 0;
-  return Math.floor(index / MONTH_GRID_COLS);
-}
-
-function yearMonthFromDayKey(dayKey: DayKey): YearMonth {
-  const date = parseDayKey(dayKey);
-  return { year: date.year, month: date.month };
-}
 
 /** Full-screen month calendar with horizontal paging and day-events sheet. */
 export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
@@ -232,8 +220,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
         return;
       }
 
-      const date = parseDayKey(dayKey);
-      const targetMonth: YearMonth = { year: date.year, month: date.month };
+      const targetMonth = yearMonthFromDayKey(dayKey);
       if (sameYearMonth(targetMonth, visibleMonth)) return;
 
       const targetIndex = months.findIndex((month) =>
@@ -370,7 +357,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     const progress =
       calendarDragActiveSV.value > 0 ? dragProgressSV.value : fromSheet;
     return {
-      opacity: progress >= 0.99 ? 0 : 1,
+      opacity: progress >= MONTH_VIEW_SHEET_SWAP_PROGRESS ? 0 : 1,
     };
   });
 
@@ -384,9 +371,20 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     const progress =
       calendarDragActiveSV.value > 0 ? dragProgressSV.value : fromSheet;
     return {
-      opacity: progress >= 0.99 ? 1 : 0,
+      opacity: progress >= MONTH_VIEW_SHEET_SWAP_PROGRESS ? 1 : 0,
     };
   });
+
+  const weekOverlayStyle = useMemo(
+    () => ({
+      position: "absolute" as const,
+      top: 0,
+      left: 0,
+      right: 0,
+      height: weekSlotHeight,
+    }),
+    [weekSlotHeight],
+  );
 
   const openSwipeGesture = Gesture.Pan()
     .activeOffsetY([-10, 10])
@@ -423,11 +421,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
   return (
     <SheetOpenProgressContext.Provider value={sheetOpenProgressSV}>
       <View
-        style={{
-          flex: 1,
-          width: "100%",
-          alignSelf: "stretch",
-        }}
+        className="w-full flex-1 self-stretch"
         onLayout={onHostLayout}
       >
         <View onLayout={onChromeLayout}>
@@ -436,7 +430,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
         </View>
 
         <GestureDetector gesture={openSwipeGesture}>
-          <View style={{ flex: 1 }} onLayout={onPagerSlotLayout}>
+          <View className="flex-1" onLayout={onPagerSlotLayout}>
             <Animated.View style={weekClipStyle}>
               <Animated.View
                 pointerEvents={sheetOpen ? "none" : "auto"}
@@ -459,16 +453,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
               {weekSlotHeight > 0 ? (
                 <Animated.View
                   pointerEvents={sheetOpen ? "auto" : "none"}
-                  style={[
-                    {
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: weekSlotHeight,
-                    },
-                    weekPagerVisibilityStyle,
-                  ]}
+                  style={[weekOverlayStyle, weekPagerVisibilityStyle]}
                 >
                   <WeekPager
                     ref={weekPagerRef}

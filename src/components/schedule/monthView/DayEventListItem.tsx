@@ -1,90 +1,105 @@
 import { useRouter, type Href } from "expo-router";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { withOpacity } from "@/helpers/color";
 import { useThemeTokens } from "@/theme";
 import { formatTimeRange } from "@/utils/calendar";
 
-import type { MonthDayEventPreview } from "./types";
+import {
+  MONTH_VIEW_EVENT_CARD_BRAND_ALPHA,
+  MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
+} from "@/constants/schedule";
+import type { MonthDayEventPreview } from "@/types/schedule";
 
 export type DayEventListItemProps = {
   event: MonthDayEventPreview;
 };
-
-function withOpacity(hex: string, alpha: number): string {
-  const normalized = hex.replace("#", "");
-  if (normalized.length !== 6) return hex;
-  const r = parseInt(normalized.slice(0, 2), 16);
-  const g = parseInt(normalized.slice(2, 4), 16);
-  const b = parseInt(normalized.slice(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
 
 /** Matches feature/schedule-big-calendar DayAppointmentEvent day-variant card. */
 function DayEventListItemComponent({ event }: DayEventListItemProps) {
   const theme = useThemeTokens();
   const router = useRouter();
   const timeRange = formatTimeRange(event.startTime, event.endTime);
-  const hasType = Boolean(event.color || event.typeName);
   const typeColor = event.color ?? theme.colors.borderStrong;
-  const cardBackground = withOpacity(theme.colors.brand, 0.5);
+
+  const cardStyle = useMemo(
+    () => ({
+      flexDirection: "row" as const,
+      alignItems: "stretch" as const,
+      overflow: "hidden" as const,
+      borderRadius: theme.semantic.radius.card,
+      paddingVertical: theme.semantic.space.stack.compact,
+      paddingLeft: theme.semantic.space.stack.compact,
+      paddingRight: theme.semantic.space.stack.default,
+      backgroundColor: withOpacity(
+        theme.colors.brand,
+        MONTH_VIEW_EVENT_CARD_BRAND_ALPHA,
+      ),
+      borderColor: theme.colors.borderStrong,
+    }),
+    [theme],
+  );
+
+  const railStyle = useMemo(
+    () => ({
+      width: MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
+      marginRight: theme.semantic.space.stack.compact,
+      borderRadius: theme.primitives.radius.xs,
+      backgroundColor: typeColor,
+    }),
+    [theme, typeColor],
+  );
+
+  const titleStyle = useMemo(
+    () => ({
+      fontSize: theme.primitives.fontSize.sm,
+      lineHeight: theme.primitives.lineHeight.sm,
+      fontWeight: theme.primitives.fontWeight.semibold,
+    }),
+    [theme],
+  );
+
+  const timeStyle = useMemo(
+    () => ({
+      marginTop: theme.primitives.space[2],
+      color: theme.colors.text,
+      fontSize: theme.primitives.fontSize.xs,
+      lineHeight: theme.primitives.lineHeight.xs,
+      fontWeight: theme.primitives.fontWeight.regular,
+    }),
+    [theme],
+  );
+
+  const bodyStyle = useMemo(
+    () => ({
+      flex: 1,
+      minWidth: 0,
+      justifyContent: "center" as const,
+    }),
+    [],
+  );
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${event.title}${event.typeName ? ` - ${event.typeName}` : ""}, ${timeRange}`}
       onPress={() => router.push(`/appointments/${event.id}` as Href)}
-      style={{ paddingHorizontal: 16, paddingVertical: 4 }}
+      className="px-page py-stack-compact"
     >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "stretch",
-          overflow: "hidden",
-          borderRadius: theme.semantic.radius.card,
-          paddingVertical: 6,
-          paddingLeft: 6,
-          paddingRight: 8,
-          backgroundColor: cardBackground,
-          borderColor: theme.colors.borderStrong,
-        }}
-      >
-        <View
-          style={{
-            width: 4,
-            marginRight: 6,
-            borderRadius: 2,
-            backgroundColor: typeColor,
-            opacity: 1,
-          }}
-        />
-        <View style={{ flex: 1, minWidth: 0, justifyContent: "center" }}>
-          <Text
-            numberOfLines={1}
-            style={{
-              fontSize: 13,
-              lineHeight: 16,
-              fontWeight: "600",
-            }}
-          >
+      <View style={cardStyle}>
+        <View style={railStyle} />
+        <View style={bodyStyle}>
+          <Text numberOfLines={1} style={titleStyle}>
             <Text style={{ color: theme.colors.text }}>{event.title}</Text>
-            {event.typeName && (
+            {event.typeName ? (
               <Text style={{ color: theme.colors.text }}> - </Text>
-            )}
-            {event.typeName && (
+            ) : null}
+            {event.typeName ? (
               <Text style={{ color: typeColor }}>{event.typeName}</Text>
-            )}
+            ) : null}
           </Text>
-          <Text
-            numberOfLines={1}
-            style={{
-              marginTop: 2,
-              color: theme.colors.text,
-              fontSize: 11,
-              lineHeight: 14,
-              fontWeight: "400",
-            }}
-          >
+          <Text numberOfLines={1} style={timeStyle}>
             {timeRange}
           </Text>
         </View>

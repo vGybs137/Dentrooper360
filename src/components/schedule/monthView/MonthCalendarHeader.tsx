@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import { View } from "react-native";
 
 import { ThemedText } from "@/components/ui";
@@ -8,16 +9,23 @@ export type MonthCalendarHeaderProps = {
   yearMonth: YearMonth;
 };
 
-export function MonthCalendarHeader({ yearMonth }: MonthCalendarHeaderProps) {
+function MonthCalendarHeaderComponent({
+  yearMonth,
+}: MonthCalendarHeaderProps) {
   const theme = useThemeTokens();
 
+  const rootStyle = useMemo(
+    () => ({
+      paddingBottom: theme.semantic.space.stack.compact,
+    }),
+    [theme],
+  );
+
   return (
-    <View
-      style={{
-        paddingBottom: theme.semantic.space.stack.compact,
-      }}
-    >
+    <View style={rootStyle}>
       <ThemedText variant="title">{formatYearMonthLabel(yearMonth)}</ThemedText>
     </View>
   );
 }
+
+export const MonthCalendarHeader = memo(MonthCalendarHeaderComponent);

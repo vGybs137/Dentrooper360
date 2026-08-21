@@ -16,10 +16,20 @@ import { useThemeTokens } from "@/theme";
 import type { DayCellModel } from "@/utils/calendar";
 import { weekdayIndex } from "@/utils/calendar";
 
+import {
+  MONTH_VIEW_CELL_GAP,
+  MONTH_VIEW_CHIP_FADE_END,
+  MONTH_VIEW_DAY_NUMBER_SIZE,
+  MONTH_VIEW_DOT_FADE_END,
+  MONTH_VIEW_DOT_FADE_START,
+  MONTH_VIEW_MAX_VISIBLE_EVENTS,
+  MONTH_VIEW_MUTED_DAY_OPACITY,
+} from "@/constants/schedule";
+import type { DayPressHandler, MonthDayEventPreview } from "@/types/schedule";
+
 import { DayEventChip } from "./DayEventChip";
 import { DayEventDots } from "./DayEventDots";
-import { useSheetOpenProgress } from "./SheetOpenProgressContext";
-import type { MonthDayEventPreview } from "./types";
+import { useSheetOpenProgress } from "@/contexts/SheetOpenProgressContext";
 
 export type DayCellProps = {
   cell: DayCellModel;
@@ -28,36 +38,54 @@ export type DayCellProps = {
   columnIndex: number;
   rowIndex: number;
   events?: MonthDayEventPreview[];
-  onDayPress?: (dayKey: DayCellModel["dayKey"], alreadySelected: boolean) => void;
+  onDayPress?: DayPressHandler;
   style?: StyleProp<ViewStyle>;
 };
 
-const MAX_VISIBLE_EVENTS = 3;
-const CELL_GAP = 3;
-
 /** Chip ↔ dot crossfade; only mounted for days that have events. */
 function DayCellEvents({ events }: { events: MonthDayEventPreview[] }) {
+  const theme = useThemeTokens();
   const openProgress = useSheetOpenProgress();
-  const visibleEvents = events.slice(0, MAX_VISIBLE_EVENTS);
+  const visibleEvents = useMemo(
+    () => events.slice(0, MONTH_VIEW_MAX_VISIBLE_EVENTS),
+    [events],
+  );
   const overflowCount = Math.max(0, events.length - visibleEvents.length);
 
   const chipsStyle = useAnimatedStyle(() => {
     const p = openProgress?.value ?? 0;
     return {
-      opacity: interpolate(p, [0, 0.28], [1, 0], Extrapolation.CLAMP),
+      opacity: interpolate(
+        p,
+        [0, MONTH_VIEW_CHIP_FADE_END],
+        [1, 0],
+        Extrapolation.CLAMP,
+      ),
     };
   });
 
   const dotsStyle = useAnimatedStyle(() => {
     const p = openProgress?.value ?? 0;
     return {
-      opacity: interpolate(p, [0.08, 0.32], [0, 1], Extrapolation.CLAMP),
+      opacity: interpolate(
+        p,
+        [MONTH_VIEW_DOT_FADE_START, MONTH_VIEW_DOT_FADE_END],
+        [0, 1],
+        Extrapolation.CLAMP,
+      ),
     };
   });
 
+  const chipsGapStyle = useMemo(
+    () => ({ gap: theme.primitives.space[2] }),
+    [theme],
+  );
+
   return (
     <View style={{ flex: 1, overflow: "hidden" }}>
-      <Animated.View style={[{ flex: 1, gap: 2, overflow: "hidden" }, chipsStyle]}>
+      <Animated.View
+        style={[{ flex: 1, overflow: "hidden" }, chipsGapStyle, chipsStyle]}
+      >
         {visibleEvents.map((event) => (
           <DayEventChip key={event.id} event={event} />
         ))}
@@ -77,6 +105,8 @@ function DayCellEvents({ events }: { events: MonthDayEventPreview[] }) {
   );
 }
 
+const DayCellEventsMemo = memo(DayCellEvents);
+
 function DayCellComponent({
   cell,
   width,
@@ -94,9 +124,9 @@ function DayCellComponent({
 
   const dayNumberStyle = useMemo(
     () => ({
-      width: 24,
-      height: 24,
-      borderRadius: 12,
+      width: MONTH_VIEW_DAY_NUMBER_SIZE,
+      height: MONTH_VIEW_DAY_NUMBER_SIZE,
+      borderRadius: MONTH_VIEW_DAY_NUMBER_SIZE / 2,
       alignItems: "center" as const,
       justifyContent: "center" as const,
       overflow: "hidden" as const,
@@ -107,6 +137,41 @@ function DayCellComponent({
           : "transparent",
     }),
     [cell.isToday, selected, theme],
+  );
+
+  const cellStyle = useMemo(
+    () => ({
+      width: columnIndex < 6 ? width - MONTH_VIEW_CELL_GAP : width,
+      height: rowIndex < 5 ? height - MONTH_VIEW_CELL_GAP : height,
+      marginRight: columnIndex < 6 ? MONTH_VIEW_CELL_GAP : 0,
+      marginBottom: rowIndex < 5 ? MONTH_VIEW_CELL_GAP : 0,
+      paddingHorizontal: theme.semantic.space.stack.compact,
+      paddingTop: theme.semantic.space.stack.compact,
+      paddingBottom: theme.primitives.space[2],
+      borderRadius: theme.semantic.radius.control,
+      borderWidth: theme.semantic.borderWidth.strong,
+      borderColor: selected ? theme.palette.brand.subtle : "transparent",
+      backgroundColor: muted
+        ? theme.palette.calendar.muted
+        : theme.palette.calendar.default,
+    }),
+    [columnIndex, height, muted, rowIndex, selected, theme, width],
+  );
+
+  const headerStyle = useMemo(
+    () => ({
+      marginBottom: theme.semantic.space.stack.compact,
+      opacity: muted && !selected ? MONTH_VIEW_MUTED_DAY_OPACITY : 1,
+    }),
+    [muted, selected, theme],
+  );
+
+  const dayTextStyle = useMemo(
+    () => ({
+      fontVariant: ["tabular-nums"] as "tabular-nums"[],
+      fontSize: theme.primitives.fontSize.sm,
+    }),
+    [theme],
   );
 
   return (
@@ -122,32 +187,9 @@ function DayCellComponent({
         selectCalendarDay(cell.dayKey);
         onDayPress?.(cell.dayKey, alreadySelected);
       }}
-      style={[
-        {
-          width: columnIndex < 6 ? width - CELL_GAP : width,
-          height: rowIndex < 5 ? height - CELL_GAP : height,
-          marginRight: columnIndex < 6 ? CELL_GAP : 0,
-          marginBottom: rowIndex < 5 ? CELL_GAP : 0,
-          paddingHorizontal: 3,
-          paddingTop: 4,
-          paddingBottom: 2,
-          borderRadius: theme.semantic.radius.control,
-          borderWidth: 2,
-          borderColor: selected ? theme.palette.brand.subtle : "transparent",
-          backgroundColor: muted
-            ? theme.palette.calendar.muted
-            : theme.palette.calendar.default,
-        },
-        style,
-      ]}
+      style={[cellStyle, style]}
     >
-      <View
-        style={{
-          alignItems: "center",
-          marginBottom: 4,
-          opacity: muted && !selected ? 0.4 : 1,
-        }}
-      >
+      <View className="items-center" style={headerStyle}>
         <View style={dayNumberStyle}>
           <ThemedText
             align="center"
@@ -163,14 +205,14 @@ function DayCellComponent({
                       : "default"
             }
             variant="label"
-            style={{ fontVariant: ["tabular-nums"], fontSize: 12 }}
+            style={dayTextStyle}
           >
             {cell.date.day}
           </ThemedText>
         </View>
       </View>
 
-      {events.length > 0 ? <DayCellEvents events={events} /> : null}
+      {events.length > 0 ? <DayCellEventsMemo events={events} /> : null}
     </Pressable>
   );
 }

@@ -1,6 +1,8 @@
 import React, {
   forwardRef,
+  memo,
   useImperativeHandle,
+  useMemo,
   useRef,
   type ComponentRef,
 } from "react";
@@ -11,12 +13,12 @@ import type { MonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmen
 import { useThemeTokens } from "@/theme";
 import type { DayKey } from "@/utils/calendar";
 
+import { MONTH_VIEW_PAGER_RENDER_RADIUS } from "@/constants/schedule";
+import type { DayPressHandler, WeekPagerHandle } from "@/types/schedule";
+
 import { WeekStrip } from "./WeekStrip";
 
-export type WeekPagerHandle = {
-  setPage: (index: number) => void;
-  setPageWithoutAnimation: (index: number) => void;
-};
+export type { WeekPagerHandle };
 
 export type WeekPagerProps = {
   weeks: DayKey[];
@@ -24,7 +26,7 @@ export type WeekPagerProps = {
   pageIndex: number;
   appointmentsCache?: MonthAppointmentsCache;
   scrollEnabled?: boolean;
-  onDayPress?: (dayKey: DayKey, alreadySelected: boolean) => void;
+  onDayPress?: DayPressHandler;
   onPageSelected: WeekPagerOnPageSelected;
   onPageScrollStateChanged?: WeekPagerOnPageScrollStateChanged;
 };
@@ -36,17 +38,14 @@ type WeekPagerOnPageScrollStateChanged = NonNullable<
   React.ComponentProps<typeof PagerView>["onPageScrollStateChanged"]
 >;
 
-/** How many neighbor week pages keep a mounted WeekStrip. */
-const RENDER_RADIUS = 1;
-
 type PagerViewRef = ComponentRef<typeof PagerView>;
 
 /**
  * Horizontal snapped week pages (sheet-open mode).
  * Only nearby pages mount a real WeekStrip for scroll performance.
  */
-export const WeekPager = forwardRef<WeekPagerHandle, WeekPagerProps>(
-  function WeekPager(
+const WeekPagerInner = forwardRef<WeekPagerHandle, WeekPagerProps>(
+  function WeekPagerInner(
     {
       weeks,
       initialIndex,
@@ -76,22 +75,17 @@ export const WeekPager = forwardRef<WeekPagerHandle, WeekPagerProps>(
       [],
     );
 
-    return (
-      <PagerView
-        ref={pagerRef}
-        style={{ flex: 1 }}
-        initialPage={initialIndex}
-        scrollEnabled={scrollEnabled}
-        offscreenPageLimit={RENDER_RADIUS}
-        pageMargin={pageMargin}
-        onPageSelected={onPageSelected}
-        onPageScrollStateChanged={onPageScrollStateChanged}
-      >
-        {weeks.map((weekStartKey, index) => {
-          const shouldRender = Math.abs(index - pageIndex) <= RENDER_RADIUS;
-
+    const pages = useMemo(
+      () =>
+        weeks.map((weekStartKey, index) => {
+          const shouldRender =
+            Math.abs(index - pageIndex) <= MONTH_VIEW_PAGER_RENDER_RADIUS;
           return (
-            <View key={weekStartKey} collapsable={false} style={{ flex: 1 }}>
+            <View
+              key={weekStartKey}
+              collapsable={false}
+              className="flex-1"
+            >
               {shouldRender ? (
                 <WeekStrip
                   weekStartKey={weekStartKey}
@@ -99,12 +93,29 @@ export const WeekPager = forwardRef<WeekPagerHandle, WeekPagerProps>(
                   onDayPress={onDayPress}
                 />
               ) : (
-                <View style={{ flex: 1 }} />
+                <View className="flex-1" />
               )}
             </View>
           );
-        })}
+        }),
+      [appointmentsCache, onDayPress, pageIndex, weeks],
+    );
+
+    return (
+      <PagerView
+        ref={pagerRef}
+        style={{ flex: 1 }}
+        initialPage={initialIndex}
+        scrollEnabled={scrollEnabled}
+        offscreenPageLimit={MONTH_VIEW_PAGER_RENDER_RADIUS}
+        pageMargin={pageMargin}
+        onPageSelected={onPageSelected}
+        onPageScrollStateChanged={onPageScrollStateChanged}
+      >
+        {pages}
       </PagerView>
     );
   },
 );
+
+export const WeekPager = memo(WeekPagerInner);

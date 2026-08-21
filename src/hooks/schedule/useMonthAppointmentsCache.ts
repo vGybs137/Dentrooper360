@@ -1,7 +1,7 @@
 import { Q } from "@nozbe/watermelondb";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type { MonthDayEventPreview } from "@/components/schedule/monthView/types";
+import type { MonthDayEventPreview } from "@/types/schedule";
 import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import type AppointmentType from "@/database/models/AppointmentType";
