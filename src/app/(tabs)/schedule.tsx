@@ -1,28 +1,23 @@
-import { type Href, useRouter } from "expo-router";
+import { Platform } from "react-native";
+import { useSegments } from "expo-router";
 
-import { AppScreenShell, AppSectionCard } from "@/components/app/AppScreenShell";
-import { Button, Stack } from "@/components/ui";
+import { MonthCalendar } from "@/components/schedule/monthView";
+import { Screen } from "@/components/ui";
+import { BOTTOM_TAB_INSET } from "@/constants/navigation";
 
+/** Full-screen month calendar preview. */
 export default function ScheduleScreen() {
-  const router = useRouter();
+  const segments = useSegments();
+  const bottomInset =
+    segments[0] === "(tabs)"
+      ? Platform.OS === "web"
+        ? BOTTOM_TAB_INSET
+        : 8
+      : 0;
 
   return (
-    <AppScreenShell
-      description="This is the default screen in the main tabbed app. It can later host calendars, agenda views, and appointment lists."
-      eyebrow="Main app"
-      title="Schedule"
-    >
-      <AppSectionCard
-        title="Primary action"
-        description="Appointment detail pages live outside the tabs and can be opened from here."
-      >
-        <Stack space="compact">
-          <Button
-            label="Open appointment details"
-            onPress={() => router.push("/appointments/appt-001" as Href)}
-          />
-        </Stack>
-      </AppSectionCard>
-    </AppScreenShell>
+    <Screen bottomInset={bottomInset} inset="compact" scroll={false}>
+      <MonthCalendar />
+    </Screen>
   );
 }
