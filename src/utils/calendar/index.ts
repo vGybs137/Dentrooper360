@@ -11,6 +11,7 @@ export type {
 export {
   addDays,
   addMonths,
+  addWeeks,
   calendarDateFromYearMonthDay,
   compareYearMonth,
   daysInMonth,
@@ -32,6 +33,7 @@ export {
   toYearMonth,
   weekdayIndex,
   weekdayOffset,
+  weekStartDayKey,
 } from "./dateKeys";
 
 export {
@@ -42,3 +44,11 @@ export {
   MONTH_GRID_ROWS,
   type BuildMonthGridOptions,
 } from "./buildMonthGrid";
+
+export {
+  buildWeekCells,
+  buildWeekWindow,
+  WEEK_DAYS,
+  WEEK_PAGER_RADIUS,
+  type BuildWeekCellsOptions,
+} from "./buildWeek";

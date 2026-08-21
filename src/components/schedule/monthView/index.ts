@@ -29,3 +29,9 @@ export type { MonthDayEventPreview } from "./types";
 
 export { WeekdayHeader } from "./WeekdayHeader";
 export type { WeekdayHeaderProps } from "./WeekdayHeader";
+
+export { WeekPager } from "./WeekPager";
+export type { WeekPagerHandle, WeekPagerProps } from "./WeekPager";
+
+export { WeekStrip } from "./WeekStrip";
+export type { WeekStripProps } from "./WeekStrip";

@@ -120,6 +120,20 @@ export function addDays(date: CalendarDate, delta: number): CalendarDate {
   return toCalendarDate(next);
 }
 
+/** DayKey of the first day of the week that contains `dayKey`. */
+export function weekStartDayKey(
+  dayKey: DayKey,
+  weekStartsOn: WeekdayIndex = 0,
+): DayKey {
+  const date = parseDayKey(dayKey);
+  return toDayKey(addDays(date, -weekdayOffset(date, weekStartsOn)));
+}
+
+/** Advance a week-start DayKey by `delta` weeks. */
+export function addWeeks(weekStartKey: DayKey, delta: number): DayKey {
+  return toDayKey(addDays(parseDayKey(weekStartKey), delta * 7));
+}
+
 export function todayCalendarDate(): CalendarDate {
   return toCalendarDate(new Date());
 }

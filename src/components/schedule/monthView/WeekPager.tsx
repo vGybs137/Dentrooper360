@@ -9,55 +9,48 @@ import PagerView from "react-native-pager-view";
 
 import type { MonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
 import { useThemeTokens } from "@/theme";
-import {
-  toMonthKey,
-  type DayKey,
-  type WeekdayIndex,
-  type YearMonth,
-} from "@/utils/calendar";
+import type { DayKey } from "@/utils/calendar";
 
-import { MonthGrid } from "./MonthGrid";
+import { WeekStrip } from "./WeekStrip";
 
-export type MonthPagerHandle = {
+export type WeekPagerHandle = {
   setPage: (index: number) => void;
   setPageWithoutAnimation: (index: number) => void;
 };
 
-export type MonthPagerProps = {
-  months: YearMonth[];
+export type WeekPagerProps = {
+  weeks: DayKey[];
   initialIndex: number;
   pageIndex: number;
-  weekStartsOn?: WeekdayIndex;
   appointmentsCache?: MonthAppointmentsCache;
   scrollEnabled?: boolean;
   onDayPress?: (dayKey: DayKey, alreadySelected: boolean) => void;
-  onPageSelected: MonthPagerOnPageSelected;
-  onPageScrollStateChanged?: MonthPagerOnPageScrollStateChanged;
+  onPageSelected: WeekPagerOnPageSelected;
+  onPageScrollStateChanged?: WeekPagerOnPageScrollStateChanged;
 };
 
-type MonthPagerOnPageSelected = NonNullable<
+type WeekPagerOnPageSelected = NonNullable<
   React.ComponentProps<typeof PagerView>["onPageSelected"]
 >;
-type MonthPagerOnPageScrollStateChanged = NonNullable<
+type WeekPagerOnPageScrollStateChanged = NonNullable<
   React.ComponentProps<typeof PagerView>["onPageScrollStateChanged"]
 >;
 
-/** How many neighbor pages keep a mounted MonthGrid. */
+/** How many neighbor week pages keep a mounted WeekStrip. */
 const RENDER_RADIUS = 1;
 
 type PagerViewRef = ComponentRef<typeof PagerView>;
 
 /**
- * Horizontal snapped month pages.
- * Only nearby pages mount a real MonthGrid for scroll performance.
+ * Horizontal snapped week pages (sheet-open mode).
+ * Only nearby pages mount a real WeekStrip for scroll performance.
  */
-export const MonthPager = forwardRef<MonthPagerHandle, MonthPagerProps>(
-  function MonthPager(
+export const WeekPager = forwardRef<WeekPagerHandle, WeekPagerProps>(
+  function WeekPager(
     {
-      months,
+      weeks,
       initialIndex,
       pageIndex,
-      weekStartsOn = 0,
       appointmentsCache = {},
       scrollEnabled = true,
       onDayPress,
@@ -68,7 +61,6 @@ export const MonthPager = forwardRef<MonthPagerHandle, MonthPagerProps>(
   ) {
     const theme = useThemeTokens();
     const pagerRef = useRef<PagerViewRef>(null);
-    // Gap between adjacent months while swiping (matches in-grid cell spacing feel).
     const pageMargin = theme.semantic.space.stack.compact;
 
     useImperativeHandle(
@@ -95,19 +87,14 @@ export const MonthPager = forwardRef<MonthPagerHandle, MonthPagerProps>(
         onPageSelected={onPageSelected}
         onPageScrollStateChanged={onPageScrollStateChanged}
       >
-        {months.map((yearMonth, index) => {
+        {weeks.map((weekStartKey, index) => {
           const shouldRender = Math.abs(index - pageIndex) <= RENDER_RADIUS;
 
           return (
-            <View
-              key={toMonthKey(yearMonth)}
-              collapsable={false}
-              style={{ flex: 1 }}
-            >
+            <View key={weekStartKey} collapsable={false} style={{ flex: 1 }}>
               {shouldRender ? (
-                <MonthGrid
-                  yearMonth={yearMonth}
-                  weekStartsOn={weekStartsOn}
+                <WeekStrip
+                  weekStartKey={weekStartKey}
                   appointmentsCache={appointmentsCache}
                   onDayPress={onDayPress}
                 />
