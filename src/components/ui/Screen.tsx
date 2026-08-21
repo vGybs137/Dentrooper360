@@ -1,6 +1,9 @@
 import React from "react";
 import { ScrollView, View, type ScrollViewProps, type ViewStyle } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  type Edge,
+} from "react-native-safe-area-context";
 
 import { useThemeTokens } from "@/theme";
 import { cn } from "@/utils/cn";
@@ -13,7 +16,11 @@ export type ScreenProps = {
   surface?: SurfaceTone;
   scroll?: boolean;
   inset?: ScreenInset;
+  /** Extra space below content, added on top of page padding when padBottom is true. */
   bottomInset?: number;
+  /** When false, skip page bottom padding (e.g. full-bleed above native tabs). */
+  padBottom?: boolean;
+  edges?: Edge[];
   className?: string;
   contentClassName?: string;
   contentContainerStyle?: ScrollViewProps["contentContainerStyle"];
@@ -26,6 +33,8 @@ export function Screen({
   scroll = false,
   inset = "default",
   bottomInset = 0,
+  padBottom = true,
+  edges,
   className,
   contentClassName,
   contentContainerStyle,
@@ -34,12 +43,13 @@ export function Screen({
   const theme = useThemeTokens();
   const contentPadding = theme.semantic.space.page;
   const backgroundColor = theme.palette.surface[surface];
-  const bottomPadding = contentPadding + bottomInset;
+  const bottomPadding = (padBottom ? contentPadding : 0) + bottomInset;
 
   if (scroll) {
     return (
       <SafeAreaView
         className={cn("flex-1", className)}
+        edges={edges}
         style={[{ flex: 1, backgroundColor }, style]}
       >
         <ScrollView
@@ -64,6 +74,7 @@ export function Screen({
   return (
     <SafeAreaView
       className={cn("flex-1", className)}
+      edges={edges}
       style={[{ flex: 1, backgroundColor }, style]}
     >
       <View

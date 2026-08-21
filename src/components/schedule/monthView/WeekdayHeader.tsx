@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { View } from "react-native";
 
 import { ThemedText } from "@/components/ui";
@@ -36,8 +36,6 @@ export function WeekdayHeader({ weekStartsOn = 0 }: WeekdayHeaderProps) {
         flexDirection: "row",
         alignSelf: "stretch",
         paddingBottom: theme.semantic.space.stack.compact,
-        borderBottomWidth: 1,
-        borderBottomColor: theme.palette.border.default,
         marginBottom: theme.semantic.space.stack.compact,
       }}
     >

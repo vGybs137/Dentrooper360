@@ -1,22 +1,20 @@
-import { useSegments } from "expo-router";
-import { Platform } from "react-native";
-
 import { MonthCalendar } from "@/components/schedule/monthView";
 import { Screen } from "@/components/ui";
-import { BOTTOM_TAB_INSET } from "@/constants/navigation";
+import { useThemeTokens } from "@/theme";
 
-/** Full-screen month calendar preview. */
+/** Full-screen month calendar; flush to the native tab bar. */
 export default function ScheduleScreen() {
-  const segments = useSegments();
-  const bottomInset =
-    segments[0] === "(tabs)"
-      ? Platform.OS === "web"
-        ? BOTTOM_TAB_INSET
-        : 8
-      : 0;
+  const theme = useThemeTokens();
 
   return (
-    <Screen bottomInset={bottomInset} inset="compact" scroll={false}>
+    <Screen
+      edges={["top", "left", "right"]}
+      inset="compact"
+      padBottom={false}
+      bottomInset={theme.semantic.space.stack.compact}
+      scroll={false}
+      style={{ backgroundColor: theme.palette.surface.default }}
+    >
       <MonthCalendar />
     </Screen>
   );

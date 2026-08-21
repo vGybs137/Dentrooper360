@@ -39,7 +39,6 @@ export function MonthGrid({
   appointmentsCache = {},
 }: MonthGridProps) {
   const theme = useThemeTokens();
-  const borderColor = theme.palette.border.default;
   const [{ width, height }, setSize] = useState({ width: 0, height: 0 });
 
   const grid = useMemo(
@@ -55,9 +54,14 @@ export function MonthGrid({
     return next;
   }, [grid.cells]);
 
-  const cellWidth = width > 0 ? Math.floor(width / MONTH_GRID_COLS) : 0;
-  const cellHeight = height > 0 ? Math.floor(height / MONTH_GRID_ROWS) : 0;
-  const ready = cellWidth > 0 && cellHeight > 0;
+  // Floor + distribute remainder so the grid fills measured size (no bottom/side gap).
+  const baseCellWidth = width > 0 ? Math.floor(width / MONTH_GRID_COLS) : 0;
+  const baseCellHeight = height > 0 ? Math.floor(height / MONTH_GRID_ROWS) : 0;
+  const widthRemainder =
+    width > 0 ? width - baseCellWidth * MONTH_GRID_COLS : 0;
+  const heightRemainder =
+    height > 0 ? height - baseCellHeight * MONTH_GRID_ROWS : 0;
+  const ready = baseCellWidth > 0 && baseCellHeight > 0;
 
   const onLayout = (event: LayoutChangeEvent) => {
     const { width: nextWidth, height: nextHeight } = event.nativeEvent.layout;
@@ -74,8 +78,6 @@ export function MonthGrid({
         flex: 1,
         width: "100%",
         alignSelf: "stretch",
-        borderWidth: 1,
-        borderColor,
         borderRadius: theme.semantic.radius.card,
         overflow: "hidden",
         backgroundColor: theme.palette.surface.default,
@@ -83,28 +85,36 @@ export function MonthGrid({
       onLayout={onLayout}
     >
       {ready
-        ? rows.map((row, rowIndex) => (
-            <View
-              key={row[0]?.dayKey ?? `row-${rowIndex}`}
-              style={{
-                flexDirection: "row",
-                width: cellWidth * MONTH_GRID_COLS,
-                height: cellHeight,
-              }}
-            >
-              {row.map((cell, columnIndex) => (
-                <DayCell
-                  key={cell.dayKey}
-                  cell={cell}
-                  width={cellWidth}
-                  height={cellHeight}
-                  columnIndex={columnIndex}
-                  rowIndex={rowIndex}
-                  events={eventsForDay(appointmentsCache, cell.dayKey)}
-                />
-              ))}
-            </View>
-          ))
+        ? rows.map((row, rowIndex) => {
+            const rowHeight =
+              baseCellHeight + (rowIndex < heightRemainder ? 1 : 0);
+            return (
+              <View
+                key={row[0]?.dayKey ?? `row-${rowIndex}`}
+                style={{
+                  flexDirection: "row",
+                  width,
+                  height: rowHeight,
+                }}
+              >
+                {row.map((cell, columnIndex) => {
+                  const cellWidth =
+                    baseCellWidth + (columnIndex < widthRemainder ? 1 : 0);
+                  return (
+                    <DayCell
+                      key={cell.dayKey}
+                      cell={cell}
+                      width={cellWidth}
+                      height={rowHeight}
+                      columnIndex={columnIndex}
+                      rowIndex={rowIndex}
+                      events={eventsForDay(appointmentsCache, cell.dayKey)}
+                    />
+                  );
+                })}
+              </View>
+            );
+          })
         : null}
     </View>
   );

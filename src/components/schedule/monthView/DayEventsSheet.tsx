@@ -1,6 +1,4 @@
-import BottomSheet, {
-  BottomSheetFlatList,
-} from "@gorhom/bottom-sheet";
+import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import { useCallback, useMemo, type Ref } from "react";
 import { View, type StyleProp, type ViewStyle } from "react-native";
 import type { SharedValue } from "react-native-reanimated";
@@ -52,10 +50,7 @@ export function DayEventsSheet({
     [],
   );
 
-  const keyExtractor = useCallback(
-    (item: MonthDayEventPreview) => item.id,
-    [],
-  );
+  const keyExtractor = useCallback((item: MonthDayEventPreview) => item.id, []);
 
   return (
     <BottomSheet
@@ -70,7 +65,7 @@ export function DayEventsSheet({
       onChange={onChange}
       onAnimate={onAnimate}
       backgroundStyle={{
-        backgroundColor: theme.palette.surface.raised,
+        backgroundColor: theme.palette.surface.default,
         borderTopLeftRadius: theme.semantic.radius.dialog,
         borderTopRightRadius: theme.semantic.radius.dialog,
       }}

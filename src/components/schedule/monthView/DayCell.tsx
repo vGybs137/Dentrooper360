@@ -33,6 +33,7 @@ export type DayCellProps = {
 };
 
 const MAX_VISIBLE_EVENTS = 3;
+const CELL_GAP = 3;
 
 function DayCellComponent({
   cell,
@@ -46,19 +47,18 @@ function DayCellComponent({
   const theme = useThemeTokens();
   const selected = useIsCalendarDaySelected(cell.dayKey);
   const muted = !cell.inCurrentMonth;
-  const borderColor = theme.palette.border.default;
   const visibleEvents = events.slice(0, MAX_VISIBLE_EVENTS);
   const overflowCount = Math.max(0, events.length - visibleEvents.length);
   const shrinkIndex = usePagerShrinkIndex();
 
   const dayNumberStyle = useMemo(
     () => ({
-      minWidth: 22,
-      height: 22,
-      paddingHorizontal: 4,
-      borderRadius: theme.semantic.radius.pill,
+      width: 24,
+      height: 24,
+      borderRadius: 12,
       alignItems: "center" as const,
       justifyContent: "center" as const,
+      overflow: "hidden" as const,
       backgroundColor: selected
         ? theme.palette.brand.default
         : cell.isToday
@@ -68,8 +68,30 @@ function DayCellComponent({
     [cell.isToday, selected, theme],
   );
 
-  // Undo host scaleY squash; apply mild uniform shrink so labels stay readable
-  // and roughly proportional to the visually smaller cell.
+  // Counter host scaleY on the date badge so it stays circular when the sheet opens.
+  const dayNumberCounterStyle = useAnimatedStyle(() => {
+    const index = shrinkIndex?.value ?? -1;
+    const hostScaleY = interpolate(
+      index,
+      [-1, 0],
+      [1, SHEET_OPEN_HOST_SCALE_Y],
+      Extrapolation.CLAMP,
+    );
+    const contentScale = interpolate(
+      index,
+      [-1, 0],
+      [1, SHEET_OPEN_CONTENT_SCALE],
+      Extrapolation.CLAMP,
+    );
+    return {
+      transform: [
+        { scaleX: contentScale },
+        { scaleY: hostScaleY > 0.001 ? contentScale / hostScaleY : 1 },
+      ],
+    };
+  });
+
+  // Undo host scaleY squash on event chips/dots.
   const contentCounterStyle = useAnimatedStyle(() => {
     const index = shrinkIndex?.value ?? -1;
     const hostScaleY = interpolate(
@@ -84,10 +106,11 @@ function DayCellComponent({
       [1, SHEET_OPEN_CONTENT_SCALE],
       Extrapolation.CLAMP,
     );
-    const scaleX = contentScale;
-    const scaleY = hostScaleY > 0.001 ? contentScale / hostScaleY : 1;
     return {
-      transform: [{ scaleX }, { scaleY }],
+      transform: [
+        { scaleX: contentScale },
+        { scaleY: hostScaleY > 0.001 ? contentScale / hostScaleY : 1 },
+      ],
     };
   });
 
@@ -123,33 +146,32 @@ function DayCellComponent({
       onPress={() => selectCalendarDay(cell.dayKey)}
       style={[
         {
-          width,
-          height,
+          width: columnIndex < 6 ? width - CELL_GAP : width,
+          height: rowIndex < 5 ? height - CELL_GAP : height,
+          marginRight: columnIndex < 6 ? CELL_GAP : 0,
+          marginBottom: rowIndex < 5 ? CELL_GAP : 0,
           paddingHorizontal: 3,
           paddingTop: 4,
           paddingBottom: 2,
-          backgroundColor: selected
-            ? theme.palette.brand.subtle
-            : muted
-              ? theme.palette.surface.sunken
-              : theme.palette.surface.default,
-          borderColor,
-          borderRightWidth: columnIndex < 6 ? 1 : 0,
-          borderBottomWidth: rowIndex < 5 ? 1 : 0,
+          borderRadius: theme.semantic.radius.control,
+          borderWidth: 2,
+          borderColor: selected ? theme.palette.brand.subtle : "transparent",
+          backgroundColor: muted
+            ? theme.palette.calendar.muted
+            : theme.palette.calendar.default,
         },
         style,
       ]}
     >
-      <Animated.View
-        style={[
-          {
-            flex: 1,
-            transformOrigin: "top left",
-          },
-          contentCounterStyle,
-        ]}
+      {/* Date badge: radius on inner view; transform on wrapper (Android). */}
+      <View
+        style={{
+          alignItems: "center",
+          marginBottom: 4,
+          opacity: muted && !selected ? 0.4 : 1,
+        }}
       >
-        <View style={{ alignItems: "flex-start", marginBottom: 2 }}>
+        <Animated.View style={dayNumberCounterStyle}>
           <View style={dayNumberStyle}>
             <ThemedText
               align="center"
@@ -168,8 +190,18 @@ function DayCellComponent({
               {cell.date.day}
             </ThemedText>
           </View>
-        </View>
+        </Animated.View>
+      </View>
 
+      <Animated.View
+        style={[
+          {
+            flex: 1,
+            transformOrigin: "top left",
+          },
+          contentCounterStyle,
+        ]}
+      >
         {visibleEvents.length > 0 ? (
           <View style={{ flex: 1, overflow: "hidden" }}>
             <Animated.View

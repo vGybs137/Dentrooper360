@@ -4,6 +4,8 @@ export type ForegroundTone = "default" | "muted" | "inverse";
 export type BorderTone = "subtle" | "default" | "strong" | "focus";
 export type AccentTone = "default" | "subtle" | "strong" | "text";
 export type StatusTone = "DEFAULT" | "subtle" | "strong" | "text";
+/** In-month vs out-of-month day cell backgrounds. */
+export type CalendarTone = "default" | "muted";
 
 export type ThemePalette = {
   surface: Record<SurfaceTone, string>;
@@ -13,11 +15,12 @@ export type ThemePalette = {
   accent: Record<AccentTone, string>;
   success: Record<StatusTone, string>;
   alert: Record<StatusTone, string>;
+  calendar: Record<CalendarTone, string>;
 };
 
 export const lightPalette: ThemePalette = {
   surface: {
-    default: "#ffffff",
+    default: "#fbfcfe",
     sunken: "#fbfbfb",
     raised: "#ffffff",
     overlay: "#ffffff",
@@ -58,11 +61,15 @@ export const lightPalette: ThemePalette = {
     strong: "#dc2626",
     text: "#ffffff",
   },
+  calendar: {
+    default: "#f8f9fb",
+    muted: "#f9fafc",
+  },
 };
 
 export const darkPalette: ThemePalette = {
   surface: {
-    default: "#0b0f10",
+    default: "#010101",
     sunken: "#0f1517",
     raised: "#111827",
     overlay: "#0b0f10",
@@ -102,6 +109,10 @@ export const darkPalette: ThemePalette = {
     subtle: "rgba(239, 68, 68, 0.18)",
     strong: "#dc2626",
     text: "#ffffff",
+  },
+  calendar: {
+    default: "#141414",
+    muted: "#0d0d0d",
   },
 };
 
