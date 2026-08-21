@@ -183,11 +183,19 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
       const targetWeek = weekStartDayKey(dayKey, weekStartsOn);
       const targetIndex = weeks.findIndex((week) => week === targetWeek);
       if (targetIndex < 0 || targetIndex === weekPageIndexRef.current) return;
+      // Update ref immediately so open animation never briefly shows the old week.
+      weekPageIndexRef.current = targetIndex;
       setWeekPageIndex(targetIndex);
       weekPagerRef.current?.setPageWithoutAnimation(targetIndex);
     },
     [setWeekPageIndex, weekStartsOn, weeks],
   );
+
+  // Keep week pager aligned while the sheet is closed so reopen doesn't flash the prior week.
+  useEffect(() => {
+    if (sheetOpen) return;
+    syncWeekPagerToDay(selectedDayKey);
+  }, [selectedDayKey, sheetOpen, syncWeekPagerToDay]);
 
   const setSheetHeight = useCallback((height: number) => {
     if (isDraggingRef.current) return;
@@ -196,8 +204,9 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
 
   const settleSheetOpen = useCallback(() => {
     if (isDraggingRef.current) return;
+    syncWeekPagerToDay(selectedDayKeyRef.current);
     sheetRef.current?.open();
-  }, []);
+  }, [syncWeekPagerToDay]);
 
   const settleSheetClosed = useCallback(() => {
     sheetRef.current?.close();
