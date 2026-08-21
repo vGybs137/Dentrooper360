@@ -1,9 +1,15 @@
 import { memo, useMemo } from "react";
 import { Pressable, View, type StyleProp, type ViewStyle } from "react-native";
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+} from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ui";
 import {
   selectCalendarDay,
+  useCalendarSelectionStore,
   useIsCalendarDaySelected,
 } from "@/stores/calendarSelectionStore";
 import { useThemeTokens } from "@/theme";
@@ -11,6 +17,8 @@ import type { DayCellModel } from "@/utils/calendar";
 import { weekdayIndex } from "@/utils/calendar";
 
 import { DayEventChip } from "./DayEventChip";
+import { DayEventDots } from "./DayEventDots";
+import { useSheetOpenProgress } from "./SheetOpenProgressContext";
 import type { MonthDayEventPreview } from "./types";
 
 export type DayCellProps = {
@@ -20,12 +28,54 @@ export type DayCellProps = {
   columnIndex: number;
   rowIndex: number;
   events?: MonthDayEventPreview[];
-  onDayPress?: (dayKey: DayCellModel["dayKey"]) => void;
+  onDayPress?: (dayKey: DayCellModel["dayKey"], alreadySelected: boolean) => void;
   style?: StyleProp<ViewStyle>;
 };
 
 const MAX_VISIBLE_EVENTS = 3;
 const CELL_GAP = 3;
+
+/** Chip ↔ dot crossfade; only mounted for days that have events. */
+function DayCellEvents({ events }: { events: MonthDayEventPreview[] }) {
+  const openProgress = useSheetOpenProgress();
+  const visibleEvents = events.slice(0, MAX_VISIBLE_EVENTS);
+  const overflowCount = Math.max(0, events.length - visibleEvents.length);
+
+  const chipsStyle = useAnimatedStyle(() => {
+    const p = openProgress?.value ?? 0;
+    return {
+      opacity: interpolate(p, [0, 0.28], [1, 0], Extrapolation.CLAMP),
+    };
+  });
+
+  const dotsStyle = useAnimatedStyle(() => {
+    const p = openProgress?.value ?? 0;
+    return {
+      opacity: interpolate(p, [0.08, 0.32], [0, 1], Extrapolation.CLAMP),
+    };
+  });
+
+  return (
+    <View style={{ flex: 1, overflow: "hidden" }}>
+      <Animated.View style={[{ flex: 1, gap: 2, overflow: "hidden" }, chipsStyle]}>
+        {visibleEvents.map((event) => (
+          <DayEventChip key={event.id} event={event} />
+        ))}
+        {overflowCount > 0 ? (
+          <ThemedText tone="muted" style={{ fontSize: 9, lineHeight: 11 }}>
+            +{overflowCount} more
+          </ThemedText>
+        ) : null}
+      </Animated.View>
+      <Animated.View
+        pointerEvents="none"
+        style={[{ position: "absolute", left: 0, right: 0, top: 0 }, dotsStyle]}
+      >
+        <DayEventDots events={events} />
+      </Animated.View>
+    </View>
+  );
+}
 
 function DayCellComponent({
   cell,
@@ -41,8 +91,6 @@ function DayCellComponent({
   const selected = useIsCalendarDaySelected(cell.dayKey);
   const muted = !cell.inCurrentMonth;
   const isSunday = weekdayIndex(cell.date) === 0;
-  const visibleEvents = events.slice(0, MAX_VISIBLE_EVENTS);
-  const overflowCount = Math.max(0, events.length - visibleEvents.length);
 
   const dayNumberStyle = useMemo(
     () => ({
@@ -69,8 +117,10 @@ function DayCellComponent({
         events.length ? `, ${events.length} events` : ""
       }`}
       onPress={() => {
+        const alreadySelected =
+          useCalendarSelectionStore.getState().selectedDayKey === cell.dayKey;
         selectCalendarDay(cell.dayKey);
-        onDayPress?.(cell.dayKey);
+        onDayPress?.(cell.dayKey, alreadySelected);
       }}
       style={[
         {
@@ -120,16 +170,7 @@ function DayCellComponent({
         </View>
       </View>
 
-      <View style={{ flex: 1, gap: 2, overflow: "hidden" }}>
-        {visibleEvents.map((event) => (
-          <DayEventChip key={event.id} event={event} />
-        ))}
-        {overflowCount > 0 ? (
-          <ThemedText tone="muted" style={{ fontSize: 9, lineHeight: 11 }}>
-            +{overflowCount} more
-          </ThemedText>
-        ) : null}
-      </View>
+      {events.length > 0 ? <DayCellEvents events={events} /> : null}
     </Pressable>
   );
 }

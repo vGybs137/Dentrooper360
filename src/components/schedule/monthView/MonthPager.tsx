@@ -28,7 +28,7 @@ export type MonthPagerProps = {
   pageIndex: number;
   weekStartsOn?: WeekdayIndex;
   appointmentsCache?: MonthAppointmentsCache;
-  onDayPress?: (dayKey: DayKey) => void;
+  onDayPress?: (dayKey: DayKey, alreadySelected: boolean) => void;
   onPageSelected: MonthPagerOnPageSelected;
   onPageScrollStateChanged?: MonthPagerOnPageScrollStateChanged;
 };

@@ -4,6 +4,7 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   Extrapolation,
   interpolate,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
@@ -30,6 +31,7 @@ import {
 } from "./DayEventsSheet";
 import { MonthCalendarHeader } from "./MonthCalendarHeader";
 import { MonthPager, type MonthPagerHandle } from "./MonthPager";
+import { SheetOpenProgressContext } from "./SheetOpenProgressContext";
 import { WeekdayHeader } from "./WeekdayHeader";
 
 export type MonthCalendarProps = {
@@ -83,6 +85,8 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
   /** 0–1 open amount while the calendar swipe is actively driving the sheet. */
   const dragProgressSV = useSharedValue(0);
   const calendarDragActiveSV = useSharedValue(0);
+  /** Same 0–1 progress used for week pin + chip/dot crossfade (UI thread only). */
+  const sheetOpenProgressSV = useSharedValue(0);
 
   const [hostHeight, setHostHeight] = useState(0);
   const [chromeHeight, setChromeHeight] = useState(0);
@@ -126,7 +130,13 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
   }, []);
 
   const handleDayPress = useCallback(
-    (dayKey: DayKey) => {
+    (dayKey: DayKey, alreadySelected: boolean) => {
+      // First tap selects; second tap on the same day opens the sheet.
+      if (alreadySelected) {
+        settleSheetOpen();
+        return;
+      }
+
       const date = parseDayKey(dayKey);
       const targetMonth: YearMonth = { year: date.year, month: date.month };
       if (sameYearMonth(targetMonth, visibleMonth)) return;
@@ -138,7 +148,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
         pagerRef.current?.setPage(targetIndex);
       }
     },
-    [months, visibleMonth],
+    [months, settleSheetOpen, visibleMonth],
   );
 
   const onHostLayout = useCallback((event: LayoutChangeEvent) => {
@@ -158,9 +168,25 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     [pagerHeightSV],
   );
 
+  useAnimatedReaction(
+    () => {
+      const fromSheet = interpolate(
+        animatedIndex.value,
+        [-1, 0],
+        [0, 1],
+        Extrapolation.CLAMP,
+      );
+      return calendarDragActiveSV.value > 0 ? dragProgressSV.value : fromSheet;
+    },
+    (progress) => {
+      sheetOpenProgressSV.value = progress;
+    },
+  );
+
   /**
    * While the calendar swipe is active, follow the finger.
    * Otherwise follow the sheet's animatedIndex so open/close stay in sync.
+   * Progress is computed inline (not via sheetOpenProgressSV) to keep week pin smooth.
    */
   const weekClipStyle = useAnimatedStyle(() => {
     const fromSheet = interpolate(
@@ -229,49 +255,51 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     });
 
   return (
-    <View
-      style={{
-        flex: 1,
-        width: "100%",
-        alignSelf: "stretch",
-      }}
-      onLayout={onHostLayout}
-    >
-      <View onLayout={onChromeLayout}>
-        <MonthCalendarHeader yearMonth={visibleMonth} />
-        <WeekdayHeader weekStartsOn={weekStartsOn} />
-      </View>
-
-      <GestureDetector gesture={openSwipeGesture}>
-        <View style={{ flex: 1 }} onLayout={onPagerSlotLayout}>
-          <Animated.View style={weekClipStyle}>
-            <Animated.View style={weekPinStyle}>
-              <MonthPager
-                ref={pagerRef}
-                months={months}
-                initialIndex={initialIndex}
-                pageIndex={pageIndex}
-                weekStartsOn={weekStartsOn}
-                appointmentsCache={cache}
-                onDayPress={handleDayPress}
-                onPageSelected={onPageSelected}
-                onPageScrollStateChanged={onPageScrollStateChanged}
-              />
-            </Animated.View>
-          </Animated.View>
+    <SheetOpenProgressContext.Provider value={sheetOpenProgressSV}>
+      <View
+        style={{
+          flex: 1,
+          width: "100%",
+          alignSelf: "stretch",
+        }}
+        onLayout={onHostLayout}
+      >
+        <View onLayout={onChromeLayout}>
+          <MonthCalendarHeader yearMonth={visibleMonth} />
+          <WeekdayHeader weekStartsOn={weekStartsOn} />
         </View>
-      </GestureDetector>
 
-      {sheetSnapHeight > 0 ? (
-        <DayEventsSheet
-          ref={sheetRef}
-          dayKey={selectedDayKey}
-          events={events}
-          snapHeight={sheetSnapHeight}
-          animatedIndex={animatedIndex}
-          animatedPosition={animatedPosition}
-        />
-      ) : null}
-    </View>
+        <GestureDetector gesture={openSwipeGesture}>
+          <View style={{ flex: 1 }} onLayout={onPagerSlotLayout}>
+            <Animated.View style={weekClipStyle}>
+              <Animated.View style={weekPinStyle}>
+                <MonthPager
+                  ref={pagerRef}
+                  months={months}
+                  initialIndex={initialIndex}
+                  pageIndex={pageIndex}
+                  weekStartsOn={weekStartsOn}
+                  appointmentsCache={cache}
+                  onDayPress={handleDayPress}
+                  onPageSelected={onPageSelected}
+                  onPageScrollStateChanged={onPageScrollStateChanged}
+                />
+              </Animated.View>
+            </Animated.View>
+          </View>
+        </GestureDetector>
+
+        {sheetSnapHeight > 0 ? (
+          <DayEventsSheet
+            ref={sheetRef}
+            dayKey={selectedDayKey}
+            events={events}
+            snapHeight={sheetSnapHeight}
+            animatedIndex={animatedIndex}
+            animatedPosition={animatedPosition}
+          />
+        ) : null}
+      </View>
+    </SheetOpenProgressContext.Provider>
   );
 }

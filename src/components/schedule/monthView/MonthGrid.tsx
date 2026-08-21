@@ -31,7 +31,7 @@ export type MonthGridProps = {
   weekStartsOn?: WeekdayIndex;
   /** Full month cache so in/out-of-month cells can resolve neighbor days. */
   appointmentsCache?: MonthAppointmentsCache;
-  onDayPress?: (dayKey: DayKey) => void;
+  onDayPress?: (dayKey: DayKey, alreadySelected: boolean) => void;
 };
 
 export function MonthGrid({
