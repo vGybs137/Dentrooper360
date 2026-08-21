@@ -12,7 +12,6 @@ import { scheduleOnRN } from "react-native-worklets";
 import { useMonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
 import { useVisibleMonth } from "@/hooks/schedule/useVisibleMonth";
 import { useCalendarSelectionStore } from "@/stores/calendarSelectionStore";
-import { useThemeTokens } from "@/theme";
 import {
   buildMonthGrid,
   MONTH_GRID_COLS,
@@ -50,7 +49,6 @@ function weekRowForDay(
 
 /** Full-screen month calendar with horizontal paging and day-events sheet. */
 export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
-  const theme = useThemeTokens();
   const centerMonth = toYearMonth(new Date());
   const {
     months,
@@ -64,7 +62,6 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
 
   const { cache, ensureVisibleWindow, getEventsForDay } =
     useMonthAppointmentsCache({
-      fallbackColor: theme.palette.brand.default,
       isDragging,
     });
 

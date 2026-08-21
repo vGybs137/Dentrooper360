@@ -12,6 +12,7 @@ export type DayEventChipProps = {
 /** Compact in-cell event: type-color left rail + title. */
 export function DayEventChip({ event }: DayEventChipProps) {
   const theme = useThemeTokens();
+  const railColor = event.color ?? theme.palette.border.strong;
 
   return (
     <View
@@ -29,7 +30,8 @@ export function DayEventChip({ event }: DayEventChipProps) {
           alignSelf: "stretch",
           minHeight: 10,
           borderRadius: 1,
-          backgroundColor: event.color,
+          backgroundColor: railColor,
+          opacity: event.color ? 1 : 0.55,
         }}
       />
       <ThemedText

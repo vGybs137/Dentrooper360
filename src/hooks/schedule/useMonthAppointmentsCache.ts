@@ -24,7 +24,6 @@ export type MonthEventsByDay = Record<DayKey, MonthDayEventPreview[]>;
 export type MonthAppointmentsCache = Record<MonthKey, MonthEventsByDay>;
 
 export type UseMonthAppointmentsCacheOptions = {
-  fallbackColor: string;
   /** When true, new ensureMonthsLoaded calls are queued until idle. */
   isDragging: boolean;
 };
@@ -45,14 +44,15 @@ function monthKeyFromYearMonth(yearMonth: YearMonth): MonthKey {
 
 function toPreview(
   appointment: Appointment,
-  typeColors: Map<string, string>,
-  fallbackColor: string,
+  types: Map<string, { color: string | null; name: string }>,
 ): MonthDayEventPreview {
   const typeId = appointment.type.id;
+  const type = typeId ? types.get(typeId) : undefined;
   return {
     id: appointment.id,
     title: appointment.subject?.trim() || "Appointment",
-    color: (typeId && typeColors.get(typeId)) || fallbackColor,
+    color: type?.color ?? null,
+    typeName: type?.name ? type.name : null,
     startTime: appointment.startTime.getTime(),
     endTime: appointment.endTime.getTime(),
   };
@@ -60,8 +60,7 @@ function toPreview(
 
 function buildDayMap(
   appointments: Appointment[],
-  typeColors: Map<string, string>,
-  fallbackColor: string,
+  types: Map<string, { color: string | null; name: string }>,
 ): MonthEventsByDay {
   const sorted = [...appointments].sort(
     (a, b) => a.startTime.getTime() - b.startTime.getTime(),
@@ -71,7 +70,7 @@ function buildDayMap(
   for (const appointment of sorted) {
     const dayKey = toDayKey(appointment.startTime);
     const bucket = map[dayKey] ?? (map[dayKey] = []);
-    bucket.push(toPreview(appointment, typeColors, fallbackColor));
+    bucket.push(toPreview(appointment, types));
   }
 
   return map;
@@ -82,18 +81,17 @@ function buildDayMap(
  * Prefetch prev/current/next; pause expands while the pager is dragging.
  */
 export function useMonthAppointmentsCache({
-  fallbackColor,
   isDragging,
 }: UseMonthAppointmentsCacheOptions): UseMonthAppointmentsCacheResult {
   const [cache, setCache] = useState<MonthAppointmentsCache>({});
-  const typeColorsRef = useRef(new Map<string, string>());
+  const typesRef = useRef(
+    new Map<string, { color: string | null; name: string }>(),
+  );
   const appointmentsByMonthRef = useRef(new Map<MonthKey, Appointment[]>());
   const subscriptionsRef = useRef(new Map<MonthKey, SubscriptionLike>());
   const pendingKeysRef = useRef(new Set<MonthKey>());
   const monthByKeyRef = useRef(new Map<MonthKey, YearMonth>());
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fallbackColorRef = useRef(fallbackColor);
-  fallbackColorRef.current = fallbackColor;
 
   const clearTimer = () => {
     if (debounceTimerRef.current) {
@@ -105,11 +103,7 @@ export function useMonthAppointmentsCache({
   const publishMonth = useCallback(
     (monthKey: MonthKey, appointments: Appointment[]) => {
       appointmentsByMonthRef.current.set(monthKey, appointments);
-      const dayMap = buildDayMap(
-        appointments,
-        typeColorsRef.current,
-        fallbackColorRef.current,
-      );
+      const dayMap = buildDayMap(appointments, typesRef.current);
       setCache((prev) => ({ ...prev, [monthKey]: dayMap }));
     },
     [],
@@ -120,20 +114,12 @@ export function useMonthAppointmentsCache({
       const next: MonthAppointmentsCache = {};
       for (const monthKey of Object.keys(prev) as MonthKey[]) {
         const appointments = appointmentsByMonthRef.current.get(monthKey) ?? [];
-        next[monthKey] = buildDayMap(
-          appointments,
-          typeColorsRef.current,
-          fallbackColorRef.current,
-        );
+        next[monthKey] = buildDayMap(appointments, typesRef.current);
       }
       // Also include months that have appointments but somehow missing from prev.
       for (const [monthKey, appointments] of appointmentsByMonthRef.current) {
         if (!next[monthKey]) {
-          next[monthKey] = buildDayMap(
-            appointments,
-            typeColorsRef.current,
-            fallbackColorRef.current,
-          );
+          next[monthKey] = buildDayMap(appointments, typesRef.current);
         }
       }
       return next;
@@ -215,11 +201,14 @@ export function useMonthAppointmentsCache({
       .observe()
       .subscribe({
         next: (types) => {
-          const next = new Map<string, string>();
+          const next = new Map<string, { color: string | null; name: string }>();
           for (const type of types) {
-            if (type.color) next.set(type.id, type.color);
+            next.set(type.id, {
+              color: type.color || null,
+              name: type.nameEn?.trim() || "",
+            });
           }
-          typeColorsRef.current = next;
+          typesRef.current = next;
           if (appointmentsByMonthRef.current.size > 0) {
             republishAllMonths();
           }

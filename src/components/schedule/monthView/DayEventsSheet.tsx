@@ -66,10 +66,7 @@ const DayEventsSheetInner = forwardRef<
         setSheetIndex(-1);
       },
       setHeight: (height: number) => {
-        const capped = Math.max(
-          0,
-          Math.min(height, snapHeightRef.current),
-        );
+        const capped = Math.max(0, Math.min(height, snapHeightRef.current));
         sheetRef.current?.snapToPosition(capped, INSTANT);
       },
     }),
@@ -150,7 +147,11 @@ const DayEventsSheetInner = forwardRef<
         renderItem={renderItem}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={ListEmpty}
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{
+          paddingTop: 4,
+          paddingBottom: 24,
+          gap: 4,
+        }}
       />
     </BottomSheet>
   );
