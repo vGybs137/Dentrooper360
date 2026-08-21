@@ -43,8 +43,7 @@ export function toDayKey(date: CalendarDate | Date): DayKey {
 }
 
 export function toMonthKey(yearMonth: YearMonth | Date): MonthKey {
-  const ym =
-    yearMonth instanceof Date ? toYearMonth(yearMonth) : yearMonth;
+  const ym = yearMonth instanceof Date ? toYearMonth(yearMonth) : yearMonth;
   return `${ym.year}-${pad2(ym.month + 1)}`;
 }
 
@@ -133,4 +132,26 @@ export function formatYearMonthLabel(
     month: "long",
     year: "numeric",
   }).format(toLocalDate(startOfMonth(yearMonth)));
+}
+
+/** e.g. "Fri, Aug 21" */
+export function formatDayKeyLabel(dayKey: DayKey, locale?: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(toLocalDate(parseDayKey(dayKey)));
+}
+
+/** e.g. "9:00 – 9:30" */
+export function formatTimeRange(
+  startMs: number,
+  endMs: number,
+  locale?: string,
+): string {
+  const formatter = new Intl.DateTimeFormat(locale, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  return `${formatter.format(new Date(startMs))} – ${formatter.format(new Date(endMs))}`;
 }

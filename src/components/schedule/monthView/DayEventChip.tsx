@@ -47,3 +47,23 @@ export function DayEventChip({ event }: DayEventChipProps) {
     </View>
   );
 }
+
+const DOT_SIZE = 6;
+
+export type DayEventDotProps = {
+  color: string;
+};
+
+/** Colored circle used when the day sheet is open and cells are compressed. */
+export function DayEventDot({ color }: DayEventDotProps) {
+  return (
+    <View
+      style={{
+        width: DOT_SIZE,
+        height: DOT_SIZE,
+        borderRadius: DOT_SIZE / 2,
+        backgroundColor: color,
+      }}
+    />
+  );
+}

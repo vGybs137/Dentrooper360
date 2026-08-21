@@ -34,6 +34,7 @@ const RENDER_RADIUS = 1;
 /**
  * Horizontal snapped month pages.
  * Only nearby pages mount a real MonthGrid for scroll performance.
+ * Owns horizontal paging; day sheet open gesture uses failOffsetX so X wins on conflict.
  */
 export function MonthPager({
   months,

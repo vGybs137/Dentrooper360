@@ -53,6 +53,8 @@ function toPreview(
     id: appointment.id,
     title: appointment.subject?.trim() || "Appointment",
     color: (typeId && typeColors.get(typeId)) || fallbackColor,
+    startTime: appointment.startTime.getTime(),
+    endTime: appointment.endTime.getTime(),
   };
 }
 

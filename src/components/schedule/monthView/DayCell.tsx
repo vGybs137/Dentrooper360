@@ -1,5 +1,10 @@
 import { memo, useMemo } from "react";
 import { Pressable, View, type StyleProp, type ViewStyle } from "react-native";
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+} from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ui";
 import {
@@ -9,7 +14,12 @@ import {
 import { useThemeTokens } from "@/theme";
 import type { DayCellModel } from "@/utils/calendar";
 
-import { DayEventChip } from "./DayEventChip";
+import { DayEventChip, DayEventDot } from "./DayEventChip";
+import {
+  SHEET_OPEN_CONTENT_SCALE,
+  SHEET_OPEN_HOST_SCALE_Y,
+  usePagerShrinkIndex,
+} from "./PagerShrinkContext";
 import type { MonthDayEventPreview } from "./types";
 
 export type DayCellProps = {
@@ -39,6 +49,7 @@ function DayCellComponent({
   const borderColor = theme.palette.border.default;
   const visibleEvents = events.slice(0, MAX_VISIBLE_EVENTS);
   const overflowCount = Math.max(0, events.length - visibleEvents.length);
+  const shrinkIndex = usePagerShrinkIndex();
 
   const dayNumberStyle = useMemo(
     () => ({
@@ -56,6 +67,51 @@ function DayCellComponent({
     }),
     [cell.isToday, selected, theme],
   );
+
+  // Undo host scaleY squash; apply mild uniform shrink so labels stay readable
+  // and roughly proportional to the visually smaller cell.
+  const contentCounterStyle = useAnimatedStyle(() => {
+    const index = shrinkIndex?.value ?? -1;
+    const hostScaleY = interpolate(
+      index,
+      [-1, 0],
+      [1, SHEET_OPEN_HOST_SCALE_Y],
+      Extrapolation.CLAMP,
+    );
+    const contentScale = interpolate(
+      index,
+      [-1, 0],
+      [1, SHEET_OPEN_CONTENT_SCALE],
+      Extrapolation.CLAMP,
+    );
+    const scaleX = contentScale;
+    const scaleY = hostScaleY > 0.001 ? contentScale / hostScaleY : 1;
+    return {
+      transform: [{ scaleX }, { scaleY }],
+    };
+  });
+
+  const chipsStyle = useAnimatedStyle(() => {
+    const index = shrinkIndex?.value ?? -1;
+    const open = interpolate(
+      index,
+      [-1, -0.35, 0],
+      [0, 0, 1],
+      Extrapolation.CLAMP,
+    );
+    return { opacity: 1 - open };
+  });
+
+  const dotsStyle = useAnimatedStyle(() => {
+    const index = shrinkIndex?.value ?? -1;
+    const open = interpolate(
+      index,
+      [-1, -0.35, 0],
+      [0, 0, 1],
+      Extrapolation.CLAMP,
+    );
+    return { opacity: open };
+  });
 
   return (
     <Pressable
@@ -84,37 +140,78 @@ function DayCellComponent({
         style,
       ]}
     >
-      <View style={{ alignItems: "flex-start", marginBottom: 2 }}>
-        <View style={dayNumberStyle}>
-          <ThemedText
-            align="center"
-            tone={
-              selected
-                ? "inverse"
-                : muted
-                  ? "muted"
-                  : cell.isToday
-                    ? "brand"
-                    : "default"
-            }
-            variant="label"
-            style={{ fontVariant: ["tabular-nums"], fontSize: 12 }}
-          >
-            {cell.date.day}
-          </ThemedText>
+      <Animated.View
+        style={[
+          {
+            flex: 1,
+            transformOrigin: "top left",
+          },
+          contentCounterStyle,
+        ]}
+      >
+        <View style={{ alignItems: "flex-start", marginBottom: 2 }}>
+          <View style={dayNumberStyle}>
+            <ThemedText
+              align="center"
+              tone={
+                selected
+                  ? "inverse"
+                  : muted
+                    ? "muted"
+                    : cell.isToday
+                      ? "brand"
+                      : "default"
+              }
+              variant="label"
+              style={{ fontVariant: ["tabular-nums"], fontSize: 12 }}
+            >
+              {cell.date.day}
+            </ThemedText>
+          </View>
         </View>
-      </View>
 
-      <View style={{ flex: 1, gap: 2, overflow: "hidden" }}>
-        {visibleEvents.map((event) => (
-          <DayEventChip key={event.id} event={event} />
-        ))}
-        {overflowCount > 0 ? (
-          <ThemedText tone="muted" style={{ fontSize: 9, lineHeight: 11 }}>
-            +{overflowCount} more
-          </ThemedText>
+        {visibleEvents.length > 0 ? (
+          <View style={{ flex: 1, overflow: "hidden" }}>
+            <Animated.View
+              style={[{ flex: 1, gap: 2, overflow: "hidden" }, chipsStyle]}
+              pointerEvents="none"
+            >
+              {visibleEvents.map((event) => (
+                <DayEventChip key={event.id} event={event} />
+              ))}
+              {overflowCount > 0 ? (
+                <ThemedText
+                  tone="muted"
+                  style={{ fontSize: 9, lineHeight: 11 }}
+                >
+                  +{overflowCount} more
+                </ThemedText>
+              ) : null}
+            </Animated.View>
+
+            <Animated.View
+              style={[
+                {
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  top: 2,
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  gap: 3,
+                },
+                dotsStyle,
+              ]}
+              pointerEvents="none"
+            >
+              {visibleEvents.map((event) => (
+                <DayEventDot key={event.id} color={event.color} />
+              ))}
+            </Animated.View>
+          </View>
         ) : null}
-      </View>
+      </Animated.View>
     </Pressable>
   );
 }
