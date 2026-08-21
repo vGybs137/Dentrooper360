@@ -13,6 +13,9 @@ export type { MonthCalendarHeaderProps } from "./MonthCalendarHeader";
 export { MonthGrid } from "./MonthGrid";
 export type { MonthGridProps } from "./MonthGrid";
 
+export { MonthPager } from "./MonthPager";
+export type { MonthPagerProps } from "./MonthPager";
+
 export type { MonthDayEventPreview } from "./types";
 
 export { WeekdayHeader } from "./WeekdayHeader";
