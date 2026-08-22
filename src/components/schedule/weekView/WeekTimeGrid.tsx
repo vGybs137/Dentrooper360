@@ -4,49 +4,41 @@ import { ScrollView } from "react-native-gesture-handler";
 import type { ScrollView as ScrollViewType } from "react-native-gesture-handler";
 
 import {
+  buildHalfHourLineTops,
+  buildHourLineTops,
+  layoutDayColumnEvents,
+  localMinutesFromMidnight,
+  nowLineYForMinutes,
+  TimedGridNowIndicator,
+} from "@/components/schedule/timedGrid";
+import {
   WEEK_VIEW_GUTTER_WIDTH,
   WEEK_VIEW_GRID_EDGE_INSET,
   WEEK_VIEW_HOUR_GAP,
   WEEK_VIEW_HOUR_HEIGHT,
-  WEEK_VIEW_NOW_INDICATOR_HEIGHT,
   WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT,
-  WEEK_VIEW_NOW_INDICATOR_ARROW_WIDTH,
   WEEK_VIEW_SCROLL_PADDING_MINUTES,
 } from "@/constants/schedule";
 import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
+import type { WeekEventsByDay } from "@/hooks/schedule/useWeekAppointmentsCache";
 import { useThemeTokens } from "@/theme";
 import {
   addDays,
-  clipEventToDay,
-  clipEventToWorkingWindow,
   gridHeightForHourRange,
   isMinuteInWorkingWindow,
-  layoutTimedEventsForDay,
   MINUTES_PER_HOUR,
-  minutesSpanToHeight,
   minutesToY,
   minutesToYInWorkingWindow,
   parseDayKey,
   sameDay,
-  timedEventColumnRect,
   todayCalendarDate,
   toDayKey,
   WEEK_DAYS,
   type DayKey,
 } from "@/utils/calendar";
-import type { MonthDayEventPreview } from "@/types/schedule";
-import type { WeekEventsByDay } from "@/hooks/schedule/useWeekAppointmentsCache";
 
 import { TimeGutter } from "./TimeGutter";
 import { WeekEventBlock } from "./WeekEventBlock";
-
-type PositionedWeekEvent = {
-  event: MonthDayEventPreview;
-  top: number;
-  height: number;
-  left: number;
-  width: number;
-};
 
 export type WeekTimeGridProps = {
   weekStartKey: DayKey;
@@ -71,137 +63,6 @@ function todayColumnIndexForWeek(weekStartKey: DayKey): number {
     }
   }
   return -1;
-}
-
-function localMinutesFromMidnight(date: Date): number {
-  return date.getHours() * MINUTES_PER_HOUR + date.getMinutes();
-}
-
-function layoutDayColumnEvents(
-  events: MonthDayEventPreview[],
-  dayKey: DayKey,
-  startHour: number,
-  endHour: number,
-  pxPerMinute: number,
-  hourGap: number,
-): PositionedWeekEvent[] {
-  const previews = new Map<string, MonthDayEventPreview>();
-  const timedInputs = [];
-
-  for (const event of events) {
-    const clippedDay = clipEventToDay(event.startTime, event.endTime, dayKey);
-    if (!clippedDay) continue;
-
-    const clipped = clipEventToWorkingWindow(
-      clippedDay.startMinutes,
-      clippedDay.endMinutes,
-      startHour,
-      endHour,
-    );
-    if (!clipped) continue;
-
-    previews.set(event.id, event);
-    timedInputs.push({
-      id: event.id,
-      startMinutes: clipped.startMinutes,
-      endMinutes: clipped.endMinutes,
-    });
-  }
-
-  return layoutTimedEventsForDay(timedInputs).map((layout) => {
-    const rect = timedEventColumnRect(layout.column, layout.maxColumns);
-    return {
-      event: previews.get(layout.id)!,
-      top:
-        WEEK_VIEW_GRID_EDGE_INSET +
-        minutesToYInWorkingWindow(
-          layout.startMinutes,
-          startHour,
-          pxPerMinute,
-          hourGap,
-        ),
-      height: minutesSpanToHeight(
-        layout.startMinutes,
-        layout.endMinutes,
-        pxPerMinute,
-        hourGap,
-      ),
-      left: rect.left,
-      width: rect.width,
-    };
-  });
-}
-
-type NowIndicatorArrowProps = {
-  color: string;
-  width: number;
-  height: number;
-};
-
-function NowIndicatorArrow({ color, width, height }: NowIndicatorArrowProps) {
-  const halfHeight = height / 2;
-  return (
-    <View
-      style={{
-        width,
-        height,
-        justifyContent: "center",
-        alignItems: "flex-start",
-      }}
-    >
-      <View
-        style={{
-          width: 0,
-          height: 0,
-          borderTopWidth: halfHeight,
-          borderBottomWidth: halfHeight,
-          borderLeftWidth: width,
-          borderTopColor: "transparent",
-          borderBottomColor: "transparent",
-          borderLeftColor: color,
-        }}
-      />
-    </View>
-  );
-}
-
-type TodayNowIndicatorProps = {
-  color: string;
-};
-
-function TodayNowIndicator({ color }: TodayNowIndicatorProps) {
-  return (
-    <View
-      style={{
-        flex: 1,
-        height: WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT,
-        justifyContent: "center",
-      }}
-    >
-      <View
-        style={{
-          height: WEEK_VIEW_NOW_INDICATOR_HEIGHT,
-          backgroundColor: color,
-        }}
-      />
-      <View
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          bottom: 0,
-          justifyContent: "center",
-          zIndex: 1,
-        }}
-      >
-        <NowIndicatorArrow
-          color={color}
-          width={WEEK_VIEW_NOW_INDICATOR_ARROW_WIDTH}
-          height={WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT}
-        />
-      </View>
-    </View>
-  );
 }
 
 function WeekTimeGridComponent({
@@ -254,44 +115,39 @@ function WeekTimeGridComponent({
     });
   }, [endHour, eventsByDay, hourGap, pxPerMinute, startHour, weekStartKey]);
 
-  const hourLines = useMemo(() => {
-    const lines: number[] = [];
-    for (let hour = startHour; hour <= endHour + 1; hour++) {
-      lines.push(
-        WEEK_VIEW_GRID_EDGE_INSET +
-          minutesToYInWorkingWindow(
-            hour * MINUTES_PER_HOUR,
-            startHour,
-            pxPerMinute,
-            hourGap,
-          ),
-      );
-    }
-    return lines;
-  }, [endHour, hourGap, pxPerMinute, startHour]);
+  const hourLines = useMemo(
+    () =>
+      buildHourLineTops(
+        startHour,
+        endHour,
+        pxPerMinute,
+        hourGap,
+        WEEK_VIEW_GRID_EDGE_INSET,
+      ),
+    [endHour, hourGap, pxPerMinute, startHour],
+  );
 
-  const halfHourLines = useMemo(() => {
-    const lines: number[] = [];
-    const windowStartMinutes = startHour * MINUTES_PER_HOUR;
-    const windowEndMinutes = (endHour + 1) * MINUTES_PER_HOUR;
-
-    for (
-      let minutes = windowStartMinutes + 30;
-      minutes < windowEndMinutes;
-      minutes += MINUTES_PER_HOUR
-    ) {
-      lines.push(
-        WEEK_VIEW_GRID_EDGE_INSET +
-          minutesToYInWorkingWindow(minutes, startHour, pxPerMinute, hourGap),
-      );
-    }
-    return lines;
-  }, [endHour, hourGap, pxPerMinute, startHour]);
+  const halfHourLines = useMemo(
+    () =>
+      buildHalfHourLineTops(
+        startHour,
+        endHour,
+        pxPerMinute,
+        hourGap,
+        WEEK_VIEW_GRID_EDGE_INSET,
+      ),
+    [endHour, hourGap, pxPerMinute, startHour],
+  );
 
   const nowLineY = useMemo(
     () =>
-      WEEK_VIEW_GRID_EDGE_INSET +
-      minutesToYInWorkingWindow(nowMinutes, startHour, pxPerMinute, hourGap),
+      nowLineYForMinutes(
+        nowMinutes,
+        startHour,
+        pxPerMinute,
+        hourGap,
+        WEEK_VIEW_GRID_EDGE_INSET,
+      ),
     [hourGap, nowMinutes, pxPerMinute, startHour],
   );
 
@@ -419,7 +275,7 @@ function WeekTimeGridComponent({
               {Array.from({ length: WEEK_DAYS }, (_, columnIndex) => (
                 <View key={`now-col-${columnIndex}`} style={{ flex: 1 }}>
                   {columnIndex === todayColumnIndex ? (
-                    <TodayNowIndicator color={nowIndicatorColor} />
+                    <TimedGridNowIndicator color={nowIndicatorColor} />
                   ) : null}
                 </View>
               ))}

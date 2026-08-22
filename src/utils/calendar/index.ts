@@ -55,6 +55,8 @@ export {
   type BuildWeekCellsOptions,
 } from "./buildWeek";
 
+export { buildDayWindow, DAY_PAGER_RADIUS } from "./buildDay";
+
 export {
   buildHourLabels,
   clipEventToDay,
