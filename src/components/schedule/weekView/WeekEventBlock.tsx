@@ -1,4 +1,5 @@
-import { memo, useMemo } from "react";
+import { useRouter, type Href } from "expo-router";
+import { memo, useCallback, useMemo } from "react";
 import { Pressable, Text, View, type ViewStyle } from "react-native";
 
 import {
@@ -9,6 +10,7 @@ import {
 import { withOpacity } from "@/helpers/color";
 import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
+import { formatTimeRange } from "@/utils/calendar";
 
 export type WeekEventBlockProps = {
   event: MonthDayEventPreview;
@@ -28,8 +30,14 @@ function WeekEventBlockComponent({
   width,
 }: WeekEventBlockProps) {
   const theme = useThemeTokens();
+  const router = useRouter();
   const hasType = Boolean(event.color);
   const typeColor = event.color ?? theme.palette.border.strong;
+  const timeRange = formatTimeRange(event.startTime, event.endTime);
+
+  const onPress = useCallback(() => {
+    router.push(`/appointments/${event.id}` as Href);
+  }, [event.id, router]);
 
   const rootStyle = useMemo(
     (): ViewStyle => ({
@@ -92,7 +100,8 @@ function WeekEventBlockComponent({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${event.title}${event.typeName ? ` - ${event.typeName}` : ""}`}
+      accessibilityLabel={`${event.title}${event.typeName ? ` - ${event.typeName}` : ""}, ${timeRange}`}
+      onPress={onPress}
       style={rootStyle}
     >
       <View style={cardStyle}>
