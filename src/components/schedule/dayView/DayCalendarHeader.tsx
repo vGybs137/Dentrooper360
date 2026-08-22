@@ -4,7 +4,7 @@ import { View } from "react-native";
 import { ScheduleViewModeToggle } from "@/components/schedule/ScheduleViewModeToggle";
 import { ThemedText } from "@/components/ui";
 import { useThemeTokens } from "@/theme";
-import { formatDayKeyLabel, type DayKey } from "@/utils/calendar";
+import { formatDayKeyMonthShort, type DayKey } from "@/utils/calendar";
 
 export type DayCalendarHeaderProps = {
   dayKey: DayKey;
@@ -12,7 +12,7 @@ export type DayCalendarHeaderProps = {
 
 function DayCalendarHeaderComponent({ dayKey }: DayCalendarHeaderProps) {
   const theme = useThemeTokens();
-  const label = useMemo(() => formatDayKeyLabel(dayKey), [dayKey]);
+  const label = useMemo(() => formatDayKeyMonthShort(dayKey), [dayKey]);
 
   const rootStyle = useMemo(
     () => ({

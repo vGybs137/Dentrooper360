@@ -1,3 +1,9 @@
 export { DayCalendar } from "./DayCalendar";
+export { DayCalendarHeader } from "./DayCalendarHeader";
+export type { DayCalendarHeaderProps } from "./DayCalendarHeader";
+export { DayCalendarPager } from "./DayCalendarPager";
+export type { DayCalendarPagerProps } from "./DayCalendarPager";
+export { DayPageHeaderRow } from "./DayPageHeaderRow";
+export type { DayPageHeaderRowProps } from "./DayPageHeaderRow";
 export { DayTimeGrid } from "./DayTimeGrid";
 export type { DayTimeGridProps } from "./DayTimeGrid";

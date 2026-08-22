@@ -7,6 +7,7 @@ import { useThemeTokens } from "@/theme";
 import type { DayKey } from "@/utils/calendar";
 
 import { DayTimeGrid } from "./DayTimeGrid";
+import { DayPageHeaderRow } from "./DayPageHeaderRow";
 
 export type DayCalendarPagerProps = {
   days: DayKey[];
@@ -17,7 +18,7 @@ export type DayCalendarPagerProps = {
     React.ComponentProps<typeof PagerView>["onPageSelected"]
   >;
   onPageScrollStateChanged?: NonNullable<
-    React.ComponentProps<typeof PagerView>["onPageSelected"]
+    React.ComponentProps<typeof PagerView>["onPageScrollStateChanged"]
   >;
 };
 
@@ -40,7 +41,10 @@ function DayCalendarPagerComponent({
         return (
           <View key={dayKey} collapsable={false} className="flex-1">
             {shouldRender ? (
-              <DayTimeGrid dayKey={dayKey} gutterWidth={gutterWidth} />
+              <>
+                <DayPageHeaderRow dayKey={dayKey} gutterWidth={gutterWidth} />
+                <DayTimeGrid dayKey={dayKey} gutterWidth={gutterWidth} />
+              </>
             ) : (
               <View className="flex-1" />
             )}

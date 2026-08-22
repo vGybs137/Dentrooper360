@@ -68,6 +68,9 @@ export const WEEK_VIEW_DEFAULT_END_HOUR = 22;
 /** Neighbor week pages kept mounted in WeekCalendarPager. */
 export const WEEK_VIEW_PAGER_RENDER_RADIUS = 1;
 
+/** Neighbor day pages kept mounted in DayCalendarPager. */
+export const DAY_VIEW_PAGER_RENDER_RADIUS = 1;
+
 /** Movement required before locking pager vs grid scroll (AOSP touchSlop × 2). */
 export const WEEK_VIEW_PAGER_DIRECTION_LOCK_SLOP = 16;
 

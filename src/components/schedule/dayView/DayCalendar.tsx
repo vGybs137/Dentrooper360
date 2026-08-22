@@ -1,36 +1,33 @@
-import { useMemo } from "react";
 import { View } from "react-native";
 
-import { ThemedText } from "@/components/ui";
 import { WEEK_VIEW_GUTTER_WIDTH } from "@/constants/schedule";
-import { useCalendarSelectionStore } from "@/stores/calendarSelectionStore";
-import { useThemeTokens } from "@/theme";
-import { formatDayKeyLabel } from "@/utils/calendar";
+import { useVisibleDay } from "@/hooks/schedule/useVisibleDay";
 
-import { DayTimeGrid } from "./DayTimeGrid";
+import { DayCalendarHeader } from "./DayCalendarHeader";
+import { DayCalendarPager } from "./DayCalendarPager";
 
-/** Step 3 stub — single-day timed grid for layout review (pager in Step 4). */
+/** Day view shell — header and horizontally paged timed grids. */
 export function DayCalendar() {
-  const theme = useThemeTokens();
-  const selectedDayKey = useCalendarSelectionStore((state) => state.selectedDayKey);
-  const label = useMemo(
-    () => formatDayKeyLabel(selectedDayKey),
-    [selectedDayKey],
-  );
-
-  const headerStyle = useMemo(
-    () => ({
-      paddingBottom: theme.semantic.space.stack.compact,
-    }),
-    [theme],
-  );
+  const {
+    days,
+    initialIndex,
+    pageIndex,
+    visibleDayKey,
+    onPageSelected,
+    onPageScrollStateChanged,
+  } = useVisibleDay();
 
   return (
     <View className="w-full flex-1 self-stretch">
-      <View style={headerStyle}>
-        <ThemedText variant="title">{label}</ThemedText>
-      </View>
-      <DayTimeGrid dayKey={selectedDayKey} gutterWidth={WEEK_VIEW_GUTTER_WIDTH} />
+      <DayCalendarHeader dayKey={visibleDayKey} />
+      <DayCalendarPager
+        days={days}
+        initialIndex={initialIndex}
+        pageIndex={pageIndex}
+        gutterWidth={WEEK_VIEW_GUTTER_WIDTH}
+        onPageSelected={onPageSelected}
+        onPageScrollStateChanged={onPageScrollStateChanged}
+      />
     </View>
   );
 }
