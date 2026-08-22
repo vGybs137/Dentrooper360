@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from "react";
-import { View } from "react-native";
+import { View, type NativeSyntheticEvent } from "react-native";
+import type { PagerViewOnPageSelectedEventData } from "react-native-pager-view";
 
 import { WEEK_VIEW_GUTTER_WIDTH } from "@/constants/schedule";
 import { useWeekAppointmentsCache } from "@/hooks/schedule/useWeekAppointmentsCache";
@@ -35,10 +36,8 @@ export function DayCalendar({ weekStartsOn = 0 }: DayCalendarProps) {
     ensureVisibleWindow(weekStartDayKey(visibleDayKey, weekStartsOn));
   }, [ensureVisibleWindow, visibleDayKey, weekStartsOn]);
 
-  const handlePageSelected = useCallback<
-    NonNullable<React.ComponentProps<typeof DayCalendarPager>["onPageSelected"]>
-  >(
-    (event) => {
+  const handlePageSelected = useCallback(
+    (event: NativeSyntheticEvent<PagerViewOnPageSelectedEventData>) => {
       onPageSelected(event);
       const nextDayKey = days[event.nativeEvent.position];
       if (nextDayKey) {
