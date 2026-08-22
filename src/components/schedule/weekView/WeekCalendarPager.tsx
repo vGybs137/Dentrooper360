@@ -3,6 +3,7 @@ import { View } from "react-native";
 import PagerView from "react-native-pager-view";
 
 import { WEEK_VIEW_PAGER_RENDER_RADIUS } from "@/constants/schedule";
+import type { WeekEventsByDay } from "@/hooks/schedule/useWeekAppointmentsCache";
 import { useThemeTokens } from "@/theme";
 import type { DayKey, WeekdayIndex } from "@/utils/calendar";
 
@@ -15,6 +16,7 @@ export type WeekCalendarPagerProps = {
   pageIndex: number;
   weekStartsOn?: WeekdayIndex;
   gutterWidth: number;
+  getEventsForWeek: (weekStartKey: DayKey) => WeekEventsByDay;
   onPageSelected: NonNullable<
     React.ComponentProps<typeof PagerView>["onPageSelected"]
   >;
@@ -29,6 +31,7 @@ function WeekCalendarPagerComponent({
   pageIndex,
   weekStartsOn = 0,
   gutterWidth,
+  getEventsForWeek,
   onPageSelected,
   onPageScrollStateChanged,
 }: WeekCalendarPagerProps) {
@@ -51,6 +54,7 @@ function WeekCalendarPagerComponent({
                 />
                 <WeekTimeGrid
                   weekStartKey={weekStartKey}
+                  eventsByDay={getEventsForWeek(weekStartKey)}
                   gutterWidth={gutterWidth}
                 />
               </>
@@ -60,7 +64,7 @@ function WeekCalendarPagerComponent({
           </View>
         );
       }),
-    [gutterWidth, pageIndex, weekStartsOn, weeks],
+    [getEventsForWeek, gutterWidth, pageIndex, weekStartsOn, weeks],
   );
 
   return (

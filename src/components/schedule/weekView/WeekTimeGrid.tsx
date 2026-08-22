@@ -30,8 +30,8 @@ import {
   type DayKey,
 } from "@/utils/calendar";
 import type { MonthDayEventPreview } from "@/types/schedule";
+import type { WeekEventsByDay } from "@/hooks/schedule/useWeekAppointmentsCache";
 
-import { getMockEventsForWeek } from "./mockWeekEvents";
 import { TimeGutter } from "./TimeGutter";
 import { WeekEventBlock } from "./WeekEventBlock";
 
@@ -45,6 +45,7 @@ type PositionedWeekEvent = {
 
 export type WeekTimeGridProps = {
   weekStartKey: DayKey;
+  eventsByDay?: WeekEventsByDay;
   hourHeight?: number;
   hourGap?: number;
   gutterWidth?: number;
@@ -183,6 +184,7 @@ function TodayNowIndicator({ color }: TodayNowIndicatorProps) {
 
 function WeekTimeGridComponent({
   weekStartKey,
+  eventsByDay = {},
   hourHeight = WEEK_VIEW_HOUR_HEIGHT,
   hourGap = WEEK_VIEW_HOUR_GAP,
   gutterWidth = WEEK_VIEW_GUTTER_WIDTH,
@@ -209,19 +211,18 @@ function WeekTimeGridComponent({
   const contentHeight = gridHeight + WEEK_VIEW_GRID_EDGE_INSET * 2;
 
   const eventsByColumn = useMemo(() => {
-    const mockEventsByDay = getMockEventsForWeek(weekStartKey);
     const weekStart = parseDayKey(weekStartKey);
 
     return Array.from({ length: WEEK_DAYS }, (_, columnIndex) => {
       const dayKey = toDayKey(addDays(weekStart, columnIndex));
       return layoutDayColumnEvents(
-        mockEventsByDay[dayKey] ?? [],
+        eventsByDay[dayKey] ?? [],
         dayKey,
         pxPerMinute,
         hourGap,
       );
     });
-  }, [hourGap, pxPerMinute, weekStartKey]);
+  }, [eventsByDay, hourGap, pxPerMinute, weekStartKey]);
 
   const hourLines = useMemo(
     () =>
