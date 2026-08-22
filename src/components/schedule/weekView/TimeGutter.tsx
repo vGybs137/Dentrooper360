@@ -4,6 +4,9 @@ import { View } from "react-native";
 import { ThemedText } from "@/components/ui";
 import { useThemeTokens } from "@/theme";
 import {
+  WEEK_VIEW_GUTTER_LABEL_LINE_HEIGHT,
+} from "@/constants/schedule";
+import {
   MINUTES_PER_HOUR,
   minutesToY,
 } from "@/utils/calendar";
@@ -20,7 +23,8 @@ export type TimeGutterProps = {
   endHour?: number;
 };
 
-export const TIME_GUTTER_LABEL_LINE_HEIGHT = 12;
+/** @deprecated Use WEEK_VIEW_GUTTER_LABEL_LINE_HEIGHT from @/constants/schedule */
+export const TIME_GUTTER_LABEL_LINE_HEIGHT = WEEK_VIEW_GUTTER_LABEL_LINE_HEIGHT;
 
 function formatGutterHourLabel(hour: number, locale?: string): string {
   const anchor = new Date(2000, 0, 1, hour, 0, 0, 0);
@@ -52,7 +56,7 @@ function TimeGutterComponent({
   const labelStyle = useMemo(
     () => ({
       fontSize: 10,
-      lineHeight: TIME_GUTTER_LABEL_LINE_HEIGHT,
+      lineHeight: WEEK_VIEW_GUTTER_LABEL_LINE_HEIGHT,
       fontWeight: theme.primitives.fontWeight.regular as "400",
     }),
     [theme],
@@ -69,7 +73,7 @@ function TimeGutterComponent({
             key={hour}
             style={{
               position: "absolute",
-              top: lineY - TIME_GUTTER_LABEL_LINE_HEIGHT / 2,
+              top: lineY - WEEK_VIEW_GUTTER_LABEL_LINE_HEIGHT / 2,
               left: 0,
               right: 0,
               alignItems: "center",

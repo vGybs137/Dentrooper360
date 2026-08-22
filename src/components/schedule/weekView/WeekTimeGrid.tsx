@@ -1,6 +1,14 @@
-import { memo, useMemo } from "react";
-import { ScrollView, View } from "react-native";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ScrollView, View, type ScrollView as ScrollViewType } from "react-native";
 
+import {
+  WEEK_VIEW_GUTTER_WIDTH,
+  WEEK_VIEW_GRID_EDGE_INSET,
+  WEEK_VIEW_HOUR_GAP,
+  WEEK_VIEW_HOUR_HEIGHT,
+  WEEK_VIEW_NOW_INDICATOR_HEIGHT,
+  WEEK_VIEW_SCROLL_PADDING_MINUTES,
+} from "@/constants/schedule";
 import { useThemeTokens } from "@/theme";
 import {
   gridHeightForDay,
@@ -10,37 +18,47 @@ import {
   WEEK_DAYS,
 } from "@/utils/calendar";
 
-import { TimeGutter, TIME_GUTTER_LABEL_LINE_HEIGHT } from "./TimeGutter";
-
-/** Step 3 defaults — moved to constants/schedule in Step 4. */
-const DEFAULT_HOUR_HEIGHT = 60;
-const DEFAULT_HOUR_GAP = 1;
-const DEFAULT_GUTTER_WIDTH = 36;
-const GRID_EDGE_INSET = TIME_GUTTER_LABEL_LINE_HEIGHT / 2;
+import { TimeGutter } from "./TimeGutter";
 
 export type WeekTimeGridProps = {
   hourHeight?: number;
   hourGap?: number;
   gutterWidth?: number;
+  /** When true, scroll to the current local time on mount. */
+  scrollToNowOnMount?: boolean;
+  /** Draw a horizontal line at the current local time. */
+  showNowIndicator?: boolean;
 };
 
+function localMinutesFromMidnight(date: Date): number {
+  return date.getHours() * MINUTES_PER_HOUR + date.getMinutes();
+}
+
 function WeekTimeGridComponent({
-  hourHeight = DEFAULT_HOUR_HEIGHT,
-  hourGap = DEFAULT_HOUR_GAP,
-  gutterWidth = DEFAULT_GUTTER_WIDTH,
+  hourHeight = WEEK_VIEW_HOUR_HEIGHT,
+  hourGap = WEEK_VIEW_HOUR_GAP,
+  gutterWidth = WEEK_VIEW_GUTTER_WIDTH,
+  scrollToNowOnMount = true,
+  showNowIndicator = true,
 }: WeekTimeGridProps) {
   const theme = useThemeTokens();
+  const scrollRef = useRef<ScrollViewType>(null);
+  const hasScrolledRef = useRef(false);
+  const [nowMinutes, setNowMinutes] = useState(() =>
+    localMinutesFromMidnight(new Date()),
+  );
+
   const pxPerMinute = hourHeight / MINUTES_PER_HOUR;
   const gridHeight = useMemo(
     () => gridHeightForDay(pxPerMinute, hourGap),
     [hourGap, pxPerMinute],
   );
-  const contentHeight = gridHeight + GRID_EDGE_INSET * 2;
+  const contentHeight = gridHeight + WEEK_VIEW_GRID_EDGE_INSET * 2;
 
   const hourLines = useMemo(
     () =>
       Array.from({ length: 25 }, (_, hour) =>
-        GRID_EDGE_INSET +
+        WEEK_VIEW_GRID_EDGE_INSET +
         minutesToY(hour * MINUTES_PER_HOUR, pxPerMinute, hourGap),
       ),
     [hourGap, pxPerMinute],
@@ -50,29 +68,69 @@ function WeekTimeGridComponent({
     const lines: number[] = [];
     for (let minutes = 30; minutes < MINUTES_PER_DAY; minutes += MINUTES_PER_HOUR) {
       lines.push(
-        GRID_EDGE_INSET + minutesToY(minutes, pxPerMinute, hourGap),
+        WEEK_VIEW_GRID_EDGE_INSET + minutesToY(minutes, pxPerMinute, hourGap),
       );
     }
     return lines;
   }, [hourGap, pxPerMinute]);
 
+  const nowLineY = useMemo(
+    () =>
+      WEEK_VIEW_GRID_EDGE_INSET +
+      minutesToY(nowMinutes, pxPerMinute, hourGap),
+    [hourGap, nowMinutes, pxPerMinute],
+  );
+
+  const scrollToNow = useCallback(() => {
+    if (!scrollToNowOnMount) return;
+    const anchorY =
+      WEEK_VIEW_GRID_EDGE_INSET +
+      minutesToY(nowMinutes, pxPerMinute, hourGap);
+    const paddingY = minutesToY(
+      WEEK_VIEW_SCROLL_PADDING_MINUTES,
+      pxPerMinute,
+      hourGap,
+    );
+    scrollRef.current?.scrollTo({
+      y: Math.max(0, anchorY - paddingY),
+      animated: false,
+    });
+  }, [hourGap, nowMinutes, pxPerMinute, scrollToNowOnMount]);
+
+  useEffect(() => {
+    if (!showNowIndicator) return;
+    const tick = () => setNowMinutes(localMinutesFromMidnight(new Date()));
+    tick();
+    const id = setInterval(tick, 60_000);
+    return () => clearInterval(id);
+  }, [showNowIndicator]);
+
   const gridBorderColor = theme.colors.borderStrong;
   const gridBorderWidth = theme.semantic.borderWidth.strong;
   const halfHourBorderColor = theme.colors.borderSubtle;
   const halfHourBorderWidth = theme.semantic.borderWidth.subtle;
+  const nowIndicatorColor = theme.palette.brand.default;
+
+  const onContentSizeChange = useCallback(() => {
+    if (hasScrolledRef.current) return;
+    hasScrolledRef.current = true;
+    scrollToNow();
+  }, [scrollToNow]);
 
   return (
     <ScrollView
+      ref={scrollRef}
       className="flex-1"
       contentContainerStyle={{ flexGrow: 1 }}
       showsVerticalScrollIndicator
+      onContentSizeChange={onContentSizeChange}
     >
       <View style={{ flexDirection: "row", height: contentHeight }}>
         <TimeGutter
           width={gutterWidth}
           hourHeight={hourHeight}
           hourGap={hourGap}
-          contentInsetTop={GRID_EDGE_INSET}
+          contentInsetTop={WEEK_VIEW_GRID_EDGE_INSET}
         />
 
         <View className="flex-1" style={{ position: "relative" }}>
@@ -105,6 +163,21 @@ function WeekTimeGridComponent({
             />
           ))}
 
+          {showNowIndicator ? (
+            <View
+              pointerEvents="none"
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                top: nowLineY - WEEK_VIEW_NOW_INDICATOR_HEIGHT / 2,
+                height: WEEK_VIEW_NOW_INDICATOR_HEIGHT,
+                backgroundColor: nowIndicatorColor,
+                zIndex: 1,
+              }}
+            />
+          ) : null}
+
           <View
             style={{
               flex: 1,
@@ -124,4 +197,5 @@ function WeekTimeGridComponent({
 
 export const WeekTimeGrid = memo(WeekTimeGridComponent);
 
-export const WEEK_TIME_GRID_GUTTER_WIDTH = DEFAULT_GUTTER_WIDTH;
+/** @deprecated Use WEEK_VIEW_GUTTER_WIDTH from @/constants/schedule */
+export const WEEK_TIME_GRID_GUTTER_WIDTH = WEEK_VIEW_GUTTER_WIDTH;

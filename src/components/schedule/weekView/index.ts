@@ -10,5 +10,5 @@ export type { WeekCalendarHeaderProps } from "./WeekCalendarHeader";
 export { WeekDayHeaderRow } from "./WeekDayHeaderRow";
 export type { WeekDayHeaderRowProps } from "./WeekDayHeaderRow";
 
-export { WeekTimeGrid, WEEK_TIME_GRID_GUTTER_WIDTH } from "./WeekTimeGrid";
+export { WeekTimeGrid } from "./WeekTimeGrid";
 export type { WeekTimeGridProps } from "./WeekTimeGrid";

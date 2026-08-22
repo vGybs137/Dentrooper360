@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { View } from "react-native";
 
+import { WEEK_VIEW_GUTTER_WIDTH } from "@/constants/schedule";
 import {
   addDays,
   parseDayKey,
@@ -12,10 +13,7 @@ import {
 
 import { WeekCalendarHeader } from "./WeekCalendarHeader";
 import { WeekDayHeaderRow } from "./WeekDayHeaderRow";
-import {
-  WEEK_TIME_GRID_GUTTER_WIDTH,
-  WeekTimeGrid,
-} from "./WeekTimeGrid";
+import { WeekTimeGrid } from "./WeekTimeGrid";
 
 export type WeekCalendarProps = {
   weekStartsOn?: WeekdayIndex;
@@ -41,9 +39,9 @@ export function WeekCalendar({ weekStartsOn = 0 }: WeekCalendarProps) {
       <WeekDayHeaderRow
         weekStartKey={weekStartKey}
         weekStartsOn={weekStartsOn}
-        gutterWidth={WEEK_TIME_GRID_GUTTER_WIDTH}
+        gutterWidth={WEEK_VIEW_GUTTER_WIDTH}
       />
-      <WeekTimeGrid gutterWidth={WEEK_TIME_GRID_GUTTER_WIDTH} />
+      <WeekTimeGrid gutterWidth={WEEK_VIEW_GUTTER_WIDTH} />
     </View>
   );
 }
