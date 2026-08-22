@@ -23,7 +23,7 @@ export default function ScheduleScreen() {
       style={{ backgroundColor: theme.palette.surface.default }}
     >
       {PREVIEW_DAY_VIEW ? (
-        <DayCalendar />
+        <DayCalendar weekStartsOn={1} />
       ) : viewMode === "week" ? (
         <WeekCalendar weekStartsOn={1} />
       ) : (

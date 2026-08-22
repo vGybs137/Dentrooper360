@@ -4,6 +4,7 @@ import PagerView from "react-native-pager-view";
 
 import { DAY_VIEW_PAGER_RENDER_RADIUS } from "@/constants/schedule";
 import { useThemeTokens } from "@/theme";
+import type { MonthDayEventPreview } from "@/types/schedule";
 import type { DayKey } from "@/utils/calendar";
 
 import { DayTimeGrid } from "./DayTimeGrid";
@@ -14,6 +15,7 @@ export type DayCalendarPagerProps = {
   initialIndex: number;
   pageIndex: number;
   gutterWidth: number;
+  getEventsForDay: (dayKey: DayKey) => MonthDayEventPreview[];
   onPageSelected: NonNullable<
     React.ComponentProps<typeof PagerView>["onPageSelected"]
   >;
@@ -27,6 +29,7 @@ function DayCalendarPagerComponent({
   initialIndex,
   pageIndex,
   gutterWidth,
+  getEventsForDay,
   onPageSelected,
   onPageScrollStateChanged,
 }: DayCalendarPagerProps) {
@@ -43,7 +46,11 @@ function DayCalendarPagerComponent({
             {shouldRender ? (
               <>
                 <DayPageHeaderRow dayKey={dayKey} gutterWidth={gutterWidth} />
-                <DayTimeGrid dayKey={dayKey} gutterWidth={gutterWidth} />
+                <DayTimeGrid
+                  dayKey={dayKey}
+                  events={getEventsForDay(dayKey)}
+                  gutterWidth={gutterWidth}
+                />
               </>
             ) : (
               <View className="flex-1" />
@@ -51,7 +58,7 @@ function DayCalendarPagerComponent({
           </View>
         );
       }),
-    [days, gutterWidth, pageIndex],
+    [days, getEventsForDay, gutterWidth, pageIndex],
   );
 
   return (

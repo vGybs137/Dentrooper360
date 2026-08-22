@@ -1,4 +1,5 @@
 export { DayCalendar } from "./DayCalendar";
+export type { DayCalendarProps } from "./DayCalendar";
 export { DayCalendarHeader } from "./DayCalendarHeader";
 export type { DayCalendarHeaderProps } from "./DayCalendarHeader";
 export { DayCalendarPager } from "./DayCalendarPager";

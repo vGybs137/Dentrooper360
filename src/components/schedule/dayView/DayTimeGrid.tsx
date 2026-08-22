@@ -6,11 +6,13 @@ import type { ScrollView as ScrollViewType } from "react-native-gesture-handler"
 import {
   buildHalfHourLineTops,
   buildHourLineTops,
+  layoutDayColumnEvents,
   localMinutesFromMidnight,
   nowLineYForMinutes,
   TimedGridNowIndicator,
 } from "@/components/schedule/timedGrid";
 import { TimeGutter } from "@/components/schedule/weekView/TimeGutter";
+import { WeekEventBlock } from "@/components/schedule/weekView/WeekEventBlock";
 import {
   WEEK_VIEW_GUTTER_WIDTH,
   WEEK_VIEW_GRID_EDGE_INSET,
@@ -21,6 +23,7 @@ import {
 } from "@/constants/schedule";
 import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
 import { useThemeTokens } from "@/theme";
+import type { MonthDayEventPreview } from "@/types/schedule";
 import {
   gridHeightForHourRange,
   isMinuteInWorkingWindow,
@@ -35,6 +38,7 @@ import {
 
 export type DayTimeGridProps = {
   dayKey: DayKey;
+  events?: MonthDayEventPreview[];
   hourHeight?: number;
   hourGap?: number;
   gutterWidth?: number;
@@ -52,6 +56,7 @@ function isTodayDayKey(dayKey: DayKey): boolean {
 
 function DayTimeGridComponent({
   dayKey,
+  events = [],
   hourHeight = WEEK_VIEW_HOUR_HEIGHT,
   hourGap = WEEK_VIEW_HOUR_GAP,
   gutterWidth = WEEK_VIEW_GUTTER_WIDTH,
@@ -79,6 +84,19 @@ function DayTimeGridComponent({
     [endHour, hourGap, pxPerMinute, startHour],
   );
   const contentHeight = gridHeight + WEEK_VIEW_GRID_EDGE_INSET * 2;
+
+  const positionedEvents = useMemo(
+    () =>
+      layoutDayColumnEvents(
+        events,
+        dayKey,
+        startHour,
+        endHour,
+        pxPerMinute,
+        hourGap,
+      ),
+    [dayKey, endHour, events, hourGap, pxPerMinute, startHour],
+  );
 
   const hourLines = useMemo(
     () =>
@@ -239,6 +257,26 @@ function DayTimeGridComponent({
               <TimedGridNowIndicator color={nowIndicatorColor} />
             </View>
           ) : null}
+
+          <View
+            style={{
+              flex: 1,
+              position: "relative",
+              height: contentHeight,
+            }}
+          >
+            {positionedEvents.map((block) => (
+              <WeekEventBlock
+                key={block.event.id}
+                event={block.event}
+                top={block.top}
+                height={block.height}
+                left={block.left}
+                width={block.width}
+                variant="day"
+              />
+            ))}
+          </View>
         </View>
       </View>
     </ScrollView>
