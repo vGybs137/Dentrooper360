@@ -1,12 +1,8 @@
 import { memo, useMemo } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
 import { ThemedText } from "@/components/ui";
 import { weekdayLabels } from "@/helpers/weekdayLabels";
-import {
-  selectCalendarDay,
-  useIsCalendarDaySelected,
-} from "@/stores/calendarSelectionStore";
 import { useThemeTokens } from "@/theme";
 import {
   buildWeekCells,
@@ -30,7 +26,6 @@ type WeekDayHeaderCellProps = {
 
 function WeekDayHeaderCell({ cell, weekdayLabel }: WeekDayHeaderCellProps) {
   const theme = useThemeTokens();
-  const selected = useIsCalendarDaySelected(cell.dayKey);
   const isSunday = weekdayIndex(cell.date) === 0;
 
   const dayCircleStyle = useMemo(
@@ -40,30 +35,26 @@ function WeekDayHeaderCell({ cell, weekdayLabel }: WeekDayHeaderCellProps) {
       borderRadius: theme.semantic.radius.pill,
       alignItems: "center" as const,
       justifyContent: "center" as const,
-      backgroundColor: selected ? theme.palette.brand.default : "transparent",
+      backgroundColor: cell.isToday
+        ? theme.palette.brand.subtle
+        : "transparent",
     }),
-    [selected, theme],
+    [cell.isToday, theme],
   );
 
+  const dayTone = cell.isToday ? "brand" : isSunday ? "alert" : "default";
+
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      className="flex-1 items-center"
-      onPress={() => selectCalendarDay(cell.dayKey)}
-    >
+    <View className="flex-1 items-center">
       <ThemedText tone={isSunday ? "alert" : "muted"} variant="label">
         {weekdayLabel}
       </ThemedText>
       <View style={dayCircleStyle}>
-        <ThemedText
-          tone={selected ? "inverse" : cell.isToday ? "brand" : "default"}
-          variant="label"
-        >
+        <ThemedText tone={dayTone} variant="label">
           {cell.date.day}
         </ThemedText>
       </View>
-    </Pressable>
+    </View>
   );
 }
 

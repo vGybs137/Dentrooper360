@@ -8,7 +8,7 @@ import {
 } from "@/constants/schedule";
 import {
   MINUTES_PER_HOUR,
-  minutesToY,
+  minutesToYInWorkingWindow,
 } from "@/utils/calendar";
 
 export type TimeGutterProps = {
@@ -67,7 +67,12 @@ function TimeGutterComponent({
       {labels.map(({ hour, label }) => {
         const lineY =
           contentInsetTop +
-          minutesToY(hour * MINUTES_PER_HOUR, pxPerMinute, hourGap);
+          minutesToYInWorkingWindow(
+            hour * MINUTES_PER_HOUR,
+            startHour,
+            pxPerMinute,
+            hourGap,
+          );
         return (
           <View
             key={hour}

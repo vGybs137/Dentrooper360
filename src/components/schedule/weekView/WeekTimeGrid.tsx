@@ -13,16 +13,19 @@ import {
   WEEK_VIEW_NOW_INDICATOR_ARROW_WIDTH,
   WEEK_VIEW_SCROLL_PADDING_MINUTES,
 } from "@/constants/schedule";
+import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
 import { useThemeTokens } from "@/theme";
 import {
   addDays,
   clipEventToDay,
-  gridHeightForDay,
+  clipEventToWorkingWindow,
+  gridHeightForHourRange,
+  isMinuteInWorkingWindow,
   layoutTimedEventsForDay,
-  MINUTES_PER_DAY,
   MINUTES_PER_HOUR,
   minutesSpanToHeight,
   minutesToY,
+  minutesToYInWorkingWindow,
   parseDayKey,
   sameDay,
   timedEventColumnRect,
@@ -77,6 +80,8 @@ function localMinutesFromMidnight(date: Date): number {
 function layoutDayColumnEvents(
   events: MonthDayEventPreview[],
   dayKey: DayKey,
+  startHour: number,
+  endHour: number,
   pxPerMinute: number,
   hourGap: number,
 ): PositionedWeekEvent[] {
@@ -84,7 +89,15 @@ function layoutDayColumnEvents(
   const timedInputs = [];
 
   for (const event of events) {
-    const clipped = clipEventToDay(event.startTime, event.endTime, dayKey);
+    const clippedDay = clipEventToDay(event.startTime, event.endTime, dayKey);
+    if (!clippedDay) continue;
+
+    const clipped = clipEventToWorkingWindow(
+      clippedDay.startMinutes,
+      clippedDay.endMinutes,
+      startHour,
+      endHour,
+    );
     if (!clipped) continue;
 
     previews.set(event.id, event);
@@ -101,7 +114,12 @@ function layoutDayColumnEvents(
       event: previews.get(layout.id)!,
       top:
         WEEK_VIEW_GRID_EDGE_INSET +
-        minutesToY(layout.startMinutes, pxPerMinute, hourGap),
+        minutesToYInWorkingWindow(
+          layout.startMinutes,
+          startHour,
+          pxPerMinute,
+          hourGap,
+        ),
       height: minutesSpanToHeight(
         layout.startMinutes,
         layout.endMinutes,
@@ -198,21 +216,25 @@ function WeekTimeGridComponent({
   onVerticalScrollEnd,
 }: WeekTimeGridProps) {
   const theme = useThemeTokens();
+  const { startHour, endHour } = useUserScheduleHours();
   const scrollRef = useRef<ScrollViewType>(null);
   const hasScrolledRef = useRef(false);
   const todayColumnIndex = useMemo(
     () => todayColumnIndexForWeek(weekStartKey),
     [weekStartKey],
   );
-  const showTodayNowIndicator = showNowIndicator && todayColumnIndex >= 0;
   const [nowMinutes, setNowMinutes] = useState(() =>
     localMinutesFromMidnight(new Date()),
   );
+  const showTodayNowIndicator =
+    showNowIndicator &&
+    todayColumnIndex >= 0 &&
+    isMinuteInWorkingWindow(nowMinutes, startHour, endHour);
 
   const pxPerMinute = hourHeight / MINUTES_PER_HOUR;
   const gridHeight = useMemo(
-    () => gridHeightForDay(pxPerMinute, hourGap),
-    [hourGap, pxPerMinute],
+    () => gridHeightForHourRange(startHour, endHour, pxPerMinute, hourGap),
+    [endHour, hourGap, pxPerMinute, startHour],
   );
   const contentHeight = gridHeight + WEEK_VIEW_GRID_EDGE_INSET * 2;
 
@@ -224,43 +246,64 @@ function WeekTimeGridComponent({
       return layoutDayColumnEvents(
         eventsByDay[dayKey] ?? [],
         dayKey,
+        startHour,
+        endHour,
         pxPerMinute,
         hourGap,
       );
     });
-  }, [eventsByDay, hourGap, pxPerMinute, weekStartKey]);
+  }, [endHour, eventsByDay, hourGap, pxPerMinute, startHour, weekStartKey]);
 
-  const hourLines = useMemo(
-    () =>
-      Array.from({ length: 25 }, (_, hour) =>
-        WEEK_VIEW_GRID_EDGE_INSET +
-        minutesToY(hour * MINUTES_PER_HOUR, pxPerMinute, hourGap),
-      ),
-    [hourGap, pxPerMinute],
-  );
-
-  const halfHourLines = useMemo(() => {
+  const hourLines = useMemo(() => {
     const lines: number[] = [];
-    for (let minutes = 30; minutes < MINUTES_PER_DAY; minutes += MINUTES_PER_HOUR) {
+    for (let hour = startHour; hour <= endHour + 1; hour++) {
       lines.push(
-        WEEK_VIEW_GRID_EDGE_INSET + minutesToY(minutes, pxPerMinute, hourGap),
+        WEEK_VIEW_GRID_EDGE_INSET +
+          minutesToYInWorkingWindow(
+            hour * MINUTES_PER_HOUR,
+            startHour,
+            pxPerMinute,
+            hourGap,
+          ),
       );
     }
     return lines;
-  }, [hourGap, pxPerMinute]);
+  }, [endHour, hourGap, pxPerMinute, startHour]);
+
+  const halfHourLines = useMemo(() => {
+    const lines: number[] = [];
+    const windowStartMinutes = startHour * MINUTES_PER_HOUR;
+    const windowEndMinutes = (endHour + 1) * MINUTES_PER_HOUR;
+
+    for (
+      let minutes = windowStartMinutes + 30;
+      minutes < windowEndMinutes;
+      minutes += MINUTES_PER_HOUR
+    ) {
+      lines.push(
+        WEEK_VIEW_GRID_EDGE_INSET +
+          minutesToYInWorkingWindow(minutes, startHour, pxPerMinute, hourGap),
+      );
+    }
+    return lines;
+  }, [endHour, hourGap, pxPerMinute, startHour]);
 
   const nowLineY = useMemo(
     () =>
       WEEK_VIEW_GRID_EDGE_INSET +
-      minutesToY(nowMinutes, pxPerMinute, hourGap),
-    [hourGap, nowMinutes, pxPerMinute],
+      minutesToYInWorkingWindow(nowMinutes, startHour, pxPerMinute, hourGap),
+    [hourGap, nowMinutes, pxPerMinute, startHour],
   );
 
-  const scrollToNow = useCallback(() => {
-    if (!scrollToNowOnMount || !showTodayNowIndicator) return;
+  const scrollToInitial = useCallback(() => {
+    if (!scrollToNowOnMount) return;
+
+    const anchorMinutes = showTodayNowIndicator
+      ? nowMinutes
+      : startHour * MINUTES_PER_HOUR;
     const anchorY =
       WEEK_VIEW_GRID_EDGE_INSET +
-      minutesToY(nowMinutes, pxPerMinute, hourGap);
+      minutesToYInWorkingWindow(anchorMinutes, startHour, pxPerMinute, hourGap);
     const paddingY = minutesToY(
       WEEK_VIEW_SCROLL_PADDING_MINUTES,
       pxPerMinute,
@@ -270,7 +313,14 @@ function WeekTimeGridComponent({
       y: Math.max(0, anchorY - paddingY),
       animated: false,
     });
-  }, [hourGap, nowMinutes, pxPerMinute, scrollToNowOnMount, showTodayNowIndicator]);
+  }, [
+    hourGap,
+    nowMinutes,
+    pxPerMinute,
+    scrollToNowOnMount,
+    showTodayNowIndicator,
+    startHour,
+  ]);
 
   useEffect(() => {
     if (!showTodayNowIndicator) return;
@@ -289,8 +339,8 @@ function WeekTimeGridComponent({
   const onContentSizeChange = useCallback(() => {
     if (hasScrolledRef.current) return;
     hasScrolledRef.current = true;
-    scrollToNow();
-  }, [scrollToNow]);
+    scrollToInitial();
+  }, [scrollToInitial]);
 
   const handleScrollBeginDrag = useCallback(() => {
     onVerticalScrollBegin?.();
@@ -319,6 +369,8 @@ function WeekTimeGridComponent({
           hourHeight={hourHeight}
           hourGap={hourGap}
           contentInsetTop={WEEK_VIEW_GRID_EDGE_INSET}
+          startHour={startHour}
+          endHour={endHour}
         />
 
         <View className="flex-1" style={{ position: "relative" }}>

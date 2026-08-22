@@ -87,6 +87,67 @@ export function gridHeightForDay(pxPerMinute: number, hourGap = 0): number {
   return minutesToY(MINUTES_PER_DAY, pxPerMinute, hourGap);
 }
 
+/** Inclusive working-hour window as minutes from local midnight. */
+export function workingWindowMinutes(
+  startHour: number,
+  endHour: number,
+): { startMinutes: number; endMinutes: number } {
+  const start = Math.max(0, Math.min(startHour, 23));
+  const end = Math.max(start, Math.min(endHour, 23));
+  return {
+    startMinutes: start * MINUTES_PER_HOUR,
+    endMinutes: (end + 1) * MINUTES_PER_HOUR,
+  };
+}
+
+/** Grid height for an inclusive local hour range (`endHour` label row included). */
+export function gridHeightForHourRange(
+  startHour: number,
+  endHour: number,
+  pxPerMinute: number,
+  hourGap = 0,
+): number {
+  const { startMinutes, endMinutes } = workingWindowMinutes(startHour, endHour);
+  return minutesSpanToHeight(startMinutes, endMinutes, pxPerMinute, hourGap);
+}
+
+/** Maps absolute local minutes into a working-hours grid anchored at `startHour`. */
+export function minutesToYInWorkingWindow(
+  minutesFromMidnight: number,
+  startHour: number,
+  pxPerMinute: number,
+  hourGap = 0,
+): number {
+  const windowStart = startHour * MINUTES_PER_HOUR;
+  return minutesToY(minutesFromMidnight - windowStart, pxPerMinute, hourGap);
+}
+
+export function isMinuteInWorkingWindow(
+  minutesFromMidnight: number,
+  startHour: number,
+  endHour: number,
+): boolean {
+  const { startMinutes, endMinutes } = workingWindowMinutes(startHour, endHour);
+  return (
+    minutesFromMidnight >= startMinutes && minutesFromMidnight < endMinutes
+  );
+}
+
+/** Clips a day-local timed span to the working-hour window. */
+export function clipEventToWorkingWindow(
+  startMinutes: number,
+  endMinutes: number,
+  startHour: number,
+  endHour: number,
+): ClippedDayEvent | null {
+  const { startMinutes: windowStart, endMinutes: windowEnd } =
+    workingWindowMinutes(startHour, endHour);
+  const clipStart = Math.max(startMinutes, windowStart);
+  const clipEnd = Math.min(endMinutes, windowEnd);
+  if (clipStart >= clipEnd) return null;
+  return { startMinutes: clipStart, endMinutes: clipEnd };
+}
+
 /**
  * Hour labels for the time gutter and horizontal grid lines.
  * `endHour` is inclusive (e.g. 6–22 → 6am … 10pm rows).
