@@ -5,10 +5,7 @@ import { Screen } from "@/components/ui";
 import { useScheduleViewModeStore } from "@/stores/scheduleViewModeStore";
 import { useThemeTokens } from "@/theme";
 
-/** Flip to true to preview the day view shell (Step 3 — replaced by view toggle in Step 7). */
-const PREVIEW_DAY_VIEW = true;
-
-/** Full-screen schedule with Month | Week calendar views. */
+/** Full-screen schedule with Month | Week | Day calendar views. */
 export default function ScheduleScreen() {
   const theme = useThemeTokens();
   const viewMode = useScheduleViewModeStore((state) => state.viewMode);
@@ -22,7 +19,7 @@ export default function ScheduleScreen() {
       scroll={false}
       style={{ backgroundColor: theme.palette.surface.default }}
     >
-      {PREVIEW_DAY_VIEW ? (
+      {viewMode === "day" ? (
         <DayCalendar weekStartsOn={1} />
       ) : viewMode === "week" ? (
         <WeekCalendar weekStartsOn={1} />
