@@ -10,9 +10,16 @@ export {
 } from "./auth";
 export {
   checkCircleIcon,
+  chevronDownIcon,
+  clockIcon,
   lockIcon,
+  locationIcon,
+  notesIcon,
+  personAddIcon,
   personIcon,
   qrCodeIcon,
+  searchIcon,
+  starIcon,
   visibilityIcon,
 } from "./icons";
 export {

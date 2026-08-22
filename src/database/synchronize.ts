@@ -35,6 +35,9 @@ async function runSynchronize(customerId: string): Promise<void> {
       });
     },
     migrationsEnabledAtVersion: MIGRATIONS_ENABLED_AT_VERSION,
+    // Backend incremental pulls send new client-id rows as "updated" so the creating
+    // device does not conflict; other devices still create missing rows via this flag.
+    sendCreatedAsUpdated: true,
   });
 }
 

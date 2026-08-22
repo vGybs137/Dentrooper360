@@ -29,3 +29,14 @@ export {
   useScheduleViewModeStore,
 } from "./scheduleViewModeStore";
 export type { ScheduleViewMode } from "./scheduleViewModeStore";
+export {
+  ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
+  useAddAppointmentIsPresented,
+  useAddAppointmentSheetVisible,
+  useAddAppointmentSlot,
+  useAddAppointmentStore,
+} from "./addAppointmentStore";
+export type {
+  AddAppointmentStep,
+  AppointmentSlot,
+} from "./addAppointmentStore";

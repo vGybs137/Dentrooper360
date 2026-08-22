@@ -52,6 +52,7 @@ function WeekEventBlockComponent({
       width: `${width * 100}%`,
       height,
       paddingHorizontal: 1,
+      zIndex: 3,
     }),
     [height, left, top, width],
   );

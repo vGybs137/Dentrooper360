@@ -1,9 +1,10 @@
-import { memo, useMemo } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { View } from "react-native";
 import PagerView from "react-native-pager-view";
 
 import { DAY_VIEW_PAGER_RENDER_RADIUS } from "@/constants/schedule";
 import { useWeekViewAxisLock } from "@/hooks/schedule/useWeekViewAxisLock";
+import { useAddAppointmentStore } from "@/stores/addAppointmentStore";
 import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import type { DayKey } from "@/utils/calendar";
@@ -42,6 +43,20 @@ function DayCalendarPagerComponent({
     lockPagerForVerticalScroll,
     resetAxisLock,
   } = useWeekViewAxisLock();
+
+  const clearOrCloseAddAppointment = useAddAppointmentStore(
+    (state) => state.clearOrClose,
+  );
+
+  const handlePageSelected = useCallback<
+    NonNullable<React.ComponentProps<typeof PagerView>["onPageSelected"]>
+  >(
+    (event) => {
+      clearOrCloseAddAppointment();
+      onPageSelected(event);
+    },
+    [clearOrCloseAddAppointment, onPageSelected],
+  );
 
   const pages = useMemo(
     () =>
@@ -87,7 +102,7 @@ function DayCalendarPagerComponent({
       scrollEnabled={pagerScrollEnabled}
       offscreenPageLimit={DAY_VIEW_PAGER_RENDER_RADIUS}
       pageMargin={pageMargin}
-      onPageSelected={onPageSelected}
+      onPageSelected={handlePageSelected}
       onPageScrollStateChanged={onPageScrollStateChanged}
     >
       {pages}

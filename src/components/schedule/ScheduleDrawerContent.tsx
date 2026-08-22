@@ -12,8 +12,9 @@ import { SCHEDULE_VIEW_MODES } from "@/components/schedule/scheduleViewModes";
 import { ThemedText } from "@/components/ui";
 import {
   setScheduleViewMode,
+  useAddAppointmentStore,
   useScheduleViewModeStore,
-} from "@/stores/scheduleViewModeStore";
+} from "@/stores";
 import { useThemeTokens } from "@/theme";
 
 function ScheduleDrawerContentComponent(props: DrawerContentComponentProps) {
@@ -21,6 +22,9 @@ function ScheduleDrawerContentComponent(props: DrawerContentComponentProps) {
   const theme = useThemeTokens();
   const insets = useSafeAreaInsets();
   const viewMode = useScheduleViewModeStore((state) => state.viewMode);
+  const clearOrCloseAddAppointment = useAddAppointmentStore(
+    (state) => state.clearOrClose,
+  );
 
   const headerStyle = useMemo(
     () => ({
@@ -60,6 +64,7 @@ function ScheduleDrawerContentComponent(props: DrawerContentComponentProps) {
           inactiveTintColor={theme.palette.foreground.muted}
           label={label}
           onPress={() => {
+            clearOrCloseAddAppointment();
             setScheduleViewMode(mode);
             navigation.closeDrawer();
           }}

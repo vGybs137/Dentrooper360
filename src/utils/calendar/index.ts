@@ -77,6 +77,7 @@ export {
   minutesSpanToHeight,
   minutesToY,
   minutesToYInWorkingWindow,
+  yToMinutesInWorkingWindow,
   workingWindowMinutes,
   yToMinutes,
   type ClippedDayEvent,

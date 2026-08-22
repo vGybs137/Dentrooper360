@@ -10,6 +10,7 @@ import {
   localMinutesFromMidnight,
   nowLineYForMinutes,
   TimedGridNowIndicator,
+  TimedGridSlotLayer,
 } from "@/components/schedule/timedGrid";
 import {
   WEEK_VIEW_GUTTER_WIDTH,
@@ -289,23 +290,38 @@ function WeekTimeGridComponent({
               height: contentHeight,
             }}
           >
-            {Array.from({ length: WEEK_DAYS }, (_, columnIndex) => (
-              <View
-                key={`day-col-${columnIndex}`}
-                style={{ flex: 1, position: "relative" }}
-              >
-                {eventsByColumn[columnIndex]?.map((block) => (
-                  <WeekEventBlock
-                    key={block.event.id}
-                    event={block.event}
-                    top={block.top}
-                    height={block.height}
-                    left={block.left}
-                    width={block.width}
+            {Array.from({ length: WEEK_DAYS }, (_, columnIndex) => {
+              const weekStart = parseDayKey(weekStartKey);
+              const dayKey = toDayKey(addDays(weekStart, columnIndex));
+
+              return (
+                <View
+                  key={`day-col-${columnIndex}`}
+                  style={{ flex: 1, position: "relative" }}
+                >
+                  <TimedGridSlotLayer
+                    contentHeight={contentHeight}
+                    dayKey={dayKey}
+                    endHour={endHour}
+                    gridEdgeInset={WEEK_VIEW_GRID_EDGE_INSET}
+                    hourGap={hourGap}
+                    pxPerMinute={pxPerMinute}
+                    startHour={startHour}
+                    variant="week"
                   />
-                ))}
-              </View>
-            ))}
+                  {eventsByColumn[columnIndex]?.map((block) => (
+                    <WeekEventBlock
+                      key={block.event.id}
+                      event={block.event}
+                      top={block.top}
+                      height={block.height}
+                      left={block.left}
+                      width={block.width}
+                    />
+                  ))}
+                </View>
+              );
+            })}
           </View>
         </View>
       </View>

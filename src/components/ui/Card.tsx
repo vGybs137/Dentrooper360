@@ -3,15 +3,20 @@ import { type StyleProp, type ViewStyle } from "react-native";
 
 import { ThemedView, type ThemedViewProps } from "./ThemedView";
 
-export type CardProps = Omit<ThemedViewProps, "surface" | "radius" | "borderTone"> & {
+export type CardProps = Omit<ThemedViewProps, "surface" | "radius"> & {
   style?: StyleProp<ViewStyle>;
 };
 
-export function Card({ inset = "default", style, ...props }: CardProps) {
+export function Card({
+  inset = "default",
+  borderTone = "subtle",
+  style,
+  ...props
+}: CardProps) {
   return (
     <ThemedView
       surface="raised"
-      borderTone="subtle"
+      borderTone={borderTone}
       radius="card"
       inset={inset}
       style={style}

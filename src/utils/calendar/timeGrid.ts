@@ -122,6 +122,17 @@ export function minutesToYInWorkingWindow(
   return minutesToY(minutesFromMidnight - windowStart, pxPerMinute, hourGap);
 }
 
+/** Inverse of {@link minutesToYInWorkingWindow} for grid hit-testing. */
+export function yToMinutesInWorkingWindow(
+  y: number,
+  startHour: number,
+  pxPerMinute: number,
+  hourGap = 0,
+): number {
+  const windowStart = startHour * MINUTES_PER_HOUR;
+  return windowStart + yToMinutes(y, pxPerMinute, hourGap);
+}
+
 export function isMinuteInWorkingWindow(
   minutesFromMidnight: number,
   startHour: number,

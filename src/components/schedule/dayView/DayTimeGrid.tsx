@@ -10,6 +10,7 @@ import {
   localMinutesFromMidnight,
   nowLineYForMinutes,
   TimedGridNowIndicator,
+  TimedGridSlotLayer,
 } from "@/components/schedule/timedGrid";
 import { TimeGutter } from "@/components/schedule/weekView/TimeGutter";
 import { WeekEventBlock } from "@/components/schedule/weekView/WeekEventBlock";
@@ -265,6 +266,16 @@ function DayTimeGridComponent({
               height: contentHeight,
             }}
           >
+            <TimedGridSlotLayer
+              contentHeight={contentHeight}
+              dayKey={dayKey}
+              endHour={endHour}
+              gridEdgeInset={WEEK_VIEW_GRID_EDGE_INSET}
+              hourGap={hourGap}
+              pxPerMinute={pxPerMinute}
+              startHour={startHour}
+              variant="day"
+            />
             {positionedEvents.map((block) => (
               <WeekEventBlock
                 key={block.event.id}
