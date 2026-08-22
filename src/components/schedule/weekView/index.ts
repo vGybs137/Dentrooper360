@@ -13,5 +13,8 @@ export type { WeekCalendarHeaderProps } from "./WeekCalendarHeader";
 export { WeekDayHeaderRow } from "./WeekDayHeaderRow";
 export type { WeekDayHeaderRowProps } from "./WeekDayHeaderRow";
 
+export { WeekEventBlock } from "./WeekEventBlock";
+export type { WeekEventBlockProps } from "./WeekEventBlock";
+
 export { WeekTimeGrid } from "./WeekTimeGrid";
 export type { WeekTimeGridProps } from "./WeekTimeGrid";

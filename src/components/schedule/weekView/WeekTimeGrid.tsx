@@ -14,18 +14,34 @@ import {
 import { useThemeTokens } from "@/theme";
 import {
   addDays,
+  clipEventToDay,
   gridHeightForDay,
+  layoutTimedEventsForDay,
   MINUTES_PER_DAY,
   MINUTES_PER_HOUR,
+  minutesSpanToHeight,
   minutesToY,
   parseDayKey,
   sameDay,
+  timedEventColumnRect,
   todayCalendarDate,
+  toDayKey,
   WEEK_DAYS,
   type DayKey,
 } from "@/utils/calendar";
+import type { MonthDayEventPreview } from "@/types/schedule";
 
+import { getMockEventsForWeek } from "./mockWeekEvents";
 import { TimeGutter } from "./TimeGutter";
+import { WeekEventBlock } from "./WeekEventBlock";
+
+type PositionedWeekEvent = {
+  event: MonthDayEventPreview;
+  top: number;
+  height: number;
+  left: number;
+  width: number;
+};
 
 export type WeekTimeGridProps = {
   weekStartKey: DayKey;
@@ -51,6 +67,46 @@ function todayColumnIndexForWeek(weekStartKey: DayKey): number {
 
 function localMinutesFromMidnight(date: Date): number {
   return date.getHours() * MINUTES_PER_HOUR + date.getMinutes();
+}
+
+function layoutDayColumnEvents(
+  events: MonthDayEventPreview[],
+  dayKey: DayKey,
+  pxPerMinute: number,
+  hourGap: number,
+): PositionedWeekEvent[] {
+  const previews = new Map<string, MonthDayEventPreview>();
+  const timedInputs = [];
+
+  for (const event of events) {
+    const clipped = clipEventToDay(event.startTime, event.endTime, dayKey);
+    if (!clipped) continue;
+
+    previews.set(event.id, event);
+    timedInputs.push({
+      id: event.id,
+      startMinutes: clipped.startMinutes,
+      endMinutes: clipped.endMinutes,
+    });
+  }
+
+  return layoutTimedEventsForDay(timedInputs).map((layout) => {
+    const rect = timedEventColumnRect(layout.column, layout.maxColumns);
+    return {
+      event: previews.get(layout.id)!,
+      top:
+        WEEK_VIEW_GRID_EDGE_INSET +
+        minutesToY(layout.startMinutes, pxPerMinute, hourGap),
+      height: minutesSpanToHeight(
+        layout.startMinutes,
+        layout.endMinutes,
+        pxPerMinute,
+        hourGap,
+      ),
+      left: rect.left,
+      width: rect.width,
+    };
+  });
 }
 
 type NowIndicatorArrowProps = {
@@ -151,6 +207,21 @@ function WeekTimeGridComponent({
     [hourGap, pxPerMinute],
   );
   const contentHeight = gridHeight + WEEK_VIEW_GRID_EDGE_INSET * 2;
+
+  const eventsByColumn = useMemo(() => {
+    const mockEventsByDay = getMockEventsForWeek(weekStartKey);
+    const weekStart = parseDayKey(weekStartKey);
+
+    return Array.from({ length: WEEK_DAYS }, (_, columnIndex) => {
+      const dayKey = toDayKey(addDays(weekStart, columnIndex));
+      return layoutDayColumnEvents(
+        mockEventsByDay[dayKey] ?? [],
+        dayKey,
+        pxPerMinute,
+        hourGap,
+      );
+    });
+  }, [hourGap, pxPerMinute, weekStartKey]);
 
   const hourLines = useMemo(
     () =>
@@ -291,7 +362,21 @@ function WeekTimeGridComponent({
             }}
           >
             {Array.from({ length: WEEK_DAYS }, (_, columnIndex) => (
-              <View key={`day-col-${columnIndex}`} style={{ flex: 1 }} />
+              <View
+                key={`day-col-${columnIndex}`}
+                style={{ flex: 1, position: "relative" }}
+              >
+                {eventsByColumn[columnIndex]?.map((block) => (
+                  <WeekEventBlock
+                    key={block.event.id}
+                    event={block.event}
+                    top={block.top}
+                    height={block.height}
+                    left={block.left}
+                    width={block.width}
+                  />
+                ))}
+              </View>
             ))}
           </View>
         </View>
