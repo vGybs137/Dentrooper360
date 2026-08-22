@@ -1,7 +1,8 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { View } from "react-native";
 
 import { WEEK_VIEW_GUTTER_WIDTH } from "@/constants/schedule";
+import { useWeekAppointmentsCache } from "@/hooks/schedule/useWeekAppointmentsCache";
 import { useVisibleWeek } from "@/hooks/schedule/useVisibleWeek";
 import {
   addDays,
@@ -24,9 +25,18 @@ export function WeekCalendar({ weekStartsOn = 0 }: WeekCalendarProps) {
     initialIndex,
     pageIndex,
     visibleWeekStart,
+    isDragging,
     onPageSelected,
     onPageScrollStateChanged,
   } = useVisibleWeek(weekStartsOn);
+
+  const { ensureVisibleWindow, getEventsForWeek } = useWeekAppointmentsCache({
+    isDragging,
+  });
+
+  useEffect(() => {
+    ensureVisibleWindow(visibleWeekStart);
+  }, [ensureVisibleWindow, visibleWeekStart]);
 
   const weekEndKey = useMemo(
     () => toDayKey(addDays(parseDayKey(visibleWeekStart), 6)),
@@ -45,6 +55,7 @@ export function WeekCalendar({ weekStartsOn = 0 }: WeekCalendarProps) {
         pageIndex={pageIndex}
         weekStartsOn={weekStartsOn}
         gutterWidth={WEEK_VIEW_GUTTER_WIDTH}
+        getEventsForWeek={getEventsForWeek}
         onPageSelected={onPageSelected}
         onPageScrollStateChanged={onPageScrollStateChanged}
       />
