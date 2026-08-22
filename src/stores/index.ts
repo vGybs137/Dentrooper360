@@ -24,3 +24,8 @@ export {
   useCalendarSelectionStore,
   useIsCalendarDaySelected,
 } from "./calendarSelectionStore";
+export {
+  setScheduleViewMode,
+  useScheduleViewModeStore,
+} from "./scheduleViewModeStore";
+export type { ScheduleViewMode } from "./scheduleViewModeStore";

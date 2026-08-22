@@ -1,5 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, View, type ScrollView as ScrollViewType } from "react-native";
+import { Platform, View } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
+import type { ScrollView as ScrollViewType } from "react-native-gesture-handler";
 
 import {
   WEEK_VIEW_GUTTER_WIDTH,
@@ -53,6 +55,8 @@ export type WeekTimeGridProps = {
   scrollToNowOnMount?: boolean;
   /** Draw a horizontal line at the current local time in today's column. */
   showNowIndicator?: boolean;
+  onVerticalScrollBegin?: () => void;
+  onVerticalScrollEnd?: () => void;
 };
 
 function todayColumnIndexForWeek(weekStartKey: DayKey): number {
@@ -190,6 +194,8 @@ function WeekTimeGridComponent({
   gutterWidth = WEEK_VIEW_GUTTER_WIDTH,
   scrollToNowOnMount = true,
   showNowIndicator = true,
+  onVerticalScrollBegin,
+  onVerticalScrollEnd,
 }: WeekTimeGridProps) {
   const theme = useThemeTokens();
   const scrollRef = useRef<ScrollViewType>(null);
@@ -286,13 +292,26 @@ function WeekTimeGridComponent({
     scrollToNow();
   }, [scrollToNow]);
 
+  const handleScrollBeginDrag = useCallback(() => {
+    onVerticalScrollBegin?.();
+  }, [onVerticalScrollBegin]);
+
+  const handleScrollEnd = useCallback(() => {
+    onVerticalScrollEnd?.();
+  }, [onVerticalScrollEnd]);
+
   return (
     <ScrollView
       ref={scrollRef}
       className="flex-1"
       contentContainerStyle={{ flexGrow: 1 }}
       showsVerticalScrollIndicator={false}
+      nestedScrollEnabled={Platform.OS === "android"}
+      directionalLockEnabled={Platform.OS === "ios"}
       onContentSizeChange={onContentSizeChange}
+      onScrollBeginDrag={handleScrollBeginDrag}
+      onScrollEndDrag={handleScrollEnd}
+      onMomentumScrollEnd={handleScrollEnd}
     >
       <View style={{ flexDirection: "row", height: contentHeight }}>
         <TimeGutter

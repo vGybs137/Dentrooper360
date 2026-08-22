@@ -4,6 +4,7 @@ import PagerView from "react-native-pager-view";
 
 import { WEEK_VIEW_PAGER_RENDER_RADIUS } from "@/constants/schedule";
 import type { WeekEventsByDay } from "@/hooks/schedule/useWeekAppointmentsCache";
+import { useWeekViewAxisLock } from "@/hooks/schedule/useWeekViewAxisLock";
 import { useThemeTokens } from "@/theme";
 import type { DayKey, WeekdayIndex } from "@/utils/calendar";
 
@@ -37,6 +38,12 @@ function WeekCalendarPagerComponent({
 }: WeekCalendarPagerProps) {
   const theme = useThemeTokens();
   const pageMargin = theme.semantic.space.stack.compact;
+  const {
+    pagerScrollEnabled,
+    gridTouchHandlers,
+    lockPagerForVerticalScroll,
+    resetAxisLock,
+  } = useWeekViewAxisLock();
 
   const pages = useMemo(
     () =>
@@ -52,11 +59,15 @@ function WeekCalendarPagerComponent({
                   weekStartsOn={weekStartsOn}
                   gutterWidth={gutterWidth}
                 />
-                <WeekTimeGrid
-                  weekStartKey={weekStartKey}
-                  eventsByDay={getEventsForWeek(weekStartKey)}
-                  gutterWidth={gutterWidth}
-                />
+                <View className="flex-1" {...gridTouchHandlers}>
+                  <WeekTimeGrid
+                    weekStartKey={weekStartKey}
+                    eventsByDay={getEventsForWeek(weekStartKey)}
+                    gutterWidth={gutterWidth}
+                    onVerticalScrollBegin={lockPagerForVerticalScroll}
+                    onVerticalScrollEnd={resetAxisLock}
+                  />
+                </View>
               </>
             ) : (
               <View className="flex-1" />
@@ -64,13 +75,14 @@ function WeekCalendarPagerComponent({
           </View>
         );
       }),
-    [getEventsForWeek, gutterWidth, pageIndex, weekStartsOn, weeks],
+    [getEventsForWeek, gridTouchHandlers, gutterWidth, lockPagerForVerticalScroll, pageIndex, resetAxisLock, weekStartsOn, weeks],
   );
 
   return (
     <PagerView
       style={{ flex: 1 }}
       initialPage={initialIndex}
+      scrollEnabled={pagerScrollEnabled}
       offscreenPageLimit={WEEK_VIEW_PAGER_RENDER_RADIUS}
       pageMargin={pageMargin}
       onPageSelected={onPageSelected}
