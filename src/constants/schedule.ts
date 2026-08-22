@@ -45,3 +45,38 @@ export const MONTH_VIEW_DOT_FADE_END = 0.32;
 
 /** Bottom-sheet snap with no animation (finger-follow / instant). */
 export const MONTH_VIEW_SHEET_SNAP_INSTANT = { duration: 0 } as const;
+
+/** Timed grid row height in the week view (px). */
+export const WEEK_VIEW_HOUR_HEIGHT = 60;
+
+/** Gap inserted between each hour row in the week view (px). */
+export const WEEK_VIEW_HOUR_GAP = 1;
+
+/** Left time-gutter width in the week view (px). */
+export const WEEK_VIEW_GUTTER_WIDTH = 36;
+
+/** Time-gutter label line height; also used for top/bottom grid inset (px). */
+export const WEEK_VIEW_GUTTER_LABEL_LINE_HEIGHT = 12;
+
+export const WEEK_VIEW_GRID_EDGE_INSET =
+  WEEK_VIEW_GUTTER_LABEL_LINE_HEIGHT / 2;
+
+/** Initial scroll window hint for gutter labels (full grid remains 24h). */
+export const WEEK_VIEW_DEFAULT_START_HOUR = 6;
+export const WEEK_VIEW_DEFAULT_END_HOUR = 22;
+
+/** Neighbor week pages kept mounted in WeekCalendarPager. */
+export const WEEK_VIEW_PAGER_RENDER_RADIUS = 1;
+
+/** Movement required before locking pager vs grid scroll (AOSP touchSlop × 2). */
+export const WEEK_VIEW_PAGER_DIRECTION_LOCK_SLOP = 16;
+
+/** Scroll-to-now padding above the current time (minutes). */
+export const WEEK_VIEW_SCROLL_PADDING_MINUTES = 60;
+
+/** Current-time indicator thickness (px). */
+export const WEEK_VIEW_NOW_INDICATOR_HEIGHT = 2;
+
+/** Right-pointing arrow at the start of the now line (px). */
+export const WEEK_VIEW_NOW_INDICATOR_ARROW_WIDTH = 6;
+export const WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT = 8;

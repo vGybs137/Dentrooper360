@@ -17,6 +17,7 @@ export {
   daysInMonth,
   formatDayKeyLabel,
   formatTimeRange,
+  formatWeekRangeLabel,
   formatYearMonthLabel,
   parseDayKey,
   parseMonthKey,
@@ -53,3 +54,31 @@ export {
   WEEK_PAGER_RADIUS,
   type BuildWeekCellsOptions,
 } from "./buildWeek";
+
+export {
+  buildHourLabels,
+  clipEventToDay,
+  clipEventToWorkingWindow,
+  DEFAULT_END_HOUR,
+  DEFAULT_START_HOUR,
+  durationToHeight,
+  gridHeightForDay,
+  gridHeightForHourRange,
+  isMinuteInWorkingWindow,
+  MINUTES_PER_DAY,
+  MINUTES_PER_HOUR,
+  minutesSpanToHeight,
+  minutesToY,
+  minutesToYInWorkingWindow,
+  workingWindowMinutes,
+  yToMinutes,
+  type ClippedDayEvent,
+  type HourLabel,
+} from "./timeGrid";
+
+export {
+  layoutTimedEventsForDay,
+  timedEventColumnRect,
+  type LaidOutTimedEvent,
+  type TimedEventInput,
+} from "./layoutTimedEvents";

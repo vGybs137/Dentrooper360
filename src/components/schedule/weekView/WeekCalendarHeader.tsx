@@ -4,16 +4,22 @@ import { View } from "react-native";
 import { ScheduleViewModeToggle } from "@/components/schedule/ScheduleViewModeToggle";
 import { ThemedText } from "@/components/ui";
 import { useThemeTokens } from "@/theme";
-import { formatYearMonthLabel, type YearMonth } from "@/utils/calendar";
+import { formatWeekRangeLabel, type DayKey } from "@/utils/calendar";
 
-export type MonthCalendarHeaderProps = {
-  yearMonth: YearMonth;
+export type WeekCalendarHeaderProps = {
+  weekStartKey: DayKey;
+  weekEndKey: DayKey;
 };
 
-function MonthCalendarHeaderComponent({
-  yearMonth,
-}: MonthCalendarHeaderProps) {
+function WeekCalendarHeaderComponent({
+  weekStartKey,
+  weekEndKey,
+}: WeekCalendarHeaderProps) {
   const theme = useThemeTokens();
+  const label = useMemo(
+    () => formatWeekRangeLabel(weekStartKey, weekEndKey),
+    [weekEndKey, weekStartKey],
+  );
 
   const rootStyle = useMemo(
     () => ({
@@ -28,10 +34,10 @@ function MonthCalendarHeaderComponent({
 
   return (
     <View style={rootStyle}>
-      <ThemedText variant="title">{formatYearMonthLabel(yearMonth)}</ThemedText>
+      <ThemedText variant="title">{label}</ThemedText>
       <ScheduleViewModeToggle />
     </View>
   );
 }
 
-export const MonthCalendarHeader = memo(MonthCalendarHeaderComponent);
+export const WeekCalendarHeader = memo(WeekCalendarHeaderComponent);

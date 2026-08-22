@@ -157,6 +157,49 @@ export function formatDayKeyLabel(dayKey: DayKey, locale?: string): string {
   }).format(toLocalDate(parseDayKey(dayKey)));
 }
 
+/** e.g. "August 18 – 24, 2026" or "Jul 28 – Aug 3, 2026" */
+export function formatWeekRangeLabel(
+  weekStartKey: DayKey,
+  weekEndKey: DayKey,
+  locale?: string,
+): string {
+  const start = parseDayKey(weekStartKey);
+  const end = parseDayKey(weekEndKey);
+  const startDate = toLocalDate(start);
+  const endDate = toLocalDate(end);
+
+  if (start.year === end.year && start.month === end.month) {
+    const month = new Intl.DateTimeFormat(locale, { month: "long" }).format(
+      startDate,
+    );
+    return `${month} ${start.day} – ${end.day}, ${start.year}`;
+  }
+
+  if (start.year === end.year) {
+    const left = new Intl.DateTimeFormat(locale, {
+      month: "short",
+      day: "numeric",
+    }).format(startDate);
+    const right = new Intl.DateTimeFormat(locale, {
+      month: "short",
+      day: "numeric",
+    }).format(endDate);
+    return `${left} – ${right}, ${start.year}`;
+  }
+
+  const left = new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(startDate);
+  const right = new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(endDate);
+  return `${left} – ${right}`;
+}
+
 /** e.g. "9:00 – 9:30" */
 export function formatTimeRange(
   startMs: number,
