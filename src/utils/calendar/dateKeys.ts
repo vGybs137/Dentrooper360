@@ -164,6 +164,32 @@ export function formatDayKeyMonthShort(dayKey: DayKey, locale?: string): string 
   );
 }
 
+/** e.g. "Aug" — short month label for a calendar month. */
+export function formatYearMonthShort(
+  yearMonth: YearMonth,
+  locale?: string,
+): string {
+  return formatDayKeyMonthShort(toDayKey(startOfMonth(yearMonth)), locale);
+}
+
+/** e.g. "Aug" or "Jul-Aug" when a week spans two months. */
+export function formatWeekHeaderMonthLabel(
+  weekStartKey: DayKey,
+  weekEndKey: DayKey,
+  locale?: string,
+): string {
+  const start = parseDayKey(weekStartKey);
+  const end = parseDayKey(weekEndKey);
+
+  if (start.year === end.year && start.month === end.month) {
+    return formatDayKeyMonthShort(weekStartKey, locale);
+  }
+
+  const startMonth = formatDayKeyMonthShort(weekStartKey, locale);
+  const endMonth = formatDayKeyMonthShort(weekEndKey, locale);
+  return `${startMonth}-${endMonth}`;
+}
+
 /** e.g. { day: "16", weekday: "Sunday" } */
 export function formatDayKeyDayWeekdayParts(
   dayKey: DayKey,

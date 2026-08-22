@@ -1,10 +1,7 @@
-import { memo, useMemo } from "react";
-import { View } from "react-native";
+import { memo } from "react";
 
-import { ScheduleViewModeToggle } from "@/components/schedule/ScheduleViewModeToggle";
-import { ThemedText } from "@/components/ui";
-import { useThemeTokens } from "@/theme";
-import { formatYearMonthLabel, type YearMonth } from "@/utils/calendar";
+import { ScheduleCalendarHeader } from "@/components/schedule/ScheduleCalendarHeader";
+import { formatYearMonthShort, type YearMonth } from "@/utils/calendar";
 
 export type MonthCalendarHeaderProps = {
   yearMonth: YearMonth;
@@ -13,25 +10,7 @@ export type MonthCalendarHeaderProps = {
 function MonthCalendarHeaderComponent({
   yearMonth,
 }: MonthCalendarHeaderProps) {
-  const theme = useThemeTokens();
-
-  const rootStyle = useMemo(
-    () => ({
-      flexDirection: "row" as const,
-      alignItems: "center" as const,
-      justifyContent: "space-between" as const,
-      gap: theme.semantic.space.stack.compact,
-      paddingBottom: theme.semantic.space.stack.compact,
-    }),
-    [theme],
-  );
-
-  return (
-    <View style={rootStyle}>
-      <ThemedText variant="title">{formatYearMonthLabel(yearMonth)}</ThemedText>
-      <ScheduleViewModeToggle />
-    </View>
-  );
+  return <ScheduleCalendarHeader title={formatYearMonthShort(yearMonth)} />;
 }
 
 export const MonthCalendarHeader = memo(MonthCalendarHeaderComponent);
