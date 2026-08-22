@@ -17,6 +17,7 @@ export {
   daysInMonth,
   formatDayKeyLabel,
   formatTimeRange,
+  formatWeekRangeLabel,
   formatYearMonthLabel,
   parseDayKey,
   parseMonthKey,
