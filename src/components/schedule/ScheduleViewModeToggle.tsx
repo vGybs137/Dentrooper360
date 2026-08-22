@@ -11,6 +11,7 @@ import { useThemeTokens } from "@/theme";
 const MODES: { mode: ScheduleViewMode; label: string }[] = [
   { mode: "month", label: "Month" },
   { mode: "week", label: "Week" },
+  { mode: "day", label: "Day" },
 ];
 
 function ScheduleViewModeToggleComponent() {

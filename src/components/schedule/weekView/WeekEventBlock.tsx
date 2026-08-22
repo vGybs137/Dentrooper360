@@ -12,6 +12,8 @@ import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import { formatTimeRange } from "@/utils/calendar";
 
+export type WeekEventBlockVariant = "week" | "day";
+
 export type WeekEventBlockProps = {
   event: MonthDayEventPreview;
   top: number;
@@ -20,6 +22,7 @@ export type WeekEventBlockProps = {
   left: number;
   /** Fractional width within the day column (0–1). */
   width: number;
+  variant?: WeekEventBlockVariant;
 };
 
 function WeekEventBlockComponent({
@@ -28,9 +31,11 @@ function WeekEventBlockComponent({
   height,
   left,
   width,
+  variant = "week",
 }: WeekEventBlockProps) {
   const theme = useThemeTokens();
   const router = useRouter();
+  const isDayVariant = variant === "day";
   const hasType = Boolean(event.color);
   const typeColor = event.color ?? theme.palette.border.strong;
   const timeRange = formatTimeRange(event.startTime, event.endTime);
@@ -80,19 +85,42 @@ function WeekEventBlockComponent({
     () => ({
       flex: 1,
       minWidth: 0,
-      paddingHorizontal: theme.primitives.space[2],
-      paddingVertical: theme.primitives.space[2],
-      justifyContent: "center" as const,
+      paddingHorizontal: isDayVariant
+        ? theme.primitives.space[4]
+        : theme.primitives.space[2],
+      paddingVertical: isDayVariant
+        ? theme.primitives.space[4]
+        : theme.primitives.space[2],
+      justifyContent: isDayVariant ? ("flex-start" as const) : ("center" as const),
     }),
-    [theme],
+    [isDayVariant, theme],
   );
 
   const titleStyle = useMemo(
+    () =>
+      isDayVariant
+        ? {
+            color: theme.colors.text,
+            fontSize: theme.primitives.fontSize.sm,
+            lineHeight: theme.primitives.lineHeight.sm,
+            fontWeight: theme.primitives.fontWeight.semibold as "600",
+          }
+        : {
+            color: theme.colors.text,
+            fontSize: 9,
+            lineHeight: 11,
+            fontWeight: theme.primitives.fontWeight.medium as "500",
+          },
+    [isDayVariant, theme],
+  );
+
+  const timeStyle = useMemo(
     () => ({
-      color: theme.colors.text,
-      fontSize: 9,
-      lineHeight: 11,
-      fontWeight: theme.primitives.fontWeight.medium as "500",
+      marginTop: theme.primitives.space[2],
+      color: theme.colors.textMuted,
+      fontSize: theme.primitives.fontSize.xs,
+      lineHeight: theme.primitives.lineHeight.xs,
+      fontWeight: theme.primitives.fontWeight.regular as "400",
     }),
     [theme],
   );
@@ -107,7 +135,26 @@ function WeekEventBlockComponent({
       <View style={cardStyle}>
         <View style={railStyle} />
         <View style={bodyStyle}>
-          <Text style={titleStyle}>{event.title}</Text>
+          {isDayVariant ? (
+            <>
+              <Text numberOfLines={1} style={titleStyle}>
+                <Text style={{ color: theme.colors.text }}>{event.title}</Text>
+                {event.typeName ? (
+                  <Text style={{ color: theme.colors.text }}> · </Text>
+                ) : null}
+                {event.typeName ? (
+                  <Text style={{ color: typeColor }}>{event.typeName}</Text>
+                ) : null}
+              </Text>
+              <Text numberOfLines={1} style={timeStyle}>
+                {timeRange}
+              </Text>
+            </>
+          ) : (
+            <Text numberOfLines={1} style={titleStyle}>
+              {event.title}
+            </Text>
+          )}
         </View>
       </View>
     </Pressable>

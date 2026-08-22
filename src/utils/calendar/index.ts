@@ -16,6 +16,9 @@ export {
   compareYearMonth,
   daysInMonth,
   formatDayKeyLabel,
+  formatDayKeyDayWeekdayLabel,
+  formatDayKeyDayWeekdayParts,
+  formatDayKeyMonthShort,
   formatTimeRange,
   formatWeekRangeLabel,
   formatYearMonthLabel,
@@ -54,6 +57,8 @@ export {
   WEEK_PAGER_RADIUS,
   type BuildWeekCellsOptions,
 } from "./buildWeek";
+
+export { buildDayWindow, DAY_PAGER_RADIUS } from "./buildDay";
 
 export {
   buildHourLabels,

@@ -11,6 +11,8 @@ import {
   nowLineYForMinutes,
   TimedGridNowIndicator,
 } from "@/components/schedule/timedGrid";
+import { TimeGutter } from "@/components/schedule/weekView/TimeGutter";
+import { WeekEventBlock } from "@/components/schedule/weekView/WeekEventBlock";
 import {
   WEEK_VIEW_GUTTER_WIDTH,
   WEEK_VIEW_GRID_EDGE_INSET,
@@ -20,10 +22,9 @@ import {
   WEEK_VIEW_SCROLL_PADDING_MINUTES,
 } from "@/constants/schedule";
 import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
-import type { WeekEventsByDay } from "@/hooks/schedule/useWeekAppointmentsCache";
 import { useThemeTokens } from "@/theme";
+import type { MonthDayEventPreview } from "@/types/schedule";
 import {
-  addDays,
   gridHeightForHourRange,
   isMinuteInWorkingWindow,
   MINUTES_PER_HOUR,
@@ -32,42 +33,30 @@ import {
   parseDayKey,
   sameDay,
   todayCalendarDate,
-  toDayKey,
-  WEEK_DAYS,
   type DayKey,
 } from "@/utils/calendar";
 
-import { TimeGutter } from "./TimeGutter";
-import { WeekEventBlock } from "./WeekEventBlock";
-
-export type WeekTimeGridProps = {
-  weekStartKey: DayKey;
-  eventsByDay?: WeekEventsByDay;
+export type DayTimeGridProps = {
+  dayKey: DayKey;
+  events?: MonthDayEventPreview[];
   hourHeight?: number;
   hourGap?: number;
   gutterWidth?: number;
-  /** When true, scroll to the current local time on mount (today's week only). */
+  /** When true, scroll to the current local time on mount (today only). */
   scrollToNowOnMount?: boolean;
-  /** Draw a horizontal line at the current local time in today's column. */
+  /** Draw a horizontal line at the current local time when the visible day is today. */
   showNowIndicator?: boolean;
   onVerticalScrollBegin?: () => void;
   onVerticalScrollEnd?: () => void;
 };
 
-function todayColumnIndexForWeek(weekStartKey: DayKey): number {
-  const today = todayCalendarDate();
-  const start = parseDayKey(weekStartKey);
-  for (let columnIndex = 0; columnIndex < WEEK_DAYS; columnIndex++) {
-    if (sameDay(addDays(start, columnIndex), today)) {
-      return columnIndex;
-    }
-  }
-  return -1;
+function isTodayDayKey(dayKey: DayKey): boolean {
+  return sameDay(parseDayKey(dayKey), todayCalendarDate());
 }
 
-function WeekTimeGridComponent({
-  weekStartKey,
-  eventsByDay = {},
+function DayTimeGridComponent({
+  dayKey,
+  events = [],
   hourHeight = WEEK_VIEW_HOUR_HEIGHT,
   hourGap = WEEK_VIEW_HOUR_GAP,
   gutterWidth = WEEK_VIEW_GUTTER_WIDTH,
@@ -75,21 +64,18 @@ function WeekTimeGridComponent({
   showNowIndicator = true,
   onVerticalScrollBegin,
   onVerticalScrollEnd,
-}: WeekTimeGridProps) {
+}: DayTimeGridProps) {
   const theme = useThemeTokens();
   const { startHour, endHour } = useUserScheduleHours();
   const scrollRef = useRef<ScrollViewType>(null);
   const hasScrolledRef = useRef(false);
-  const todayColumnIndex = useMemo(
-    () => todayColumnIndexForWeek(weekStartKey),
-    [weekStartKey],
-  );
+  const isToday = useMemo(() => isTodayDayKey(dayKey), [dayKey]);
   const [nowMinutes, setNowMinutes] = useState(() =>
     localMinutesFromMidnight(new Date()),
   );
   const showTodayNowIndicator =
     showNowIndicator &&
-    todayColumnIndex >= 0 &&
+    isToday &&
     isMinuteInWorkingWindow(nowMinutes, startHour, endHour);
 
   const pxPerMinute = hourHeight / MINUTES_PER_HOUR;
@@ -99,21 +85,18 @@ function WeekTimeGridComponent({
   );
   const contentHeight = gridHeight + WEEK_VIEW_GRID_EDGE_INSET * 2;
 
-  const eventsByColumn = useMemo(() => {
-    const weekStart = parseDayKey(weekStartKey);
-
-    return Array.from({ length: WEEK_DAYS }, (_, columnIndex) => {
-      const dayKey = toDayKey(addDays(weekStart, columnIndex));
-      return layoutDayColumnEvents(
-        eventsByDay[dayKey] ?? [],
+  const positionedEvents = useMemo(
+    () =>
+      layoutDayColumnEvents(
+        events,
         dayKey,
         startHour,
         endHour,
         pxPerMinute,
         hourGap,
-      );
-    });
-  }, [endHour, eventsByDay, hourGap, pxPerMinute, startHour, weekStartKey]);
+      ),
+    [dayKey, endHour, events, hourGap, pxPerMinute, startHour],
+  );
 
   const hourLines = useMemo(
     () =>
@@ -268,43 +251,30 @@ function WeekTimeGridComponent({
                 right: 0,
                 top: nowLineY - WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT / 2,
                 height: WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT,
-                flexDirection: "row",
                 zIndex: 1,
               }}
             >
-              {Array.from({ length: WEEK_DAYS }, (_, columnIndex) => (
-                <View key={`now-col-${columnIndex}`} style={{ flex: 1 }}>
-                  {columnIndex === todayColumnIndex ? (
-                    <TimedGridNowIndicator color={nowIndicatorColor} />
-                  ) : null}
-                </View>
-              ))}
+              <TimedGridNowIndicator color={nowIndicatorColor} />
             </View>
           ) : null}
 
           <View
             style={{
               flex: 1,
-              flexDirection: "row",
+              position: "relative",
               height: contentHeight,
             }}
           >
-            {Array.from({ length: WEEK_DAYS }, (_, columnIndex) => (
-              <View
-                key={`day-col-${columnIndex}`}
-                style={{ flex: 1, position: "relative" }}
-              >
-                {eventsByColumn[columnIndex]?.map((block) => (
-                  <WeekEventBlock
-                    key={block.event.id}
-                    event={block.event}
-                    top={block.top}
-                    height={block.height}
-                    left={block.left}
-                    width={block.width}
-                  />
-                ))}
-              </View>
+            {positionedEvents.map((block) => (
+              <WeekEventBlock
+                key={block.event.id}
+                event={block.event}
+                top={block.top}
+                height={block.height}
+                left={block.left}
+                width={block.width}
+                variant="day"
+              />
             ))}
           </View>
         </View>
@@ -313,7 +283,4 @@ function WeekTimeGridComponent({
   );
 }
 
-export const WeekTimeGrid = memo(WeekTimeGridComponent);
-
-/** @deprecated Use WEEK_VIEW_GUTTER_WIDTH from @/constants/schedule */
-export const WEEK_TIME_GRID_GUTTER_WIDTH = WEEK_VIEW_GUTTER_WIDTH;
+export const DayTimeGrid = memo(DayTimeGridComponent);

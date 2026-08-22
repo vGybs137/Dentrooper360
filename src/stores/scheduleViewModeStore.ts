@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type ScheduleViewMode = "month" | "week";
+export type ScheduleViewMode = "month" | "week" | "day";
 
 type ScheduleViewModeState = {
   viewMode: ScheduleViewMode;

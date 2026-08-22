@@ -157,6 +157,34 @@ export function formatDayKeyLabel(dayKey: DayKey, locale?: string): string {
   }).format(toLocalDate(parseDayKey(dayKey)));
 }
 
+/** e.g. "Aug" */
+export function formatDayKeyMonthShort(dayKey: DayKey, locale?: string): string {
+  return new Intl.DateTimeFormat(locale, { month: "short" }).format(
+    toLocalDate(parseDayKey(dayKey)),
+  );
+}
+
+/** e.g. { day: "16", weekday: "Sunday" } */
+export function formatDayKeyDayWeekdayParts(
+  dayKey: DayKey,
+  locale?: string,
+): { day: string; weekday: string } {
+  const date = toLocalDate(parseDayKey(dayKey));
+  return {
+    day: new Intl.DateTimeFormat(locale, { day: "numeric" }).format(date),
+    weekday: new Intl.DateTimeFormat(locale, { weekday: "long" }).format(date),
+  };
+}
+
+/** e.g. "16 Sunday" */
+export function formatDayKeyDayWeekdayLabel(
+  dayKey: DayKey,
+  locale?: string,
+): string {
+  const { day, weekday } = formatDayKeyDayWeekdayParts(dayKey, locale);
+  return `${day} ${weekday}`;
+}
+
 /** e.g. "August 18 – 24, 2026" or "Jul 28 – Aug 3, 2026" */
 export function formatWeekRangeLabel(
   weekStartKey: DayKey,
