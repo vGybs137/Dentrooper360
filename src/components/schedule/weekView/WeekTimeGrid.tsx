@@ -7,34 +7,126 @@ import {
   WEEK_VIEW_HOUR_GAP,
   WEEK_VIEW_HOUR_HEIGHT,
   WEEK_VIEW_NOW_INDICATOR_HEIGHT,
+  WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT,
+  WEEK_VIEW_NOW_INDICATOR_ARROW_WIDTH,
   WEEK_VIEW_SCROLL_PADDING_MINUTES,
 } from "@/constants/schedule";
 import { useThemeTokens } from "@/theme";
 import {
+  addDays,
   gridHeightForDay,
   MINUTES_PER_DAY,
   MINUTES_PER_HOUR,
   minutesToY,
+  parseDayKey,
+  sameDay,
+  todayCalendarDate,
   WEEK_DAYS,
+  type DayKey,
 } from "@/utils/calendar";
 
 import { TimeGutter } from "./TimeGutter";
 
 export type WeekTimeGridProps = {
+  weekStartKey: DayKey;
   hourHeight?: number;
   hourGap?: number;
   gutterWidth?: number;
-  /** When true, scroll to the current local time on mount. */
+  /** When true, scroll to the current local time on mount (today's week only). */
   scrollToNowOnMount?: boolean;
-  /** Draw a horizontal line at the current local time. */
+  /** Draw a horizontal line at the current local time in today's column. */
   showNowIndicator?: boolean;
 };
+
+function todayColumnIndexForWeek(weekStartKey: DayKey): number {
+  const today = todayCalendarDate();
+  const start = parseDayKey(weekStartKey);
+  for (let columnIndex = 0; columnIndex < WEEK_DAYS; columnIndex++) {
+    if (sameDay(addDays(start, columnIndex), today)) {
+      return columnIndex;
+    }
+  }
+  return -1;
+}
 
 function localMinutesFromMidnight(date: Date): number {
   return date.getHours() * MINUTES_PER_HOUR + date.getMinutes();
 }
 
+type NowIndicatorArrowProps = {
+  color: string;
+  width: number;
+  height: number;
+};
+
+function NowIndicatorArrow({ color, width, height }: NowIndicatorArrowProps) {
+  const halfHeight = height / 2;
+  return (
+    <View
+      style={{
+        width,
+        height,
+        justifyContent: "center",
+        alignItems: "flex-start",
+      }}
+    >
+      <View
+        style={{
+          width: 0,
+          height: 0,
+          borderTopWidth: halfHeight,
+          borderBottomWidth: halfHeight,
+          borderLeftWidth: width,
+          borderTopColor: "transparent",
+          borderBottomColor: "transparent",
+          borderLeftColor: color,
+        }}
+      />
+    </View>
+  );
+}
+
+type TodayNowIndicatorProps = {
+  color: string;
+};
+
+function TodayNowIndicator({ color }: TodayNowIndicatorProps) {
+  return (
+    <View
+      style={{
+        flex: 1,
+        height: WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT,
+        justifyContent: "center",
+      }}
+    >
+      <View
+        style={{
+          height: WEEK_VIEW_NOW_INDICATOR_HEIGHT,
+          backgroundColor: color,
+        }}
+      />
+      <View
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          justifyContent: "center",
+          zIndex: 1,
+        }}
+      >
+        <NowIndicatorArrow
+          color={color}
+          width={WEEK_VIEW_NOW_INDICATOR_ARROW_WIDTH}
+          height={WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT}
+        />
+      </View>
+    </View>
+  );
+}
+
 function WeekTimeGridComponent({
+  weekStartKey,
   hourHeight = WEEK_VIEW_HOUR_HEIGHT,
   hourGap = WEEK_VIEW_HOUR_GAP,
   gutterWidth = WEEK_VIEW_GUTTER_WIDTH,
@@ -44,6 +136,11 @@ function WeekTimeGridComponent({
   const theme = useThemeTokens();
   const scrollRef = useRef<ScrollViewType>(null);
   const hasScrolledRef = useRef(false);
+  const todayColumnIndex = useMemo(
+    () => todayColumnIndexForWeek(weekStartKey),
+    [weekStartKey],
+  );
+  const showTodayNowIndicator = showNowIndicator && todayColumnIndex >= 0;
   const [nowMinutes, setNowMinutes] = useState(() =>
     localMinutesFromMidnight(new Date()),
   );
@@ -82,7 +179,7 @@ function WeekTimeGridComponent({
   );
 
   const scrollToNow = useCallback(() => {
-    if (!scrollToNowOnMount) return;
+    if (!scrollToNowOnMount || !showTodayNowIndicator) return;
     const anchorY =
       WEEK_VIEW_GRID_EDGE_INSET +
       minutesToY(nowMinutes, pxPerMinute, hourGap);
@@ -95,15 +192,15 @@ function WeekTimeGridComponent({
       y: Math.max(0, anchorY - paddingY),
       animated: false,
     });
-  }, [hourGap, nowMinutes, pxPerMinute, scrollToNowOnMount]);
+  }, [hourGap, nowMinutes, pxPerMinute, scrollToNowOnMount, showTodayNowIndicator]);
 
   useEffect(() => {
-    if (!showNowIndicator) return;
+    if (!showTodayNowIndicator) return;
     const tick = () => setNowMinutes(localMinutesFromMidnight(new Date()));
     tick();
     const id = setInterval(tick, 60_000);
     return () => clearInterval(id);
-  }, [showNowIndicator]);
+  }, [showTodayNowIndicator]);
 
   const gridBorderColor = theme.colors.borderStrong;
   const gridBorderWidth = theme.semantic.borderWidth.strong;
@@ -122,7 +219,7 @@ function WeekTimeGridComponent({
       ref={scrollRef}
       className="flex-1"
       contentContainerStyle={{ flexGrow: 1 }}
-      showsVerticalScrollIndicator
+      showsVerticalScrollIndicator={false}
       onContentSizeChange={onContentSizeChange}
     >
       <View style={{ flexDirection: "row", height: contentHeight }}>
@@ -163,19 +260,27 @@ function WeekTimeGridComponent({
             />
           ))}
 
-          {showNowIndicator ? (
+          {showTodayNowIndicator ? (
             <View
               pointerEvents="none"
               style={{
                 position: "absolute",
                 left: 0,
                 right: 0,
-                top: nowLineY - WEEK_VIEW_NOW_INDICATOR_HEIGHT / 2,
-                height: WEEK_VIEW_NOW_INDICATOR_HEIGHT,
-                backgroundColor: nowIndicatorColor,
+                top: nowLineY - WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT / 2,
+                height: WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT,
+                flexDirection: "row",
                 zIndex: 1,
               }}
-            />
+            >
+              {Array.from({ length: WEEK_DAYS }, (_, columnIndex) => (
+                <View key={`now-col-${columnIndex}`} style={{ flex: 1 }}>
+                  {columnIndex === todayColumnIndex ? (
+                    <TodayNowIndicator color={nowIndicatorColor} />
+                  ) : null}
+                </View>
+              ))}
+            </View>
           ) : null}
 
           <View

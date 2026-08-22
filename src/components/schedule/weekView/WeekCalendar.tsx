@@ -2,46 +2,52 @@ import { useMemo } from "react";
 import { View } from "react-native";
 
 import { WEEK_VIEW_GUTTER_WIDTH } from "@/constants/schedule";
+import { useVisibleWeek } from "@/hooks/schedule/useVisibleWeek";
 import {
   addDays,
   parseDayKey,
   toDayKey,
-  todayCalendarDate,
-  weekStartDayKey,
   type WeekdayIndex,
 } from "@/utils/calendar";
 
 import { WeekCalendarHeader } from "./WeekCalendarHeader";
-import { WeekDayHeaderRow } from "./WeekDayHeaderRow";
-import { WeekTimeGrid } from "./WeekTimeGrid";
+import { WeekCalendarPager } from "./WeekCalendarPager";
 
 export type WeekCalendarProps = {
   weekStartsOn?: WeekdayIndex;
 };
 
-/** Week view shell — header, day row, and scrollable timed grid (no events yet). */
+/** Week view shell — header, day row, and horizontally paged timed grids. */
 export function WeekCalendar({ weekStartsOn = 0 }: WeekCalendarProps) {
-  const weekStartKey = useMemo(
-    () => weekStartDayKey(toDayKey(todayCalendarDate()), weekStartsOn),
-    [weekStartsOn],
-  );
+  const {
+    weeks,
+    initialIndex,
+    pageIndex,
+    visibleWeekStart,
+    onPageSelected,
+    onPageScrollStateChanged,
+  } = useVisibleWeek(weekStartsOn);
+
   const weekEndKey = useMemo(
-    () => toDayKey(addDays(parseDayKey(weekStartKey), 6)),
-    [weekStartKey],
+    () => toDayKey(addDays(parseDayKey(visibleWeekStart), 6)),
+    [visibleWeekStart],
   );
 
   return (
     <View className="w-full flex-1 self-stretch">
       <WeekCalendarHeader
-        weekStartKey={weekStartKey}
+        weekStartKey={visibleWeekStart}
         weekEndKey={weekEndKey}
       />
-      <WeekDayHeaderRow
-        weekStartKey={weekStartKey}
+      <WeekCalendarPager
+        weeks={weeks}
+        initialIndex={initialIndex}
+        pageIndex={pageIndex}
         weekStartsOn={weekStartsOn}
         gutterWidth={WEEK_VIEW_GUTTER_WIDTH}
+        onPageSelected={onPageSelected}
+        onPageScrollStateChanged={onPageScrollStateChanged}
       />
-      <WeekTimeGrid gutterWidth={WEEK_VIEW_GUTTER_WIDTH} />
     </View>
   );
 }

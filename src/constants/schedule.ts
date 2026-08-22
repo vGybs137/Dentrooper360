@@ -73,3 +73,7 @@ export const WEEK_VIEW_SCROLL_PADDING_MINUTES = 60;
 
 /** Current-time indicator thickness (px). */
 export const WEEK_VIEW_NOW_INDICATOR_HEIGHT = 2;
+
+/** Right-pointing arrow at the start of the now line (px). */
+export const WEEK_VIEW_NOW_INDICATOR_ARROW_WIDTH = 6;
+export const WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT = 8;

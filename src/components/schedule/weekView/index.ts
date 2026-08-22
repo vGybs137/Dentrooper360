@@ -4,6 +4,9 @@ export type { TimeGutterProps } from "./TimeGutter";
 export { WeekCalendar } from "./WeekCalendar";
 export type { WeekCalendarProps } from "./WeekCalendar";
 
+export { WeekCalendarPager } from "./WeekCalendarPager";
+export type { WeekCalendarPagerProps } from "./WeekCalendarPager";
+
 export { WeekCalendarHeader } from "./WeekCalendarHeader";
 export type { WeekCalendarHeaderProps } from "./WeekCalendarHeader";
 
