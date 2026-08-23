@@ -1,3 +1,4 @@
+import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import { type ReactNode } from "react";
 import {
   TextInput,
@@ -22,6 +23,8 @@ export type TextFieldProps = TextInputProps & {
   error?: string;
   size?: FieldSize;
   variant?: FieldVariant;
+  /** Use gorhom BottomSheetTextInput so the sheet reacts to keyboard focus. */
+  bottomSheetInput?: boolean;
   leading?: ReactNode;
   trailing?: ReactNode;
   className?: string;
@@ -41,6 +44,7 @@ export function TextField({
   error,
   size = "md",
   variant = "outline",
+  bottomSheetInput = false,
   leading,
   trailing,
   className,
@@ -52,6 +56,7 @@ export function TextField({
 }: TextFieldProps) {
   const theme = useThemeTokens();
   const isBare = variant === "bare";
+  const Input = bottomSheetInput ? BottomSheetTextInput : TextInput;
 
   return (
     <Stack className={containerClassName} space="compact">
@@ -71,7 +76,7 @@ export function TextField({
         style={style}
       >
         {leading}
-        <TextInput
+        <Input
           {...props}
           className={cn(
             "flex-1 py-stack-compact text-body text-foreground-default",

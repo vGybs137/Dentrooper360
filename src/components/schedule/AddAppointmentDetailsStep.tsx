@@ -4,7 +4,6 @@ import { Controller, useWatch } from "react-hook-form";
 import { View } from "react-native";
 
 import {
-  ColorSwatch,
   Stack,
   TextField,
   type DropdownOption,
@@ -18,12 +17,18 @@ import {
   AppointmentDateTimeField,
   type AppointmentDateTimeExpanded,
 } from "./AppointmentDateTimeField";
-import { AppointmentInlineSelect } from "./AppointmentInlineSelect";
+import {
+  AppointmentInlineSelect,
+  InlineSelectColorLeading,
+  InlineSelectSymbolLeading,
+} from "./AppointmentInlineSelect";
 
 type ExpandedField = AppointmentDateTimeExpanded | "type" | "location" | null;
 
 type AddAppointmentDetailsStepProps = {
   formState: AddAppointmentFormState;
+  onNotesFocus?: () => void;
+  onNotesBlur?: () => void;
 };
 
 function FormDivider({ className }: { className?: string }) {
@@ -32,6 +37,8 @@ function FormDivider({ className }: { className?: string }) {
 
 function AddAppointmentDetailsStepComponent({
   formState,
+  onNotesFocus,
+  onNotesBlur,
 }: AddAppointmentDetailsStepProps) {
   const theme = useThemeTokens();
   const [expandedField, setExpandedField] = useState<ExpandedField>(null);
@@ -93,6 +100,7 @@ function AddAppointmentDetailsStepComponent({
         rules={{ required: !selectedPatient }}
         render={({ field: { onChange, value }, fieldState: { error } }) => (
           <TextField
+            bottomSheetInput
             error={error?.message}
             onChangeText={onChange}
             placeholder="Appointment subject"
@@ -117,7 +125,7 @@ function AddAppointmentDetailsStepComponent({
       <FormDivider />
 
       <AppointmentInlineSelect
-        leading={<ColorSwatch color={typeColor} />}
+        leading={<InlineSelectColorLeading color={typeColor} />}
         onChange={(value) =>
           setValue("typeId", value, {
             shouldDirty: true,
@@ -135,9 +143,8 @@ function AddAppointmentDetailsStepComponent({
 
       <AppointmentInlineSelect
         leading={
-          <SymbolView
+          <InlineSelectSymbolLeading
             name={locationIcon}
-            size={20}
             tintColor={theme.palette.foreground.muted}
           />
         }
@@ -170,11 +177,16 @@ function AddAppointmentDetailsStepComponent({
             </View>
             <View className="min-w-0 flex-1">
               <TextField
+                bottomSheetInput
                 className="min-h-[96px] w-full px-inline"
                 multiline
                 numberOfLines={4}
                 onChangeText={onChange}
-                onFocus={() => setExpandedField(null)}
+                onBlur={onNotesBlur}
+                onFocus={() => {
+                  setExpandedField(null);
+                  onNotesFocus?.();
+                }}
                 placeholder="Add notes"
                 value={value}
                 variant="bare"

@@ -3,9 +3,9 @@ import {
   BottomSheetFooter,
   BottomSheetModal,
   BottomSheetScrollView,
-  BottomSheetView,
   type BottomSheetBackdropProps,
   type BottomSheetFooterProps,
+  type BottomSheetScrollViewMethods,
 } from "@gorhom/bottom-sheet";
 import { SymbolView } from "expo-symbols";
 import {
@@ -17,7 +17,13 @@ import {
   useState,
   type ComponentRef,
 } from "react";
-import { Pressable, useWindowDimensions, View } from "react-native";
+import {
+  Keyboard,
+  Platform,
+  Pressable,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -37,19 +43,26 @@ const SHEET_HEIGHT_RATIO = 0.75;
 const SHEET_MAX_HEIGHT = 620;
 
 type SheetModalRef = ComponentRef<typeof BottomSheetModal>;
+type ScrollRef = ComponentRef<typeof BottomSheetScrollView>;
 type StepDirection = "forward" | "back";
+
+const FOOTER_ESTIMATED_HEIGHT = 76;
 
 export function AddAppointmentSheet() {
   const theme = useThemeTokens();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const sheetRef = useRef<SheetModalRef>(null);
+  const scrollRef = useRef<ScrollRef>(null);
+  const notesFocusedRef = useRef(false);
   const wasPresentedRef = useRef(false);
   const stepDirectionRef = useRef<StepDirection>("forward");
   const hasStepTransitionedRef = useRef(false);
   const [pendingStepChange, setPendingStepChange] = useState<StepDirection | null>(
     null,
   );
+  const [notesFocused, setNotesFocused] = useState(false);
+  const [notesKeyboardInset, setNotesKeyboardInset] = useState(0);
 
   const isPresented = useAddAppointmentIsPresented();
   const finishClose = useAddAppointmentStore((state) => state.finishClose);
@@ -85,6 +98,9 @@ export function AddAppointmentSheet() {
 
     if (wasPresentedRef.current) {
       wasPresentedRef.current = false;
+      setNotesFocused(false);
+      setNotesKeyboardInset(0);
+      notesFocusedRef.current = false;
       sheetRef.current?.dismiss();
     }
   }, [isPresented]);
@@ -120,6 +136,66 @@ export function AddAppointmentSheet() {
     setPendingStepChange("back");
   }, []);
 
+  const handleNotesFocus = useCallback(() => {
+    notesFocusedRef.current = true;
+    setNotesFocused(true);
+  }, []);
+
+  const handleNotesBlur = useCallback(() => {
+    notesFocusedRef.current = false;
+    setNotesFocused(false);
+    setNotesKeyboardInset(0);
+  }, []);
+
+  // Track keyboard height only while notes is focused.
+  useEffect(() => {
+    if (!notesFocused) {
+      return;
+    }
+
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, (event) => {
+      if (!notesFocusedRef.current) {
+        return;
+      }
+      setNotesKeyboardInset(event.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setNotesKeyboardInset(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [notesFocused]);
+
+  const scrollNotesIntoView = useCallback(() => {
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    });
+  }, []);
+
+  // Scroll after keyboard inset is applied to content padding.
+  useLayoutEffect(() => {
+    if (!notesFocused || notesKeyboardInset <= 0) {
+      return;
+    }
+
+    scrollNotesIntoView();
+    const mid = setTimeout(scrollNotesIntoView, 120);
+    const late = setTimeout(scrollNotesIntoView, 280);
+
+    return () => {
+      clearTimeout(mid);
+      clearTimeout(late);
+    };
+  }, [notesFocused, notesKeyboardInset, scrollNotesIntoView]);
+
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
@@ -135,19 +211,22 @@ export function AddAppointmentSheet() {
 
   const renderFooter = useCallback(
     (props: BottomSheetFooterProps) => (
-      <BottomSheetFooter {...props} bottomInset={insets.bottom}>
+      // Do not pass bottomInset here — it lifts the footer and leaves a gap
+      // where sheet content shows through the home-indicator / nav bar area.
+      // Bake safe-area into padding so the opaque background covers the bottom.
+      <BottomSheetFooter {...props}>
         <View
-          className="flex-row items-center justify-between border-t border-border-subtle px-inline pt-3"
+          className="min-h-control flex-row items-center justify-between border-t border-border-subtle px-inline pt-3"
           style={{
             backgroundColor: theme.palette.surface.default,
-            paddingBottom: theme.semantic.space.section,
+            paddingBottom: theme.semantic.space.section + insets.bottom,
           }}
         >
           {step === "details" ? (
             <Pressable
               accessibilityLabel="Go back to patient step"
               accessibilityRole="button"
-              className="size-12 items-center justify-center rounded-control border-strong border-border"
+              className="size-control shrink-0 items-center justify-center rounded-control border-strong border-border"
               hitSlop={8}
               onPress={handleBack}
             >
@@ -162,7 +241,7 @@ export function AddAppointmentSheet() {
               />
             </Pressable>
           ) : (
-            <View className="w-12" />
+            <View className="size-control shrink-0" />
           )}
 
           <View className="min-w-0 flex-1 items-end gap-stack-compact pl-inline">
@@ -220,6 +299,19 @@ export function AddAppointmentSheet() {
     [theme],
   );
 
+  const contentPadding = useMemo(
+    () => ({
+      paddingHorizontal: theme.semantic.space.inline.default,
+      paddingTop: theme.semantic.space.stack.default,
+      paddingBottom:
+        theme.semantic.space.section +
+        FOOTER_ESTIMATED_HEIGHT +
+        insets.bottom +
+        (notesFocused ? notesKeyboardInset : 0),
+    }),
+    [insets.bottom, notesFocused, notesKeyboardInset, theme],
+  );
+
   const hasStepTransitioned = hasStepTransitionedRef.current;
   const entering = hasStepTransitioned
     ? FadeIn.duration(slideDuration).easing(AUTH_SLIDE_EASING)
@@ -231,6 +323,8 @@ export function AddAppointmentSheet() {
   return (
     <BottomSheetModal
       ref={sheetRef}
+      // Prefer content scroll over sheet drag until a clear vertical intent.
+      activeOffsetY={[-1, 1]}
       android_keyboardInputMode="adjustResize"
       backdropComponent={renderBackdrop}
       backgroundStyle={backgroundStyle}
@@ -238,17 +332,28 @@ export function AddAppointmentSheet() {
       enablePanDownToClose
       footerComponent={renderFooter}
       handleIndicatorStyle={handleIndicatorStyle}
-      keyboardBehavior="interactive"
+      keyboardBehavior={Platform.OS === "ios" ? "interactive" : "extend"}
       keyboardBlurBehavior="restore"
       onDismiss={handleDismiss}
       snapPoints={snapPoints}
     >
-      <BottomSheetView style={{ flex: 1 }}>
+      {/*
+        BottomSheetScrollView must be a direct modal child (not inside
+        BottomSheetView / flex:1 overflow wrappers) or gestures steal scroll.
+      */}
+      <BottomSheetScrollView
+        ref={scrollRef}
+        contentContainerStyle={contentPadding}
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
+      >
         <View
-          className="flex-row items-center justify-between px-inline pb-3 pt-stack-compact"
+          className="mb-stack flex-row items-center justify-between pb-3"
           style={{
             borderBottomWidth: theme.semantic.borderWidth.subtle,
             borderBottomColor: theme.palette.border.subtle,
+            marginHorizontal: -theme.semantic.space.inline.default,
+            paddingHorizontal: theme.semantic.space.inline.default,
           }}
         >
           <ThemedText variant="title">Add Appointment</ThemedText>
@@ -265,31 +370,18 @@ export function AddAppointmentSheet() {
           </Pressable>
         </View>
 
-        <View className="flex-1 overflow-hidden">
-          <Animated.View
-            key={step}
-            entering={entering}
-            exiting={exiting}
-            style={{ flex: 1 }}
-          >
-            <BottomSheetScrollView
-              contentContainerStyle={{
-                paddingHorizontal: theme.semantic.space.inline.default,
-                paddingTop: theme.semantic.space.stack.default,
-                paddingBottom: theme.semantic.space.section,
-              }}
-              keyboardDismissMode="interactive"
-              keyboardShouldPersistTaps="handled"
-            >
-              {step === "patient" ? (
-                <AddAppointmentPatientStep formState={formState} />
-              ) : (
-                <AddAppointmentDetailsStep formState={formState} />
-              )}
-            </BottomSheetScrollView>
-          </Animated.View>
-        </View>
-      </BottomSheetView>
+        <Animated.View key={step} entering={entering} exiting={exiting}>
+          {step === "patient" ? (
+            <AddAppointmentPatientStep formState={formState} />
+          ) : (
+            <AddAppointmentDetailsStep
+              formState={formState}
+              onNotesBlur={handleNotesBlur}
+              onNotesFocus={handleNotesFocus}
+            />
+          )}
+        </Animated.View>
+      </BottomSheetScrollView>
     </BottomSheetModal>
   );
 }
