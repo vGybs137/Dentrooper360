@@ -23,7 +23,14 @@ export function AppointmentInlineTimePicker({
 }: AppointmentInlineTimePickerProps) {
   const theme = useThemeTokens();
   const { resolved } = useAppTheme();
-  const { containerStyle } = useInlineCollapse(visible, TIME_PICKER_HEIGHT);
+  const { containerStyle, mounted } = useInlineCollapse(
+    visible,
+    TIME_PICKER_HEIGHT,
+  );
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <Animated.View

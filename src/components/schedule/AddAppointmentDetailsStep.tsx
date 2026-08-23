@@ -1,5 +1,5 @@
 import { SymbolView } from "expo-symbols";
-import { useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { Controller, useWatch } from "react-hook-form";
 import { View } from "react-native";
 
@@ -20,35 +20,24 @@ import {
 } from "./AppointmentDateTimeField";
 import { AppointmentInlineSelect } from "./AppointmentInlineSelect";
 
-type ExpandedField =
-  | AppointmentDateTimeExpanded
-  | "type"
-  | "location"
-  | null;
+type ExpandedField = AppointmentDateTimeExpanded | "type" | "location" | null;
 
 type AddAppointmentDetailsStepProps = {
   formState: AddAppointmentFormState;
-  onNotesFocus?: () => void;
-  onNotesBlur?: () => void;
 };
 
-type FormDividerProps = {
-  className?: string;
-};
-
-function FormDivider({ className }: FormDividerProps) {
+function FormDivider({ className }: { className?: string }) {
   return <View className={cn("h-px w-full bg-border-subtle", className)} />;
 }
 
-export function AddAppointmentDetailsStep({
+function AddAppointmentDetailsStepComponent({
   formState,
-  onNotesFocus,
-  onNotesBlur,
 }: AddAppointmentDetailsStepProps) {
   const theme = useThemeTokens();
   const [expandedField, setExpandedField] = useState<ExpandedField>(null);
   const {
-    form,
+    control,
+    setValue,
     options,
     selectedPatient,
     setAppointmentDate,
@@ -56,38 +45,38 @@ export function AddAppointmentDetailsStep({
     setEndTime,
   } = formState;
 
-  const { control } = form;
   const startTime = useWatch({ control, name: "startTime" });
   const endTime = useWatch({ control, name: "endTime" });
   const typeId = useWatch({ control, name: "typeId" });
   const locationId = useWatch({ control, name: "locationId" });
 
-  const typeOptions: DropdownOption[] = [
-    { value: "", label: "None" },
-    ...options.types.map((type) => ({
-      value: type.id,
-      label: type.name,
-      color: type.color,
-    })),
-  ];
+  const typeOptions: DropdownOption[] = useMemo(
+    () => [
+      { value: "", label: "None" },
+      ...options.types.map((type) => ({
+        value: type.id,
+        label: type.name,
+        color: type.color,
+      })),
+    ],
+    [options.types],
+  );
 
   const selectedType = typeOptions.find((option) => option.value === typeId);
   const typeColor = selectedType?.color ?? theme.palette.foreground.muted;
 
-  const locationOptions: DropdownOption[] = options.locations.map(
-    (location) => ({
-      value: location.id,
-      label: location.name,
-    }),
+  const locationOptions: DropdownOption[] = useMemo(
+    () =>
+      options.locations.map((location) => ({
+        value: location.id,
+        label: location.name,
+      })),
+    [options.locations],
   );
 
-  const setExpanded = (next: ExpandedField) => {
-    setExpandedField(next);
-  };
-
-  const togglePanel = (panel: Exclude<ExpandedField, null>) => {
+  const togglePanel = useCallback((panel: Exclude<ExpandedField, null>) => {
     setExpandedField((current) => (current === panel ? null : panel));
-  };
+  }, []);
 
   const dateTimeExpanded: AppointmentDateTimeExpanded =
     expandedField === "calendar" ||
@@ -121,7 +110,7 @@ export function AddAppointmentDetailsStep({
         onChangeDate={setAppointmentDate}
         onChangeEnd={setEndTime}
         onChangeStart={setStartTime}
-        onExpandedChange={setExpanded}
+        onExpandedChange={(next) => setExpandedField(next)}
         startTime={startTime}
       />
 
@@ -130,7 +119,7 @@ export function AddAppointmentDetailsStep({
       <AppointmentInlineSelect
         leading={<ColorSwatch color={typeColor} />}
         onChange={(value) =>
-          form.setValue("typeId", value, {
+          setValue("typeId", value, {
             shouldDirty: true,
             shouldValidate: true,
           })
@@ -153,7 +142,7 @@ export function AddAppointmentDetailsStep({
           />
         }
         onChange={(value) =>
-          form.setValue("locationId", value, {
+          setValue("locationId", value, {
             shouldDirty: true,
             shouldValidate: true,
           })
@@ -184,12 +173,8 @@ export function AddAppointmentDetailsStep({
                 className="min-h-[96px] w-full px-inline"
                 multiline
                 numberOfLines={4}
-                onBlur={onNotesBlur}
                 onChangeText={onChange}
-                onFocus={() => {
-                  setExpanded(null);
-                  onNotesFocus?.();
-                }}
+                onFocus={() => setExpandedField(null)}
                 placeholder="Add notes"
                 value={value}
                 variant="bare"
@@ -201,3 +186,7 @@ export function AddAppointmentDetailsStep({
     </Stack>
   );
 }
+
+export const AddAppointmentDetailsStep = memo(
+  AddAppointmentDetailsStepComponent,
+);

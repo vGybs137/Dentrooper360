@@ -1,4 +1,3 @@
-import { Q } from "@nozbe/watermelondb";
 import { useEffect, useState } from "react";
 
 import database from "@/database";
@@ -21,21 +20,43 @@ export type AppointmentLocationOption = {
   name: string;
 };
 
-export function useAppointmentFormOptions(patientSearch = "") {
+type UseAppointmentFormOptionsArgs = {
+  patientSearch?: string;
+  /** Load patients (search list). Types/locations load whenever `enabled`. */
+  loadPatients?: boolean;
+  enabled?: boolean;
+};
+
+export function useAppointmentFormOptions({
+  patientSearch = "",
+  loadPatients = true,
+  enabled = true,
+}: UseAppointmentFormOptionsArgs = {}) {
   const {
     patients,
     allPatients,
     isLoading: patientsLoading,
     error: patientsError,
-  } = useActivePatients(patientSearch);
+  } = useActivePatients(patientSearch, {
+    enabled: enabled && loadPatients,
+  });
 
   const [types, setTypes] = useState<AppointmentTypeOption[]>([]);
   const [locations, setLocations] = useState<AppointmentLocationOption[]>([]);
-  const [typesLoading, setTypesLoading] = useState(true);
-  const [locationsLoading, setLocationsLoading] = useState(true);
+  const [typesLoading, setTypesLoading] = useState(enabled);
+  const [locationsLoading, setLocationsLoading] = useState(enabled);
   const [optionsError, setOptionsError] = useState<Error | null>(null);
 
   useEffect(() => {
+    if (!enabled) {
+      setTypesLoading(false);
+      setLocationsLoading(false);
+      return;
+    }
+
+    setTypesLoading(true);
+    setLocationsLoading(true);
+
     const typesQuery = database.get<AppointmentType>("appointment_types").query();
     const locationsQuery = database.get<Location>("locations").query();
 
@@ -82,14 +103,16 @@ export function useAppointmentFormOptions(patientSearch = "") {
       typesSub.unsubscribe();
       locationsSub.unsubscribe();
     };
-  }, []);
+  }, [enabled]);
 
   return {
     patients,
     allPatients,
     types,
     locations,
-    isLoading: patientsLoading || typesLoading || locationsLoading,
+    isLoading:
+      (loadPatients && patientsLoading) || typesLoading || locationsLoading,
+    patientsLoading,
     error: patientsError ?? optionsError,
   };
 }

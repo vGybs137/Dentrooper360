@@ -1,5 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
+  runOnJS,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -8,17 +10,36 @@ import {
 import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
 import { useThemeTokens } from "@/theme";
 
-/** Shared height/opacity collapse used by inline calendar, time, and select panels. */
+/**
+ * Shared height/opacity collapse used by inline calendar, time, and select panels.
+ * Keeps children mounted through the exit animation, then reports `mounted: false`.
+ */
 export function useInlineCollapse(visible: boolean, contentHeight: number) {
   const theme = useThemeTokens();
+  const duration = getAuthSlideDuration(theme);
   const progress = useSharedValue(visible ? 1 : 0);
+  const [mounted, setMounted] = useState(visible);
 
   useEffect(() => {
+    if (visible) {
+      setMounted(true);
+    }
+
     progress.value = withTiming(visible ? 1 : 0, {
-      duration: getAuthSlideDuration(theme),
+      duration,
       easing: AUTH_SLIDE_EASING,
     });
-  }, [progress, theme, visible]);
+  }, [duration, progress, visible]);
+
+  useAnimatedReaction(
+    () => progress.value,
+    (current, previous) => {
+      if (current === 0 && previous !== 0 && previous !== null) {
+        runOnJS(setMounted)(false);
+      }
+    },
+    [],
+  );
 
   const containerStyle = useAnimatedStyle(() => ({
     height: contentHeight * progress.value,
@@ -26,5 +47,5 @@ export function useInlineCollapse(visible: boolean, contentHeight: number) {
     overflow: "hidden" as const,
   }));
 
-  return { containerStyle };
+  return { containerStyle, mounted: visible || mounted };
 }

@@ -1,6 +1,12 @@
 import dayjs from "dayjs";
-import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { useForm, useWatch } from "react-hook-form";
 
 import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
@@ -10,9 +16,9 @@ import {
   ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
   useAddAppointmentIsPresented,
   useAddAppointmentSlot,
+  useAddAppointmentStep,
   useAddAppointmentStore,
   useAuthUser,
-  useCustomerId,
 } from "@/stores";
 
 import {
@@ -42,29 +48,37 @@ const EMPTY_VALUES: AddAppointmentFields = {
 
 export function useAddAppointmentForm() {
   const user = useAuthUser();
-  const customerId = useCustomerId();
   const slot = useAddAppointmentSlot();
   const isPresented = useAddAppointmentIsPresented();
-  const step = useAddAppointmentStore((state) => state.step);
+  const step = useAddAppointmentStep();
   const storeGoNext = useAddAppointmentStore((state) => state.goNext);
   const storeGoBack = useAddAppointmentStore((state) => state.goBack);
   const requestClose = useAddAppointmentStore((state) => state.requestClose);
 
   const [patientSearch, setPatientSearch] = useState("");
+  const deferredPatientSearch = useDeferredValue(patientSearch);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [selectedPatientCache, setSelectedPatientCache] =
+    useState<AppointmentPatientOption | null>(null);
 
-  const options = useAppointmentFormOptions(patientSearch);
+  const options = useAppointmentFormOptions({
+    patientSearch: deferredPatientSearch,
+    loadPatients: isPresented && step === "patient",
+    enabled: isPresented,
+  });
 
   const form = useForm<AddAppointmentFields>({
     defaultValues: EMPTY_VALUES,
-    mode: "onChange",
+    mode: "onTouched",
   });
 
-  const patientId = form.watch("patientId");
-  const locationId = form.watch("locationId");
-  const startTime = form.watch("startTime");
-  const endTime = form.watch("endTime");
+  const { control } = form;
+  const patientId = useWatch({ control, name: "patientId" });
+  const locationId = useWatch({ control, name: "locationId" });
+  const subject = useWatch({ control, name: "subject" });
+  const startTime = useWatch({ control, name: "startTime" });
+  const endTime = useWatch({ control, name: "endTime" });
 
   useEffect(() => {
     if (!isPresented || !slot) {
@@ -73,6 +87,7 @@ export function useAddAppointmentForm() {
 
     setPatientSearch("");
     setSubmitError(null);
+    setSelectedPatientCache(null);
     form.reset({
       patientId: null,
       subject: "",
@@ -84,25 +99,41 @@ export function useAddAppointmentForm() {
     });
   }, [form, isPresented, slot?.start.getTime(), slot?.end.getTime()]);
 
-  const subject = form.watch("subject");
-
   const selectedPatient: AppointmentPatientOption | null = useMemo(() => {
     if (!patientId) {
       return null;
     }
 
     return (
-      options.allPatients.find((patient) => patient.id === patientId) ?? null
+      options.allPatients.find((patient) => patient.id === patientId) ??
+      selectedPatientCache
     );
-  }, [options.allPatients, patientId]);
+  }, [options.allPatients, patientId, selectedPatientCache]);
 
   const canSubmit =
     Boolean(locationId) &&
-    Boolean(subject.trim() || patientId) &&
+    Boolean((subject ?? "").trim() || patientId) &&
     dayjs(endTime).isAfter(dayjs(startTime)) &&
     !isSubmitting;
 
-  const goNext = () => {
+  const selectPatient = useCallback(
+    (id: string | null, patient?: AppointmentPatientOption | null) => {
+      form.setValue("patientId", id, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
+
+      if (id && patient) {
+        setSelectedPatientCache(patient);
+      } else if (!id) {
+        setSelectedPatientCache(null);
+      }
+    },
+    [form],
+  );
+
+  const goNext = useCallback(() => {
     if (!form.getValues("subject").trim() && selectedPatient) {
       form.setValue("subject", selectedPatient.displayName, {
         shouldDirty: true,
@@ -111,59 +142,62 @@ export function useAddAppointmentForm() {
     }
 
     storeGoNext();
-  };
+  }, [form, selectedPatient, storeGoNext]);
 
-  const selectPatient = (id: string | null) => {
-    form.setValue("patientId", id, {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-    });
-  };
+  const goBack = useCallback(() => {
+    storeGoBack();
+  }, [storeGoBack]);
 
-  const setStartTime = (time: Date) => {
-    form.setValue("startTime", time, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-    form.setValue(
-      "endTime",
-      dayjs(time).add(ADD_APPOINTMENT_SLOT_DURATION_MINUTES, "minute").toDate(),
-      {
+  const setStartTime = useCallback(
+    (time: Date) => {
+      form.setValue("startTime", time, {
         shouldDirty: true,
         shouldValidate: true,
-      },
-    );
-  };
+      });
+      form.setValue(
+        "endTime",
+        dayjs(time)
+          .add(ADD_APPOINTMENT_SLOT_DURATION_MINUTES, "minute")
+          .toDate(),
+        {
+          shouldDirty: true,
+          shouldValidate: true,
+        },
+      );
+    },
+    [form],
+  );
 
-  const setEndTime = (time: Date) => {
-    form.setValue("endTime", time, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-  };
+  const setEndTime = useCallback(
+    (time: Date) => {
+      form.setValue("endTime", time, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    },
+    [form],
+  );
 
-  const goBack = () => {
-    storeGoBack();
-  };
+  const setAppointmentDate = useCallback(
+    (date: Date) => {
+      const currentStart = form.getValues("startTime");
+      const currentEnd = form.getValues("endTime");
+      const nextStart = combineDateAndTime(date, currentStart);
+      const nextEnd = combineDateAndTime(date, currentEnd);
 
-  const setAppointmentDate = (date: Date) => {
-    const currentStart = form.getValues("startTime");
-    const currentEnd = form.getValues("endTime");
-    const nextStart = combineDateAndTime(date, currentStart);
-    const nextEnd = combineDateAndTime(date, currentEnd);
-
-    form.setValue("startTime", nextStart, {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-    });
-    form.setValue("endTime", nextEnd, {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-    });
-  };
+      form.setValue("startTime", nextStart, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
+      form.setValue("endTime", nextEnd, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
+    },
+    [form],
+  );
 
   const submit = form.handleSubmit(async (data) => {
     if (!user?.id) {
@@ -211,7 +245,8 @@ export function useAddAppointmentForm() {
   });
 
   return {
-    form,
+    control: form.control,
+    setValue: form.setValue,
     options,
     step,
     patientSearch,

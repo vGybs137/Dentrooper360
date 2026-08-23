@@ -1,5 +1,5 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { Pressable, View, type LayoutChangeEvent } from "react-native";
+import { type ReactNode } from "react";
+import { Pressable, View } from "react-native";
 import Animated from "react-native-reanimated";
 
 import { ColorSwatch, ThemedText, type DropdownOption } from "@/components/ui";
@@ -18,7 +18,7 @@ type AppointmentInlineSelectProps = {
   onToggle: () => void;
 };
 
-const OPTION_ROW_FALLBACK = 48;
+const OPTION_ROW_HEIGHT = 48;
 
 export function AppointmentInlineSelect({
   value,
@@ -29,26 +29,11 @@ export function AppointmentInlineSelect({
   visible,
   onToggle,
 }: AppointmentInlineSelectProps) {
-  const [contentHeight, setContentHeight] = useState(
-    Math.max(options.length, 1) * OPTION_ROW_FALLBACK,
-  );
-  const { containerStyle } = useInlineCollapse(visible, contentHeight);
+  const contentHeight = Math.max(options.length, 1) * OPTION_ROW_HEIGHT;
+  const { containerStyle, mounted } = useInlineCollapse(visible, contentHeight);
 
   const selected = options.find((option) => option.value === value);
   const hasValue = value !== "";
-
-  useEffect(() => {
-    setContentHeight((current) =>
-      Math.max(current, Math.max(options.length, 1) * OPTION_ROW_FALLBACK),
-    );
-  }, [options.length]);
-
-  const handleOptionsLayout = (event: LayoutChangeEvent) => {
-    const nextHeight = Math.ceil(event.nativeEvent.layout.height);
-    if (nextHeight > 0 && nextHeight !== contentHeight) {
-      setContentHeight(nextHeight);
-    }
-  };
 
   const selectOption = (optionValue: string) => {
     onChange(optionValue);
@@ -56,36 +41,6 @@ export function AppointmentInlineSelect({
       onToggle();
     }
   };
-
-  const renderOptions = (keyPrefix: string) => (
-    <View className="w-full pt-gap-compact" onLayout={handleOptionsLayout}>
-      {options.map((option, index) => {
-        const isSelected = option.value === value;
-        return (
-          <Pressable
-            key={`${keyPrefix}-${option.value || index}`}
-            accessibilityRole="button"
-            accessibilityState={{ selected: isSelected }}
-            className={cn(
-              "w-full min-h-touch flex-row items-center gap-2 px-inline py-stack",
-              index > 0 && "border-t border-border-subtle",
-              isSelected && "bg-brand-subtle",
-            )}
-            onPress={() => selectOption(option.value)}
-          >
-            {option.color ? <ColorSwatch color={option.color} /> : null}
-            <ThemedText
-              className={cn("flex-1", isSelected && "font-semibold")}
-              tone={isSelected ? "brand" : "default"}
-              variant="body"
-            >
-              {option.label}
-            </ThemedText>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
 
   return (
     <View className="w-full">
@@ -111,22 +66,42 @@ export function AppointmentInlineSelect({
         </Pressable>
       </View>
 
-      <View className="relative w-full">
-        <View
-          className="pointer-events-none absolute inset-x-0 top-0 opacity-0"
-          pointerEvents="none"
-        >
-          <View className="ml-8">{renderOptions("measure")}</View>
-        </View>
-
+      {mounted ? (
         <Animated.View
           className="ml-8 w-full"
           pointerEvents={visible ? "auto" : "none"}
           style={containerStyle}
         >
-          {renderOptions("visible")}
+          <View className="w-full pt-gap-compact">
+            {options.map((option, index) => {
+              const isSelected = option.value === value;
+              return (
+                <Pressable
+                  key={option.value || `option-${index}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
+                  className={cn(
+                    "w-full flex-row items-center gap-2 px-inline",
+                    index > 0 && "border-t border-border-subtle",
+                    isSelected && "bg-brand-subtle",
+                  )}
+                  onPress={() => selectOption(option.value)}
+                  style={{ height: OPTION_ROW_HEIGHT }}
+                >
+                  {option.color ? <ColorSwatch color={option.color} /> : null}
+                  <ThemedText
+                    className={cn("flex-1", isSelected && "font-semibold")}
+                    tone={isSelected ? "brand" : "default"}
+                    variant="body"
+                  >
+                    {option.label}
+                  </ThemedText>
+                </Pressable>
+              );
+            })}
+          </View>
         </Animated.View>
-      </View>
+      ) : null}
     </View>
   );
 }

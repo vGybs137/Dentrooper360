@@ -13,10 +13,8 @@ export const ADD_APPOINTMENT_SLOT_DURATION_MINUTES = 60;
 type AddAppointmentStoreState = {
   slot: AppointmentSlot | null;
   step: AddAppointmentStep;
-  /** Whether the Modal host is mounted. */
+  /** Whether the sheet should be presented. */
   isPresented: boolean;
-  /** Whether the BottomSheet is in its visible (entered) state. */
-  sheetVisible: boolean;
   selectSlot: (start: Date) => void;
   open: () => void;
   requestClose: () => void;
@@ -43,7 +41,6 @@ export const useAddAppointmentStore = create<AddAppointmentStoreState>(
     slot: null,
     step: "patient",
     isPresented: false,
-    sheetVisible: false,
 
     selectSlot: (start) => {
       set({ slot: buildSlot(start) });
@@ -57,7 +54,6 @@ export const useAddAppointmentStore = create<AddAppointmentStoreState>(
 
       set({
         isPresented: true,
-        sheetVisible: true,
         step: "patient",
       });
     },
@@ -67,13 +63,12 @@ export const useAddAppointmentStore = create<AddAppointmentStoreState>(
         return;
       }
 
-      set({ sheetVisible: false });
+      set({ isPresented: false });
     },
 
     finishClose: () => {
       set({
         isPresented: false,
-        sheetVisible: false,
         slot: null,
         step: "patient",
       });
@@ -94,7 +89,6 @@ export const useAddAppointmentStore = create<AddAppointmentStoreState>(
     dismissImmediately: () => {
       set({
         isPresented: false,
-        sheetVisible: false,
         slot: null,
         step: "patient",
       });
@@ -102,13 +96,12 @@ export const useAddAppointmentStore = create<AddAppointmentStoreState>(
 
     clearOrClose: () => {
       if (get().isPresented) {
-        set({ sheetVisible: false });
+        set({ isPresented: false });
         return;
       }
 
       set({
         isPresented: false,
-        sheetVisible: false,
         slot: null,
         step: "patient",
       });
@@ -124,6 +117,6 @@ export function useAddAppointmentIsPresented() {
   return useAddAppointmentStore((state) => state.isPresented);
 }
 
-export function useAddAppointmentSheetVisible() {
-  return useAddAppointmentStore((state) => state.sheetVisible);
+export function useAddAppointmentStep() {
+  return useAddAppointmentStore((state) => state.step);
 }

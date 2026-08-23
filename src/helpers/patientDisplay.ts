@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+
 import type Patient from "@/database/models/Patient";
 
 export type PatientCardData = {
@@ -10,7 +12,9 @@ export type PatientCardData = {
   nextVisit: string | null;
 };
 
-export function formatPatientName(patient: Pick<Patient, "firstName" | "lastName">): string {
+export function formatPatientName(
+  patient: Pick<Patient, "firstName" | "lastName">,
+): string {
   return [patient.firstName, patient.lastName].filter(Boolean).join(" ").trim();
 }
 
@@ -26,11 +30,27 @@ export function formatPatientBalance(
   return `${prefix}${Math.abs(balance).toFixed(2)}`;
 }
 
-export function formatPatientNextVisit(nextVisit: string | null | undefined): string {
+export function formatPatientNextVisit(
+  nextVisit: string | null | undefined,
+): string {
   return nextVisit?.trim() || "None";
 }
 
-export function mapPatientToCardData(patient: Patient): PatientCardData {
+/** Compact label for patient cards, e.g. "23 Aug, 2:00 PM". */
+export function formatNextVisitLabel(
+  date: Date | null | undefined,
+): string | null {
+  if (!date || Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return dayjs(date).format("D MMM, h:mm A");
+}
+
+export function mapPatientToCardData(
+  patient: Patient,
+  nextVisit: string | null = null,
+): PatientCardData {
   return {
     id: patient.id,
     displayName: formatPatientName(patient) || "Unnamed patient",
@@ -38,6 +58,6 @@ export function mapPatientToCardData(patient: Patient): PatientCardData {
     balance: patient.balance,
     currency: patient.currency,
     profilePhoto: patient.profilePhoto,
-    nextVisit: null,
+    nextVisit,
   };
 }

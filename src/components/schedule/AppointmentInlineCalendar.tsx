@@ -27,26 +27,29 @@ export function AppointmentInlineCalendar({
   const selectedDateValue = toCalendarDateString(selectedDate);
   const [visibleMonth, setVisibleMonth] = useState(selectedDateValue);
   const [contentHeight, setContentHeight] = useState(FALLBACK_CALENDAR_HEIGHT);
-  const { containerStyle } = useInlineCollapse(visible, contentHeight);
+  const { containerStyle, mounted } = useInlineCollapse(visible, contentHeight);
 
-  const calendarTheme = {
-    backgroundColor: "transparent",
-    calendarBackground: "transparent",
-    textSectionTitleColor: theme.palette.foreground.muted,
-    selectedDayBackgroundColor: theme.palette.brand.default,
-    selectedDayTextColor: theme.palette.brand.text,
-    todayTextColor: theme.palette.brand.default,
-    dayTextColor: theme.palette.foreground.default,
-    textDisabledColor: theme.palette.foreground.muted,
-    monthTextColor: theme.palette.foreground.default,
-    arrowColor: theme.palette.foreground.default,
-    textDayFontWeight: "400" as const,
-    textMonthFontWeight: "600" as const,
-    textDayHeaderFontWeight: "500" as const,
-    textDayFontSize: 16,
-    textMonthFontSize: 17,
-    textDayHeaderFontSize: 12,
-  };
+  const calendarTheme = useMemo(
+    () => ({
+      backgroundColor: "transparent",
+      calendarBackground: "transparent",
+      textSectionTitleColor: theme.palette.foreground.muted,
+      selectedDayBackgroundColor: theme.palette.brand.default,
+      selectedDayTextColor: theme.palette.brand.text,
+      todayTextColor: theme.palette.brand.default,
+      dayTextColor: theme.palette.foreground.default,
+      textDisabledColor: theme.palette.foreground.muted,
+      monthTextColor: theme.palette.foreground.default,
+      arrowColor: theme.palette.foreground.default,
+      textDayFontWeight: "400" as const,
+      textMonthFontWeight: "600" as const,
+      textDayHeaderFontWeight: "500" as const,
+      textDayFontSize: 16,
+      textMonthFontSize: 17,
+      textDayHeaderFontSize: 12,
+    }),
+    [theme],
+  );
 
   const markedDates = useMemo(
     () => ({
@@ -64,6 +67,10 @@ export function AppointmentInlineCalendar({
       setContentHeight(nextHeight);
     }
   };
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <Animated.View

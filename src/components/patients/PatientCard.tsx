@@ -110,6 +110,7 @@ export function PatientCard({
     <Card
       borderTone={isSelected ? "none" : "subtle"}
       style={[
+        { backgroundColor: theme.palette.surface.sunken },
         isSelected
           ? {
               borderWidth: 2,

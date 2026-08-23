@@ -2,8 +2,10 @@ import { Q } from "@nozbe/watermelondb";
 import { useEffect, useMemo, useState } from "react";
 
 import database from "@/database";
+import type Appointment from "@/database/models/Appointment";
 import type Patient from "@/database/models/Patient";
 import {
+  formatNextVisitLabel,
   mapPatientToCardData,
   type PatientCardData,
 } from "@/helpers/patientDisplay";
@@ -20,26 +22,91 @@ function matchesPatientSearch(
   return patient.displayName.toLowerCase().includes(query);
 }
 
+/** Earliest upcoming start time per patient id. */
+function buildNextVisitByPatient(
+  appointments: Appointment[],
+): Map<string, Date> {
+  const nextByPatient = new Map<string, Date>();
+
+  for (const appointment of appointments) {
+    const patientId = appointment.patientId;
+    if (!patientId) {
+      continue;
+    }
+
+    const existing = nextByPatient.get(patientId);
+    if (!existing || appointment.startTime < existing) {
+      nextByPatient.set(patientId, appointment.startTime);
+    }
+  }
+
+  return nextByPatient;
+}
+
+function mapPatientsWithNextVisit(
+  records: Patient[],
+  nextByPatient: Map<string, Date>,
+): PatientCardData[] {
+  return records
+    .map((patient) =>
+      mapPatientToCardData(
+        patient,
+        formatNextVisitLabel(nextByPatient.get(patient.id) ?? null),
+      ),
+    )
+    .sort((a, b) => a.displayName.localeCompare(b.displayName));
+}
+
+type UseActivePatientsOptions = {
+  /** When false, skip Watermelon observe (e.g. sheet closed). */
+  enabled?: boolean;
+};
+
 /** Active patients from WatermelonDB, sorted by display name, optionally filtered. */
-export function useActivePatients(search = "") {
+export function useActivePatients(
+  search = "",
+  { enabled = true }: UseActivePatientsOptions = {},
+) {
   const [patients, setPatients] = useState<PatientCardData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(enabled);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    const query = database
+    if (!enabled) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+
+    let patientRecords: Patient[] = [];
+    let nextByPatient = new Map<string, Date>();
+    let patientsReady = false;
+    let appointmentsReady = false;
+
+    const publish = () => {
+      if (!patientsReady || !appointmentsReady) {
+        return;
+      }
+
+      setPatients(mapPatientsWithNextVisit(patientRecords, nextByPatient));
+      setIsLoading(false);
+      setError(null);
+    };
+
+    const patientsQuery = database
       .get<Patient>("patients")
       .query(Q.where("is_active", true));
 
-    const subscription = query.observe().subscribe({
+    const appointmentsQuery = database
+      .get<Appointment>("appointments")
+      .query(Q.where("start_time", Q.gte(Date.now())));
+
+    const patientsSub = patientsQuery.observe().subscribe({
       next: (records) => {
-        setPatients(
-          records
-            .map(mapPatientToCardData)
-            .sort((a, b) => a.displayName.localeCompare(b.displayName)),
-        );
-        setIsLoading(false);
-        setError(null);
+        patientRecords = records;
+        patientsReady = true;
+        publish();
       },
       error: (err) => {
         setError(err instanceof Error ? err : new Error(String(err)));
@@ -47,8 +114,23 @@ export function useActivePatients(search = "") {
       },
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    const appointmentsSub = appointmentsQuery.observe().subscribe({
+      next: (records) => {
+        nextByPatient = buildNextVisitByPatient(records);
+        appointmentsReady = true;
+        publish();
+      },
+      error: (err) => {
+        setError(err instanceof Error ? err : new Error(String(err)));
+        setIsLoading(false);
+      },
+    });
+
+    return () => {
+      patientsSub.unsubscribe();
+      appointmentsSub.unsubscribe();
+    };
+  }, [enabled]);
 
   const filteredPatients = useMemo(
     () => patients.filter((patient) => matchesPatientSearch(patient, search)),
