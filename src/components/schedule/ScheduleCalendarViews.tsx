@@ -1,7 +1,7 @@
 import { memo, type ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 
-import { AddAppointmentSheet } from "@/components/schedule/AddAppointmentSheet";
+import { AddAppointmentSheet } from "@/components/schedule/addAppointment";
 import { DayCalendar } from "@/components/schedule/dayView";
 import { MonthCalendar } from "@/components/schedule/monthView";
 import { ScheduleScreen } from "@/components/schedule/ScheduleScreen";
