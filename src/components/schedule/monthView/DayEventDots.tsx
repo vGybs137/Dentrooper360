@@ -1,6 +1,7 @@
 import { memo, useMemo } from "react";
 import { View } from "react-native";
 
+import { ThemedText } from "@/components/ui";
 import { useThemeTokens } from "@/theme";
 
 import {
@@ -46,17 +47,6 @@ function DayEventDotsComponent({ events }: DayEventDotsProps) {
     [theme.palette.border.strong],
   );
 
-  const overflowDotStyle = useMemo(
-    () => ({
-      width: MONTH_VIEW_EVENT_DOT_SIZE,
-      height: MONTH_VIEW_EVENT_DOT_SIZE,
-      borderRadius: MONTH_VIEW_EVENT_DOT_SIZE / 2,
-      backgroundColor: theme.palette.foreground.muted,
-      opacity: theme.semantic.opacity.scrim,
-    }),
-    [theme],
-  );
-
   if (visible.length === 0) return null;
 
   return (
@@ -76,7 +66,11 @@ function DayEventDotsComponent({ events }: DayEventDotsProps) {
           }
         />
       ))}
-      {overflow > 0 ? <View style={overflowDotStyle} /> : null}
+      {overflow > 0 ? (
+        <ThemedText tone="muted" style={{ fontSize: 9, lineHeight: 11 }}>
+          +{overflow}
+        </ThemedText>
+      ) : null}
     </View>
   );
 }

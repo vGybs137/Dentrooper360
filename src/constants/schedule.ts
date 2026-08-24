@@ -6,8 +6,8 @@ export const MONTH_VIEW_PAGER_RENDER_RADIUS = 1;
 /** Max title chips shown inside a month day cell. */
 export const MONTH_VIEW_MAX_VISIBLE_EVENTS = 3;
 
-/** Max type-colored dots when the sheet is open. */
-export const MONTH_VIEW_MAX_VISIBLE_DOTS = 5;
+/** Max type-colored dots when the sheet is open (two wrapped rows in a day cell). */
+export const MONTH_VIEW_MAX_VISIBLE_DOTS = 8;
 
 /** Gap between day cells in the month grid (token: stack.compact). */
 export const MONTH_VIEW_CELL_GAP = semantic.space.stack.compact;
