@@ -10,6 +10,7 @@ import {
   localMinutesFromMidnight,
   nowLineYForMinutes,
   TimedGridNowIndicator,
+  TimedGridOverflowChip,
   TimedGridSlotLayer,
 } from "@/components/schedule/timedGrid";
 import { TimeGutter } from "@/components/schedule/weekView/TimeGutter";
@@ -86,7 +87,7 @@ function DayTimeGridComponent({
   );
   const contentHeight = gridHeight + WEEK_VIEW_GRID_EDGE_INSET * 2;
 
-  const positionedEvents = useMemo(
+  const dayColumnLayout = useMemo(
     () =>
       layoutDayColumnEvents(
         events,
@@ -276,7 +277,7 @@ function DayTimeGridComponent({
               startHour={startHour}
               variant="day"
             />
-            {positionedEvents.map((block) => (
+            {dayColumnLayout.events.map((block) => (
               <WeekEventBlock
                 key={block.event.id}
                 event={block.event}
@@ -285,6 +286,16 @@ function DayTimeGridComponent({
                 left={block.left}
                 width={block.width}
                 variant="day"
+              />
+            ))}
+            {dayColumnLayout.overflows.map((overflow, index) => (
+              <TimedGridOverflowChip
+                key={`overflow-${index}`}
+                count={overflow.count}
+                top={overflow.top}
+                height={overflow.height}
+                left={overflow.left}
+                width={overflow.width}
               />
             ))}
           </View>

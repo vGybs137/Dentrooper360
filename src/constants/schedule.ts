@@ -80,6 +80,15 @@ export const WEEK_VIEW_SCROLL_PADDING_MINUTES = 60;
 /** Current-time indicator thickness (px). */
 export const WEEK_VIEW_NOW_INDICATOR_HEIGHT = 2;
 
+/** Max side-by-side timed events before +N overflow chip. */
+export const TIMED_GRID_MAX_OVERLAP = 3;
+
+/** Right-side strip width fraction reserved for +N overflow chip. */
+export const TIMED_GRID_OVERFLOW_WIDTH_FRACTION = 0.1;
+
+/** Minimum pixel height for the +N overflow chip. */
+export const TIMED_GRID_OVERFLOW_MIN_HEIGHT = 18;
+
 /** Right-pointing arrow at the start of the now line (px). */
 export const WEEK_VIEW_NOW_INDICATOR_ARROW_WIDTH = 6;
 export const WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT = 8;

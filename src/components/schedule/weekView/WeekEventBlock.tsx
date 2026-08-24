@@ -2,6 +2,7 @@ import { useRouter, type Href } from "expo-router";
 import { memo, useCallback, useMemo } from "react";
 import { Pressable, Text, View, type ViewStyle } from "react-native";
 
+import { timedGridAbsoluteStyle } from "@/components/schedule/timedGrid/timedGridPositionStyle";
 import {
   MONTH_VIEW_EVENT_CARD_BRAND_ALPHA,
   MONTH_VIEW_EVENT_CHIP_RAIL_WIDTH,
@@ -45,15 +46,11 @@ function WeekEventBlockComponent({
   }, [event.id, router]);
 
   const rootStyle = useMemo(
-    (): ViewStyle => ({
-      position: "absolute",
-      top,
-      left: `${left * 100}%`,
-      width: `${width * 100}%`,
-      height,
-      paddingHorizontal: 1,
-      zIndex: 3,
-    }),
+    (): ViewStyle =>
+      timedGridAbsoluteStyle(
+        { top, height, left, width },
+        { paddingHorizontal: 1, zIndex: 3 },
+      ),
     [height, left, top, width],
   );
 

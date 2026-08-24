@@ -1,14 +1,21 @@
-import { WEEK_VIEW_GRID_EDGE_INSET } from "@/constants/schedule";
+import {
+  TIMED_GRID_MAX_OVERLAP,
+  TIMED_GRID_OVERFLOW_WIDTH_FRACTION,
+  WEEK_VIEW_GRID_EDGE_INSET,
+} from "@/constants/schedule";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import {
   clipEventToDay,
   clipEventToWorkingWindow,
-  layoutTimedEventsForDay,
   minutesSpanToHeight,
   minutesToYInWorkingWindow,
-  timedEventColumnRect,
   type DayKey,
 } from "@/utils/calendar";
+import {
+  layoutTimedDayColumn,
+  timedEventColumnRect,
+  timedOverflowColumnRect,
+} from "@/utils/calendar/timedEventLayout";
 
 export type PositionedTimedEvent = {
   event: MonthDayEventPreview;
@@ -16,6 +23,19 @@ export type PositionedTimedEvent = {
   height: number;
   left: number;
   width: number;
+};
+
+export type PositionedTimedOverflow = {
+  count: number;
+  top: number;
+  height: number;
+  left: number;
+  width: number;
+};
+
+export type DayColumnPixelLayout = {
+  events: PositionedTimedEvent[];
+  overflows: PositionedTimedOverflow[];
 };
 
 export function layoutDayColumnEvents(
@@ -26,7 +46,7 @@ export function layoutDayColumnEvents(
   pxPerMinute: number,
   hourGap: number,
   gridEdgeInset: number = WEEK_VIEW_GRID_EDGE_INSET,
-): PositionedTimedEvent[] {
+): DayColumnPixelLayout {
   const previews = new Map<string, MonthDayEventPreview>();
   const timedInputs = [];
 
@@ -50,21 +70,34 @@ export function layoutDayColumnEvents(
     });
   }
 
-  return layoutTimedEventsForDay(timedInputs).map((layout) => {
-    const rect = timedEventColumnRect(layout.column, layout.maxColumns);
+  const layout = layoutTimedDayColumn(timedInputs, {
+    maxVisible: TIMED_GRID_MAX_OVERLAP,
+  });
+  const overflowClusterIds = new Set(
+    layout.overflows.map((overflow) => overflow.clusterId),
+  );
+  const eventAreaWidth = 1 - TIMED_GRID_OVERFLOW_WIDTH_FRACTION;
+
+  const positionedEvents = layout.visible.map((item) => {
+    const hasOverflowGutter =
+      overflowClusterIds.has(item.clusterId) &&
+      item.maxColumns === TIMED_GRID_MAX_OVERLAP;
+    const areaWidth = hasOverflowGutter ? eventAreaWidth : 1;
+    const rect = timedEventColumnRect(item.column, item.maxColumns, areaWidth);
+
     return {
-      event: previews.get(layout.id)!,
+      event: previews.get(item.id)!,
       top:
         gridEdgeInset +
         minutesToYInWorkingWindow(
-          layout.startMinutes,
+          item.startMinutes,
           startHour,
           pxPerMinute,
           hourGap,
         ),
       height: minutesSpanToHeight(
-        layout.startMinutes,
-        layout.endMinutes,
+        item.startMinutes,
+        item.endMinutes,
         pxPerMinute,
         hourGap,
       ),
@@ -72,4 +105,32 @@ export function layoutDayColumnEvents(
       width: rect.width,
     };
   });
+
+  const positionedOverflows = layout.overflows.map((overflow) => {
+    const rect = timedOverflowColumnRect(eventAreaWidth);
+    return {
+      count: overflow.count,
+      top:
+        gridEdgeInset +
+        minutesToYInWorkingWindow(
+          overflow.startMinutes,
+          startHour,
+          pxPerMinute,
+          hourGap,
+        ),
+      height: minutesSpanToHeight(
+        overflow.startMinutes,
+        overflow.endMinutes,
+        pxPerMinute,
+        hourGap,
+      ),
+      left: rect.left,
+      width: rect.width,
+    };
+  });
+
+  return {
+    events: positionedEvents,
+    overflows: positionedOverflows,
+  };
 }

@@ -1,8 +1,16 @@
 export {
   layoutDayColumnEvents,
+  type DayColumnPixelLayout,
   type PositionedTimedEvent,
+  type PositionedTimedOverflow,
 } from "./layoutDayColumnEvents";
 export { TimedGridNowIndicator } from "./TimedGridNowIndicator";
+export { TimedGridOverflowChip } from "./TimedGridOverflowChip";
+export {
+  timedGridAbsoluteStyle,
+  type TimedGridBlockPlacement,
+  type TimedGridFractionalRect,
+} from "./timedGridPositionStyle";
 export { TimedGridSelectedSlot } from "./TimedGridSelectedSlot";
 export { TimedGridSlotLayer } from "./TimedGridSlotLayer";
 export {

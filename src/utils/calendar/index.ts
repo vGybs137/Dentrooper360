@@ -86,8 +86,22 @@ export {
 } from "./timeGrid";
 
 export {
-  layoutTimedEventsForDay,
+  assignColumns,
+  assignColumnsInCluster,
+  buildOverlapClusters,
+  DEFAULT_TIMED_GRID_MAX_OVERLAP,
+  eventsOverlap,
+  layoutTimedDayColumn,
+  needsVisibilityCap,
+  peakConcurrentCount,
+  selectVisibleInCluster,
   timedEventColumnRect,
-  type LaidOutTimedEvent,
+  timedOverflowColumnRect,
+  type LayoutTimedDayColumnOptions,
+  type OverlapCluster,
+  type TimedDayLayout,
   type TimedEventInput,
-} from "./layoutTimedEvents";
+  type TimedEventLayout,
+  type TimedOverflowLayout,
+  type VisibleSelection,
+} from "./timedEventLayout";

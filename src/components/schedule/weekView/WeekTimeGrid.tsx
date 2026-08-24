@@ -9,6 +9,7 @@ import {
   layoutDayColumnEvents,
   localMinutesFromMidnight,
   nowLineYForMinutes,
+  TimedGridOverflowChip,
   TimedGridNowIndicator,
   TimedGridSlotLayer,
 } from "@/components/schedule/timedGrid";
@@ -309,7 +310,7 @@ function WeekTimeGridComponent({
                     startHour={startHour}
                     variant="week"
                   />
-                  {eventsByColumn[columnIndex]?.map((block) => (
+                  {eventsByColumn[columnIndex]?.events.map((block) => (
                     <WeekEventBlock
                       key={block.event.id}
                       event={block.event}
@@ -317,6 +318,16 @@ function WeekTimeGridComponent({
                       height={block.height}
                       left={block.left}
                       width={block.width}
+                    />
+                  ))}
+                  {eventsByColumn[columnIndex]?.overflows.map((overflow, index) => (
+                    <TimedGridOverflowChip
+                      key={`overflow-${columnIndex}-${index}`}
+                      count={overflow.count}
+                      top={overflow.top}
+                      height={overflow.height}
+                      left={overflow.left}
+                      width={overflow.width}
                     />
                   ))}
                 </View>
