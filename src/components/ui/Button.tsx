@@ -1,3 +1,4 @@
+import { TouchableOpacity as BottomSheetTouchableOpacity } from "@gorhom/bottom-sheet";
 import React, { useCallback, useRef } from "react";
 import {
   Pressable,
@@ -35,6 +36,8 @@ export type ButtonProps = Omit<PressableProps, "style"> & {
   tone?: ButtonTone;
   variant?: ButtonVariant;
   size?: ButtonSize;
+  /** Use gorhom touchable so presses register inside bottom sheets. */
+  bottomSheet?: boolean;
   className?: string;
   textClassName?: string;
   style?: StyleProp<ViewStyle>;
@@ -96,13 +99,17 @@ export function Button({
   tone = "brand",
   variant = "solid",
   size = "md",
+  bottomSheet = false,
   disabled,
   className,
   textClassName,
   style,
+  onPress,
   onPressIn,
   onPressOut,
-  ...props
+  accessibilityLabel,
+  accessibilityState,
+  testID,
 }: ButtonProps) {
   const theme = useThemeTokens();
   const tonePalette = resolveTone(theme, tone);
@@ -168,47 +175,52 @@ export function Button({
         ? theme.palette.foreground.default
         : tonePalette.default;
 
-  return (
-    <Pressable
-      accessibilityRole="button"
-      className={className}
-      disabled={disabled}
-      onLayout={(e) => {
-        layoutRef.current = e.nativeEvent.layout;
-      }}
-      onPressIn={(event) => {
-        const { locationX, locationY } = event.nativeEvent;
-        startRipple(locationX, locationY);
-        onPressIn?.(event);
-      }}
-      onPressOut={(event) => {
-        endRipple();
-        onPressOut?.(event);
-      }}
-      style={[
-        {
+  const handleLayout = (event: {
+    nativeEvent: { layout: LayoutRectangle };
+  }) => {
+    layoutRef.current = event.nativeEvent.layout;
+  };
+
+  const handlePressIn = (event: GestureResponderEvent) => {
+    const { locationX, locationY } = event.nativeEvent;
+    startRipple(locationX, locationY);
+    onPressIn?.(event);
+  };
+
+  const handlePressOut = (event: GestureResponderEvent) => {
+    endRipple();
+    onPressOut?.(event);
+  };
+
+  const buttonStyle = [
+    {
+      flexDirection: "row" as const,
+      alignItems: "center" as const,
+      justifyContent: "center" as const,
+      gap: theme.semantic.space.gap.compact,
+      minHeight: resolveHeight(theme, size),
+      paddingHorizontal: theme.semantic.space.inline.default,
+      borderRadius: theme.semantic.radius.control,
+      backgroundColor,
+      borderColor,
+      borderWidth:
+        borderColor === "transparent" ? 0 : theme.semantic.borderWidth.strong,
+      opacity: disabled ? theme.semantic.opacity.disabled : 1,
+      overflow: "hidden" as const,
+    },
+    style,
+  ];
+
+  const content = (
+    <>
+      <Animated.View pointerEvents="none" style={rippleStyle} />
+      <View
+        style={{
           flexDirection: "row",
           alignItems: "center",
-          justifyContent: "center",
           gap: theme.semantic.space.gap.compact,
-          minHeight: resolveHeight(theme, size),
-          paddingHorizontal: theme.semantic.space.inline.default,
-          borderRadius: theme.semantic.radius.control,
-          backgroundColor,
-          borderColor,
-          borderWidth:
-            borderColor === "transparent"
-              ? 0
-              : theme.semantic.borderWidth.strong,
-          opacity: disabled ? theme.semantic.opacity.disabled : 1,
-          overflow: "hidden",
-        },
-        style,
-      ]}
-      {...props}
-    >
-      <Animated.View pointerEvents="none" style={rippleStyle} />
-      <View style={{ flexDirection: "row", alignItems: "center", gap: theme.semantic.space.gap.compact }}>
+        }}
+      >
         {icon}
         <ThemedText
           className={cn("text-center", textClassName)}
@@ -218,6 +230,58 @@ export function Button({
           {label}
         </ThemedText>
       </View>
+    </>
+  );
+
+  if (bottomSheet) {
+    return (
+      <BottomSheetTouchableOpacity
+        accessibilityLabel={accessibilityLabel}
+        accessibilityRole="button"
+        accessibilityState={accessibilityState}
+        activeOpacity={0.85}
+        className={className}
+        disabled={disabled ?? undefined}
+        onLayout={handleLayout}
+        onPress={onPress}
+        style={buttonStyle}
+        testID={testID}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.semantic.space.gap.compact,
+          }}
+        >
+          {icon}
+          <ThemedText
+            className={cn("text-center", textClassName)}
+            style={{ color: labelColor }}
+            variant="label"
+          >
+            {label}
+          </ThemedText>
+        </View>
+      </BottomSheetTouchableOpacity>
+    );
+  }
+
+  return (
+    <Pressable
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="button"
+      accessibilityState={accessibilityState}
+      className={className}
+      disabled={disabled}
+      onLayout={handleLayout}
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={buttonStyle}
+      testID={testID}
+    >
+      {content}
     </Pressable>
   );
 }

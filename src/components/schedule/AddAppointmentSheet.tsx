@@ -3,6 +3,7 @@ import {
   BottomSheetFooter,
   BottomSheetModal,
   BottomSheetScrollView,
+  TouchableOpacity as BottomSheetTouchableOpacity,
   type BottomSheetBackdropProps,
   type BottomSheetFooterProps,
   type BottomSheetScrollViewMethods,
@@ -125,16 +126,23 @@ export function AddAppointmentSheet() {
   }, [finishClose]);
 
   const handleNext = useCallback(() => {
+    Keyboard.dismiss();
     stepDirectionRef.current = "forward";
     hasStepTransitionedRef.current = true;
     setPendingStepChange("forward");
   }, []);
 
   const handleBack = useCallback(() => {
+    Keyboard.dismiss();
     stepDirectionRef.current = "back";
     hasStepTransitionedRef.current = true;
     setPendingStepChange("back");
   }, []);
+
+  const handleSubmit = useCallback(() => {
+    Keyboard.dismiss();
+    submit();
+  }, [submit]);
 
   const handleNotesFocus = useCallback(() => {
     notesFocusedRef.current = true;
@@ -223,9 +231,10 @@ export function AddAppointmentSheet() {
           }}
         >
           {step === "details" ? (
-            <Pressable
+            <BottomSheetTouchableOpacity
               accessibilityLabel="Go back to patient step"
               accessibilityRole="button"
+              activeOpacity={0.7}
               className="size-control shrink-0 items-center justify-center rounded-control border-strong border-border"
               hitSlop={8}
               onPress={handleBack}
@@ -239,7 +248,7 @@ export function AddAppointmentSheet() {
                 size={20}
                 tintColor={theme.palette.foreground.default}
               />
-            </Pressable>
+            </BottomSheetTouchableOpacity>
           ) : (
             <View className="size-control shrink-0" />
           )}
@@ -251,6 +260,7 @@ export function AddAppointmentSheet() {
               </ThemedText>
             ) : null}
             <Button
+              bottomSheet
               className="min-w-[120px]"
               disabled={
                 step === "patient" ? false : !canSubmit || isSubmitting
@@ -262,7 +272,7 @@ export function AddAppointmentSheet() {
                     ? "Adding..."
                     : "Add"
               }
-              onPress={step === "patient" ? handleNext : submit}
+              onPress={step === "patient" ? handleNext : handleSubmit}
               tone="brand"
               variant="solid"
             />
@@ -274,10 +284,10 @@ export function AddAppointmentSheet() {
       canSubmit,
       handleBack,
       handleNext,
+      handleSubmit,
       insets.bottom,
       isSubmitting,
       step,
-      submit,
       submitError,
       theme,
     ],
@@ -323,8 +333,6 @@ export function AddAppointmentSheet() {
   return (
     <BottomSheetModal
       ref={sheetRef}
-      // Prefer content scroll over sheet drag until a clear vertical intent.
-      activeOffsetY={[-1, 1]}
       android_keyboardInputMode="adjustResize"
       backdropComponent={renderBackdrop}
       backgroundStyle={backgroundStyle}
