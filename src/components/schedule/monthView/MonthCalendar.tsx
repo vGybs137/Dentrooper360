@@ -10,6 +10,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 
+import { MONTH_VIEW_SHEET_SWAP_PROGRESS } from "@/constants/schedule";
+import { SheetOpenProgressContext } from "@/contexts/SheetOpenProgressContext";
+import { weekRowForDay, yearMonthFromDayKey } from "@/helpers/scheduleCalendar";
 import { useMonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
 import { useVisibleMonth } from "@/hooks/schedule/useVisibleMonth";
 import { useVisibleWeek } from "@/hooks/schedule/useVisibleWeek";
@@ -17,12 +20,6 @@ import {
   selectCalendarDay,
   useCalendarSelectionStore,
 } from "@/stores/calendarSelectionStore";
-import { MONTH_VIEW_SHEET_SWAP_PROGRESS } from "@/constants/schedule";
-import { SheetOpenProgressContext } from "@/contexts/SheetOpenProgressContext";
-import {
-  weekRowForDay,
-  yearMonthFromDayKey,
-} from "@/helpers/scheduleCalendar";
 import type {
   DayEventsSheetHandle,
   MonthPagerHandle,
@@ -44,6 +41,7 @@ import {
 import { DayEventsSheet } from "./DayEventsSheet";
 import { MonthCalendarHeader } from "./MonthCalendarHeader";
 import { MonthPager } from "./MonthPager";
+import { MonthQuickAddField } from "./MonthQuickAddField";
 import { WeekdayHeader } from "./WeekdayHeader";
 import { WeekPager } from "./WeekPager";
 
@@ -247,9 +245,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
   );
 
   const handleWeekPageSelected = useCallback(
-    (
-      event: Parameters<typeof onWeekPageSelectedBase>[0],
-    ) => {
+    (event: Parameters<typeof onWeekPageSelectedBase>[0]) => {
       const nextIndex = event.nativeEvent.position;
       const prevIndex = weekPageIndexRef.current;
       onWeekPageSelectedBase(event);
@@ -261,18 +257,11 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
       const nextWeekStart = weeks[nextIndex];
       if (!nextWeekStart) return;
 
-      const nextDayKey = toDayKey(
-        addDays(parseDayKey(nextWeekStart), column),
-      );
+      const nextDayKey = toDayKey(addDays(parseDayKey(nextWeekStart), column));
       selectCalendarDay(nextDayKey);
       syncMonthPagerToDay(nextDayKey);
     },
-    [
-      onWeekPageSelectedBase,
-      syncMonthPagerToDay,
-      weekStartsOn,
-      weeks,
-    ],
+    [onWeekPageSelectedBase, syncMonthPagerToDay, weekStartsOn, weeks],
   );
 
   const onHostLayout = useCallback((event: LayoutChangeEvent) => {
@@ -423,70 +412,72 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
 
   return (
     <SheetOpenProgressContext.Provider value={sheetOpenProgressSV}>
-      <View
-        className="w-full flex-1 self-stretch"
-        onLayout={onHostLayout}
-      >
-        <View onLayout={onChromeLayout}>
-          <MonthCalendarHeader yearMonth={headerMonth} />
-          <WeekdayHeader weekStartsOn={weekStartsOn} />
-        </View>
+      <View className="w-full flex-1 self-stretch">
+        {/* Calendar host only — quick-add sits below so sheet snap excludes it. */}
+        <View className="w-full flex-1" onLayout={onHostLayout}>
+          <View onLayout={onChromeLayout}>
+            <MonthCalendarHeader yearMonth={headerMonth} />
+            <WeekdayHeader weekStartsOn={weekStartsOn} />
+          </View>
 
-        <GestureDetector gesture={openSwipeGesture}>
-          <View className="flex-1" onLayout={onPagerSlotLayout}>
-            <Animated.View style={weekClipStyle}>
-              <Animated.View
-                pointerEvents={sheetOpen ? "none" : "auto"}
-                style={[weekPinStyle, monthPagerVisibilityStyle]}
-              >
-                <MonthPager
-                  ref={pagerRef}
-                  months={months}
-                  initialIndex={initialIndex}
-                  pageIndex={pageIndex}
-                  weekStartsOn={weekStartsOn}
-                  appointmentsCache={cache}
-                  scrollEnabled={!sheetOpen}
-                  onDayPress={handleDayPress}
-                  onPageScroll={onPageScroll}
-                  onPageSelected={onPageSelected}
-                  onPageScrollStateChanged={onPageScrollStateChanged}
-                />
-              </Animated.View>
-
-              {weekSlotHeight > 0 ? (
+          <GestureDetector gesture={openSwipeGesture}>
+            <View className="flex-1" onLayout={onPagerSlotLayout}>
+              <Animated.View style={weekClipStyle}>
                 <Animated.View
-                  pointerEvents={sheetOpen ? "auto" : "none"}
-                  style={[weekOverlayStyle, weekPagerVisibilityStyle]}
+                  pointerEvents={sheetOpen ? "none" : "auto"}
+                  style={[weekPinStyle, monthPagerVisibilityStyle]}
                 >
-                  <WeekPager
-                    ref={weekPagerRef}
-                    weeks={weeks}
-                    initialIndex={weekInitialIndex}
-                    pageIndex={weekPageIndex}
+                  <MonthPager
+                    ref={pagerRef}
+                    months={months}
+                    initialIndex={initialIndex}
+                    pageIndex={pageIndex}
+                    weekStartsOn={weekStartsOn}
                     appointmentsCache={cache}
-                    scrollEnabled={sheetOpen}
-                    onDayPress={handleWeekDayPress}
-                    onPageSelected={handleWeekPageSelected}
-                    onPageScrollStateChanged={onWeekPageScrollStateChanged}
+                    scrollEnabled={!sheetOpen}
+                    onDayPress={handleDayPress}
+                    onPageScroll={onPageScroll}
+                    onPageSelected={onPageSelected}
+                    onPageScrollStateChanged={onPageScrollStateChanged}
                   />
                 </Animated.View>
-              ) : null}
-            </Animated.View>
-          </View>
-        </GestureDetector>
 
-        {sheetSnapHeight > 0 ? (
-          <DayEventsSheet
-            ref={sheetRef}
-            dayKey={selectedDayKey}
-            events={events}
-            snapHeight={sheetSnapHeight}
-            animatedIndex={animatedIndex}
-            animatedPosition={animatedPosition}
-            onOpenChange={handleSheetOpenChange}
-          />
-        ) : null}
+                {weekSlotHeight > 0 ? (
+                  <Animated.View
+                    pointerEvents={sheetOpen ? "auto" : "none"}
+                    style={[weekOverlayStyle, weekPagerVisibilityStyle]}
+                  >
+                    <WeekPager
+                      ref={weekPagerRef}
+                      weeks={weeks}
+                      initialIndex={weekInitialIndex}
+                      pageIndex={weekPageIndex}
+                      appointmentsCache={cache}
+                      scrollEnabled={sheetOpen}
+                      onDayPress={handleWeekDayPress}
+                      onPageSelected={handleWeekPageSelected}
+                      onPageScrollStateChanged={onWeekPageScrollStateChanged}
+                    />
+                  </Animated.View>
+                ) : null}
+              </Animated.View>
+            </View>
+          </GestureDetector>
+
+          {sheetSnapHeight > 0 ? (
+            <DayEventsSheet
+              ref={sheetRef}
+              dayKey={selectedDayKey}
+              events={events}
+              snapHeight={sheetSnapHeight}
+              animatedIndex={animatedIndex}
+              animatedPosition={animatedPosition}
+              onOpenChange={handleSheetOpenChange}
+            />
+          ) : null}
+        </View>
+
+        <MonthQuickAddField />
       </View>
     </SheetOpenProgressContext.Provider>
   );
