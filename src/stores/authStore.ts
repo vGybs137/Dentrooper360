@@ -5,9 +5,39 @@ import {
   type PersistStorage,
 } from "zustand/middleware";
 
+import { BYPASS_AUTH, DEMO_CUSTOMER_ID } from "@/constants/auth";
 import { AUTH_STORE_KEY } from "@/constants/storage";
 import { getItem, setItem } from "@/helpers/secureStorage";
 import type { AuthSession, AuthUser } from "@/types/auth";
+
+const DEV_MOCK_USER: AuthUser = {
+  id: "00000000-0000-0000-0000-000000000001",
+  fullName: "Dev User",
+  color: null,
+  startingHour: "06:00",
+  endingHour: "22:00",
+};
+
+const DEV_MOCK_SESSION: AuthSession = {
+  accessToken: "dev-bypass-access-token",
+  refreshToken: "dev-bypass-refresh-token",
+  expiresAt: new Date("2099-12-31T23:59:59.000Z"),
+  user: DEV_MOCK_USER,
+};
+
+function applyAuthBypass(): void {
+  if (!BYPASS_AUTH) {
+    return;
+  }
+
+  const store = useAuthStore.getState();
+  if (!store.customerId) {
+    store.setCustomerId(DEMO_CUSTOMER_ID);
+  }
+  if (!store.user || !store.accessToken || !store.refreshToken) {
+    store.setSession(DEV_MOCK_SESSION);
+  }
+}
 
 type PersistedAuthState = {
   user: AuthUser | null;
@@ -83,8 +113,9 @@ export const useAuthStore = create<AuthStoreState>()(
         refreshToken,
         expiresAt,
       }),
-      onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
+      onRehydrateStorage: () => () => {
+        applyAuthBypass();
+        useAuthStore.getState().setHasHydrated(true);
       },
     }
   )
@@ -109,11 +140,13 @@ export async function hydrateAuthStore(): Promise<void> {
 }
 
 export function useAuthUser() {
-  return useAuthStore((state) => state.user);
+  return useAuthStore((state) => state.user ?? (BYPASS_AUTH ? DEV_MOCK_USER : null));
 }
 
 export function useCustomerId() {
-  return useAuthStore((state) => state.customerId);
+  return useAuthStore((state) =>
+    state.customerId ?? (BYPASS_AUTH ? DEMO_CUSTOMER_ID : null),
+  );
 }
 
 export function useAccessToken() {
@@ -140,6 +173,8 @@ export function useHasHydrated() {
 
 export function useIsAuthenticated() {
   return useAuthStore(
-    (state) => Boolean(state.accessToken && state.refreshToken && state.user),
+    (state) =>
+      BYPASS_AUTH ||
+      Boolean(state.accessToken && state.refreshToken && state.user),
   );
 }
