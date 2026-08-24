@@ -4,8 +4,8 @@ export type ForegroundTone = "default" | "muted" | "inverse";
 export type BorderTone = "subtle" | "default" | "strong" | "focus";
 export type AccentTone = "default" | "subtle" | "strong" | "text";
 export type StatusTone = "DEFAULT" | "subtle" | "strong" | "text";
-/** In-month vs out-of-month day cell backgrounds. */
-export type CalendarTone = "default" | "muted";
+/** In-month vs out-of-month day cell backgrounds, plus month quick-add field. */
+export type CalendarTone = "default" | "muted" | "quickAdd";
 
 export type ThemePalette = {
   surface: Record<SurfaceTone, string>;
@@ -64,6 +64,7 @@ export const lightPalette: ThemePalette = {
   calendar: {
     default: "#f8f9fb",
     muted: "#f9fafc",
+    quickAdd: "#fbfcfe",
   },
 };
 
@@ -113,6 +114,7 @@ export const darkPalette: ThemePalette = {
   calendar: {
     default: "#141414",
     muted: "#0d0d0d",
+    quickAdd: "#3f3f3f",
   },
 };
 

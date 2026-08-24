@@ -184,9 +184,14 @@ function MonthQuickAddFieldComponent({
       alignItems: "center" as const,
       paddingLeft: theme.semantic.space.inline.default,
       paddingRight: theme.semantic.space.inline.compact,
-      backgroundColor: theme.palette.surface.raised,
+      backgroundColor: theme.palette.calendar.quickAdd,
       borderRadius: theme.semantic.radius.pill,
-      overflow: "hidden" as const,
+      // Soft lift so the field reads above the calendar in light mode.
+      shadowColor: theme.palette.foreground.default,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+      elevation: theme.semantic.elevation.raised,
     }),
     [theme],
   );
