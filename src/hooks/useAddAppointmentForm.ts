@@ -6,6 +6,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { Alert } from "react-native";
 import { useForm, useWatch } from "react-hook-form";
 
 import database from "@/database";
@@ -200,6 +201,10 @@ export function useAddAppointmentForm() {
   );
 
   const submit = form.handleSubmit(async (data) => {
+    if (isSubmitting) {
+      return;
+    }
+
     if (!user?.id) {
       setSubmitError("You must be signed in to create an appointment.");
       return;
@@ -210,8 +215,14 @@ export function useAddAppointmentForm() {
       return;
     }
 
+    const subject =
+      data.subject.trim() ||
+      selectedPatient?.displayName ||
+      "Appointment";
+
     setIsSubmitting(true);
     setSubmitError(null);
+    requestClose();
 
     try {
       await database.write(async () => {
@@ -221,23 +232,19 @@ export function useAddAppointmentForm() {
           record.patientId = data.patientId || null;
           record.typeId = data.typeId || null;
           record.locationId = data.locationId;
-          record.subject =
-            data.subject.trim() ||
-            selectedPatient?.displayName ||
-            "Appointment";
+          record.subject = subject;
           record.status = "New";
           record.description = data.description.trim() || null;
           record.startTime = data.startTime;
           record.endTime = data.endTime;
         });
       });
-
-      requestClose();
     } catch (error) {
-      setSubmitError(
+      Alert.alert(
+        "Unable to add appointment",
         error instanceof Error
           ? error.message
-          : "Unable to create the appointment. Please try again.",
+          : "Please try again.",
       );
     } finally {
       setIsSubmitting(false);
