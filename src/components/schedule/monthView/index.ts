@@ -22,6 +22,9 @@ export type { MonthGridProps } from "./MonthGrid";
 export { MonthPager } from "./MonthPager";
 export type { MonthPagerProps } from "./MonthPager";
 
+export { MonthQuickAddField } from "./MonthQuickAddField";
+export type { MonthQuickAddFieldProps } from "./MonthQuickAddField";
+
 export { WeekdayHeader } from "./WeekdayHeader";
 export type { WeekdayHeaderProps } from "./WeekdayHeader";
 
