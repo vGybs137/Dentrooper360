@@ -2,6 +2,7 @@ import { memo, useMemo } from "react";
 import { View } from "react-native";
 
 import { ScheduleDrawerToggle } from "@/components/schedule/ScheduleDrawerToggle";
+import { ScheduleSearchToggle } from "@/components/schedule/ScheduleSearchToggle";
 import { ThemedText } from "@/components/ui";
 import { useThemeTokens } from "@/theme";
 
@@ -21,14 +22,6 @@ function ScheduleCalendarHeaderComponent({ title }: ScheduleCalendarHeaderProps)
     [theme],
   );
 
-  const sideSlotStyle = useMemo(
-    () => ({
-      width: theme.semantic.size.touch,
-      minHeight: theme.semantic.size.touch,
-    }),
-    [theme],
-  );
-
   return (
     <View style={rootStyle}>
       <ScheduleDrawerToggle />
@@ -37,7 +30,7 @@ function ScheduleCalendarHeaderComponent({ title }: ScheduleCalendarHeaderProps)
           {title}
         </ThemedText>
       </View>
-      <View style={sideSlotStyle} />
+      <ScheduleSearchToggle />
     </View>
   );
 }
