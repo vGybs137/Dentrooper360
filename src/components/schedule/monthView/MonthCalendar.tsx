@@ -477,7 +477,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
           ) : null}
         </View>
 
-        <MonthQuickAddField />
+        <MonthQuickAddField dayKey={selectedDayKey} events={events} />
       </View>
     </SheetOpenProgressContext.Provider>
   );

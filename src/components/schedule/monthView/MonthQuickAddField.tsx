@@ -1,6 +1,7 @@
 import { SymbolView } from "expo-symbols";
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Alert,
   Keyboard,
   Platform,
   Pressable,
@@ -16,7 +17,12 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+import { createMonthQuickAddAppointment } from "@/helpers/createMonthQuickAddAppointment";
+import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
+import { useAuthUser } from "@/stores";
 import { useThemeTokens } from "@/theme";
+import type { MonthDayEventPreview } from "@/types/schedule";
+import type { DayKey } from "@/utils/calendar";
 
 /** Collapsed pill height (token: control). */
 export const MONTH_QUICK_ADD_COLLAPSED_HEIGHT = 40;
@@ -30,18 +36,26 @@ const FOCUS_ANIMATION = {
 } as const;
 
 export type MonthQuickAddFieldProps = {
+  dayKey: DayKey;
+  events: MonthDayEventPreview[];
   /** Optional controlled placeholder override. */
   placeholder?: string;
 };
 
 function MonthQuickAddFieldComponent({
+  dayKey,
+  events,
   placeholder = "Add appointment...",
 }: MonthQuickAddFieldProps) {
   const theme = useThemeTokens();
+  const user = useAuthUser();
+  const { startHour, endHour } = useUserScheduleHours();
   const reservedRef = useRef<RNView>(null);
   const verticalPadRef = useRef(0);
+  const submittingRef = useRef(false);
   const [text, setText] = useState("");
   const [focused, setFocused] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const focusProgress = useSharedValue(0);
   /** How far to lift the pill so it sits on the keyboard (not full keyboard height). */
   const liftSV = useSharedValue(0);
@@ -51,7 +65,7 @@ function MonthQuickAddFieldComponent({
   const verticalPad = theme.semantic.space.stack.compact;
   verticalPadRef.current = verticalPad;
   const sideInset = theme.semantic.space.page;
-  const canSubmit = text.trim().length > 0;
+  const canSubmit = text.trim().length > 0 && !isSubmitting;
 
   useEffect(() => {
     focusProgress.value = withTiming(focused ? 1 : 0, FOCUS_ANIMATION);
@@ -100,6 +114,40 @@ function MonthQuickAddFieldComponent({
       hideSub.remove();
     };
   }, [liftSV]);
+
+  const handleSubmit = useCallback(async () => {
+    const trimmed = text.trim();
+    if (!trimmed || submittingRef.current) return;
+
+    if (!user?.id) {
+      Alert.alert(
+        "Unable to add appointment",
+        "You must be signed in to create an appointment.",
+      );
+      return;
+    }
+
+    submittingRef.current = true;
+    setIsSubmitting(true);
+    Keyboard.dismiss();
+
+    try {
+      const created = await createMonthQuickAddAppointment({
+        text: trimmed,
+        dayKey,
+        events,
+        providerId: user.id,
+        startHour,
+        endHour,
+      });
+      if (created) {
+        setText("");
+      }
+    } finally {
+      submittingRef.current = false;
+      setIsSubmitting(false);
+    }
+  }, [dayKey, endHour, events, startHour, text, user?.id]);
 
   const reservedStyle = useMemo(
     () => ({
@@ -188,6 +236,10 @@ function MonthQuickAddFieldComponent({
             placeholderTextColor={theme.palette.foreground.muted}
             returnKeyType="done"
             blurOnSubmit
+            onSubmitEditing={() => {
+              void handleSubmit();
+            }}
+            editable={!isSubmitting}
             style={inputStyle}
             accessibilityLabel="Quick add appointment"
           />
@@ -198,8 +250,7 @@ function MonthQuickAddFieldComponent({
             disabled={!canSubmit}
             hitSlop={8}
             onPress={() => {
-              // Phase 1: UI only — create wiring comes later.
-              Keyboard.dismiss();
+              void handleSubmit();
             }}
             style={plusHitStyle}
           >
