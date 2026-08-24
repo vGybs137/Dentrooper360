@@ -2,14 +2,10 @@ import { useRouter, type Href } from "expo-router";
 import { memo, useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { withOpacity } from "@/helpers/color";
 import { useThemeTokens } from "@/theme";
 import { formatTimeRange } from "@/utils/calendar";
 
-import {
-  MONTH_VIEW_EVENT_CARD_BRAND_ALPHA,
-  MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
-} from "@/constants/schedule";
+import { MONTH_VIEW_EVENT_LIST_RAIL_WIDTH } from "@/constants/schedule";
 import type { MonthDayEventPreview } from "@/types/schedule";
 
 export type DayEventListItemProps = {
@@ -32,10 +28,7 @@ function DayEventListItemComponent({ event }: DayEventListItemProps) {
       paddingVertical: theme.semantic.space.stack.compact,
       paddingLeft: theme.semantic.space.stack.compact,
       paddingRight: theme.semantic.space.stack.default,
-      backgroundColor: withOpacity(
-        theme.colors.brand,
-        MONTH_VIEW_EVENT_CARD_BRAND_ALPHA,
-      ),
+      gap: theme.semantic.space.stack.compact,
       borderColor: theme.colors.borderStrong,
     }),
     [theme],

@@ -18,7 +18,10 @@ import { useThemeTokens } from "@/theme";
 import type { DayKey } from "@/utils/calendar";
 
 import { MONTH_VIEW_SHEET_SNAP_INSTANT } from "@/constants/schedule";
-import type { DayEventsSheetHandle, MonthDayEventPreview } from "@/types/schedule";
+import type {
+  DayEventsSheetHandle,
+  MonthDayEventPreview,
+} from "@/types/schedule";
 
 import { DayEventListItem } from "./DayEventListItem";
 
@@ -142,6 +145,19 @@ const DayEventsSheetInner = forwardRef<
     [],
   );
 
+  const ItemSeparator = useCallback(
+    () => (
+      <View
+        className="mx-page"
+        style={{
+          height: theme.semantic.borderWidth.subtle,
+          backgroundColor: theme.palette.border.subtle,
+        }}
+      />
+    ),
+    [theme],
+  );
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -153,7 +169,10 @@ const DayEventsSheetInner = forwardRef<
       animatedPosition={animatedPosition}
       onChange={handleChange}
       activeOffsetY={[-1, 1]}
-      failOffsetX={[-theme.semantic.space.inline.compact, theme.semantic.space.inline.compact]}
+      failOffsetX={[
+        -theme.semantic.space.inline.compact,
+        theme.semantic.space.inline.compact,
+      ]}
       handleIndicatorStyle={handleIndicatorStyle}
       backgroundStyle={backgroundStyle}
       style={sheetStyle}
@@ -162,6 +181,7 @@ const DayEventsSheetInner = forwardRef<
         data={events}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
+        ItemSeparatorComponent={ItemSeparator}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={ListEmpty}
         stickyHeaderIndices={[0]}
