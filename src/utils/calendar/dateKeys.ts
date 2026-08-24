@@ -202,6 +202,18 @@ export function formatDayKeyDayWeekdayParts(
   };
 }
 
+/** e.g. { day: "16", weekday: "Sun" } */
+export function formatDayKeyDayWeekdayShortParts(
+  dayKey: DayKey,
+  locale?: string,
+): { day: string; weekday: string } {
+  const date = toLocalDate(parseDayKey(dayKey));
+  return {
+    day: new Intl.DateTimeFormat(locale, { day: "numeric" }).format(date),
+    weekday: new Intl.DateTimeFormat(locale, { weekday: "short" }).format(date),
+  };
+}
+
 /** e.g. "16 Sunday" */
 export function formatDayKeyDayWeekdayLabel(
   dayKey: DayKey,

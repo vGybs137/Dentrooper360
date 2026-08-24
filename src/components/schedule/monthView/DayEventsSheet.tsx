@@ -12,9 +12,10 @@ import {
 import { View } from "react-native";
 import type { SharedValue } from "react-native-reanimated";
 
+import { DayHeaderLabel } from "@/components/schedule/DayHeaderLabel";
 import { ThemedText } from "@/components/ui";
 import { useThemeTokens } from "@/theme";
-import { formatDayKeyLabel, type DayKey } from "@/utils/calendar";
+import type { DayKey } from "@/utils/calendar";
 
 import { MONTH_VIEW_SHEET_SNAP_INSTANT } from "@/constants/schedule";
 import type { DayEventsSheetHandle, MonthDayEventPreview } from "@/types/schedule";
@@ -109,9 +110,7 @@ const DayEventsSheetInner = forwardRef<
 
   const listContentStyle = useMemo(
     () => ({
-      paddingTop: theme.semantic.space.stack.compact,
       paddingBottom: theme.semantic.space.section,
-      gap: theme.semantic.space.gap.compact,
     }),
     [theme],
   );
@@ -121,19 +120,15 @@ const DayEventsSheetInner = forwardRef<
       <View
         className="px-page pb-stack pt-stack-compact"
         style={{
+          backgroundColor: theme.palette.surface.default,
           borderBottomWidth: theme.semantic.borderWidth.subtle,
           borderBottomColor: theme.palette.border.subtle,
         }}
       >
-        <ThemedText variant="title">{formatDayKeyLabel(dayKey)}</ThemedText>
-        <ThemedText tone="muted" variant="label">
-          {events.length === 0
-            ? "No appointments"
-            : `${events.length} appointment${events.length === 1 ? "" : "s"}`}
-        </ThemedText>
+        <DayHeaderLabel dayKey={dayKey} weekdayFormat="short" />
       </View>
     ),
-    [dayKey, events.length, theme],
+    [dayKey, theme],
   );
 
   const ListEmpty = useMemo(
@@ -169,6 +164,7 @@ const DayEventsSheetInner = forwardRef<
         renderItem={renderItem}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={ListEmpty}
+        stickyHeaderIndices={[0]}
         contentContainerStyle={listContentStyle}
       />
     </BottomSheet>

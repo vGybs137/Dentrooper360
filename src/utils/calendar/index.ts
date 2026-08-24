@@ -18,6 +18,7 @@ export {
   formatDayKeyLabel,
   formatDayKeyDayWeekdayLabel,
   formatDayKeyDayWeekdayParts,
+  formatDayKeyDayWeekdayShortParts,
   formatDayKeyMonthShort,
   formatTimeRange,
   formatWeekHeaderMonthLabel,
