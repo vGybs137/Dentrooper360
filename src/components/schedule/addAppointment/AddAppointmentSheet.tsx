@@ -75,6 +75,7 @@ export function AddAppointmentSheet() {
     canSubmit,
     isSubmitting,
     submitError,
+    isEditing,
     goNext,
     goBack,
     submit,
@@ -269,8 +270,12 @@ export function AddAppointmentSheet() {
                 step === "patient"
                   ? "Next"
                   : isSubmitting
-                    ? "Adding..."
-                    : "Add"
+                    ? isEditing
+                      ? "Saving..."
+                      : "Adding..."
+                    : isEditing
+                      ? "Save"
+                      : "Add"
               }
               onPress={step === "patient" ? handleNext : handleSubmit}
               tone="brand"
@@ -286,6 +291,7 @@ export function AddAppointmentSheet() {
       handleNext,
       handleSubmit,
       insets.bottom,
+      isEditing,
       isSubmitting,
       step,
       submitError,
@@ -364,7 +370,9 @@ export function AddAppointmentSheet() {
             paddingHorizontal: theme.semantic.space.inline.default,
           }}
         >
-          <ThemedText variant="title">Add Appointment</ThemedText>
+          <ThemedText variant="title">
+            {isEditing ? "Edit Appointment" : "Add Appointment"}
+          </ThemedText>
           <Pressable
             accessibilityLabel="Close add appointment"
             hitSlop={12}

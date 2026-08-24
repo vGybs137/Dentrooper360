@@ -1,6 +1,8 @@
 import dayjs from "dayjs";
 import { create } from "zustand";
 
+import type { PatientCardData } from "@/helpers/patientDisplay";
+
 export type AppointmentSlot = {
   start: Date;
   end: Date;
@@ -10,13 +12,29 @@ export type AddAppointmentStep = "patient" | "details";
 
 export const ADD_APPOINTMENT_SLOT_DURATION_MINUTES = 60;
 
+export type EditAppointmentDraft = {
+  appointmentId: string;
+  patientId: string | null;
+  patient: PatientCardData | null;
+  subject: string;
+  typeId: string;
+  locationId: string;
+  start: Date;
+  end: Date;
+  description: string;
+};
+
 type AddAppointmentStoreState = {
   slot: AppointmentSlot | null;
   step: AddAppointmentStep;
   /** Whether the sheet should be presented. */
   isPresented: boolean;
+  /** When set, the sheet edits this appointment instead of creating one. */
+  editingAppointmentId: string | null;
+  editDraft: EditAppointmentDraft | null;
   selectSlot: (start: Date) => void;
   open: () => void;
+  openForEdit: (draft: EditAppointmentDraft) => void;
   requestClose: () => void;
   finishClose: () => void;
   goNext: () => void;
@@ -36,14 +54,28 @@ function buildSlot(start: Date): AppointmentSlot {
   };
 }
 
+const CLOSED_STATE = {
+  isPresented: false,
+  slot: null,
+  step: "patient" as const,
+  editingAppointmentId: null,
+  editDraft: null,
+};
+
 export const useAddAppointmentStore = create<AddAppointmentStoreState>(
   (set, get) => ({
     slot: null,
     step: "patient",
     isPresented: false,
+    editingAppointmentId: null,
+    editDraft: null,
 
     selectSlot: (start) => {
-      set({ slot: buildSlot(start) });
+      set({
+        slot: buildSlot(start),
+        editingAppointmentId: null,
+        editDraft: null,
+      });
     },
 
     open: () => {
@@ -55,6 +87,18 @@ export const useAddAppointmentStore = create<AddAppointmentStoreState>(
       set({
         isPresented: true,
         step: "patient",
+        editingAppointmentId: null,
+        editDraft: null,
+      });
+    },
+
+    openForEdit: (draft) => {
+      set({
+        slot: { start: draft.start, end: draft.end },
+        editingAppointmentId: draft.appointmentId,
+        editDraft: draft,
+        isPresented: true,
+        step: "details",
       });
     },
 
@@ -67,11 +111,7 @@ export const useAddAppointmentStore = create<AddAppointmentStoreState>(
     },
 
     finishClose: () => {
-      set({
-        isPresented: false,
-        slot: null,
-        step: "patient",
-      });
+      set(CLOSED_STATE);
     },
 
     goNext: () => {
@@ -87,11 +127,7 @@ export const useAddAppointmentStore = create<AddAppointmentStoreState>(
     },
 
     dismissImmediately: () => {
-      set({
-        isPresented: false,
-        slot: null,
-        step: "patient",
-      });
+      set(CLOSED_STATE);
     },
 
     clearOrClose: () => {
@@ -100,11 +136,7 @@ export const useAddAppointmentStore = create<AddAppointmentStoreState>(
         return;
       }
 
-      set({
-        isPresented: false,
-        slot: null,
-        step: "patient",
-      });
+      set(CLOSED_STATE);
     },
   }),
 );
@@ -119,4 +151,8 @@ export function useAddAppointmentIsPresented() {
 
 export function useAddAppointmentStep() {
   return useAddAppointmentStore((state) => state.step);
+}
+
+export function useAddAppointmentEditingId() {
+  return useAddAppointmentStore((state) => state.editingAppointmentId);
 }

@@ -6,6 +6,7 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Stack } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
+import { AddAppointmentSheet } from "@/components/schedule/addAppointment";
 import { keepNativeSplashVisible } from "@/helpers/nativeSplash";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/theme";
@@ -28,6 +29,7 @@ export default function RootLayout() {
               <Stack.Screen name="patients/[id]" />
               <Stack.Screen name="recalls/[id]" />
             </Stack>
+            <AddAppointmentSheet />
           </BottomSheetModalProvider>
         </ThemeProvider>
       </QueryProvider>

@@ -31,6 +31,7 @@ export {
 export type { ScheduleViewMode } from "./scheduleViewModeStore";
 export {
   ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
+  useAddAppointmentEditingId,
   useAddAppointmentIsPresented,
   useAddAppointmentSlot,
   useAddAppointmentStep,
@@ -39,4 +40,5 @@ export {
 export type {
   AddAppointmentStep,
   AppointmentSlot,
+  EditAppointmentDraft,
 } from "./addAppointmentStore";

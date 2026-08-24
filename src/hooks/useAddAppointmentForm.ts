@@ -52,9 +52,14 @@ export function useAddAppointmentForm() {
   const slot = useAddAppointmentSlot();
   const isPresented = useAddAppointmentIsPresented();
   const step = useAddAppointmentStep();
+  const editingAppointmentId = useAddAppointmentStore(
+    (state) => state.editingAppointmentId,
+  );
+  const editDraft = useAddAppointmentStore((state) => state.editDraft);
   const storeGoNext = useAddAppointmentStore((state) => state.goNext);
   const storeGoBack = useAddAppointmentStore((state) => state.goBack);
   const requestClose = useAddAppointmentStore((state) => state.requestClose);
+  const isEditing = Boolean(editingAppointmentId);
 
   const [patientSearch, setPatientSearch] = useState("");
   const deferredPatientSearch = useDeferredValue(patientSearch);
@@ -88,6 +93,21 @@ export function useAddAppointmentForm() {
 
     setPatientSearch("");
     setSubmitError(null);
+
+    if (editDraft && editingAppointmentId) {
+      setSelectedPatientCache(editDraft.patient);
+      form.reset({
+        patientId: editDraft.patientId,
+        subject: editDraft.subject,
+        typeId: editDraft.typeId,
+        locationId: editDraft.locationId,
+        startTime: editDraft.start,
+        endTime: editDraft.end,
+        description: editDraft.description,
+      });
+      return;
+    }
+
     setSelectedPatientCache(null);
     form.reset({
       patientId: null,
@@ -98,7 +118,14 @@ export function useAddAppointmentForm() {
       endTime: slot.end,
       description: "",
     });
-  }, [form, isPresented, slot?.start.getTime(), slot?.end.getTime()]);
+  }, [
+    editDraft,
+    editingAppointmentId,
+    form,
+    isPresented,
+    slot?.start.getTime(),
+    slot?.end.getTime(),
+  ]);
 
   const selectedPatient: AppointmentPatientOption | null = useMemo(() => {
     if (!patientId) {
@@ -206,7 +233,11 @@ export function useAddAppointmentForm() {
     }
 
     if (!user?.id) {
-      setSubmitError("You must be signed in to create an appointment.");
+      setSubmitError(
+        isEditing
+          ? "You must be signed in to update this appointment."
+          : "You must be signed in to create an appointment.",
+      );
       return;
     }
 
@@ -215,7 +246,7 @@ export function useAddAppointmentForm() {
       return;
     }
 
-    const subject =
+    const nextSubject =
       data.subject.trim() ||
       selectedPatient?.displayName ||
       "Appointment";
@@ -226,13 +257,29 @@ export function useAddAppointmentForm() {
 
     try {
       await database.write(async () => {
+        if (editingAppointmentId) {
+          const appointment = await database
+            .get<Appointment>("appointments")
+            .find(editingAppointmentId);
+          await appointment.update((record) => {
+            record.patientId = data.patientId || null;
+            record.typeId = data.typeId || null;
+            record.locationId = data.locationId;
+            record.subject = nextSubject;
+            record.description = data.description.trim() || null;
+            record.startTime = data.startTime;
+            record.endTime = data.endTime;
+          });
+          return;
+        }
+
         await database.get<Appointment>("appointments").create((record) => {
           record._raw.id = generateGuid();
           record.providerId = user.id;
           record.patientId = data.patientId || null;
           record.typeId = data.typeId || null;
           record.locationId = data.locationId;
-          record.subject = subject;
+          record.subject = nextSubject;
           record.status = "New";
           record.description = data.description.trim() || null;
           record.startTime = data.startTime;
@@ -241,10 +288,8 @@ export function useAddAppointmentForm() {
       });
     } catch (error) {
       Alert.alert(
-        "Unable to add appointment",
-        error instanceof Error
-          ? error.message
-          : "Please try again.",
+        isEditing ? "Unable to update appointment" : "Unable to add appointment",
+        error instanceof Error ? error.message : "Please try again.",
       );
     } finally {
       setIsSubmitting(false);
@@ -256,6 +301,7 @@ export function useAddAppointmentForm() {
     setValue: form.setValue,
     options,
     step,
+    isEditing,
     patientSearch,
     setPatientSearch,
     selectedPatient,

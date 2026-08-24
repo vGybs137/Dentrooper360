@@ -141,7 +141,16 @@ export function useMonthAppointmentsCache({
           Q.where("start_time", Q.gte(startMs)),
           Q.where("start_time", Q.lt(endMs)),
         )
-        .observe()
+        .observeWithColumns([
+          "patient_id",
+          "type_id",
+          "location_id",
+          "subject",
+          "status",
+          "description",
+          "start_time",
+          "end_time",
+        ])
         .subscribe({
           next: (appointments) => {
             publishMonth(monthKey, appointments);

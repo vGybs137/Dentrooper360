@@ -163,7 +163,16 @@ export function useWeekAppointmentsCache({
           Q.where("start_time", Q.gte(weekStartMs)),
           Q.where("start_time", Q.lt(weekEndMs)),
         )
-        .observe()
+        .observeWithColumns([
+          "patient_id",
+          "type_id",
+          "location_id",
+          "subject",
+          "status",
+          "description",
+          "start_time",
+          "end_time",
+        ])
         .subscribe({
           next: (appointments) => {
             publishWeek(weekStartKey, appointments);
