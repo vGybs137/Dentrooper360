@@ -78,6 +78,8 @@ export type UseVisibleMonthResult = {
 /**
  * Tracks the settled pager page for grids, and a separate header month that
  * jumps to the destination as soon as swipe direction (or a tap target) is known.
+ * pageIndex also tracks scroll progress while dragging/settling so fast flings
+ * keep neighbor MonthGrids mounted (render radius 1).
  * Month window is frozen around the center month from first mount.
  */
 export function useVisibleMonth(
@@ -110,29 +112,19 @@ export function useVisibleMonth(
     setHeaderPageIndexState(next);
   }, []);
 
+  /** Mount nearby grids from scroll position without touching the header. */
+  const setRenderPageIndex = useCallback((next: number) => {
+    if (pageIndexRef.current === next) return;
+    pageIndexRef.current = next;
+    setPageIndexState(next);
+  }, []);
+
   const setPageIndex = useCallback(
     (next: number) => {
-      if (pageIndexRef.current !== next) {
-        pageIndexRef.current = next;
-        setPageIndexState(next);
-      }
+      setRenderPageIndex(next);
       setHeaderPageIndex(next);
     },
-    [setHeaderPageIndex],
-  );
-
-  const commitHeaderFromScroll = useCallback(
-    (position: number, offset: number, prevProgress: number) => {
-      const progress = position + offset;
-      const directed = headerIndexFromScrollDirection(prevProgress, progress);
-      if (directed != null) {
-        setHeaderPageIndex(directed);
-        return;
-      }
-      // No delta yet (e.g. settle just started): use drag halfway commit.
-      setHeaderPageIndex(committedPageIndex(position, offset));
-    },
-    [setHeaderPageIndex],
+    [setHeaderPageIndex, setRenderPageIndex],
   );
 
   const onPageScroll = useCallback(
@@ -140,19 +132,33 @@ export function useVisibleMonth(
       const { position, offset } = event.nativeEvent;
       const prev = lastScrollRef.current;
       const prevProgress = prev.position + prev.offset;
+      const progress = position + offset;
       lastScrollRef.current = { position, offset };
+
+      // Keep render window under the finger during fast multi-page flings.
+      setRenderPageIndex(Math.round(progress));
 
       const state = scrollStateRef.current;
       if (state === "dragging") {
-        // Destination known at halfway — same eager header jump as a tap target.
         setHeaderPageIndex(committedPageIndex(position, offset));
         return;
       }
 
       // Settling / programmatic setPage: jump header to destination from direction.
-      commitHeaderFromScroll(position, offset, prevProgress);
+      // Large progress jumps (quick fling) snap header to the rounded page.
+      if (Math.abs(progress - prevProgress) > 0.45) {
+        setHeaderPageIndex(Math.round(progress));
+        return;
+      }
+
+      const directed = headerIndexFromScrollDirection(prevProgress, progress);
+      if (directed != null) {
+        setHeaderPageIndex(directed);
+        return;
+      }
+      setHeaderPageIndex(committedPageIndex(position, offset));
     },
-    [commitHeaderFromScroll, setHeaderPageIndex],
+    [setHeaderPageIndex, setRenderPageIndex],
   );
 
   const onPageSelected = useCallback(
@@ -169,13 +175,15 @@ export function useVisibleMonth(
       scrollStateRef.current = nextState;
       setIsDragging(nextState !== "idle");
 
-      // As soon as we enter settling, commit header to the destination once
-      // (mirrors out-of-month tap calling setHeaderPageIndex(target) eagerly).
       if (nextState === "settling" && prevState !== "settling") {
         const { position, offset } = lastScrollRef.current;
         const progress = position + offset;
         const from = pageIndexRef.current;
-        if (progress > from + 1e-4) {
+        setRenderPageIndex(Math.round(progress));
+
+        if (Math.abs(progress - from) > 0.45) {
+          setHeaderPageIndex(Math.round(progress));
+        } else if (progress > from + 1e-4) {
           setHeaderPageIndex(Math.ceil(progress - 1e-6));
         } else if (progress < from - 1e-4) {
           setHeaderPageIndex(Math.floor(progress + 1e-6));
@@ -184,7 +192,7 @@ export function useVisibleMonth(
         }
       }
     },
-    [setHeaderPageIndex],
+    [setHeaderPageIndex, setRenderPageIndex],
   );
 
   return {
