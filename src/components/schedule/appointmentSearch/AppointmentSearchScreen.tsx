@@ -16,58 +16,63 @@ import {
   AppointmentSearchBar,
   getAppointmentSearchBarReservedHeight,
 } from "@/components/schedule/appointmentSearch/AppointmentSearchBar";
+import { AppointmentSearchFiltersCard } from "@/components/schedule/appointmentSearch/AppointmentSearchFiltersCard";
 import { AppointmentSearchResultItem } from "@/components/schedule/appointmentSearch/AppointmentSearchResultItem";
 import { ThemedText } from "@/components/ui";
 import { useAppointmentSearch } from "@/hooks/useAppointmentSearch";
 import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
 
-function SearchStatusContent({
+function SearchListEmptyContent({
   error,
-  hasQuery,
+  hasActiveFilters,
   isLoading,
+  onToggleType,
   query,
+  selectedTypeIds,
+  typeOptions,
 }: {
   error: unknown;
-  hasQuery: boolean;
+  hasActiveFilters: boolean;
   isLoading: boolean;
+  onToggleType: (typeId: string) => void;
   query: string;
+  selectedTypeIds: readonly string[];
+  typeOptions: ReturnType<typeof useAppointmentSearch>["typeOptions"];
 }) {
   const theme = useThemeTokens();
 
-  if (!hasQuery) {
-    return (
-      <View className="px-page pt-stack-default">
-        <ThemedText align="center" tone="muted" variant="body">
-          Enter a subject to find appointments.
-        </ThemedText>
-      </View>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <View className="items-center pt-stack-default">
-        <ActivityIndicator color={theme.palette.brand.default} />
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View className="px-page pt-stack-default">
-        <ThemedText tone="alert" variant="body">
-          Unable to search appointments.
-        </ThemedText>
-      </View>
-    );
-  }
-
   return (
-    <View className="px-page pt-stack-default">
-      <ThemedText align="center" tone="muted" variant="body">
-        No appointments match &quot;{query.trim()}&quot;.
-      </ThemedText>
+    <View>
+      <AppointmentSearchFiltersCard
+        onToggleType={onToggleType}
+        selectedTypeIds={selectedTypeIds}
+        types={typeOptions}
+      />
+
+      {isLoading ? (
+        <View className="items-center pt-stack-default">
+          <ActivityIndicator color={theme.palette.brand.default} />
+        </View>
+      ) : null}
+
+      {error ? (
+        <View className="px-page pt-stack-default">
+          <ThemedText align="center" tone="alert" variant="body">
+            Unable to search appointments.
+          </ThemedText>
+        </View>
+      ) : null}
+
+      {!isLoading && !error && hasActiveFilters ? (
+        <View className="px-page pt-stack-default">
+          <ThemedText align="center" tone="muted" variant="body">
+            {query.trim().length > 0
+              ? `No appointments match "${query.trim()}".`
+              : "No appointments match the selected types."}
+          </ThemedText>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -98,8 +103,13 @@ export function AppointmentSearchScreen() {
   const { height: windowHeight } = useWindowDimensions();
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const { results, isLoading, error } = useAppointmentSearch(query);
+  const [selectedTypeIds, setSelectedTypeIds] = useState<string[]>([]);
+  const { results, typeOptions, isLoading, error } = useAppointmentSearch(
+    query,
+    selectedTypeIds,
+  );
   const hasQuery = query.trim().length > 0;
+  const hasActiveFilters = hasQuery || selectedTypeIds.length > 0;
   const scrollY = useSharedValue(0);
   const savedScrollOffset = useRef(0);
   const flatListRef = useRef<Animated.FlatList<MonthDayEventPreview>>(null);
@@ -107,6 +117,23 @@ export function AppointmentSearchScreen() {
   const persistScrollOffset = useCallback((offset: number) => {
     savedScrollOffset.current = offset;
   }, []);
+
+  const toggleTypeFilter = useCallback((typeId: string) => {
+    setSelectedTypeIds((current) =>
+      current.includes(typeId)
+        ? current.filter((id) => id !== typeId)
+        : [...current, typeId],
+    );
+  }, []);
+
+  const clearTypeFilter = useCallback((typeId: string) => {
+    setSelectedTypeIds((current) => current.filter((id) => id !== typeId));
+  }, []);
+
+  const selectedTypes = useMemo(
+    () => typeOptions.filter((type) => selectedTypeIds.includes(type.id)),
+    [selectedTypeIds, typeOptions],
+  );
 
   const searchBarReservedHeight = useMemo(
     () => getAppointmentSearchBarReservedHeight(insets.bottom, theme),
@@ -151,7 +178,7 @@ export function AppointmentSearchScreen() {
     requestAnimationFrame(() => {
       flatListRef.current?.scrollToOffset({ offset, animated: false });
     });
-  }, [results, isLoading, error, hasQuery, scrollY]);
+  }, [results, isLoading, error, hasQuery, selectedTypeIds, scrollY]);
 
   const renderItem = useCallback(
     ({ item }: { item: MonthDayEventPreview }) => (
@@ -174,14 +201,25 @@ export function AppointmentSearchScreen() {
 
   const listEmptyComponent = useMemo(
     () => (
-      <SearchStatusContent
+      <SearchListEmptyContent
         error={error}
-        hasQuery={hasQuery}
+        hasActiveFilters={hasActiveFilters}
         isLoading={isLoading}
+        onToggleType={toggleTypeFilter}
         query={query}
+        selectedTypeIds={selectedTypeIds}
+        typeOptions={typeOptions}
       />
     ),
-    [error, hasQuery, isLoading, query],
+    [
+      error,
+      hasActiveFilters,
+      isLoading,
+      query,
+      selectedTypeIds,
+      toggleTypeFilter,
+      typeOptions,
+    ],
   );
 
   const contentContainerStyle = useMemo(
@@ -216,11 +254,14 @@ export function AppointmentSearchScreen() {
       <AppointmentSearchBackButton
         collapseScrollDistance={collapseScrollDistance}
         initialTop={initialChevronTop}
+        onClearType={clearTypeFilter}
         onPress={goBack}
         pinnedTop={pinnedChevronTop}
         safeAreaLeft={insets.left}
+        safeAreaRight={insets.right}
         safeAreaTop={insets.top}
         scrollY={scrollY}
+        selectedTypes={selectedTypes}
       />
     </View>
   );

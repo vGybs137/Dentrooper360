@@ -31,14 +31,24 @@ function toPreview(
   };
 }
 
+export type AppointmentSearchTypeOption = {
+  id: string;
+  name: string;
+  color: string | null;
+};
+
 export type UseAppointmentSearchResult = {
   results: MonthDayEventPreview[];
+  typeOptions: AppointmentSearchTypeOption[];
   isLoading: boolean;
   error: Error | null;
 };
 
-/** Live appointment search filtered by subject (case-insensitive substring). */
-export function useAppointmentSearch(query: string): UseAppointmentSearchResult {
+/** Live appointment search filtered by subject and optional appointment types. */
+export function useAppointmentSearch(
+  query: string,
+  selectedTypeIds: readonly string[] = [],
+): UseAppointmentSearchResult {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [types, setTypes] = useState(
     new Map<string, { color: string | null; name: string }>(),
@@ -97,18 +107,47 @@ export function useAppointmentSearch(query: string): UseAppointmentSearchResult 
     };
   }, []);
 
+  const typeOptions = useMemo<AppointmentSearchTypeOption[]>(
+    () =>
+      Array.from(types.entries())
+        .map(([id, type]) => ({
+          id,
+          name: type.name,
+          color: type.color,
+        }))
+        .filter((type) => type.name.length > 0)
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [types],
+  );
+
   const results = useMemo(() => {
     const trimmedQuery = query.trim();
-    if (!trimmedQuery) {
+    const hasQuery = trimmedQuery.length > 0;
+    const hasTypeFilter = selectedTypeIds.length > 0;
+
+    if (!hasQuery && !hasTypeFilter) {
       return [];
     }
 
-    return appointments
-      .filter((appointment) =>
-        matchesSubjectSearch(appointment.subject ?? "", trimmedQuery),
-      )
-      .map((appointment) => toPreview(appointment, types));
-  }, [appointments, query, types]);
+    const selectedTypeIdSet = new Set(selectedTypeIds);
 
-  return { results, isLoading, error };
+    return appointments
+      .filter((appointment) => {
+        if (
+          hasTypeFilter &&
+          (!appointment.typeId || !selectedTypeIdSet.has(appointment.typeId))
+        ) {
+          return false;
+        }
+
+        if (hasQuery && !matchesSubjectSearch(appointment.subject ?? "", trimmedQuery)) {
+          return false;
+        }
+
+        return true;
+      })
+      .map((appointment) => toPreview(appointment, types));
+  }, [appointments, query, selectedTypeIds, types]);
+
+  return { results, typeOptions, isLoading, error };
 }
