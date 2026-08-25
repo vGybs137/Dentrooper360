@@ -10,8 +10,14 @@ import { View } from "react-native";
 import PagerView from "react-native-pager-view";
 
 import type { MonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
+import { monthEventsSlice } from "@/helpers/scheduleEvents";
 import { useThemeTokens } from "@/theme";
-import type { DayKey } from "@/utils/calendar";
+import {
+  addMonths,
+  focusMonthForWeek,
+  toMonthKey,
+  type DayKey,
+} from "@/utils/calendar";
 
 import { MONTH_VIEW_PAGER_RENDER_RADIUS } from "@/constants/schedule";
 import type { DayPressHandler, WeekPagerHandle } from "@/types/schedule";
@@ -43,6 +49,7 @@ type PagerViewRef = ComponentRef<typeof PagerView>;
 /**
  * Horizontal snapped week pages (sheet-open mode).
  * Only nearby pages mount a real WeekStrip for scroll performance.
+ * Each strip receives focus-month (+ neighbor) day maps only.
  */
 const WeekPagerInner = forwardRef<WeekPagerHandle, WeekPagerProps>(
   function WeekPagerInner(
@@ -80,6 +87,8 @@ const WeekPagerInner = forwardRef<WeekPagerHandle, WeekPagerProps>(
         weeks.map((weekStartKey, index) => {
           const shouldRender =
             Math.abs(index - pageIndex) <= MONTH_VIEW_PAGER_RENDER_RADIUS;
+          const focusMonth = focusMonthForWeek(weekStartKey);
+          const monthKey = toMonthKey(focusMonth);
           return (
             <View
               key={weekStartKey}
@@ -89,7 +98,15 @@ const WeekPagerInner = forwardRef<WeekPagerHandle, WeekPagerProps>(
               {shouldRender ? (
                 <WeekStrip
                   weekStartKey={weekStartKey}
-                  appointmentsCache={appointmentsCache}
+                  eventsByDay={monthEventsSlice(appointmentsCache, monthKey)}
+                  prevMonthEventsByDay={monthEventsSlice(
+                    appointmentsCache,
+                    toMonthKey(addMonths(focusMonth, -1)),
+                  )}
+                  nextMonthEventsByDay={monthEventsSlice(
+                    appointmentsCache,
+                    toMonthKey(addMonths(focusMonth, 1)),
+                  )}
                   onDayPress={onDayPress}
                 />
               ) : (

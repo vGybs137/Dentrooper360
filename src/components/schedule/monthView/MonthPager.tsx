@@ -10,8 +10,10 @@ import { View } from "react-native";
 import PagerView from "react-native-pager-view";
 
 import type { MonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
+import { monthEventsSlice } from "@/helpers/scheduleEvents";
 import { useThemeTokens } from "@/theme";
 import {
+  addMonths,
   toMonthKey,
   type WeekdayIndex,
   type YearMonth,
@@ -52,6 +54,8 @@ type PagerViewRef = ComponentRef<typeof PagerView>;
 /**
  * Horizontal snapped month pages.
  * Only nearby pages mount a real MonthGrid for scroll performance.
+ * Each grid receives only its month (+ neighbor) day maps so cache writes
+ * to other months keep stable props for memoized grids.
  */
 const MonthPagerInner = forwardRef<MonthPagerHandle, MonthPagerProps>(
   function MonthPagerInner(
@@ -91,9 +95,10 @@ const MonthPagerInner = forwardRef<MonthPagerHandle, MonthPagerProps>(
         months.map((yearMonth, index) => {
           const shouldRender =
             Math.abs(index - pageIndex) <= MONTH_VIEW_PAGER_RENDER_RADIUS;
+          const monthKey = toMonthKey(yearMonth);
           return (
             <View
-              key={toMonthKey(yearMonth)}
+              key={monthKey}
               collapsable={false}
               className="flex-1"
             >
@@ -101,7 +106,15 @@ const MonthPagerInner = forwardRef<MonthPagerHandle, MonthPagerProps>(
                 <MonthGrid
                   yearMonth={yearMonth}
                   weekStartsOn={weekStartsOn}
-                  appointmentsCache={appointmentsCache}
+                  eventsByDay={monthEventsSlice(appointmentsCache, monthKey)}
+                  prevMonthEventsByDay={monthEventsSlice(
+                    appointmentsCache,
+                    toMonthKey(addMonths(yearMonth, -1)),
+                  )}
+                  nextMonthEventsByDay={monthEventsSlice(
+                    appointmentsCache,
+                    toMonthKey(addMonths(yearMonth, 1)),
+                  )}
                   onDayPress={onDayPress}
                 />
               ) : (

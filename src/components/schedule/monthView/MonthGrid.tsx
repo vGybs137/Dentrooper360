@@ -1,37 +1,50 @@
 import { memo, useCallback, useMemo, useState } from "react";
 import { View, type LayoutChangeEvent } from "react-native";
 
-import type { MonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
+import type { MonthEventsByDay } from "@/hooks/schedule/useMonthAppointmentsCache";
 import { useThemeTokens } from "@/theme";
 import {
+  addMonths,
   buildMonthGrid,
   MONTH_GRID_COLS,
   MONTH_GRID_ROWS,
-  type DayKey,
+  toMonthKey,
   type WeekdayIndex,
   type YearMonth,
 } from "@/utils/calendar";
 
 import { DayCell } from "./DayCell";
-import { eventsForDay } from "@/helpers/scheduleEvents";
+import {
+  EMPTY_MONTH_EVENTS,
+  eventsForDayWithNeighbors,
+} from "@/helpers/scheduleEvents";
 import type { DayPressHandler } from "@/types/schedule";
 
 export type MonthGridProps = {
   yearMonth: YearMonth;
   weekStartsOn?: WeekdayIndex;
-  /** Full month cache so in/out-of-month cells can resolve neighbor days. */
-  appointmentsCache?: MonthAppointmentsCache;
+  /** Day map for this grid's month — stable identity unless this month changes. */
+  eventsByDay?: MonthEventsByDay;
+  /** Prev/next month maps for leading/trailing out-of-month cells. */
+  prevMonthEventsByDay?: MonthEventsByDay;
+  nextMonthEventsByDay?: MonthEventsByDay;
   onDayPress?: DayPressHandler;
 };
 
 function MonthGridComponent({
   yearMonth,
   weekStartsOn = 0,
-  appointmentsCache = {},
+  eventsByDay = EMPTY_MONTH_EVENTS,
+  prevMonthEventsByDay = EMPTY_MONTH_EVENTS,
+  nextMonthEventsByDay = EMPTY_MONTH_EVENTS,
   onDayPress,
 }: MonthGridProps) {
   const theme = useThemeTokens();
   const [{ width, height }, setSize] = useState({ width: 0, height: 0 });
+
+  const monthKey = toMonthKey(yearMonth);
+  const prevMonthKey = toMonthKey(addMonths(yearMonth, -1));
+  const nextMonthKey = toMonthKey(addMonths(yearMonth, 1));
 
   const grid = useMemo(
     () => buildMonthGrid(yearMonth, { weekStartsOn }),
@@ -101,7 +114,15 @@ function MonthGridComponent({
                       height={rowHeight}
                       columnIndex={columnIndex}
                       rowIndex={rowIndex}
-                      events={eventsForDay(appointmentsCache, cell.dayKey)}
+                      events={eventsForDayWithNeighbors(
+                        cell.dayKey,
+                        monthKey,
+                        eventsByDay,
+                        prevMonthKey,
+                        prevMonthEventsByDay,
+                        nextMonthKey,
+                        nextMonthEventsByDay,
+                      )}
                       onDayPress={onDayPress}
                     />
                   );

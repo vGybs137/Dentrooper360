@@ -6,6 +6,10 @@ import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import type AppointmentType from "@/database/models/AppointmentType";
 import {
+  EMPTY_DAY_EVENTS,
+  EMPTY_MONTH_EVENTS,
+} from "@/helpers/scheduleEvents";
+import {
   addMonths,
   startOfMonthDate,
   startOfNextMonthDate,
@@ -192,15 +196,70 @@ export function useMonthAppointmentsCache({
     [isDragging, subscribeMonth],
   );
 
+  /** Drop observers + cache for months outside the retain window. */
+  const pruneOutsideRetain = useCallback((retainKeys: Set<MonthKey>) => {
+    for (const monthKey of [...subscriptionsRef.current.keys()]) {
+      if (retainKeys.has(monthKey)) continue;
+      subscriptionsRef.current.get(monthKey)?.unsubscribe();
+      subscriptionsRef.current.delete(monthKey);
+      appointmentsByMonthRef.current.delete(monthKey);
+      monthByKeyRef.current.delete(monthKey);
+    }
+
+    for (const monthKey of [...pendingKeysRef.current]) {
+      if (retainKeys.has(monthKey)) continue;
+      pendingKeysRef.current.delete(monthKey);
+    }
+
+    for (const monthKey of [...appointmentsByMonthRef.current.keys()]) {
+      if (retainKeys.has(monthKey)) continue;
+      appointmentsByMonthRef.current.delete(monthKey);
+      monthByKeyRef.current.delete(monthKey);
+    }
+
+    setCache((prev) => {
+      const keys = Object.keys(prev) as MonthKey[];
+      if (keys.length === 0 || keys.every((key) => retainKeys.has(key))) {
+        return prev;
+      }
+      const next: MonthAppointmentsCache = {};
+      for (const key of keys) {
+        if (retainKeys.has(key)) next[key] = prev[key];
+      }
+      return next;
+    });
+  }, []);
+
+  /**
+   * Prefetch visible ±1 and drop everything else.
+   * While dragging, only queue loads + scrub pending; prune after idle so
+   * settled neighbor grids keep their subscriptions until the page commits.
+   */
   const ensureVisibleWindow = useCallback(
     (visibleMonth: YearMonth) => {
-      ensureMonthsLoaded([
+      const retainMonths = [
         addMonths(visibleMonth, -1),
         visibleMonth,
         addMonths(visibleMonth, 1),
-      ]);
+      ];
+      const retainKeys = new Set(
+        retainMonths.map((month) => monthKeyFromYearMonth(month)),
+      );
+
+      ensureMonthsLoaded(retainMonths);
+
+      // Cancelled / reversed swipes should not keep far months queued.
+      for (const monthKey of [...pendingKeysRef.current]) {
+        if (!retainKeys.has(monthKey)) {
+          pendingKeysRef.current.delete(monthKey);
+        }
+      }
+
+      if (isDragging) return;
+
+      pruneOutsideRetain(retainKeys);
     },
-    [ensureMonthsLoaded],
+    [ensureMonthsLoaded, isDragging, pruneOutsideRetain],
   );
 
   useEffect(() => {
@@ -248,19 +307,23 @@ export function useMonthAppointmentsCache({
         subscription.unsubscribe();
       }
       subscriptionsRef.current.clear();
+      appointmentsByMonthRef.current.clear();
+      pendingKeysRef.current.clear();
+      monthByKeyRef.current.clear();
     };
   }, []);
 
   const getEventsForDay = useCallback(
     (dayKey: DayKey): MonthDayEventPreview[] => {
       const monthKey = dayKey.slice(0, 7) as MonthKey;
-      return cache[monthKey]?.[dayKey] ?? [];
+      return cache[monthKey]?.[dayKey] ?? EMPTY_DAY_EVENTS;
     },
     [cache],
   );
 
   const getEventsByDayForMonth = useCallback(
-    (monthKey: MonthKey): MonthEventsByDay => cache[monthKey] ?? {},
+    (monthKey: MonthKey): MonthEventsByDay =>
+      cache[monthKey] ?? EMPTY_MONTH_EVENTS,
     [cache],
   );
 

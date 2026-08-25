@@ -86,6 +86,17 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
   const events = getEventsForDay(selectedDayKey);
 
   const [sheetOpen, setSheetOpen] = useState(false);
+
+  /**
+   * While the sheet is settled open, freeze the month pager on the last cache
+   * snapshot so appointment writes don't rebuild its page tree (opacity 0).
+   * Week pager keeps the live cache for chips/dots + sheet list.
+   */
+  const frozenMonthCacheRef = useRef(cache);
+  if (!sheetOpen) {
+    frozenMonthCacheRef.current = cache;
+  }
+  const monthPagerCache = sheetOpen ? frozenMonthCacheRef.current : cache;
   const selectedMonthKey = selectedDayKey.slice(0, 7);
   const headerMonth = useMemo(() => {
     if (!sheetOpen) return pagerHeaderMonth;
@@ -433,7 +444,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
                     initialIndex={initialIndex}
                     pageIndex={pageIndex}
                     weekStartsOn={weekStartsOn}
-                    appointmentsCache={cache}
+                    appointmentsCache={monthPagerCache}
                     scrollEnabled={!sheetOpen}
                     onDayPress={handleDayPress}
                     onPageScroll={onPageScroll}

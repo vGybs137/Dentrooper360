@@ -1,22 +1,30 @@
 import { memo, useCallback, useMemo, useState } from "react";
 import { View, type LayoutChangeEvent } from "react-native";
 
-import type { MonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
+import type { MonthEventsByDay } from "@/hooks/schedule/useMonthAppointmentsCache";
 import { useThemeTokens } from "@/theme";
 import {
+  addMonths,
   buildWeekCells,
   focusMonthForWeek,
   MONTH_GRID_COLS,
+  toMonthKey,
   type DayKey,
 } from "@/utils/calendar";
 
 import { DayCell } from "./DayCell";
-import { eventsForDay } from "@/helpers/scheduleEvents";
+import {
+  EMPTY_MONTH_EVENTS,
+  eventsForDayWithNeighbors,
+} from "@/helpers/scheduleEvents";
 import type { DayPressHandler } from "@/types/schedule";
 
 export type WeekStripProps = {
   weekStartKey: DayKey;
-  appointmentsCache?: MonthAppointmentsCache;
+  /** Day map for the week’s focus month. */
+  eventsByDay?: MonthEventsByDay;
+  prevMonthEventsByDay?: MonthEventsByDay;
+  nextMonthEventsByDay?: MonthEventsByDay;
   /** Select-only while sheet is open — do not open the sheet on reselect. */
   onDayPress?: DayPressHandler;
 };
@@ -24,7 +32,9 @@ export type WeekStripProps = {
 /** Single week row of day cells (sheet-open calendar mode). */
 function WeekStripComponent({
   weekStartKey,
-  appointmentsCache = {},
+  eventsByDay = EMPTY_MONTH_EVENTS,
+  prevMonthEventsByDay = EMPTY_MONTH_EVENTS,
+  nextMonthEventsByDay = EMPTY_MONTH_EVENTS,
   onDayPress,
 }: WeekStripProps) {
   const theme = useThemeTokens();
@@ -34,6 +44,10 @@ function WeekStripComponent({
     () => focusMonthForWeek(weekStartKey),
     [weekStartKey],
   );
+
+  const monthKey = toMonthKey(focusMonth);
+  const prevMonthKey = toMonthKey(addMonths(focusMonth, -1));
+  const nextMonthKey = toMonthKey(addMonths(focusMonth, 1));
 
   const cells = useMemo(
     () => buildWeekCells(weekStartKey, focusMonth),
@@ -81,7 +95,15 @@ function WeekStripComponent({
                 height={height}
                 columnIndex={columnIndex}
                 rowIndex={0}
-                events={eventsForDay(appointmentsCache, cell.dayKey)}
+                events={eventsForDayWithNeighbors(
+                  cell.dayKey,
+                  monthKey,
+                  eventsByDay,
+                  prevMonthKey,
+                  prevMonthEventsByDay,
+                  nextMonthKey,
+                  nextMonthEventsByDay,
+                )}
                 onDayPress={onDayPress}
               />
             );
