@@ -13,7 +13,7 @@ import {
   type YearMonth,
 } from "@/utils/calendar";
 
-import { DayCell } from "./DayCell";
+import { DayCell, type DayCellEventIndicators } from "./DayCell";
 import {
   EMPTY_MONTH_EVENTS,
   eventsForDayWithNeighbors,
@@ -28,6 +28,7 @@ export type MonthGridProps = {
   /** Prev/next month maps for leading/trailing out-of-month cells. */
   prevMonthEventsByDay?: MonthEventsByDay;
   nextMonthEventsByDay?: MonthEventsByDay;
+  eventIndicators?: DayCellEventIndicators;
   onDayPress?: DayPressHandler;
 };
 
@@ -37,6 +38,7 @@ function MonthGridComponent({
   eventsByDay = EMPTY_MONTH_EVENTS,
   prevMonthEventsByDay = EMPTY_MONTH_EVENTS,
   nextMonthEventsByDay = EMPTY_MONTH_EVENTS,
+  eventIndicators = "chips",
   onDayPress,
 }: MonthGridProps) {
   const theme = useThemeTokens();
@@ -123,6 +125,7 @@ function MonthGridComponent({
                         nextMonthKey,
                         nextMonthEventsByDay,
                       )}
+                      eventIndicators={eventIndicators}
                       onDayPress={onDayPress}
                     />
                   );

@@ -1,23 +1,26 @@
-import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import {
   forwardRef,
   memo,
   useCallback,
   useImperativeHandle,
   useMemo,
-  useRef,
-  useState,
-  type ComponentRef,
 } from "react";
-import { View } from "react-native";
-import type { SharedValue } from "react-native-reanimated";
+import {
+  View,
+  type ListRenderItem,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
+import { FlatList, Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, { useSharedValue } from "react-native-reanimated";
 
 import { DayHeaderLabel } from "@/components/schedule/DayHeaderLabel";
 import { ThemedText } from "@/components/ui";
 import { useThemeTokens } from "@/theme";
 import type { DayKey } from "@/utils/calendar";
 
-import { MONTH_VIEW_SHEET_SNAP_INSTANT } from "@/constants/schedule";
 import type {
   DayEventsSheetHandle,
   MonthDayEventPreview,
@@ -32,83 +35,57 @@ export type DayEventsSheetProps = {
   events: MonthDayEventPreview[];
   /** Open height in px — fills space below the pinned week. */
   snapHeight: number;
-  animatedIndex: SharedValue<number>;
-  animatedPosition: SharedValue<number>;
-  /** Called after the sheet settles open/closed (not mid-drag). */
-  onOpenChange?: (open: boolean) => void;
+  /** Reanimated style from useMonthSheetProgress (translateY from openProgress). */
+  sheetAnimatedStyle: object;
+  beginDrag: () => void;
+  applyDragTranslation: (translationY: number) => void;
+  endDrag: (velocityY: number) => void;
+  open: () => void;
+  close: () => void;
+  /** When false, sheet ignores touches so the month calendar receives them. */
+  interactive: boolean;
 };
-
-type BottomSheetRef = ComponentRef<typeof BottomSheet>;
 
 const DayEventsSheetInner = forwardRef<
   DayEventsSheetHandle,
   DayEventsSheetProps
 >(function DayEventsSheetInner(
-  { dayKey, events, snapHeight, animatedIndex, animatedPosition, onOpenChange },
+  {
+    dayKey,
+    events,
+    snapHeight,
+    sheetAnimatedStyle,
+    beginDrag,
+    applyDragTranslation,
+    endDrag,
+    open,
+    close,
+    interactive,
+  },
   ref,
 ) {
   const theme = useThemeTokens();
-  const sheetRef = useRef<BottomSheetRef>(null);
-  const snapHeightRef = useRef(snapHeight);
-  snapHeightRef.current = snapHeight;
-  const snapPoints = useMemo(() => [snapHeight], [snapHeight]);
-  const [sheetIndex, setSheetIndex] = useState(-1);
+  const scrollOffsetSV = useSharedValue(0);
+  const dismissDragSV = useSharedValue(false);
+  const touchStartYSV = useSharedValue(0);
 
   useImperativeHandle(
     ref,
     () => ({
-      open: () => {
-        setSheetIndex(0);
-      },
-      close: () => {
-        setSheetIndex(-1);
-      },
-      setHeight: (height: number) => {
-        const capped = Math.max(0, Math.min(height, snapHeightRef.current));
-        sheetRef.current?.snapToPosition(capped, MONTH_VIEW_SHEET_SNAP_INSTANT);
-      },
+      open,
+      close,
     }),
+    [close, open],
+  );
+
+  const renderItem = useCallback<ListRenderItem<MonthDayEventPreview>>(
+    ({ item }) => <DayEventListItem event={item} />,
     [],
   );
 
-  const handleChange = useCallback(
-    (index: number) => {
-      setSheetIndex(index);
-      onOpenChange?.(index >= 0);
-    },
-    [onOpenChange],
-  );
-
-  const renderItem = useCallback(
-    ({ item }: { item: MonthDayEventPreview }) => (
-      <DayEventListItem event={item} />
-    ),
+  const keyExtractor = useCallback(
+    (item: MonthDayEventPreview) => item.id,
     [],
-  );
-
-  const keyExtractor = useCallback((item: MonthDayEventPreview) => item.id, []);
-
-  const handleIndicatorStyle = useMemo(
-    () => ({
-      backgroundColor: theme.palette.foreground.muted,
-    }),
-    [theme],
-  );
-
-  const backgroundStyle = useMemo(
-    () => ({
-      backgroundColor: theme.palette.surface.default,
-      borderTopLeftRadius: theme.semantic.radius.card,
-      borderTopRightRadius: theme.semantic.radius.card,
-    }),
-    [theme],
-  );
-
-  const sheetStyle = useMemo(
-    () => ({
-      zIndex: theme.semantic.zIndex.raised,
-    }),
-    [theme],
   );
 
   const listContentStyle = useMemo(
@@ -118,20 +95,48 @@ const DayEventsSheetInner = forwardRef<
     [theme],
   );
 
-  const ListHeader = useMemo(
-    () => (
-      <View
-        className="px-page pb-stack pt-stack-compact"
-        style={{
-          backgroundColor: theme.palette.surface.default,
-          borderBottomWidth: theme.semantic.borderWidth.subtle,
-          borderBottomColor: theme.palette.border.subtle,
-        }}
-      >
-        <DayHeaderLabel dayKey={dayKey} weekdayFormat="short" />
-      </View>
-    ),
-    [dayKey, theme],
+  const rootStyle = useMemo(
+    () => ({
+      position: "absolute" as const,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: snapHeight,
+      zIndex: theme.semantic.zIndex.raised,
+      backgroundColor: theme.palette.surface.default,
+      borderTopLeftRadius: theme.semantic.radius.card,
+      borderTopRightRadius: theme.semantic.radius.card,
+      overflow: "hidden" as const,
+    }),
+    [snapHeight, theme],
+  );
+
+  const handleStyle = useMemo(
+    () => ({
+      alignItems: "center" as const,
+      paddingTop: theme.semantic.space.stack.compact,
+      paddingBottom: theme.semantic.space.stack.compact,
+    }),
+    [theme],
+  );
+
+  const handlePillStyle = useMemo(
+    () => ({
+      width: theme.primitives.space[24] + theme.primitives.space[12],
+      height: theme.primitives.space[4],
+      borderRadius: theme.primitives.radius.full,
+      backgroundColor: theme.palette.foreground.muted,
+    }),
+    [theme],
+  );
+
+  const headerStyle = useMemo(
+    () => ({
+      backgroundColor: theme.palette.surface.default,
+      borderBottomWidth: theme.semantic.borderWidth.subtle,
+      borderBottomColor: theme.palette.border.subtle,
+    }),
+    [theme],
   );
 
   const ListEmpty = useMemo(
@@ -158,36 +163,140 @@ const DayEventsSheetInner = forwardRef<
     [theme],
   );
 
-  return (
-    <BottomSheet
-      ref={sheetRef}
-      index={sheetIndex}
-      snapPoints={snapPoints}
-      enablePanDownToClose
-      enableDynamicSizing={false}
-      animatedIndex={animatedIndex}
-      animatedPosition={animatedPosition}
-      onChange={handleChange}
-      activeOffsetY={[-1, 1]}
-      failOffsetX={[
+  const onScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      scrollOffsetSV.value = event.nativeEvent.contentOffset.y;
+    },
+    [scrollOffsetSV],
+  );
+
+  const failOffsetX = useMemo(
+    () =>
+      [
         -theme.semantic.space.inline.compact,
         theme.semantic.space.inline.compact,
-      ]}
-      handleIndicatorStyle={handleIndicatorStyle}
-      backgroundStyle={backgroundStyle}
-      style={sheetStyle}
+      ] as [number, number],
+    [theme],
+  );
+
+  /** Handle + day header — always dismisses (no scroll competition). */
+  const chromePan = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetY(4)
+        .failOffsetX(failOffsetX)
+        .onBegin(() => {
+          beginDrag();
+        })
+        .onUpdate((event) => {
+          applyDragTranslation(event.translationY);
+        })
+        .onEnd((event) => {
+          endDrag(event.velocityY);
+        }),
+    [applyDragTranslation, beginDrag, endDrag, failOffsetX],
+  );
+
+  /**
+   * List: activate dismiss only when scrolled to top and pulling down;
+   * otherwise fail so the native scroll gesture owns the touch.
+   */
+  const contentPan = useMemo(
+    () =>
+      Gesture.Pan()
+        .manualActivation(true)
+        .failOffsetX(failOffsetX)
+        .onTouchesDown((event) => {
+          touchStartYSV.value = event.allTouches[0]?.absoluteY ?? 0;
+        })
+        .onTouchesMove((event, state) => {
+          const y = event.allTouches[0]?.absoluteY ?? touchStartYSV.value;
+          const dy = y - touchStartYSV.value;
+
+          if (scrollOffsetSV.value > 1) {
+            state.fail();
+            return;
+          }
+          if (dy < -8) {
+            // Pulling up — let the list scroll.
+            state.fail();
+            return;
+          }
+          if (dy > 8) {
+            state.activate();
+          }
+        })
+        .onBegin(() => {
+          dismissDragSV.value = true;
+          beginDrag();
+        })
+        .onUpdate((event) => {
+          if (event.translationY > 0) {
+            applyDragTranslation(event.translationY);
+          }
+        })
+        .onEnd((event) => {
+          if (dismissDragSV.value) {
+            endDrag(event.velocityY);
+          }
+          dismissDragSV.value = false;
+        })
+        .onFinalize(() => {
+          dismissDragSV.value = false;
+        }),
+    [
+      applyDragTranslation,
+      beginDrag,
+      dismissDragSV,
+      endDrag,
+      failOffsetX,
+      scrollOffsetSV,
+      touchStartYSV,
+    ],
+  );
+
+  const nativeScroll = useMemo(() => Gesture.Native(), []);
+
+  const listGesture = useMemo(
+    () => Gesture.Simultaneous(contentPan, nativeScroll),
+    [contentPan, nativeScroll],
+  );
+
+  if (snapHeight <= 0) return null;
+
+  return (
+    <Animated.View
+      style={[rootStyle, sheetAnimatedStyle as StyleProp<ViewStyle>]}
+      pointerEvents={interactive ? "auto" : "none"}
     >
-      <BottomSheetFlatList
-        data={events}
-        keyExtractor={keyExtractor}
-        renderItem={renderItem}
-        ItemSeparatorComponent={ItemSeparator}
-        ListHeaderComponent={ListHeader}
-        ListEmptyComponent={ListEmpty}
-        stickyHeaderIndices={[0]}
-        contentContainerStyle={listContentStyle}
-      />
-    </BottomSheet>
+      <GestureDetector gesture={chromePan}>
+        <View>
+          <View style={handleStyle} accessibilityRole="adjustable">
+            <View style={handlePillStyle} />
+          </View>
+          <View className="px-page pb-stack pt-stack-compact" style={headerStyle}>
+            <DayHeaderLabel dayKey={dayKey} weekdayFormat="short" />
+          </View>
+        </View>
+      </GestureDetector>
+
+      <GestureDetector gesture={listGesture}>
+        <Animated.View style={{ flex: 1 }}>
+          <FlatList
+            data={events}
+            keyExtractor={keyExtractor}
+            renderItem={renderItem}
+            ItemSeparatorComponent={ItemSeparator}
+            ListEmptyComponent={ListEmpty}
+            contentContainerStyle={listContentStyle}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
+            bounces
+            overScrollMode="never"
+          />
+        </Animated.View>
+      </GestureDetector>
+    </Animated.View>
   );
 });
 

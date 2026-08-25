@@ -31,6 +31,13 @@ import { DayEventChip } from "./DayEventChip";
 import { DayEventDots } from "./DayEventDots";
 import { useSheetOpenProgress } from "@/contexts/SheetOpenProgressContext";
 
+/** How event indicators render inside a day cell. */
+export type DayCellEventIndicators =
+  | "crossfade"
+  | "chips"
+  | "dots"
+  | "none";
+
 export type DayCellProps = {
   cell: DayCellModel;
   width: number;
@@ -38,26 +45,22 @@ export type DayCellProps = {
   columnIndex: number;
   rowIndex: number;
   events?: MonthDayEventPreview[];
+  /** Default `crossfade` — chip↔dot progress worklets. Prefer static modes when settled. */
+  eventIndicators?: DayCellEventIndicators;
   onDayPress?: DayPressHandler;
   style?: StyleProp<ViewStyle>;
 };
 
-/** Chip ↔ dot crossfade; only mounted for days that have events. */
-function DayCellEvents({
-  events,
-  availableHeight,
-}: {
-  events: MonthDayEventPreview[];
-  availableHeight: number;
-}) {
+function useVisibleChips(
+  events: MonthDayEventPreview[],
+  availableHeight: number,
+) {
   const theme = useThemeTokens();
-  const openProgress = useSheetOpenProgress();
-
   const chipRowHeight =
     theme.semantic.space.stack.comfortable + theme.primitives.space[2];
   const overflowRowHeight = 11 + theme.primitives.space[2];
 
-  const { visibleEvents, overflowCount } = useMemo(() => {
+  return useMemo(() => {
     const maxBySpace = Math.max(
       0,
       Math.floor(availableHeight / Math.max(chipRowHeight, 1)),
@@ -86,8 +89,65 @@ function DayCellEvents({
     return {
       visibleEvents: visible,
       overflowCount: Math.max(0, events.length - visible.length),
+      chipsGapStyle: { gap: theme.primitives.space[2] },
     };
-  }, [availableHeight, chipRowHeight, events, overflowRowHeight]);
+  }, [availableHeight, chipRowHeight, events, overflowRowHeight, theme]);
+}
+
+function DayCellChips({
+  events,
+  availableHeight,
+}: {
+  events: MonthDayEventPreview[];
+  availableHeight: number;
+}) {
+  const { visibleEvents, overflowCount, chipsGapStyle } = useVisibleChips(
+    events,
+    availableHeight,
+  );
+
+  return (
+    <View style={[{ flex: 1, overflow: "hidden" }, chipsGapStyle]}>
+      {visibleEvents.map((event) => (
+        <DayEventChip key={event.id} event={event} />
+      ))}
+      {overflowCount > 0 ? (
+        <ThemedText
+          tone="muted"
+          numberOfLines={1}
+          style={{ fontSize: 9, lineHeight: 11 }}
+        >
+          +{overflowCount} more
+        </ThemedText>
+      ) : null}
+    </View>
+  );
+}
+
+const DayCellChipsMemo = memo(DayCellChips);
+
+function DayCellDotsOnly({ events }: { events: MonthDayEventPreview[] }) {
+  return (
+    <View style={{ flex: 1, overflow: "hidden" }}>
+      <DayEventDots events={events} />
+    </View>
+  );
+}
+
+const DayCellDotsOnlyMemo = memo(DayCellDotsOnly);
+
+function DayCellEventsCrossfade({
+  events,
+  availableHeight,
+}: {
+  events: MonthDayEventPreview[];
+  availableHeight: number;
+}) {
+  const openProgress = useSheetOpenProgress();
+  const { visibleEvents, overflowCount, chipsGapStyle } = useVisibleChips(
+    events,
+    availableHeight,
+  );
 
   const chipsStyle = useAnimatedStyle(() => {
     const p = openProgress?.value ?? 0;
@@ -112,11 +172,6 @@ function DayCellEvents({
       ),
     };
   });
-
-  const chipsGapStyle = useMemo(
-    () => ({ gap: theme.primitives.space[2] }),
-    [theme],
-  );
 
   return (
     <View style={{ flex: 1, overflow: "hidden" }}>
@@ -144,7 +199,7 @@ function DayCellEvents({
   );
 }
 
-const DayCellEventsMemo = memo(DayCellEvents);
+const DayCellEventsCrossfadeMemo = memo(DayCellEventsCrossfade);
 
 function DayCellComponent({
   cell,
@@ -153,6 +208,7 @@ function DayCellComponent({
   columnIndex,
   rowIndex,
   events = [],
+  eventIndicators = "crossfade",
   onDayPress,
   style,
 }: DayCellProps) {
@@ -223,6 +279,8 @@ function DayCellComponent({
     [theme],
   );
 
+  const showEvents = events.length > 0 && eventIndicators !== "none";
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -261,11 +319,20 @@ function DayCellComponent({
         </View>
       </View>
 
-      {events.length > 0 ? (
-        <DayCellEventsMemo
+      {showEvents && eventIndicators === "crossfade" ? (
+        <DayCellEventsCrossfadeMemo
           events={events}
           availableHeight={eventsAvailableHeight}
         />
+      ) : null}
+      {showEvents && eventIndicators === "chips" ? (
+        <DayCellChipsMemo
+          events={events}
+          availableHeight={eventsAvailableHeight}
+        />
+      ) : null}
+      {showEvents && eventIndicators === "dots" ? (
+        <DayCellDotsOnlyMemo events={events} />
       ) : null}
     </Pressable>
   );

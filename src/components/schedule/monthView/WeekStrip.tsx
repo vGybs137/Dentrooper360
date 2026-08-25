@@ -12,7 +12,7 @@ import {
   type DayKey,
 } from "@/utils/calendar";
 
-import { DayCell } from "./DayCell";
+import { DayCell, type DayCellEventIndicators } from "./DayCell";
 import {
   EMPTY_MONTH_EVENTS,
   eventsForDayWithNeighbors,
@@ -25,6 +25,7 @@ export type WeekStripProps = {
   eventsByDay?: MonthEventsByDay;
   prevMonthEventsByDay?: MonthEventsByDay;
   nextMonthEventsByDay?: MonthEventsByDay;
+  eventIndicators?: DayCellEventIndicators;
   /** Select-only while sheet is open — do not open the sheet on reselect. */
   onDayPress?: DayPressHandler;
 };
@@ -35,6 +36,7 @@ function WeekStripComponent({
   eventsByDay = EMPTY_MONTH_EVENTS,
   prevMonthEventsByDay = EMPTY_MONTH_EVENTS,
   nextMonthEventsByDay = EMPTY_MONTH_EVENTS,
+  eventIndicators = "dots",
   onDayPress,
 }: WeekStripProps) {
   const theme = useThemeTokens();
@@ -104,6 +106,7 @@ function WeekStripComponent({
                   nextMonthKey,
                   nextMonthEventsByDay,
                 )}
+                eventIndicators={eventIndicators}
                 onDayPress={onDayPress}
               />
             );

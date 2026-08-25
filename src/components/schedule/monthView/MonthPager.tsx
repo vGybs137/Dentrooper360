@@ -21,6 +21,7 @@ import {
 
 import { MONTH_VIEW_PAGER_RENDER_RADIUS } from "@/constants/schedule";
 import type { DayPressHandler, MonthPagerHandle } from "@/types/schedule";
+import type { DayCellEventIndicators } from "./DayCell";
 
 import { MonthGrid } from "./MonthGrid";
 
@@ -32,6 +33,7 @@ export type MonthPagerProps = {
   pageIndex: number;
   weekStartsOn?: WeekdayIndex;
   appointmentsCache?: MonthAppointmentsCache;
+  eventIndicators?: DayCellEventIndicators;
   scrollEnabled?: boolean;
   onDayPress?: DayPressHandler;
   onPageScroll?: MonthPagerOnPageScroll;
@@ -65,6 +67,7 @@ const MonthPagerInner = forwardRef<MonthPagerHandle, MonthPagerProps>(
       pageIndex,
       weekStartsOn = 0,
       appointmentsCache = {},
+      eventIndicators = "chips",
       scrollEnabled = true,
       onDayPress,
       onPageScroll,
@@ -115,6 +118,7 @@ const MonthPagerInner = forwardRef<MonthPagerHandle, MonthPagerProps>(
                     appointmentsCache,
                     toMonthKey(addMonths(yearMonth, 1)),
                   )}
+                  eventIndicators={eventIndicators}
                   onDayPress={onDayPress}
                 />
               ) : (
@@ -123,7 +127,14 @@ const MonthPagerInner = forwardRef<MonthPagerHandle, MonthPagerProps>(
             </View>
           );
         }),
-      [appointmentsCache, months, onDayPress, pageIndex, weekStartsOn],
+      [
+        appointmentsCache,
+        eventIndicators,
+        months,
+        onDayPress,
+        pageIndex,
+        weekStartsOn,
+      ],
     );
 
     return (

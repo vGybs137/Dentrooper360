@@ -21,6 +21,7 @@ import {
 
 import { MONTH_VIEW_PAGER_RENDER_RADIUS } from "@/constants/schedule";
 import type { DayPressHandler, WeekPagerHandle } from "@/types/schedule";
+import type { DayCellEventIndicators } from "./DayCell";
 
 import { WeekStrip } from "./WeekStrip";
 
@@ -31,6 +32,7 @@ export type WeekPagerProps = {
   initialIndex: number;
   pageIndex: number;
   appointmentsCache?: MonthAppointmentsCache;
+  eventIndicators?: DayCellEventIndicators;
   scrollEnabled?: boolean;
   onDayPress?: DayPressHandler;
   onPageSelected: WeekPagerOnPageSelected;
@@ -58,6 +60,7 @@ const WeekPagerInner = forwardRef<WeekPagerHandle, WeekPagerProps>(
       initialIndex,
       pageIndex,
       appointmentsCache = {},
+      eventIndicators = "dots",
       scrollEnabled = true,
       onDayPress,
       onPageSelected,
@@ -107,6 +110,7 @@ const WeekPagerInner = forwardRef<WeekPagerHandle, WeekPagerProps>(
                     appointmentsCache,
                     toMonthKey(addMonths(focusMonth, 1)),
                   )}
+                  eventIndicators={eventIndicators}
                   onDayPress={onDayPress}
                 />
               ) : (
@@ -115,7 +119,7 @@ const WeekPagerInner = forwardRef<WeekPagerHandle, WeekPagerProps>(
             </View>
           );
         }),
-      [appointmentsCache, onDayPress, pageIndex, weeks],
+      [appointmentsCache, eventIndicators, onDayPress, pageIndex, weeks],
     );
 
     return (

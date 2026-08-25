@@ -2,18 +2,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, type LayoutChangeEvent } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
-  Extrapolation,
   interpolate,
-  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
-import { scheduleOnRN } from "react-native-worklets";
 
 import { MONTH_VIEW_SHEET_SWAP_PROGRESS } from "@/constants/schedule";
 import { SheetOpenProgressContext } from "@/contexts/SheetOpenProgressContext";
 import { weekRowForDay, yearMonthFromDayKey } from "@/helpers/scheduleCalendar";
 import { useMonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
+import { useMonthSheetProgress } from "@/hooks/schedule/useMonthSheetProgress";
 import { useVisibleMonth } from "@/hooks/schedule/useVisibleMonth";
 import { useVisibleWeek } from "@/hooks/schedule/useVisibleWeek";
 import {
@@ -38,6 +36,7 @@ import {
   type WeekdayIndex,
 } from "@/utils/calendar";
 
+import type { DayCellEventIndicators } from "./DayCell";
 import { DayEventsSheet } from "./DayEventsSheet";
 import { MonthCalendarHeader } from "./MonthCalendarHeader";
 import { MonthPager } from "./MonthPager";
@@ -86,11 +85,12 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
   const events = getEventsForDay(selectedDayKey);
 
   const [sheetOpen, setSheetOpen] = useState(false);
+  /** True while dragging or springing — enables chip↔dot crossfade worklets. */
+  const [sheetMotionActive, setSheetMotionActive] = useState(false);
 
   /**
    * While the sheet is settled open, freeze the month pager on the last cache
    * snapshot so appointment writes don't rebuild its page tree (opacity 0).
-   * Week pager keeps the live cache for chips/dots + sheet list.
    */
   const frozenMonthCacheRef = useRef(cache);
   if (!sheetOpen) {
@@ -119,24 +119,15 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
   const sheetOpenRef = useRef(sheetOpen);
   sheetOpenRef.current = sheetOpen;
 
-  const animatedIndex = useSharedValue(-1);
-  const animatedPosition = useSharedValue(0);
   const pagerHeightSV = useSharedValue(0);
-  const sheetSnapHeightSV = useSharedValue(0);
   const selectedRowSV = useSharedValue(
     weekRowForDay(visibleMonth, weekStartsOn, selectedDayKey),
   );
-  /** 0–1 open amount while the calendar swipe is actively driving the sheet. */
-  const dragProgressSV = useSharedValue(0);
-  const calendarDragActiveSV = useSharedValue(0);
-  /** Same 0–1 progress used for week pin + chip/dot crossfade (UI thread only). */
-  const sheetOpenProgressSV = useSharedValue(0);
 
   const [hostHeight, setHostHeight] = useState(0);
   const [chromeHeight, setChromeHeight] = useState(0);
   const [pagerHeight, setPagerHeight] = useState(0);
 
-  /** Sheet fills everything below header + weekday + the pinned week row. */
   const sheetSnapHeight = useMemo(() => {
     if (hostHeight <= 0 || pagerHeight <= 0) return 0;
     const weekHeight = pagerHeight / MONTH_GRID_ROWS;
@@ -147,22 +138,6 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     if (pagerHeight <= 0) return 0;
     return pagerHeight / MONTH_GRID_ROWS;
   }, [pagerHeight]);
-
-  useEffect(() => {
-    sheetSnapHeightSV.value = sheetSnapHeight;
-  }, [sheetSnapHeight, sheetSnapHeightSV]);
-
-  useEffect(() => {
-    ensureVisibleWindow(headerMonth);
-  }, [ensureVisibleWindow, headerMonth, headerMonthKey]);
-
-  useEffect(() => {
-    selectedRowSV.value = weekRowForDay(
-      visibleMonth,
-      weekStartsOn,
-      selectedDayKey,
-    );
-  }, [selectedDayKey, selectedRowSV, visibleMonth, weekStartsOn]);
 
   const syncMonthPagerToDay = useCallback(
     (dayKey: DayKey) => {
@@ -182,7 +157,6 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
       const targetWeek = weekStartDayKey(dayKey, weekStartsOn);
       const targetIndex = weeks.findIndex((week) => week === targetWeek);
       if (targetIndex < 0 || targetIndex === weekPageIndexRef.current) return;
-      // Update ref immediately so open animation never briefly shows the old week.
       weekPageIndexRef.current = targetIndex;
       setWeekPageIndex(targetIndex);
       weekPagerRef.current?.setPageWithoutAnimation(targetIndex);
@@ -190,42 +164,67 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     [setWeekPageIndex, weekStartsOn, weeks],
   );
 
+  const handleSettledOpen = useCallback(() => {
+    setSheetOpen(true);
+    setSheetMotionActive(false);
+    syncWeekPagerToDay(selectedDayKeyRef.current);
+  }, [syncWeekPagerToDay]);
+
+  const handleSettledClosed = useCallback(() => {
+    setSheetOpen(false);
+    setSheetMotionActive(false);
+    syncMonthPagerToDay(selectedDayKeyRef.current);
+  }, [syncMonthPagerToDay]);
+
+  const handleMotionStart = useCallback(() => {
+    setSheetMotionActive(true);
+  }, []);
+
+  const {
+    openProgress,
+    setSnapHeight,
+    sheetAnimatedStyle,
+    beginDrag,
+    applyDragTranslation,
+    endDrag,
+    open: openSheet,
+    close: closeSheet,
+  } = useMonthSheetProgress({
+    onSettledOpen: handleSettledOpen,
+    onSettledClosed: handleSettledClosed,
+    onMotionStart: handleMotionStart,
+  });
+
+  useEffect(() => {
+    setSnapHeight(sheetSnapHeight);
+  }, [setSnapHeight, sheetSnapHeight]);
+
+  useEffect(() => {
+    ensureVisibleWindow(headerMonth);
+  }, [ensureVisibleWindow, headerMonth, headerMonthKey]);
+
+  useEffect(() => {
+    selectedRowSV.value = weekRowForDay(
+      visibleMonth,
+      weekStartsOn,
+      selectedDayKey,
+    );
+  }, [selectedDayKey, selectedRowSV, visibleMonth, weekStartsOn]);
+
   // Keep week pager aligned while the sheet is closed so reopen doesn't flash the prior week.
   useEffect(() => {
     if (sheetOpen) return;
     syncWeekPagerToDay(selectedDayKey);
   }, [selectedDayKey, sheetOpen, syncWeekPagerToDay]);
 
-  const setSheetHeight = useCallback((height: number) => {
-    if (isDraggingRef.current) return;
-    sheetRef.current?.setHeight(height);
-  }, []);
-
   const settleSheetOpen = useCallback(() => {
     if (isDraggingRef.current) return;
     syncWeekPagerToDay(selectedDayKeyRef.current);
-    sheetRef.current?.open();
-  }, [syncWeekPagerToDay]);
-
-  const settleSheetClosed = useCallback(() => {
-    sheetRef.current?.close();
-  }, []);
-
-  const handleSheetOpenChange = useCallback(
-    (open: boolean) => {
-      setSheetOpen(open);
-      if (open) {
-        syncWeekPagerToDay(selectedDayKeyRef.current);
-      } else {
-        syncMonthPagerToDay(selectedDayKeyRef.current);
-      }
-    },
-    [syncMonthPagerToDay, syncWeekPagerToDay],
-  );
+    openSheet();
+  }, [openSheet, syncWeekPagerToDay]);
 
   const handleDayPress = useCallback(
     (dayKey: DayKey, alreadySelected: boolean) => {
-      // First tap selects; second tap on the same day opens the sheet.
       if (alreadySelected) {
         settleSheetOpen();
         return;
@@ -245,11 +244,8 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     [months, setMonthPageIndex, settleSheetOpen, visibleMonth],
   );
 
-  /** Sheet already open: tap only changes the selected day (and sheet list). */
   const handleWeekDayPress = useCallback(
     (dayKey: DayKey, _alreadySelected: boolean) => {
-      // DayCell already called selectCalendarDay; keep month pager in sync
-      // when the tap lands on an adjacent-month day in this week.
       syncMonthPagerToDay(dayKey);
     },
     [syncMonthPagerToDay],
@@ -292,35 +288,8 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     [pagerHeightSV],
   );
 
-  useAnimatedReaction(
-    () => {
-      const fromSheet = interpolate(
-        animatedIndex.value,
-        [-1, 0],
-        [0, 1],
-        Extrapolation.CLAMP,
-      );
-      return calendarDragActiveSV.value > 0 ? dragProgressSV.value : fromSheet;
-    },
-    (progress) => {
-      sheetOpenProgressSV.value = progress;
-    },
-  );
-
-  /**
-   * While the calendar swipe is active, follow the finger.
-   * Otherwise follow the sheet's animatedIndex so open/close stay in sync.
-   * Progress is computed inline (not via sheetOpenProgressSV) to keep week pin smooth.
-   */
   const weekClipStyle = useAnimatedStyle(() => {
-    const fromSheet = interpolate(
-      animatedIndex.value,
-      [-1, 0],
-      [0, 1],
-      Extrapolation.CLAMP,
-    );
-    const progress =
-      calendarDragActiveSV.value > 0 ? dragProgressSV.value : fromSheet;
+    const progress = openProgress.value;
     const full = Math.max(pagerHeightSV.value, 1);
     const week = full / MONTH_GRID_ROWS;
     return {
@@ -330,14 +299,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
   });
 
   const weekPinStyle = useAnimatedStyle(() => {
-    const fromSheet = interpolate(
-      animatedIndex.value,
-      [-1, 0],
-      [0, 1],
-      Extrapolation.CLAMP,
-    );
-    const progress =
-      calendarDragActiveSV.value > 0 ? dragProgressSV.value : fromSheet;
+    const progress = openProgress.value;
     const full = Math.max(pagerHeightSV.value, 1);
     const week = full / MONTH_GRID_ROWS;
     return {
@@ -346,37 +308,13 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     };
   });
 
-  /**
-   * Week pager only when fully open; month grid otherwise.
-   * Instant swap (no crossfade) so open/close expand stays crisp.
-   */
-  const monthPagerVisibilityStyle = useAnimatedStyle(() => {
-    const fromSheet = interpolate(
-      animatedIndex.value,
-      [-1, 0],
-      [0, 1],
-      Extrapolation.CLAMP,
-    );
-    const progress =
-      calendarDragActiveSV.value > 0 ? dragProgressSV.value : fromSheet;
-    return {
-      opacity: progress >= MONTH_VIEW_SHEET_SWAP_PROGRESS ? 0 : 1,
-    };
-  });
+  const monthPagerVisibilityStyle = useAnimatedStyle(() => ({
+    opacity: openProgress.value >= MONTH_VIEW_SHEET_SWAP_PROGRESS ? 0 : 1,
+  }));
 
-  const weekPagerVisibilityStyle = useAnimatedStyle(() => {
-    const fromSheet = interpolate(
-      animatedIndex.value,
-      [-1, 0],
-      [0, 1],
-      Extrapolation.CLAMP,
-    );
-    const progress =
-      calendarDragActiveSV.value > 0 ? dragProgressSV.value : fromSheet;
-    return {
-      opacity: progress >= MONTH_VIEW_SHEET_SWAP_PROGRESS ? 1 : 0,
-    };
-  });
+  const weekPagerVisibilityStyle = useAnimatedStyle(() => ({
+    opacity: openProgress.value >= MONTH_VIEW_SHEET_SWAP_PROGRESS ? 1 : 0,
+  }));
 
   const weekOverlayStyle = useMemo(
     () => ({
@@ -389,50 +327,38 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     [weekSlotHeight],
   );
 
+  // Keep crossfade for the whole open session so close can animate dots→chips
+  // without a blank gap (settled "none"/"dots" remount races scheduleOnRN).
+  // Settled closed uses static chips (no progress worklets).
+  const monthEventIndicators: DayCellEventIndicators =
+    sheetOpen || sheetMotionActive ? "crossfade" : "chips";
+
   const openSwipeGesture = Gesture.Pan()
     .activeOffsetY([-10, 10])
     .failOffsetX([-20, 20])
+    // Disable for the whole open/close motion so the sheet owns vertical pans.
+    .enabled(!sheetOpen && !sheetMotionActive)
+    .onBegin(() => {
+      beginDrag();
+    })
     .onUpdate((event) => {
-      const snap = sheetSnapHeightSV.value;
-      if (snap <= 0) return;
-      calendarDragActiveSV.value = 1;
-      const height = Math.min(snap, Math.max(0, -event.translationY));
-      dragProgressSV.value = height / snap;
-      scheduleOnRN(setSheetHeight, height);
+      applyDragTranslation(event.translationY);
     })
     .onEnd((event) => {
-      const snap = sheetSnapHeightSV.value;
-      if (snap <= 0) {
-        calendarDragActiveSV.value = 0;
-        return;
-      }
-      const height = Math.min(snap, Math.max(0, -event.translationY));
-      const progress = height / snap;
-      const shouldOpen = progress > 0.2 || event.velocityY < -800;
-      // Hand off to the sheet animation so the week restores/collapses with it.
-      calendarDragActiveSV.value = 0;
-      if (shouldOpen) {
-        scheduleOnRN(settleSheetOpen);
-      } else {
-        scheduleOnRN(settleSheetClosed);
-      }
-    })
-    .onFinalize(() => {
-      calendarDragActiveSV.value = 0;
+      endDrag(event.velocityY);
     });
 
   return (
-    <SheetOpenProgressContext.Provider value={sheetOpenProgressSV}>
+    <SheetOpenProgressContext.Provider value={openProgress}>
       <View className="w-full flex-1 self-stretch">
-        {/* Calendar host only — quick-add sits below so sheet snap excludes it. */}
         <View className="w-full flex-1" onLayout={onHostLayout}>
           <View onLayout={onChromeLayout}>
             <MonthCalendarHeader yearMonth={headerMonth} />
             <WeekdayHeader weekStartsOn={weekStartsOn} />
           </View>
 
-          <GestureDetector gesture={openSwipeGesture}>
-            <View className="flex-1" onLayout={onPagerSlotLayout}>
+          <View className="flex-1" onLayout={onPagerSlotLayout}>
+            <GestureDetector gesture={openSwipeGesture}>
               <Animated.View style={weekClipStyle}>
                 <Animated.View
                   pointerEvents={sheetOpen ? "none" : "auto"}
@@ -445,6 +371,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
                     pageIndex={pageIndex}
                     weekStartsOn={weekStartsOn}
                     appointmentsCache={monthPagerCache}
+                    eventIndicators={monthEventIndicators}
                     scrollEnabled={!sheetOpen}
                     onDayPress={handleDayPress}
                     onPageScroll={onPageScroll}
@@ -464,6 +391,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
                       initialIndex={weekInitialIndex}
                       pageIndex={weekPageIndex}
                       appointmentsCache={cache}
+                      eventIndicators="dots"
                       scrollEnabled={sheetOpen}
                       onDayPress={handleWeekDayPress}
                       onPageSelected={handleWeekPageSelected}
@@ -472,20 +400,22 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
                   </Animated.View>
                 ) : null}
               </Animated.View>
-            </View>
-          </GestureDetector>
+            </GestureDetector>
 
-          {sheetSnapHeight > 0 ? (
             <DayEventsSheet
               ref={sheetRef}
               dayKey={selectedDayKey}
               events={events}
               snapHeight={sheetSnapHeight}
-              animatedIndex={animatedIndex}
-              animatedPosition={animatedPosition}
-              onOpenChange={handleSheetOpenChange}
+              sheetAnimatedStyle={sheetAnimatedStyle}
+              beginDrag={beginDrag}
+              applyDragTranslation={applyDragTranslation}
+              endDrag={endDrag}
+              open={openSheet}
+              close={closeSheet}
+              interactive={sheetOpen || sheetMotionActive}
             />
-          ) : null}
+          </View>
         </View>
 
         <MonthQuickAddField dayKey={selectedDayKey} events={events} />
