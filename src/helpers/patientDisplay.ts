@@ -5,6 +5,7 @@ import type Patient from "@/database/models/Patient";
 export type PatientCardData = {
   id: string;
   displayName: string;
+  phoneNumber: string | null;
   isVip: boolean;
   balance: number | null;
   currency: string | null;
@@ -54,6 +55,7 @@ export function mapPatientToCardData(
   return {
     id: patient.id,
     displayName: formatPatientName(patient) || "Unnamed patient",
+    phoneNumber: patient.phoneNumber?.trim() || null,
     isVip: patient.isVip,
     balance: patient.balance,
     currency: patient.currency,

@@ -101,9 +101,14 @@ function AddAppointmentDetailsStepComponent({
         render={({ field: { onChange, value }, fieldState: { error } }) => (
           <TextField
             bottomSheetInput
+            editable={!selectedPatient}
             error={error?.message}
             onChangeText={onChange}
-            placeholder="Appointment subject"
+            placeholder={
+              selectedPatient
+                ? "Patient name and phone"
+                : "Appointment subject"
+            }
             value={value}
             variant="bare"
           />

@@ -9,6 +9,7 @@ import {
   MONTH_VIEW_UNTYPED_OPACITY,
 } from "@/constants/schedule";
 import { withOpacity } from "@/helpers/color";
+import { formatAppointmentEventTitle } from "@/helpers/appointmentSubject";
 import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import { formatTimeRange } from "@/utils/calendar";
@@ -123,10 +124,12 @@ function WeekEventBlockComponent({
     [theme],
   );
 
+  const listTitle = formatAppointmentEventTitle(event.title, event.typeName);
+
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${event.title}${event.typeName ? ` - ${event.typeName}` : ""}, ${timeRange}`}
+      accessibilityLabel={`${listTitle}, ${timeRange}`}
       onPress={onPress}
       style={rootStyle}
     >
@@ -136,9 +139,11 @@ function WeekEventBlockComponent({
           {isDayVariant ? (
             <>
               <Text numberOfLines={1} style={titleStyle}>
-                <Text style={{ color: theme.colors.text }}>{event.title}</Text>
+                <Text style={{ color: theme.colors.text }}>
+                  {event.title.trim() || "Appointment"}
+                </Text>
                 {event.typeName ? (
-                  <Text style={{ color: theme.colors.text }}> · </Text>
+                  <Text style={{ color: theme.colors.text }}> - </Text>
                 ) : null}
                 {event.typeName ? (
                   <Text style={{ color: typeColor }}>{event.typeName}</Text>

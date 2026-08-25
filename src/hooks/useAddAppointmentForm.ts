@@ -12,6 +12,7 @@ import { useForm, useWatch } from "react-hook-form";
 import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import { combineDateAndTime } from "@/helpers/appointmentDate";
+import { buildAppointmentSubjectFromPatient } from "@/helpers/appointmentSubject";
 import { generateGuid } from "@/helpers/guid";
 import {
   ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
@@ -98,7 +99,9 @@ export function useAddAppointmentForm() {
       setSelectedPatientCache(editDraft.patient);
       form.reset({
         patientId: editDraft.patientId,
-        subject: editDraft.subject,
+        subject: editDraft.patient
+          ? buildAppointmentSubjectFromPatient(editDraft.patient)
+          : editDraft.subject,
         typeId: editDraft.typeId,
         locationId: editDraft.locationId,
         startTime: editDraft.start,
@@ -140,7 +143,7 @@ export function useAddAppointmentForm() {
 
   const canSubmit =
     Boolean(locationId) &&
-    Boolean((subject ?? "").trim() || patientId) &&
+    Boolean(patientId || (subject ?? "").trim()) &&
     dayjs(endTime).isAfter(dayjs(startTime)) &&
     !isSubmitting;
 
@@ -154,16 +157,24 @@ export function useAddAppointmentForm() {
 
       if (id && patient) {
         setSelectedPatientCache(patient);
+        form.setValue("subject", buildAppointmentSubjectFromPatient(patient), {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
       } else if (!id) {
         setSelectedPatientCache(null);
+        form.setValue("subject", "", {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
       }
     },
     [form],
   );
 
   const goNext = useCallback(() => {
-    if (!form.getValues("subject").trim() && selectedPatient) {
-      form.setValue("subject", selectedPatient.displayName, {
+    if (selectedPatient) {
+      form.setValue("subject", buildAppointmentSubjectFromPatient(selectedPatient), {
         shouldDirty: true,
         shouldValidate: true,
       });
@@ -246,10 +257,9 @@ export function useAddAppointmentForm() {
       return;
     }
 
-    const nextSubject =
-      data.subject.trim() ||
-      selectedPatient?.displayName ||
-      "Appointment";
+    const nextSubject = selectedPatient
+      ? buildAppointmentSubjectFromPatient(selectedPatient)
+      : data.subject.trim() || "Appointment";
 
     setIsSubmitting(true);
     setSubmitError(null);

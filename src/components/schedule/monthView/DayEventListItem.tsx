@@ -2,6 +2,7 @@ import { useRouter, type Href } from "expo-router";
 import { memo, useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { formatAppointmentEventTitle } from "@/helpers/appointmentSubject";
 import { useThemeTokens } from "@/theme";
 import { formatTimeRange } from "@/utils/calendar";
 
@@ -73,10 +74,12 @@ function DayEventListItemComponent({ event }: DayEventListItemProps) {
     [],
   );
 
+  const listTitle = formatAppointmentEventTitle(event.title, event.typeName);
+
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${event.title}${event.typeName ? ` - ${event.typeName}` : ""}, ${timeRange}`}
+      accessibilityLabel={`${listTitle}, ${timeRange}`}
       onPress={() => router.push(`/appointments/${event.id}` as Href)}
       className="px-page py-stack-compact"
     >
@@ -84,7 +87,9 @@ function DayEventListItemComponent({ event }: DayEventListItemProps) {
         <View style={railStyle} />
         <View style={bodyStyle}>
           <Text numberOfLines={1} style={titleStyle}>
-            <Text style={{ color: theme.colors.text }}>{event.title}</Text>
+            <Text style={{ color: theme.colors.text }}>
+              {event.title.trim() || "Appointment"}
+            </Text>
             {event.typeName ? (
               <Text style={{ color: theme.colors.text }}> - </Text>
             ) : null}

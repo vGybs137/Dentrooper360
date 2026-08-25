@@ -8,6 +8,8 @@ import {
   type DayKey,
 } from "@/utils/calendar";
 
+import { buildAppointmentSubjectFromPatient } from "@/helpers/appointmentSubject";
+
 export type QuickAddPatientCandidate = {
   id: string;
   displayName: string;
@@ -603,9 +605,7 @@ function deriveSubject(
   patient: QuickAddPatientCandidate | null,
 ): string {
   if (patient) {
-    return [patient.displayName, patient.phoneNumber?.trim()]
-      .filter(Boolean)
-      .join(" ");
+    return buildAppointmentSubjectFromPatient(patient);
   }
 
   // Strip structural matches including type so leftovers stay clean
