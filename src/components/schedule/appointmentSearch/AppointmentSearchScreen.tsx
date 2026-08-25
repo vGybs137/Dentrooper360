@@ -22,7 +22,13 @@ import { ThemedText } from "@/components/ui";
 import { useAppointmentSearch } from "@/hooks/useAppointmentSearch";
 import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
-import { toDayKey, type DayKey } from "@/utils/calendar";
+import {
+  parseDayKey,
+  toDayKey,
+  toLocalDate,
+  todayCalendarDate,
+  type DayKey,
+} from "@/utils/calendar";
 
 type SearchDayGroup = {
   dayKey: DayKey;
@@ -47,6 +53,40 @@ function groupResultsByDay(results: MonthDayEventPreview[]): SearchDayGroup[] {
   }
 
   return groups;
+}
+
+/** Index of today, or the temporally closest day (prefer future on ties). */
+function findClosestDayGroupIndex(
+  groups: SearchDayGroup[],
+  todayKey: DayKey,
+): number {
+  if (groups.length === 0) {
+    return -1;
+  }
+
+  const todayIndex = groups.findIndex((group) => group.dayKey === todayKey);
+  if (todayIndex >= 0) {
+    return todayIndex;
+  }
+
+  const todayMs = toLocalDate(parseDayKey(todayKey)).getTime();
+  let bestIndex = 0;
+  let bestDistance = Number.POSITIVE_INFINITY;
+
+  for (let index = 0; index < groups.length; index += 1) {
+    const dayMs = toLocalDate(parseDayKey(groups[index].dayKey)).getTime();
+    const distance = Math.abs(dayMs - todayMs);
+
+    if (
+      distance < bestDistance ||
+      (distance === bestDistance && dayMs >= todayMs)
+    ) {
+      bestDistance = distance;
+      bestIndex = index;
+    }
+  }
+
+  return bestIndex;
 }
 
 function SearchListEmptyContent({
@@ -136,11 +176,17 @@ export function AppointmentSearchScreen() {
   );
   const hasQuery = query.trim().length > 0;
   const hasActiveFilters = hasQuery || selectedTypeIds.length > 0;
+  const searchKey = `${query.trim()}\0${selectedTypeIds.slice().sort().join(",")}`;
   const scrollY = useSharedValue(0);
   const savedScrollOffset = useRef(0);
+  const previousSearchKeyRef = useRef(searchKey);
   const flatListRef = useRef<Animated.FlatList<SearchDayGroup>>(null);
 
   const dayGroups = useMemo(() => groupResultsByDay(results), [results]);
+  const dayGroupKeys = useMemo(
+    () => dayGroups.map((group) => group.dayKey).join("|"),
+    [dayGroups],
+  );
 
   const persistScrollOffset = useCallback((offset: number) => {
     savedScrollOffset.current = offset;
@@ -197,6 +243,17 @@ export function AppointmentSearchScreen() {
   });
 
   useEffect(() => {
+    const searchChanged = previousSearchKeyRef.current !== searchKey;
+    previousSearchKeyRef.current = searchKey;
+
+    if (searchChanged) {
+      if (!hasActiveFilters) {
+        savedScrollOffset.current = 0;
+        scrollY.value = 0;
+      }
+      return;
+    }
+
     const offset = savedScrollOffset.current;
     if (offset <= 0) {
       return;
@@ -206,7 +263,62 @@ export function AppointmentSearchScreen() {
     requestAnimationFrame(() => {
       flatListRef.current?.scrollToOffset({ offset, animated: false });
     });
-  }, [results, isLoading, error, hasQuery, selectedTypeIds, scrollY]);
+  }, [results, isLoading, error, searchKey, hasActiveFilters, scrollY]);
+
+  useEffect(() => {
+    if (!hasActiveFilters || isLoading || dayGroups.length === 0) {
+      return;
+    }
+
+    const todayKey = toDayKey(todayCalendarDate());
+    const index = findClosestDayGroupIndex(dayGroups, todayKey);
+    if (index < 0) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      requestAnimationFrame(() => {
+        flatListRef.current?.scrollToIndex({
+          index,
+          animated: true,
+          viewOffset: chevronRowHeight,
+          viewPosition: 0,
+        });
+      });
+    }, 120);
+
+    return () => clearTimeout(timer);
+    // dayGroups is read when dayGroupKeys / searchKey change (same render).
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- avoid re-anchoring on live result refreshes
+  }, [
+    chevronRowHeight,
+    dayGroupKeys,
+    hasActiveFilters,
+    isLoading,
+    searchKey,
+  ]);
+
+  const handleScrollToIndexFailed = useCallback(
+    (info: {
+      index: number;
+      highestMeasuredFrameIndex: number;
+      averageItemLength: number;
+    }) => {
+      flatListRef.current?.scrollToOffset({
+        offset: Math.max(0, info.averageItemLength * info.index),
+        animated: false,
+      });
+      requestAnimationFrame(() => {
+        flatListRef.current?.scrollToIndex({
+          index: info.index,
+          animated: true,
+          viewOffset: chevronRowHeight,
+          viewPosition: 0,
+        });
+      });
+    },
+    [chevronRowHeight],
+  );
 
   const renderItem = useCallback(
     ({ item }: { item: SearchDayGroup }) => (
@@ -270,6 +382,7 @@ export function AppointmentSearchScreen() {
           ListEmptyComponent={listEmptyComponent}
           ListHeaderComponent={listHeaderComponent}
           onScroll={scrollHandler}
+          onScrollToIndexFailed={handleScrollToIndexFailed}
           renderItem={renderItem}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
