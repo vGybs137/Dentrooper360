@@ -21,6 +21,13 @@ import {
 } from "@/utils/calendar";
 
 const LOADER_DELAY_MS = 200;
+/** Active Watermelon observers: visible month ± this radius. */
+const SUBSCRIBE_RADIUS = 1;
+/**
+ * Keep last-known day maps for months outside the subscribe window so
+ * scrolling back does not flash empty cells while observe re-emits.
+ */
+const SOFT_CACHE_RADIUS = 6;
 
 type SubscriptionLike = { unsubscribe: () => void };
 
@@ -82,7 +89,8 @@ function buildDayMap(
 
 /**
  * WatermelonDB-backed month → day → events cache.
- * Prefetch prev/current/next; pause expands while the pager is dragging.
+ * Live observers for visible ±1; soft-keep day maps ±6 so scroll-back
+ * does not flash empty cells. Pause expands while the pager is dragging.
  */
 export function useMonthAppointmentsCache({
   isDragging,
@@ -196,21 +204,22 @@ export function useMonthAppointmentsCache({
     [isDragging, subscribeMonth],
   );
 
-  /** Drop observers + cache for months outside the retain window. */
-  const pruneOutsideRetain = useCallback((retainKeys: Set<MonthKey>) => {
+  /** Drop live observers outside the subscribe window; keep soft-cached maps. */
+  const pruneSubscriptionsOutside = useCallback((retainKeys: Set<MonthKey>) => {
     for (const monthKey of [...subscriptionsRef.current.keys()]) {
       if (retainKeys.has(monthKey)) continue;
       subscriptionsRef.current.get(monthKey)?.unsubscribe();
       subscriptionsRef.current.delete(monthKey);
-      appointmentsByMonthRef.current.delete(monthKey);
-      monthByKeyRef.current.delete(monthKey);
     }
 
     for (const monthKey of [...pendingKeysRef.current]) {
       if (retainKeys.has(monthKey)) continue;
       pendingKeysRef.current.delete(monthKey);
     }
+  }, []);
 
+  /** Bound memory: drop soft-cached months far from the visible window. */
+  const pruneSoftCacheOutside = useCallback((retainKeys: Set<MonthKey>) => {
     for (const monthKey of [...appointmentsByMonthRef.current.keys()]) {
       if (retainKeys.has(monthKey)) continue;
       appointmentsByMonthRef.current.delete(monthKey);
@@ -231,35 +240,45 @@ export function useMonthAppointmentsCache({
   }, []);
 
   /**
-   * Prefetch visible ±1 and drop everything else.
+   * Prefetch visible ±SUBSCRIBE_RADIUS; soft-keep maps ±SOFT_CACHE_RADIUS.
    * While dragging, only queue loads + scrub pending; prune after idle so
    * settled neighbor grids keep their subscriptions until the page commits.
    */
   const ensureVisibleWindow = useCallback(
     (visibleMonth: YearMonth) => {
-      const retainMonths = [
-        addMonths(visibleMonth, -1),
-        visibleMonth,
-        addMonths(visibleMonth, 1),
-      ];
-      const retainKeys = new Set(
-        retainMonths.map((month) => monthKeyFromYearMonth(month)),
+      const subscribeMonths: YearMonth[] = [];
+      for (let offset = -SUBSCRIBE_RADIUS; offset <= SUBSCRIBE_RADIUS; offset++) {
+        subscribeMonths.push(addMonths(visibleMonth, offset));
+      }
+      const subscribeKeys = new Set(
+        subscribeMonths.map((month) => monthKeyFromYearMonth(month)),
       );
 
-      ensureMonthsLoaded(retainMonths);
+      const softCacheKeys = new Set<MonthKey>();
+      for (let offset = -SOFT_CACHE_RADIUS; offset <= SOFT_CACHE_RADIUS; offset++) {
+        softCacheKeys.add(monthKeyFromYearMonth(addMonths(visibleMonth, offset)));
+      }
+
+      ensureMonthsLoaded(subscribeMonths);
 
       // Cancelled / reversed swipes should not keep far months queued.
       for (const monthKey of [...pendingKeysRef.current]) {
-        if (!retainKeys.has(monthKey)) {
+        if (!subscribeKeys.has(monthKey)) {
           pendingKeysRef.current.delete(monthKey);
         }
       }
 
       if (isDragging) return;
 
-      pruneOutsideRetain(retainKeys);
+      pruneSubscriptionsOutside(subscribeKeys);
+      pruneSoftCacheOutside(softCacheKeys);
     },
-    [ensureMonthsLoaded, isDragging, pruneOutsideRetain],
+    [
+      ensureMonthsLoaded,
+      isDragging,
+      pruneSoftCacheOutside,
+      pruneSubscriptionsOutside,
+    ],
   );
 
   useEffect(() => {
