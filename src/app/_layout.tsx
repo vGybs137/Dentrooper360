@@ -11,9 +11,30 @@ import { keepNativeSplashVisible } from "@/helpers/nativeSplash";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/theme";
 
+import * as Sentry from "@sentry/react-native";
+
+Sentry.init({
+  dsn: "https://e4ec2c8840a2bbf06e3d0d99bef01776@o4511971193520128.ingest.us.sentry.io/4511971208396800",
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+
+  // Enable Logs
+  enableLogs: true,
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1,
+  integrations: [Sentry.mobileReplayIntegration()],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
+
 keepNativeSplashVisible();
 
-export default function RootLayout() {
+function RootLayout() {
   // usePeriodicSync();
   // useTokenRefresh();
   return (
@@ -37,3 +58,5 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+export default Sentry.wrap(RootLayout);

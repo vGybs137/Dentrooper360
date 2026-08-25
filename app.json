@@ -71,7 +71,15 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "dentrooper-mobile",
+          "organization": "sol-t"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
