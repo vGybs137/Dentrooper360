@@ -5,11 +5,7 @@ import { Pressable, Text, View } from "react-native";
 import { MONTH_VIEW_EVENT_LIST_RAIL_WIDTH } from "@/constants/schedule";
 import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
-import {
-  formatDayKeyDayWeekdayLabel,
-  formatTimeRange,
-  toDayKey,
-} from "@/utils/calendar";
+import { formatTimeRange } from "@/utils/calendar";
 
 export type AppointmentSearchResultItemProps = {
   event: MonthDayEventPreview;
@@ -21,22 +17,15 @@ function AppointmentSearchResultItemComponent({
   const theme = useThemeTokens();
   const router = useRouter();
   const timeRange = formatTimeRange(event.startTime, event.endTime);
-  const dayLabel = formatDayKeyDayWeekdayLabel(
-    toDayKey(new Date(event.startTime)),
-  );
   const typeColor = event.color ?? theme.colors.borderStrong;
 
-  const cardStyle = useMemo(
+  const rowStyle = useMemo(
     () => ({
       flexDirection: "row" as const,
       alignItems: "stretch" as const,
       overflow: "hidden" as const,
-      borderRadius: theme.semantic.radius.card,
       paddingVertical: theme.semantic.space.stack.compact,
-      paddingLeft: theme.semantic.space.stack.compact,
-      paddingRight: theme.semantic.space.stack.default,
       gap: theme.semantic.space.stack.compact,
-      borderColor: theme.colors.borderStrong,
     }),
     [theme],
   );
@@ -44,7 +33,6 @@ function AppointmentSearchResultItemComponent({
   const railStyle = useMemo(
     () => ({
       width: MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
-      marginRight: theme.semantic.space.stack.compact,
       borderRadius: theme.primitives.radius.xs,
       backgroundColor: typeColor,
     }),
@@ -74,26 +62,24 @@ function AppointmentSearchResultItemComponent({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${event.title}${event.typeName ? ` - ${event.typeName}` : ""}, ${dayLabel}, ${timeRange}`}
+      accessibilityLabel={`${event.title}${event.typeName ? ` - ${event.typeName}` : ""}, ${timeRange}`}
       onPress={() => router.push(`/appointments/${event.id}` as Href)}
-      className="px-page py-stack-compact"
+      style={rowStyle}
     >
-      <View style={cardStyle}>
-        <View style={railStyle} />
-        <View className="min-w-0 flex-1 justify-center">
-          <Text numberOfLines={1} style={titleStyle}>
-            <Text style={{ color: theme.colors.text }}>{event.title}</Text>
-            {event.typeName ? (
-              <Text style={{ color: theme.colors.text }}> - </Text>
-            ) : null}
-            {event.typeName ? (
-              <Text style={{ color: typeColor }}>{event.typeName}</Text>
-            ) : null}
-          </Text>
-          <Text numberOfLines={1} style={metaStyle}>
-            {dayLabel} · {timeRange}
-          </Text>
-        </View>
+      <View style={railStyle} />
+      <View className="min-w-0 flex-1 justify-center">
+        <Text numberOfLines={1} style={titleStyle}>
+          <Text style={{ color: theme.colors.text }}>{event.title}</Text>
+          {event.typeName ? (
+            <Text style={{ color: theme.colors.text }}> - </Text>
+          ) : null}
+          {event.typeName ? (
+            <Text style={{ color: typeColor }}>{event.typeName}</Text>
+          ) : null}
+        </Text>
+        <Text numberOfLines={1} style={metaStyle}>
+          {timeRange}
+        </Text>
       </View>
     </Pressable>
   );

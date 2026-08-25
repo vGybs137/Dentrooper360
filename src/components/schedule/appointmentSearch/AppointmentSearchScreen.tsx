@@ -16,12 +16,40 @@ import {
   AppointmentSearchBar,
   getAppointmentSearchBarReservedHeight,
 } from "@/components/schedule/appointmentSearch/AppointmentSearchBar";
+import { AppointmentSearchDayGroup } from "@/components/schedule/appointmentSearch/AppointmentSearchDayGroup";
 import { AppointmentSearchFiltersCard } from "@/components/schedule/appointmentSearch/AppointmentSearchFiltersCard";
-import { AppointmentSearchResultItem } from "@/components/schedule/appointmentSearch/AppointmentSearchResultItem";
 import { ThemedText } from "@/components/ui";
 import { useAppointmentSearch } from "@/hooks/useAppointmentSearch";
 import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
+import { toDayKey, type DayKey } from "@/utils/calendar";
+
+type SearchDayGroup = {
+  dayKey: DayKey;
+  events: MonthDayEventPreview[];
+};
+
+function groupResultsByDay(
+  results: MonthDayEventPreview[],
+): SearchDayGroup[] {
+  const groups: SearchDayGroup[] = [];
+  const indexByDayKey = new Map<DayKey, number>();
+
+  for (const event of results) {
+    const dayKey = toDayKey(new Date(event.startTime));
+    const existingIndex = indexByDayKey.get(dayKey);
+
+    if (existingIndex === undefined) {
+      indexByDayKey.set(dayKey, groups.length);
+      groups.push({ dayKey, events: [event] });
+      continue;
+    }
+
+    groups[existingIndex].events.push(event);
+  }
+
+  return groups;
+}
 
 function SearchListEmptyContent({
   error,
@@ -112,7 +140,9 @@ export function AppointmentSearchScreen() {
   const hasActiveFilters = hasQuery || selectedTypeIds.length > 0;
   const scrollY = useSharedValue(0);
   const savedScrollOffset = useRef(0);
-  const flatListRef = useRef<Animated.FlatList<MonthDayEventPreview>>(null);
+  const flatListRef = useRef<Animated.FlatList<SearchDayGroup>>(null);
+
+  const dayGroups = useMemo(() => groupResultsByDay(results), [results]);
 
   const persistScrollOffset = useCallback((offset: number) => {
     savedScrollOffset.current = offset;
@@ -181,13 +211,16 @@ export function AppointmentSearchScreen() {
   }, [results, isLoading, error, hasQuery, selectedTypeIds, scrollY]);
 
   const renderItem = useCallback(
-    ({ item }: { item: MonthDayEventPreview }) => (
-      <AppointmentSearchResultItem event={item} />
+    ({ item }: { item: SearchDayGroup }) => (
+      <AppointmentSearchDayGroup dayKey={item.dayKey} events={item.events} />
     ),
     [],
   );
 
-  const keyExtractor = useCallback((item: MonthDayEventPreview) => item.id, []);
+  const keyExtractor = useCallback(
+    (item: SearchDayGroup) => item.dayKey,
+    [],
+  );
 
   const listHeaderComponent = useMemo(
     () =>
@@ -236,7 +269,7 @@ export function AppointmentSearchScreen() {
         <Animated.FlatList
           ref={flatListRef}
           contentContainerStyle={contentContainerStyle}
-          data={results}
+          data={dayGroups}
           keyboardShouldPersistTaps="handled"
           keyExtractor={keyExtractor}
           ListEmptyComponent={listEmptyComponent}
