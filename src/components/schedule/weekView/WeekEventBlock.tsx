@@ -6,10 +6,11 @@ import { timedGridAbsoluteStyle } from "@/components/schedule/timedGrid/timedGri
 import {
   MONTH_VIEW_EVENT_CARD_BRAND_ALPHA,
   MONTH_VIEW_EVENT_CHIP_RAIL_WIDTH,
+  MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
   MONTH_VIEW_UNTYPED_OPACITY,
 } from "@/constants/schedule";
-import { withOpacity } from "@/helpers/color";
 import { formatAppointmentEventTitle } from "@/helpers/appointmentSubject";
+import { withOpacity } from "@/helpers/color";
 import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import { formatTimeRange } from "@/utils/calendar";
@@ -41,6 +42,9 @@ function WeekEventBlockComponent({
   const hasType = Boolean(event.color);
   const typeColor = event.color ?? theme.palette.border.strong;
   const timeRange = formatTimeRange(event.startTime, event.endTime);
+  const durationMinutes = (event.endTime - event.startTime) / (60 * 1000);
+  const isCompactDayEvent = isDayVariant && durationMinutes <= 30;
+  const subjectLabel = event.title.trim() || "Appointment";
 
   const onPress = useCallback(() => {
     router.push(`/appointments/${event.id}` as Href);
@@ -71,13 +75,35 @@ function WeekEventBlockComponent({
     [theme],
   );
 
+  /** Week: full-height strip. Day: track that centers the type pill. */
+  const railTrackStyle = useMemo(
+    () =>
+      isDayVariant
+        ? {
+            alignSelf: "stretch" as const,
+            justifyContent: "center" as const,
+            paddingLeft: theme.primitives.space[4],
+          }
+        : null,
+    [isDayVariant, theme],
+  );
+
   const railStyle = useMemo(
-    () => ({
-      width: MONTH_VIEW_EVENT_CHIP_RAIL_WIDTH,
-      backgroundColor: typeColor,
-      opacity: hasType ? 1 : MONTH_VIEW_UNTYPED_OPACITY,
-    }),
-    [hasType, typeColor],
+    () =>
+      isDayVariant
+        ? {
+            width: MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
+            height: "80%" as const,
+            borderRadius: theme.primitives.radius.full,
+            backgroundColor: typeColor,
+            opacity: hasType ? 1 : MONTH_VIEW_UNTYPED_OPACITY,
+          }
+        : {
+            width: MONTH_VIEW_EVENT_CHIP_RAIL_WIDTH,
+            backgroundColor: typeColor,
+            opacity: hasType ? 1 : MONTH_VIEW_UNTYPED_OPACITY,
+          },
+    [hasType, isDayVariant, theme, typeColor],
   );
 
   const bodyStyle = useMemo(
@@ -90,9 +116,12 @@ function WeekEventBlockComponent({
       paddingVertical: isDayVariant
         ? theme.primitives.space[4]
         : theme.primitives.space[2],
-      justifyContent: isDayVariant ? ("flex-start" as const) : ("center" as const),
+      justifyContent:
+        isDayVariant && !isCompactDayEvent
+          ? ("flex-start" as const)
+          : ("center" as const),
     }),
-    [isDayVariant, theme],
+    [isCompactDayEvent, isDayVariant, theme],
   );
 
   const titleStyle = useMemo(
@@ -134,25 +163,44 @@ function WeekEventBlockComponent({
       style={rootStyle}
     >
       <View style={cardStyle}>
-        <View style={railStyle} />
+        {isDayVariant ? (
+          <View style={railTrackStyle}>
+            <View style={railStyle} />
+          </View>
+        ) : (
+          <View style={railStyle} />
+        )}
         <View style={bodyStyle}>
           {isDayVariant ? (
-            <>
+            isCompactDayEvent ? (
               <Text numberOfLines={1} style={titleStyle}>
-                <Text style={{ color: theme.colors.text }}>
-                  {event.title.trim() || "Appointment"}
-                </Text>
+                <Text style={{ color: theme.colors.text }}>{subjectLabel}</Text>
                 {event.typeName ? (
                   <Text style={{ color: theme.colors.text }}> - </Text>
                 ) : null}
                 {event.typeName ? (
                   <Text style={{ color: typeColor }}>{event.typeName}</Text>
                 ) : null}
+                <Text style={timeStyle}>, {timeRange}</Text>
               </Text>
-              <Text numberOfLines={1} style={timeStyle}>
-                {timeRange}
-              </Text>
-            </>
+            ) : (
+              <>
+                <Text numberOfLines={1} style={titleStyle}>
+                  <Text style={{ color: theme.colors.text }}>
+                    {subjectLabel}
+                  </Text>
+                  {event.typeName ? (
+                    <Text style={{ color: theme.colors.text }}> - </Text>
+                  ) : null}
+                  {event.typeName ? (
+                    <Text style={{ color: typeColor }}>{event.typeName}</Text>
+                  ) : null}
+                </Text>
+                <Text numberOfLines={1} style={timeStyle}>
+                  {timeRange}
+                </Text>
+              </>
+            )
           ) : (
             <Text numberOfLines={1} style={titleStyle}>
               {event.title}
