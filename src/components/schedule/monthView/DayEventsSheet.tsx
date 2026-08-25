@@ -37,13 +37,13 @@ export type DayEventsSheetProps = {
   snapHeight: number;
   /** Reanimated style from useMonthSheetProgress (translateY from openProgress). */
   sheetAnimatedStyle: object;
+  /** pointerEvents from openProgress — clears hits as soon as the sheet is closed. */
+  sheetAnimatedProps: object;
   beginDrag: () => void;
   applyDragTranslation: (translationY: number) => void;
   endDrag: (velocityY: number) => void;
   open: () => void;
   close: () => void;
-  /** When false, sheet ignores touches so the month calendar receives them. */
-  interactive: boolean;
 };
 
 const DayEventsSheetInner = forwardRef<
@@ -55,12 +55,12 @@ const DayEventsSheetInner = forwardRef<
     events,
     snapHeight,
     sheetAnimatedStyle,
+    sheetAnimatedProps,
     beginDrag,
     applyDragTranslation,
     endDrag,
     open,
     close,
-    interactive,
   },
   ref,
 ) {
@@ -102,7 +102,8 @@ const DayEventsSheetInner = forwardRef<
       right: 0,
       bottom: 0,
       height: snapHeight,
-      zIndex: theme.semantic.zIndex.raised,
+      // No elevation/zIndex — raised stacking escapes overflow clips on Android
+      // and let the closed sheet paint under Quick Add.
       backgroundColor: theme.palette.surface.default,
       borderTopLeftRadius: theme.semantic.radius.card,
       borderTopRightRadius: theme.semantic.radius.card,
@@ -267,7 +268,7 @@ const DayEventsSheetInner = forwardRef<
   return (
     <Animated.View
       style={[rootStyle, sheetAnimatedStyle as StyleProp<ViewStyle>]}
-      pointerEvents={interactive ? "auto" : "none"}
+      animatedProps={sheetAnimatedProps as never}
     >
       <GestureDetector gesture={chromePan}>
         <View>

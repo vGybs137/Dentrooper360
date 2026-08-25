@@ -1,5 +1,6 @@
 import { memo, useMemo } from "react";
-import { Pressable, View, type StyleProp, type ViewStyle } from "react-native";
+import { View, type StyleProp, type ViewStyle } from "react-native";
+import { Pressable } from "react-native-gesture-handler";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -291,10 +292,16 @@ function DayCellComponent({
       onPress={() => {
         const alreadySelected =
           useCalendarSelectionStore.getState().selectedDayKey === cell.dayKey;
-        selectCalendarDay(cell.dayKey);
+        // Navigate (pager setPage) before store updates so the scroll starts
+        // before selection re-renders the grid.
         onDayPress?.(cell.dayKey, alreadySelected);
+        selectCalendarDay(cell.dayKey);
       }}
-      style={[cellStyle, style]}
+      style={({ pressed }) => [
+        cellStyle,
+        style,
+        pressed && !selected ? { opacity: 0.72 } : null,
+      ]}
     >
       <View className="items-center" style={headerStyle}>
         <View style={dayNumberStyle}>

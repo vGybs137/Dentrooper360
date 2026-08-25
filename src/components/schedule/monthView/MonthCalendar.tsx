@@ -3,6 +3,7 @@ import { View, type LayoutChangeEvent } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   interpolate,
+  useAnimatedProps,
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
@@ -62,6 +63,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     onPageSelected,
     onPageScrollStateChanged,
     setPageIndex: setMonthPageIndex,
+    setHeaderPageIndex: setMonthHeaderPageIndex,
   } = useVisibleMonth(centerMonth);
 
   const {
@@ -184,6 +186,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     openProgress,
     setSnapHeight,
     sheetAnimatedStyle,
+    sheetAnimatedProps,
     beginDrag,
     applyDragTranslation,
     endDrag,
@@ -237,11 +240,13 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
         sameYearMonth(month, targetMonth),
       );
       if (targetIndex >= 0) {
-        setMonthPageIndex(targetIndex);
+        // Same as scroll-direction commits: jump header now, animate pager,
+        // let onPageSelected sync pageIndex (avoids remounting grids early).
+        setMonthHeaderPageIndex(targetIndex);
         pagerRef.current?.setPage(targetIndex);
       }
     },
-    [months, setMonthPageIndex, settleSheetOpen, visibleMonth],
+    [months, setMonthHeaderPageIndex, settleSheetOpen, visibleMonth],
   );
 
   const handleWeekDayPress = useCallback(
@@ -316,6 +321,23 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     opacity: openProgress.value >= MONTH_VIEW_SHEET_SWAP_PROGRESS ? 1 : 0,
   }));
 
+  // Touch targets follow visibility (openProgress), not sheetOpen. sheetOpen stays
+  // true until the close spring settles — using it left the visible month
+  // non-interactive so the first tap after close hit the invisible week/sheet.
+  const monthTouchProps = useAnimatedProps(() => ({
+    pointerEvents:
+      openProgress.value < MONTH_VIEW_SHEET_SWAP_PROGRESS
+        ? ("auto" as const)
+        : ("none" as const),
+  }));
+
+  const weekTouchProps = useAnimatedProps(() => ({
+    pointerEvents:
+      openProgress.value >= MONTH_VIEW_SHEET_SWAP_PROGRESS
+        ? ("auto" as const)
+        : ("none" as const),
+  }));
+
   const weekOverlayStyle = useMemo(
     () => ({
       position: "absolute" as const,
@@ -334,11 +356,13 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     sheetOpen || sheetMotionActive ? "crossfade" : "chips";
 
   const openSwipeGesture = Gesture.Pan()
-    .activeOffsetY([-10, 10])
-    .failOffsetX([-20, 20])
-    // Disable for the whole open/close motion so the sheet owns vertical pans.
-    .enabled(!sheetOpen && !sheetMotionActive)
-    .onBegin(() => {
+    // Only pull-up opens the sheet; don't claim downward / tiny taps.
+    .activeOffsetY(-16)
+    .failOffsetX([-24, 24])
+    // Do NOT key off sheetMotionActive — beginDrag sets that true and would
+    // disable this gesture mid-pan (dropped touches / double-tap day cells).
+    .enabled(!sheetOpen)
+    .onStart(() => {
       beginDrag();
     })
     .onUpdate((event) => {
@@ -351,17 +375,18 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
   return (
     <SheetOpenProgressContext.Provider value={openProgress}>
       <View className="w-full flex-1 self-stretch">
-        <View className="w-full flex-1" onLayout={onHostLayout}>
+        {/* Clip the closed sheet so its chrome can't paint under Quick Add / tabs. */}
+        <View className="w-full flex-1 overflow-hidden" onLayout={onHostLayout}>
           <View onLayout={onChromeLayout}>
             <MonthCalendarHeader yearMonth={headerMonth} />
             <WeekdayHeader weekStartsOn={weekStartsOn} />
           </View>
 
-          <View className="flex-1" onLayout={onPagerSlotLayout}>
+          <View className="flex-1 overflow-hidden" onLayout={onPagerSlotLayout}>
             <GestureDetector gesture={openSwipeGesture}>
               <Animated.View style={weekClipStyle}>
                 <Animated.View
-                  pointerEvents={sheetOpen ? "none" : "auto"}
+                  animatedProps={monthTouchProps}
                   style={[weekPinStyle, monthPagerVisibilityStyle]}
                 >
                   <MonthPager
@@ -382,7 +407,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
 
                 {weekSlotHeight > 0 ? (
                   <Animated.View
-                    pointerEvents={sheetOpen ? "auto" : "none"}
+                    animatedProps={weekTouchProps}
                     style={[weekOverlayStyle, weekPagerVisibilityStyle]}
                   >
                     <WeekPager
@@ -408,12 +433,12 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
               events={events}
               snapHeight={sheetSnapHeight}
               sheetAnimatedStyle={sheetAnimatedStyle}
+              sheetAnimatedProps={sheetAnimatedProps}
               beginDrag={beginDrag}
               applyDragTranslation={applyDragTranslation}
               endDrag={endDrag}
               open={openSheet}
               close={closeSheet}
-              interactive={sheetOpen || sheetMotionActive}
             />
           </View>
         </View>

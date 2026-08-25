@@ -36,12 +36,26 @@ export function committedPageIndex(position: number, offset: number): number {
   return offset >= PAGE_COMMIT_OFFSET ? position + 1 : position;
 }
 
+/**
+ * Destination page from scroll direction (same idea as jumping the header on
+ * out-of-month tap: set header to the target as soon as direction is known).
+ */
+export function headerIndexFromScrollDirection(
+  prevProgress: number,
+  progress: number,
+): number | null {
+  const delta = progress - prevProgress;
+  if (delta > 1e-4) return Math.ceil(progress - 1e-6);
+  if (delta < -1e-4) return Math.floor(progress + 1e-6);
+  return null;
+}
+
 export type UseVisibleMonthResult = {
   months: YearMonth[];
   initialIndex: number;
   pageIndex: number;
   visibleMonth: YearMonth;
-  /** Month label target — updates once a swipe is committed, before settle. */
+  /** Month label — driven by headerPageIndex, not settled pageIndex. */
   headerMonth: YearMonth;
   isDragging: boolean;
   onPageScroll: (
@@ -54,11 +68,16 @@ export type UseVisibleMonthResult = {
     event: NativeSyntheticEvent<PageScrollStateChangedNativeEventData>,
   ) => void;
   setPageIndex: (index: number) => void;
+  /**
+   * Jump the header label without remounting pager grids.
+   * Used for out-of-month taps; scroll uses the same path via direction commits.
+   */
+  setHeaderPageIndex: (index: number) => void;
 };
 
 /**
  * Tracks the settled pager page for grids, and a separate header month that
- * updates as soon as a swipe commits (halfway drag or settle direction).
+ * jumps to the destination as soon as swipe direction (or a tap target) is known.
  * Month window is frozen around the center month from first mount.
  */
 export function useVisibleMonth(
@@ -102,32 +121,38 @@ export function useVisibleMonth(
     [setHeaderPageIndex],
   );
 
+  const commitHeaderFromScroll = useCallback(
+    (position: number, offset: number, prevProgress: number) => {
+      const progress = position + offset;
+      const directed = headerIndexFromScrollDirection(prevProgress, progress);
+      if (directed != null) {
+        setHeaderPageIndex(directed);
+        return;
+      }
+      // No delta yet (e.g. settle just started): use drag halfway commit.
+      setHeaderPageIndex(committedPageIndex(position, offset));
+    },
+    [setHeaderPageIndex],
+  );
+
   const onPageScroll = useCallback(
     (event: NativeSyntheticEvent<PagerViewOnPageScrollEventData>) => {
       const { position, offset } = event.nativeEvent;
       const prev = lastScrollRef.current;
+      const prevProgress = prev.position + prev.offset;
       lastScrollRef.current = { position, offset };
 
       const state = scrollStateRef.current;
       if (state === "dragging") {
+        // Destination known at halfway — same eager header jump as a tap target.
         setHeaderPageIndex(committedPageIndex(position, offset));
         return;
       }
 
-      if (state !== "settling") return;
-
-      // Fling / snap: destination is fixed; commit from settle direction
-      // even when release happens before the halfway mark.
-      const progress = position + offset;
-      const prevProgress = prev.position + prev.offset;
-      const delta = progress - prevProgress;
-      if (delta > 1e-4) {
-        setHeaderPageIndex(Math.ceil(progress - 1e-6));
-      } else if (delta < -1e-4) {
-        setHeaderPageIndex(Math.floor(progress + 1e-6));
-      }
+      // Settling / programmatic setPage: jump header to destination from direction.
+      commitHeaderFromScroll(position, offset, prevProgress);
     },
-    [setHeaderPageIndex],
+    [commitHeaderFromScroll, setHeaderPageIndex],
   );
 
   const onPageSelected = useCallback(
@@ -140,10 +165,26 @@ export function useVisibleMonth(
   const onPageScrollStateChanged = useCallback(
     (event: NativeSyntheticEvent<PageScrollStateChangedNativeEventData>) => {
       const nextState = event.nativeEvent.pageScrollState;
+      const prevState = scrollStateRef.current;
       scrollStateRef.current = nextState;
       setIsDragging(nextState !== "idle");
+
+      // As soon as we enter settling, commit header to the destination once
+      // (mirrors out-of-month tap calling setHeaderPageIndex(target) eagerly).
+      if (nextState === "settling" && prevState !== "settling") {
+        const { position, offset } = lastScrollRef.current;
+        const progress = position + offset;
+        const from = pageIndexRef.current;
+        if (progress > from + 1e-4) {
+          setHeaderPageIndex(Math.ceil(progress - 1e-6));
+        } else if (progress < from - 1e-4) {
+          setHeaderPageIndex(Math.floor(progress + 1e-6));
+        } else if (prevState === "dragging") {
+          setHeaderPageIndex(committedPageIndex(position, offset));
+        }
+      }
     },
-    [],
+    [setHeaderPageIndex],
   );
 
   return {
@@ -157,5 +198,6 @@ export function useVisibleMonth(
     onPageSelected,
     onPageScrollStateChanged,
     setPageIndex,
+    setHeaderPageIndex,
   };
 }

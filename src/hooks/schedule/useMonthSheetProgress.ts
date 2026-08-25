@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import {
+  useAnimatedProps,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -30,6 +31,7 @@ export type UseMonthSheetProgressResult = {
   snapHeightSV: SharedValue<number>;
   setSnapHeight: (height: number) => void;
   sheetAnimatedStyle: ReturnType<typeof useAnimatedStyle>;
+  sheetAnimatedProps: ReturnType<typeof useAnimatedProps>;
   /** Call from UI-thread pan begin (calendar or sheet). */
   beginDrag: () => void;
   /**
@@ -65,10 +67,18 @@ export function useMonthSheetProgress({
 
   const sheetAnimatedStyle = useAnimatedStyle(() => {
     const snap = Math.max(snapHeightSV.value, 1);
+    const progress = openProgress.value;
     return {
-      transform: [{ translateY: (1 - openProgress.value) * snap }],
+      // Fully closed: hide so a 1px edge can't sit on the host/Quick Add boundary.
+      opacity: progress <= 0 ? 0 : 1,
+      transform: [{ translateY: (1 - progress) * snap }],
     };
   });
+
+  // Drop hits as soon as the sheet is visually closed — don't wait for React settle.
+  const sheetAnimatedProps = useAnimatedProps(() => ({
+    pointerEvents: openProgress.value > 0.02 ? ("auto" as const) : ("none" as const),
+  }));
 
   const beginDrag = useCallback(() => {
     "worklet";
@@ -151,6 +161,7 @@ export function useMonthSheetProgress({
     snapHeightSV,
     setSnapHeight,
     sheetAnimatedStyle,
+    sheetAnimatedProps,
     beginDrag,
     applyDragTranslation,
     endDrag,
