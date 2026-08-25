@@ -9,15 +9,62 @@ import { formatTimeRange } from "@/utils/calendar";
 
 export type AppointmentSearchResultItemProps = {
   event: MonthDayEventPreview;
+  query?: string;
 };
+
+type SubjectTextPart = {
+  value: string;
+  highlighted: boolean;
+};
+
+function splitSubjectByQuery(text: string, query: string): SubjectTextPart[] {
+  const normalizedQuery = query.trim();
+  if (!normalizedQuery) {
+    return [{ value: text, highlighted: false }];
+  }
+
+  const parts: SubjectTextPart[] = [];
+  const lowerText = text.toLowerCase();
+  const lowerQuery = normalizedQuery.toLowerCase();
+  let startIndex = 0;
+  let matchIndex = lowerText.indexOf(lowerQuery, startIndex);
+
+  while (matchIndex !== -1) {
+    if (matchIndex > startIndex) {
+      parts.push({
+        value: text.slice(startIndex, matchIndex),
+        highlighted: false,
+      });
+    }
+
+    parts.push({
+      value: text.slice(matchIndex, matchIndex + normalizedQuery.length),
+      highlighted: true,
+    });
+
+    startIndex = matchIndex + normalizedQuery.length;
+    matchIndex = lowerText.indexOf(lowerQuery, startIndex);
+  }
+
+  if (startIndex < text.length) {
+    parts.push({ value: text.slice(startIndex), highlighted: false });
+  }
+
+  return parts.length > 0 ? parts : [{ value: text, highlighted: false }];
+}
 
 function AppointmentSearchResultItemComponent({
   event,
+  query = "",
 }: AppointmentSearchResultItemProps) {
   const theme = useThemeTokens();
   const router = useRouter();
   const timeRange = formatTimeRange(event.startTime, event.endTime);
   const typeColor = event.color ?? theme.colors.borderStrong;
+  const subjectParts = useMemo(
+    () => splitSubjectByQuery(event.title, query),
+    [event.title, query],
+  );
 
   const rowStyle = useMemo(
     () => ({
@@ -59,6 +106,21 @@ function AppointmentSearchResultItemComponent({
     [theme],
   );
 
+  const highlightStyle = useMemo(
+    () => ({
+      color: theme.palette.brand.default,
+      fontWeight: theme.primitives.fontWeight.bold as "700",
+    }),
+    [theme],
+  );
+
+  const subjectStyle = useMemo(
+    () => ({
+      color: theme.colors.text,
+    }),
+    [theme],
+  );
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -69,7 +131,14 @@ function AppointmentSearchResultItemComponent({
       <View style={railStyle} />
       <View className="min-w-0 flex-1 justify-center">
         <Text numberOfLines={1} style={titleStyle}>
-          <Text style={{ color: theme.colors.text }}>{event.title}</Text>
+          {subjectParts.map((part, index) => (
+            <Text
+              key={`${part.value}-${index}`}
+              style={part.highlighted ? highlightStyle : subjectStyle}
+            >
+              {part.value}
+            </Text>
+          ))}
           {event.typeName ? (
             <Text style={{ color: theme.colors.text }}> - </Text>
           ) : null}

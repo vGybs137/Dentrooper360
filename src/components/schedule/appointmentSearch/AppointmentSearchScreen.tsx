@@ -29,9 +29,7 @@ type SearchDayGroup = {
   events: MonthDayEventPreview[];
 };
 
-function groupResultsByDay(
-  results: MonthDayEventPreview[],
-): SearchDayGroup[] {
+function groupResultsByDay(results: MonthDayEventPreview[]): SearchDayGroup[] {
   const groups: SearchDayGroup[] = [];
   const indexByDayKey = new Map<DayKey, number>();
 
@@ -212,15 +210,12 @@ export function AppointmentSearchScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: SearchDayGroup }) => (
-      <AppointmentSearchDayGroup dayKey={item.dayKey} events={item.events} />
+      <AppointmentSearchDayGroup dayKey={item.dayKey} events={item.events} query={query} />
     ),
-    [],
+    [query],
   );
 
-  const keyExtractor = useCallback(
-    (item: SearchDayGroup) => item.dayKey,
-    [],
-  );
+  const keyExtractor = useCallback((item: SearchDayGroup) => item.dayKey, []);
 
   const listHeaderComponent = useMemo(
     () =>

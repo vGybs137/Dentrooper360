@@ -11,6 +11,7 @@ import { parseDayKey, sameDay, toLocalDate, todayCalendarDate, type DayKey } fro
 export type AppointmentSearchDayGroupProps = {
   dayKey: DayKey;
   events: MonthDayEventPreview[];
+  query?: string;
 };
 
 /** e.g. "Mon, Jan 15, 2024" */
@@ -21,6 +22,7 @@ export function formatSearchDayLabel(dayKey: DayKey): string {
 function AppointmentSearchDayGroupComponent({
   dayKey,
   events,
+  query = "",
 }: AppointmentSearchDayGroupProps) {
   const theme = useThemeTokens();
   const dayLabel = useMemo(() => formatSearchDayLabel(dayKey), [dayKey]);
@@ -101,7 +103,7 @@ function AppointmentSearchDayGroupComponent({
                 <View style={separatorStyle} />
               </View>
             ) : null}
-            <AppointmentSearchResultItem event={event} />
+            <AppointmentSearchResultItem event={event} query={query} />
           </View>
         ))}
       </Card>
