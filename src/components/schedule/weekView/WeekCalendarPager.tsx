@@ -1,5 +1,5 @@
 import { memo, useCallback, useMemo } from "react";
-import { View } from "react-native";
+import { View, type LayoutChangeEvent } from "react-native";
 import PagerView from "react-native-pager-view";
 
 import { WEEK_VIEW_PAGER_RENDER_RADIUS } from "@/constants/schedule";
@@ -7,6 +7,7 @@ import type { WeekEventsByDay } from "@/hooks/schedule/useWeekAppointmentsCache"
 import { useWeekViewAxisLock } from "@/hooks/schedule/useWeekViewAxisLock";
 import { useAddAppointmentStore } from "@/stores/addAppointmentStore";
 import { useThemeTokens } from "@/theme";
+import type { DayPressHandler } from "@/types/schedule";
 import type { DayKey, WeekdayIndex } from "@/utils/calendar";
 
 import { WeekDayHeaderRow } from "./WeekDayHeaderRow";
@@ -25,7 +26,71 @@ export type WeekCalendarPagerProps = {
   onPageScrollStateChanged?: NonNullable<
     React.ComponentProps<typeof PagerView>["onPageScrollStateChanged"]
   >;
+  onDayPress?: DayPressHandler;
+  onDayHeaderLayout?: (event: LayoutChangeEvent) => void;
+  /** When true, time-grid vertical scroll is disabled so sheet dismiss owns the pan. */
+  sheetOpen?: boolean;
 };
+
+type WeekPageProps = {
+  weekStartKey: DayKey;
+  weekStartsOn: WeekdayIndex;
+  gutterWidth: number;
+  eventsByDay: WeekEventsByDay;
+  sheetOpen: boolean;
+  measureHeader: boolean;
+  onDayPress?: DayPressHandler;
+  onDayHeaderLayout?: (event: LayoutChangeEvent) => void;
+  gridTouchHandlers: ReturnType<typeof useWeekViewAxisLock>["gridTouchHandlers"];
+  lockPagerForVerticalScroll: () => void;
+  resetAxisLock: () => void;
+};
+
+const WeekPage = memo(function WeekPage({
+  weekStartKey,
+  weekStartsOn,
+  gutterWidth,
+  eventsByDay,
+  sheetOpen,
+  measureHeader,
+  onDayPress,
+  onDayHeaderLayout,
+  gridTouchHandlers,
+  lockPagerForVerticalScroll,
+  resetAxisLock,
+}: WeekPageProps) {
+  return (
+    <View collapsable={false} className="flex-1">
+      {/*
+        Header stays outside any gesture wrapper so width/layout stay stable
+        and day presses are not delayed by a competing pan recognizer.
+      */}
+      <WeekDayHeaderRow
+        weekStartKey={weekStartKey}
+        weekStartsOn={weekStartsOn}
+        gutterWidth={gutterWidth}
+        onDayPress={onDayPress}
+        onLayout={measureHeader ? onDayHeaderLayout : undefined}
+        useHighlightContext
+      />
+      <View
+        className="flex-1"
+        {...(sheetOpen ? {} : gridTouchHandlers)}
+        pointerEvents={sheetOpen ? "none" : "auto"}
+      >
+        <WeekTimeGrid
+          weekStartKey={weekStartKey}
+          eventsByDay={eventsByDay}
+          gutterWidth={gutterWidth}
+          onVerticalScrollBegin={
+            sheetOpen ? undefined : lockPagerForVerticalScroll
+          }
+          onVerticalScrollEnd={sheetOpen ? undefined : resetAxisLock}
+        />
+      </View>
+    </View>
+  );
+});
 
 function WeekCalendarPagerComponent({
   weeks,
@@ -36,6 +101,9 @@ function WeekCalendarPagerComponent({
   getEventsForWeek,
   onPageSelected,
   onPageScrollStateChanged,
+  onDayPress,
+  onDayHeaderLayout,
+  sheetOpen = false,
 }: WeekCalendarPagerProps) {
   const theme = useThemeTokens();
   const pageMargin = theme.semantic.space.stack.compact;
@@ -68,36 +136,45 @@ function WeekCalendarPagerComponent({
         return (
           <View key={weekStartKey} collapsable={false} className="flex-1">
             {shouldRender ? (
-              <>
-                <WeekDayHeaderRow
-                  weekStartKey={weekStartKey}
-                  weekStartsOn={weekStartsOn}
-                  gutterWidth={gutterWidth}
-                />
-                <View className="flex-1" {...gridTouchHandlers}>
-                  <WeekTimeGrid
-                    weekStartKey={weekStartKey}
-                    eventsByDay={getEventsForWeek(weekStartKey)}
-                    gutterWidth={gutterWidth}
-                    onVerticalScrollBegin={lockPagerForVerticalScroll}
-                    onVerticalScrollEnd={resetAxisLock}
-                  />
-                </View>
-              </>
+              <WeekPage
+                weekStartKey={weekStartKey}
+                weekStartsOn={weekStartsOn}
+                gutterWidth={gutterWidth}
+                eventsByDay={getEventsForWeek(weekStartKey)}
+                sheetOpen={sheetOpen}
+                measureHeader={index === pageIndex}
+                onDayPress={onDayPress}
+                onDayHeaderLayout={onDayHeaderLayout}
+                gridTouchHandlers={gridTouchHandlers}
+                lockPagerForVerticalScroll={lockPagerForVerticalScroll}
+                resetAxisLock={resetAxisLock}
+              />
             ) : (
               <View className="flex-1" />
             )}
           </View>
         );
       }),
-    [getEventsForWeek, gridTouchHandlers, gutterWidth, lockPagerForVerticalScroll, pageIndex, resetAxisLock, weekStartsOn, weeks],
+    [
+      getEventsForWeek,
+      gridTouchHandlers,
+      gutterWidth,
+      lockPagerForVerticalScroll,
+      onDayHeaderLayout,
+      onDayPress,
+      pageIndex,
+      resetAxisLock,
+      sheetOpen,
+      weekStartsOn,
+      weeks,
+    ],
   );
 
   return (
     <PagerView
       style={{ flex: 1 }}
       initialPage={initialIndex}
-      scrollEnabled={pagerScrollEnabled}
+      scrollEnabled={sheetOpen ? true : pagerScrollEnabled}
       offscreenPageLimit={WEEK_VIEW_PAGER_RENDER_RADIUS}
       pageMargin={pageMargin}
       onPageSelected={handlePageSelected}

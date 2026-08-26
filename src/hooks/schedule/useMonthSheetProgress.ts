@@ -77,7 +77,8 @@ export function useMonthSheetProgress({
 
   // Drop hits as soon as the sheet is visually closed — don't wait for React settle.
   const sheetAnimatedProps = useAnimatedProps(() => ({
-    pointerEvents: openProgress.value > 0.02 ? ("auto" as const) : ("none" as const),
+    pointerEvents:
+      openProgress.value > 0.02 ? ("auto" as const) : ("none" as const),
   }));
 
   const beginDrag = useCallback(() => {
