@@ -13,7 +13,7 @@ export type DayEventListItemProps = {
   event: MonthDayEventPreview;
 };
 
-/** Matches feature/schedule-big-calendar DayAppointmentEvent day-variant card. */
+/** Day-events sheet row — title, type color rail, and time range. */
 function DayEventListItemComponent({ event }: DayEventListItemProps) {
   const theme = useThemeTokens();
   const router = useRouter();

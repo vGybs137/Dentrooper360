@@ -4,11 +4,14 @@ export type { DayCellProps } from "./DayCell";
 export { DayEventChip } from "./DayEventChip";
 export type { DayEventChipProps } from "./DayEventChip";
 
-export { DayEventListItem } from "./DayEventListItem";
-export type { DayEventListItemProps } from "./DayEventListItem";
-
-export { DayEventsSheet } from "./DayEventsSheet";
-export type { DayEventsSheetProps } from "./DayEventsSheet";
+export {
+  DayEventListItem,
+  DayEventsSheet,
+} from "@/components/schedule/dayEventsSheet";
+export type {
+  DayEventListItemProps,
+  DayEventsSheetProps,
+} from "@/components/schedule/dayEventsSheet";
 
 export { MonthCalendar } from "./MonthCalendar";
 export type { MonthCalendarProps } from "./MonthCalendar";

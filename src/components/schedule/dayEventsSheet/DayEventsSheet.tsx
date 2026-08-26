@@ -33,9 +33,9 @@ export type { DayEventsSheetHandle };
 export type DayEventsSheetProps = {
   dayKey: DayKey;
   events: MonthDayEventPreview[];
-  /** Open height in px — fills space below the pinned week. */
+  /** Open height in px — fills space below the calendar chrome / day header. */
   snapHeight: number;
-  /** Reanimated style from useMonthSheetProgress (translateY from openProgress). */
+  /** Reanimated style from useDayEventsSheetProgress (translateY from openProgress). */
   sheetAnimatedStyle: object;
   /** pointerEvents from openProgress — clears hits as soon as the sheet is closed. */
   sheetAnimatedProps: object;

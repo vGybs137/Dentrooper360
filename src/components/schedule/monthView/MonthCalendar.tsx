@@ -8,11 +8,12 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 
+import { DayEventsSheet } from "@/components/schedule/dayEventsSheet";
 import { MONTH_VIEW_SHEET_SWAP_PROGRESS } from "@/constants/schedule";
 import { SheetOpenProgressContext } from "@/contexts/SheetOpenProgressContext";
 import { weekRowForDay, yearMonthFromDayKey } from "@/helpers/scheduleCalendar";
+import { useDayEventsSheetProgress } from "@/hooks/schedule/useDayEventsSheetProgress";
 import { useMonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
-import { useMonthSheetProgress } from "@/hooks/schedule/useMonthSheetProgress";
 import { useVisibleMonth } from "@/hooks/schedule/useVisibleMonth";
 import { useVisibleWeek } from "@/hooks/schedule/useVisibleWeek";
 import {
@@ -38,7 +39,6 @@ import {
 } from "@/utils/calendar";
 
 import type { DayCellEventIndicators } from "./DayCell";
-import { DayEventsSheet } from "./DayEventsSheet";
 import { MonthCalendarHeader } from "./MonthCalendarHeader";
 import { MonthPager } from "./MonthPager";
 import { MonthQuickAddField } from "./MonthQuickAddField";
@@ -192,7 +192,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
     endDrag,
     open: openSheet,
     close: closeSheet,
-  } = useMonthSheetProgress({
+  } = useDayEventsSheetProgress({
     onSettledOpen: handleSettledOpen,
     onSettledClosed: handleSettledClosed,
     onMotionStart: handleMotionStart,

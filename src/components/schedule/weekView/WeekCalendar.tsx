@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, type LayoutChangeEvent } from "react-native";
 
-import { DayEventsSheet } from "@/components/schedule/monthView/DayEventsSheet";
+import { DayEventsSheet } from "@/components/schedule/dayEventsSheet";
 import { WEEK_VIEW_GUTTER_WIDTH } from "@/constants/schedule";
 import { WeekHighlightDayContext } from "@/contexts/WeekHighlightDayContext";
-import { useMonthSheetProgress } from "@/hooks/schedule/useMonthSheetProgress";
+import { useDayEventsSheetProgress } from "@/hooks/schedule/useDayEventsSheetProgress";
 import { useWeekAppointmentsCache } from "@/hooks/schedule/useWeekAppointmentsCache";
 import { useVisibleWeek } from "@/hooks/schedule/useVisibleWeek";
 import {
@@ -99,7 +99,7 @@ export function WeekCalendar({ weekStartsOn = 0 }: WeekCalendarProps) {
     endDrag,
     open: openSheet,
     close: closeSheet,
-  } = useMonthSheetProgress({
+  } = useDayEventsSheetProgress({
     onSettledOpen: handleSettledOpen,
     onSettledClosed: handleSettledClosed,
     onMotionStart: handleMotionStart,

@@ -20,13 +20,13 @@ const SETTLE_SPRING = {
   overshootClamping: true,
 } as const;
 
-export type UseMonthSheetProgressOptions = {
+export type UseDayEventsSheetProgressOptions = {
   onSettledOpen: () => void;
   onSettledClosed: () => void;
   onMotionStart: () => void;
 };
 
-export type UseMonthSheetProgressResult = {
+export type UseDayEventsSheetProgressResult = {
   openProgress: SharedValue<number>;
   snapHeightSV: SharedValue<number>;
   setSnapHeight: (height: number) => void;
@@ -46,14 +46,14 @@ export type UseMonthSheetProgressResult = {
 };
 
 /**
- * Single 0…1 openProgress for month week-pin + day-events sheet.
+ * Shared 0…1 openProgress for day-events sheets (month + week).
  * All drag/settle writes stay on the UI thread; React only hears settle / motion start.
  */
-export function useMonthSheetProgress({
+export function useDayEventsSheetProgress({
   onSettledOpen,
   onSettledClosed,
   onMotionStart,
-}: UseMonthSheetProgressOptions): UseMonthSheetProgressResult {
+}: UseDayEventsSheetProgressOptions): UseDayEventsSheetProgressResult {
   const openProgress = useSharedValue(0);
   const snapHeightSV = useSharedValue(0);
   const dragStartProgress = useSharedValue(0);
