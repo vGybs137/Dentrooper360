@@ -5,6 +5,7 @@ import type { MonthDayEventPreview } from "@/types/schedule";
 import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import type AppointmentType from "@/database/models/AppointmentType";
+import { useAuthUser } from "@/stores/authStore";
 import {
   addDays,
   addWeeks,
@@ -92,6 +93,7 @@ function buildWeekDayMap(
 export function useWeekAppointmentsCache({
   isDragging,
 }: UseWeekAppointmentsCacheOptions): UseWeekAppointmentsCacheResult {
+  const providerId = useAuthUser()?.id ?? null;
   const [cache, setCache] = useState<WeekAppointmentsCache>({});
   const typesRef = useRef(
     new Map<string, { color: string | null; name: string }>(),
@@ -152,7 +154,7 @@ export function useWeekAppointmentsCache({
 
   const subscribeWeek = useCallback(
     (weekStartKey: WeekStartDayKey) => {
-      if (subscriptionsRef.current.has(weekStartKey)) return;
+      if (!providerId || subscriptionsRef.current.has(weekStartKey)) return;
 
       const weekStartMs = toLocalDate(parseDayKey(weekStartKey)).getTime();
       const weekEndMs = weekStartMs + WEEK_DAYS * 24 * 60 * 60 * 1000;
@@ -160,6 +162,7 @@ export function useWeekAppointmentsCache({
       const subscription = database
         .get<Appointment>("appointments")
         .query(
+          Q.where("provider_id", providerId),
           Q.where("start_time", Q.gte(weekStartMs)),
           Q.where("start_time", Q.lt(weekEndMs)),
         )
@@ -184,7 +187,7 @@ export function useWeekAppointmentsCache({
 
       subscriptionsRef.current.set(weekStartKey, subscription);
     },
-    [publishWeek],
+    [providerId, publishWeek],
   );
 
   const flushPending = useCallback(() => {
@@ -260,15 +263,27 @@ export function useWeekAppointmentsCache({
     return clearTimer;
   }, [isDragging, flushPending]);
 
+  // Tear down observers and cache when the signed-in provider changes.
   useEffect(() => {
+    clearTimer();
+    for (const subscription of subscriptionsRef.current.values()) {
+      subscription.unsubscribe();
+    }
+    subscriptionsRef.current.clear();
+    appointmentsByWeekRef.current.clear();
+    pendingKeysRef.current.clear();
+    setCache({});
+
     return () => {
       clearTimer();
       for (const subscription of subscriptionsRef.current.values()) {
         subscription.unsubscribe();
       }
       subscriptionsRef.current.clear();
+      appointmentsByWeekRef.current.clear();
+      pendingKeysRef.current.clear();
     };
-  }, []);
+  }, [providerId]);
 
   const getEventsForWeek = useCallback(
     (weekStartKey: WeekStartDayKey): WeekEventsByDay =>

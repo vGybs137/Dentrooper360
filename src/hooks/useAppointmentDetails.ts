@@ -6,6 +6,7 @@ import type Appointment from "@/database/models/Appointment";
 import type AppointmentType from "@/database/models/AppointmentType";
 import type Location from "@/database/models/Location";
 import type Patient from "@/database/models/Patient";
+import { useAuthUser } from "@/stores/authStore";
 
 /** Columns that should refresh appointment details when changed. */
 const APPOINTMENT_DETAIL_COLUMNS = [
@@ -50,12 +51,13 @@ async function fetchRelation<T>(
 export function useAppointmentDetails(
   appointmentId: string | undefined,
 ): UseAppointmentDetailsResult {
+  const providerId = useAuthUser()?.id ?? null;
   const [details, setDetails] = useState<AppointmentDetails | null>(null);
   const [isLoading, setIsLoading] = useState(Boolean(appointmentId));
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (!appointmentId) {
+    if (!appointmentId || !providerId) {
       setDetails(null);
       setIsLoading(false);
       setError(null);
@@ -70,7 +72,10 @@ export function useAppointmentDetails(
     // require observeWithColumns so edits refresh this screen without reload.
     const subscription = database
       .get<Appointment>("appointments")
-      .query(Q.where("id", appointmentId))
+      .query(
+        Q.where("id", appointmentId),
+        Q.where("provider_id", providerId),
+      )
       .observeWithColumns([...APPOINTMENT_DETAIL_COLUMNS])
       .subscribe({
         next: (records) => {
@@ -117,7 +122,7 @@ export function useAppointmentDetails(
       cancelled = true;
       subscription.unsubscribe();
     };
-  }, [appointmentId]);
+  }, [appointmentId, providerId]);
 
   return { details, isLoading, error };
 }

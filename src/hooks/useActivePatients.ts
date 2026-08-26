@@ -9,6 +9,7 @@ import {
   mapPatientToCardData,
   type PatientCardData,
 } from "@/helpers/patientDisplay";
+import { useAuthUser } from "@/stores/authStore";
 
 function matchesPatientSearch(
   patient: PatientCardData,
@@ -67,6 +68,7 @@ export function useActivePatients(
   search = "",
   { enabled = true }: UseActivePatientsOptions = {},
 ) {
+  const providerId = useAuthUser()?.id ?? null;
   const [patients, setPatients] = useState<PatientCardData[]>([]);
   const [isLoading, setIsLoading] = useState(enabled);
   const [error, setError] = useState<Error | null>(null);
@@ -74,6 +76,13 @@ export function useActivePatients(
   useEffect(() => {
     if (!enabled) {
       setIsLoading(false);
+      return;
+    }
+
+    if (!providerId) {
+      setPatients([]);
+      setIsLoading(false);
+      setError(null);
       return;
     }
 
@@ -100,7 +109,10 @@ export function useActivePatients(
 
     const appointmentsQuery = database
       .get<Appointment>("appointments")
-      .query(Q.where("start_time", Q.gte(Date.now())));
+      .query(
+        Q.where("provider_id", providerId),
+        Q.where("start_time", Q.gte(Date.now())),
+      );
 
     const patientsSub = patientsQuery.observe().subscribe({
       next: (records) => {
@@ -130,7 +142,7 @@ export function useActivePatients(
       patientsSub.unsubscribe();
       appointmentsSub.unsubscribe();
     };
-  }, [enabled]);
+  }, [enabled, providerId]);
 
   const filteredPatients = useMemo(
     () => patients.filter((patient) => matchesPatientSearch(patient, search)),

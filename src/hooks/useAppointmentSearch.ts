@@ -9,6 +9,7 @@ import {
 import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import type AppointmentType from "@/database/models/AppointmentType";
+import { useAuthUser } from "@/stores/authStore";
 import type { MonthDayEventPreview } from "@/types/schedule";
 
 function matchesSubjectSearch(subject: string, query: string): boolean {
@@ -55,6 +56,7 @@ export function useAppointmentSearch(
   selectedTypeIds: readonly string[] = [],
   timeWindow: AppointmentSearchTimeWindow = DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW,
 ): UseAppointmentSearchResult {
+  const providerId = useAuthUser()?.id ?? null;
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [types, setTypes] = useState(
     new Map<string, { color: string | null; name: string }>(),
@@ -70,21 +72,30 @@ export function useAppointmentSearch(
   const rangeEndMs = timeRange?.endMs ?? null;
 
   useEffect(() => {
+    if (!providerId) {
+      setAppointments([]);
+      setIsLoading(false);
+      setError(null);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
+    const providerClause = Q.where("provider_id", providerId);
     const appointmentsQuery =
       rangeStartMs != null && rangeEndMs != null
         ? database
             .get<Appointment>("appointments")
             .query(
+              providerClause,
               Q.where("start_time", Q.gte(rangeStartMs)),
               Q.where("start_time", Q.lt(rangeEndMs)),
               Q.sortBy("start_time", Q.desc),
             )
         : database
             .get<Appointment>("appointments")
-            .query(Q.sortBy("start_time", Q.desc));
+            .query(providerClause, Q.sortBy("start_time", Q.desc));
 
     const appointmentsSubscription = appointmentsQuery
       .observeWithColumns([
@@ -129,7 +140,7 @@ export function useAppointmentSearch(
       appointmentsSubscription.unsubscribe();
       typesSubscription.unsubscribe();
     };
-  }, [rangeEndMs, rangeStartMs]);
+  }, [providerId, rangeEndMs, rangeStartMs]);
 
   const typeOptions = useMemo<AppointmentSearchTypeOption[]>(
     () =>

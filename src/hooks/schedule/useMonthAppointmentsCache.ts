@@ -9,6 +9,7 @@ import {
   EMPTY_DAY_EVENTS,
   EMPTY_MONTH_EVENTS,
 } from "@/helpers/scheduleEvents";
+import { useAuthUser } from "@/stores/authStore";
 import {
   addMonths,
   startOfMonthDate,
@@ -95,6 +96,7 @@ function buildDayMap(
 export function useMonthAppointmentsCache({
   isDragging,
 }: UseMonthAppointmentsCacheOptions): UseMonthAppointmentsCacheResult {
+  const providerId = useAuthUser()?.id ?? null;
   const [cache, setCache] = useState<MonthAppointmentsCache>({});
   const typesRef = useRef(
     new Map<string, { color: string | null; name: string }>(),
@@ -141,7 +143,7 @@ export function useMonthAppointmentsCache({
   const subscribeMonth = useCallback(
     (yearMonth: YearMonth) => {
       const monthKey = monthKeyFromYearMonth(yearMonth);
-      if (subscriptionsRef.current.has(monthKey)) return;
+      if (!providerId || subscriptionsRef.current.has(monthKey)) return;
 
       monthByKeyRef.current.set(monthKey, yearMonth);
       const startMs = startOfMonthDate(yearMonth).getTime();
@@ -150,6 +152,7 @@ export function useMonthAppointmentsCache({
       const subscription = database
         .get<Appointment>("appointments")
         .query(
+          Q.where("provider_id", providerId),
           Q.where("start_time", Q.gte(startMs)),
           Q.where("start_time", Q.lt(endMs)),
         )
@@ -174,7 +177,7 @@ export function useMonthAppointmentsCache({
 
       subscriptionsRef.current.set(monthKey, subscription);
     },
-    [publishMonth],
+    [providerId, publishMonth],
   );
 
   const flushPending = useCallback(() => {
@@ -319,7 +322,17 @@ export function useMonthAppointmentsCache({
     return clearTimer;
   }, [isDragging, flushPending]);
 
+  // Tear down observers and cache when the signed-in provider changes.
   useEffect(() => {
+    clearTimer();
+    for (const subscription of subscriptionsRef.current.values()) {
+      subscription.unsubscribe();
+    }
+    subscriptionsRef.current.clear();
+    appointmentsByMonthRef.current.clear();
+    pendingKeysRef.current.clear();
+    setCache({});
+
     return () => {
       clearTimer();
       for (const subscription of subscriptionsRef.current.values()) {
@@ -330,7 +343,7 @@ export function useMonthAppointmentsCache({
       pendingKeysRef.current.clear();
       monthByKeyRef.current.clear();
     };
-  }, []);
+  }, [providerId]);
 
   const getEventsForDay = useCallback(
     (dayKey: DayKey): MonthDayEventPreview[] => {

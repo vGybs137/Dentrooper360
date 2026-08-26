@@ -99,6 +99,7 @@ async function loadLookups(): Promise<{
 
 async function loadDayEventTimes(
   dayKey: DayKey,
+  providerId: string,
 ): Promise<Array<{ startTime: number; endTime: number }>> {
   const dayStart = toLocalDate(parseDayKey(dayKey));
   const dayEnd = new Date(dayStart);
@@ -107,6 +108,7 @@ async function loadDayEventTimes(
   const appointments = await database
     .get<Appointment>("appointments")
     .query(
+      Q.where("provider_id", providerId),
       Q.where("start_time", Q.gte(dayStart.getTime())),
       Q.where("start_time", Q.lt(dayEnd.getTime())),
     )
@@ -156,7 +158,7 @@ export async function createMonthQuickAddAppointment({
   const dayEvents =
     resolvedDayKey === dayKey
       ? events
-      : await loadDayEventTimes(resolvedDayKey);
+      : await loadDayEventTimes(resolvedDayKey, providerId);
 
   const startMinutes =
     parsed.preferredStartMinutes ??

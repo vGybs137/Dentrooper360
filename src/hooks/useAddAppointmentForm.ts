@@ -271,6 +271,9 @@ export function useAddAppointmentForm() {
           const appointment = await database
             .get<Appointment>("appointments")
             .find(editingAppointmentId);
+          if (appointment.providerId !== user.id) {
+            throw new Error("You can only edit your own appointments.");
+          }
           await appointment.update((record) => {
             record.patientId = data.patientId || null;
             record.typeId = data.typeId || null;
