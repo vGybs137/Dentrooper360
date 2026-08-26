@@ -10,6 +10,7 @@ import type {
 export type WireAuthUser = {
   id: string;
   full_name: string;
+  email: string | null;
   color: number | null;
   starting_hour: string;
   ending_hour: string;
@@ -32,6 +33,7 @@ export function mapAuthUser(user: WireAuthUser): AuthUser {
   return {
     id: user.id,
     fullName: user.full_name,
+    email: user.email ?? null,
     color: user.color,
     startingHour: user.starting_hour,
     endingHour: user.ending_hour,
