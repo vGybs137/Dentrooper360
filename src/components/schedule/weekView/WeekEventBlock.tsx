@@ -120,6 +120,8 @@ function WeekEventBlockComponent({
         isDayVariant && !isCompactDayEvent
           ? ("flex-start" as const)
           : ("center" as const),
+      alignItems: isDayVariant ? ("stretch" as const) : ("center" as const),
+      overflow: "hidden" as const,
     }),
     [isCompactDayEvent, isDayVariant, theme],
   );
@@ -141,6 +143,31 @@ function WeekEventBlockComponent({
           },
     [isDayVariant, theme],
   );
+
+  /** Rotated title runs along the event height in narrow week columns. */
+  const weekVerticalTitleSlotStyle = useMemo(() => {
+    const verticalPad = theme.primitives.space[2] * 2;
+    const runLength = Math.max(0, height - verticalPad);
+    const lineBox = 11;
+    return {
+      width: lineBox,
+      height: runLength,
+      overflow: "hidden" as const,
+      alignItems: "center" as const,
+      justifyContent: "center" as const,
+    };
+  }, [height, theme]);
+
+  const weekVerticalTitleStyle = useMemo(() => {
+    const verticalPad = theme.primitives.space[2] * 2;
+    const runLength = Math.max(0, height - verticalPad);
+    return {
+      ...titleStyle,
+      width: runLength,
+      textAlign: "center" as const,
+      transform: [{ rotate: "90deg" as const }],
+    };
+  }, [height, theme, titleStyle]);
 
   const timeStyle = useMemo(
     () => ({
@@ -202,9 +229,11 @@ function WeekEventBlockComponent({
               </>
             )
           ) : (
-            <Text numberOfLines={1} style={titleStyle}>
-              {event.title}
-            </Text>
+            <View style={weekVerticalTitleSlotStyle}>
+              <Text numberOfLines={1} style={weekVerticalTitleStyle}>
+                {event.title}
+              </Text>
+            </View>
           )}
         </View>
       </View>
