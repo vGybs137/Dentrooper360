@@ -2,6 +2,7 @@ import { AppState, type AppStateStatus, type NativeEventSubscription } from "rea
 
 import { SYNC_INTERVAL_MS } from "@/constants/sync";
 import { synchronize } from "@/database/synchronize";
+import { isDeviceOnline } from "@/helpers/connectivity";
 
 let intervalId: ReturnType<typeof setInterval> | null = null;
 let appStateSubscription: NativeEventSubscription | null = null;
@@ -11,6 +12,10 @@ let isTickInFlight = false;
 
 async function tick() {
   if (isTickInFlight || !activeCustomerId || AppState.currentState !== "active") {
+    return;
+  }
+
+  if (!(await isDeviceOnline())) {
     return;
   }
 

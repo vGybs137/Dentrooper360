@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { ScheduleSyncStatusBanner } from "@/components/schedule/ScheduleSyncStatusBanner";
 import { Screen } from "@/components/ui";
 import { useThemeTokens } from "@/theme";
 
@@ -19,6 +20,7 @@ export function ScheduleScreen({ children }: ScheduleScreenProps) {
       scroll={false}
       style={{ backgroundColor: theme.palette.surface.default }}
     >
+      <ScheduleSyncStatusBanner />
       {children}
     </Screen>
   );

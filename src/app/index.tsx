@@ -7,17 +7,22 @@ import { hideNativeSplash } from "@/helpers/nativeSplash";
 import { useStartupSessionCheck } from "@/hooks/useStartupSessionCheck";
 import { useStartupSync } from "@/hooks/useStartupSync";
 import {
+  setOfflineMode,
   useAuthStore,
+  useCanEnterOffline,
   useCustomerId,
   useHasHydrated,
   useIsAuthenticated,
+  useSyncStatusHasHydrated,
 } from "@/stores";
 
 export default function Index() {
   const router = useRouter();
   const customerId = useCustomerId();
   const hasHydrated = useHasHydrated();
+  const syncStatusHydrated = useSyncStatusHasHydrated();
   const isAuthenticated = useIsAuthenticated();
+  const canEnterOffline = useCanEnterOffline();
   const {
     isPending: isValidatingSession,
     isSuccess: isSessionValid,
@@ -32,7 +37,7 @@ export default function Index() {
   } = useStartupSync(isSessionValid);
 
   useEffect(() => {
-    if (!hasHydrated) {
+    if (!hasHydrated || !syncStatusHydrated) {
       return;
     }
 
@@ -61,6 +66,13 @@ export default function Index() {
     }
 
     if (isSyncFailed) {
+      if (canEnterOffline) {
+        setOfflineMode(true);
+        void hideNativeSplash();
+        router.replace("/(tabs)/schedule" as Href);
+        return;
+      }
+
       void hideNativeSplash();
       return;
     }
@@ -70,10 +82,12 @@ export default function Index() {
     }
 
     if (isSyncComplete) {
+      setOfflineMode(false);
       void hideNativeSplash();
       router.replace("/(tabs)/schedule" as Href);
     }
   }, [
+    canEnterOffline,
     customerId,
     hasHydrated,
     isAuthenticated,
@@ -84,11 +98,15 @@ export default function Index() {
     isSyncFailed,
     isValidatingSession,
     router,
+    syncStatusHydrated,
   ]);
+
+  const showSyncRetry = isSyncFailed && !canEnterOffline;
+  const showContinueOffline = isSyncFailed && canEnterOffline;
 
   return (
     <BrandedSplash>
-      {isSyncFailed ? (
+      {showSyncRetry ? (
         <Stack space="compact" align="center">
           <ThemedText align="center" tone="muted">
             Unable to sync clinic data. Check your connection and try again.
@@ -100,6 +118,32 @@ export default function Index() {
               void retrySync();
             }}
             tone="brand"
+          />
+        </Stack>
+      ) : null}
+      {showContinueOffline ? (
+        <Stack space="compact" align="center">
+          <ThemedText align="center" tone="muted">
+            Unable to sync right now. You can continue with previously synced
+            clinic data.
+          </ThemedText>
+          <Button
+            label="Continue offline"
+            onPress={() => {
+              setOfflineMode(true);
+              void hideNativeSplash();
+              router.replace("/(tabs)/schedule" as Href);
+            }}
+            tone="brand"
+          />
+          <Button
+            disabled={isRetryingSync}
+            label={isRetryingSync ? "Retrying sync..." : "Retry sync"}
+            onPress={() => {
+              void retrySync();
+            }}
+            tone="brand"
+            variant="outline"
           />
         </Stack>
       ) : null}

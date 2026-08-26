@@ -7,6 +7,7 @@ import {
 import { pullChanges, pushChanges } from "@/api/functions/sync";
 import { MIGRATIONS_ENABLED_AT_VERSION } from "@/constants/sync";
 import { toPullMigration } from "@/helpers/sync";
+import { hydrateSyncStatusStore, markSyncSucceeded } from "@/stores";
 import type { MobilePushRequest } from "@/types/sync";
 
 import database from ".";
@@ -39,6 +40,9 @@ async function runSynchronize(customerId: string): Promise<void> {
     // device does not conflict; other devices still create missing rows via this flag.
     // sendCreatedAsUpdated: true,
   });
+
+  await hydrateSyncStatusStore();
+  markSyncSucceeded();
 }
 
 let inFlight: Promise<void> | null = null;

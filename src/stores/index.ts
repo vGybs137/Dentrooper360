@@ -42,3 +42,15 @@ export type {
   AppointmentSlot,
   EditAppointmentDraft,
 } from "./addAppointmentStore";
+export {
+  canEnterOffline,
+  clearSyncStatus,
+  hydrateSyncStatusStore,
+  markSyncSucceeded,
+  setOfflineMode,
+  useCanEnterOffline,
+  useIsOfflineMode,
+  useLastSuccessfulSyncAt,
+  useSyncStatusHasHydrated,
+  useSyncStatusStore,
+} from "./syncStatusStore";

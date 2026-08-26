@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { getCurrentUser, refreshSession } from "@/api";
 import { queryKeys } from "@/constants/queryKeys";
+import { isNetworkError } from "@/helpers/networkError";
 import {
   useAuthStore,
   useCustomerId,
@@ -9,18 +10,40 @@ import {
   useIsAuthenticated,
 } from "@/stores";
 import { ApiError } from "@/types/api";
+import type { AuthUser } from "@/types/auth";
 
-async function validateSession() {
+function cachedUserOrThrow(error: unknown): AuthUser {
+  const cached = useAuthStore.getState().user;
+  if (cached) {
+    return cached;
+  }
+
+  throw error;
+}
+
+async function validateSession(): Promise<AuthUser> {
   try {
     const user = await getCurrentUser();
     useAuthStore.getState().setUser(user);
     return user;
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
-      await refreshSession();
-      const user = await getCurrentUser();
-      useAuthStore.getState().setUser(user);
-      return user;
+      try {
+        await refreshSession();
+        const user = await getCurrentUser();
+        useAuthStore.getState().setUser(user);
+        return user;
+      } catch (refreshError) {
+        if (isNetworkError(refreshError)) {
+          return cachedUserOrThrow(refreshError);
+        }
+
+        throw refreshError;
+      }
+    }
+
+    if (isNetworkError(error)) {
+      return cachedUserOrThrow(error);
     }
 
     throw error;

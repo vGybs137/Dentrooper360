@@ -15,6 +15,7 @@ import {
   type QuickAddPatientCandidate,
 } from "@/helpers/parseQuickAddAppointment";
 import { formatPatientName } from "@/helpers/patientDisplay";
+import { requestSync } from "@/helpers/requestSync";
 import { ADD_APPOINTMENT_SLOT_DURATION_MINUTES } from "@/stores/addAppointmentStore";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import {
@@ -193,6 +194,7 @@ export async function createMonthQuickAddAppointment({
         record.endTime = endTime;
       });
     });
+    requestSync();
     return true;
   } catch (error) {
     Alert.alert(

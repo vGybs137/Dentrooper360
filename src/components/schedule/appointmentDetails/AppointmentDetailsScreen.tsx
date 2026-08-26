@@ -33,6 +33,7 @@ import {
   formatPatientName,
   mapPatientToCardData,
 } from "@/helpers/patientDisplay";
+import { requestSync } from "@/helpers/requestSync";
 import { useAppointmentDetails } from "@/hooks/useAppointmentDetails";
 import { useAddAppointmentStore } from "@/stores";
 import { useThemeTokens } from "@/theme";
@@ -390,6 +391,7 @@ export function AppointmentDetailsScreen({
         await database.write(async () => {
           await appointment.markAsDeleted();
         });
+        requestSync();
         setDeleteVisible(false);
         goBack();
       } catch (err) {

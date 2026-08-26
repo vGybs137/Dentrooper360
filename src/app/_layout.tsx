@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AddAppointmentSheet } from "@/components/schedule/addAppointment";
 import { keepNativeSplashVisible } from "@/helpers/nativeSplash";
+import { useConnectivitySync } from "@/hooks/useConnectivitySync";
 import { usePeriodicSync } from "@/hooks/usePeriodicSync";
 import { useTokenRefresh } from "@/hooks/useTokenRefresh";
 import { QueryProvider } from "@/providers/QueryProvider";
@@ -38,6 +39,7 @@ keepNativeSplashVisible();
 
 function RootLayout() {
   usePeriodicSync();
+  useConnectivitySync();
   useTokenRefresh();
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

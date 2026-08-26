@@ -14,6 +14,7 @@ import type Appointment from "@/database/models/Appointment";
 import { combineDateAndTime } from "@/helpers/appointmentDate";
 import { buildAppointmentSubjectFromPatient } from "@/helpers/appointmentSubject";
 import { generateGuid } from "@/helpers/guid";
+import { requestSync } from "@/helpers/requestSync";
 import {
   ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
   useAddAppointmentIsPresented,
@@ -299,6 +300,7 @@ export function useAddAppointmentForm() {
           record.endTime = data.endTime;
         });
       });
+      requestSync();
     } catch (error) {
       Alert.alert(
         isEditing ? "Unable to update appointment" : "Unable to add appointment",

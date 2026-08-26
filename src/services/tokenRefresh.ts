@@ -5,6 +5,7 @@ import {
   TOKEN_REFRESH_CHECK_INTERVAL_MS,
   TOKEN_REFRESH_LEAD_MS,
 } from "@/constants/auth";
+import { isDeviceOnline } from "@/helpers/connectivity";
 import { recycleTokens } from "@/helpers/sessionRefresh";
 import { getAccessTokenExpiresAt, useAuthStore } from "@/stores";
 
@@ -37,6 +38,10 @@ export function getNextRefreshAt(): Date | null {
 
 async function tick() {
   if (isTickInFlight || AppState.currentState !== "active") {
+    return;
+  }
+
+  if (!(await isDeviceOnline())) {
     return;
   }
 
