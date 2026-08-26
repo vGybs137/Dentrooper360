@@ -19,6 +19,11 @@ import {
 import { AppointmentSearchDayGroup } from "@/components/schedule/appointmentSearch/AppointmentSearchDayGroup";
 import { AppointmentSearchFiltersCard } from "@/components/schedule/appointmentSearch/AppointmentSearchFiltersCard";
 import { ThemedText } from "@/components/ui";
+import {
+  appointmentSearchTimeWindowLabel,
+  DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW,
+  type AppointmentSearchTimeWindow,
+} from "@/constants/appointmentSearch";
 import { useAppointmentSearch } from "@/hooks/useAppointmentSearch";
 import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
@@ -93,17 +98,21 @@ function SearchListEmptyContent({
   error,
   hasActiveFilters,
   isLoading,
+  onSelectTimeWindow,
   onToggleType,
   query,
   selectedTypeIds,
+  timeWindow,
   typeOptions,
 }: {
   error: unknown;
   hasActiveFilters: boolean;
   isLoading: boolean;
+  onSelectTimeWindow: (window: AppointmentSearchTimeWindow) => void;
   onToggleType: (typeId: string) => void;
   query: string;
   selectedTypeIds: readonly string[];
+  timeWindow: AppointmentSearchTimeWindow;
   typeOptions: ReturnType<typeof useAppointmentSearch>["typeOptions"];
 }) {
   const theme = useThemeTokens();
@@ -111,8 +120,10 @@ function SearchListEmptyContent({
   return (
     <View>
       <AppointmentSearchFiltersCard
+        onSelectTimeWindow={onSelectTimeWindow}
         onToggleType={onToggleType}
         selectedTypeIds={selectedTypeIds}
+        timeWindow={timeWindow}
         types={typeOptions}
       />
 
@@ -135,7 +146,7 @@ function SearchListEmptyContent({
           <ThemedText align="center" tone="muted" variant="body">
             {query.trim().length > 0
               ? `No appointments match "${query.trim()}".`
-              : "No appointments match the selected types."}
+              : "No appointments match the selected filters."}
           </ThemedText>
         </View>
       ) : null}
@@ -170,13 +181,17 @@ export function AppointmentSearchScreen() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [selectedTypeIds, setSelectedTypeIds] = useState<string[]>([]);
+  const [timeWindow, setTimeWindow] = useState<AppointmentSearchTimeWindow>(
+    DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW,
+  );
   const { results, typeOptions, isLoading, error } = useAppointmentSearch(
     query,
     selectedTypeIds,
+    timeWindow,
   );
   const hasQuery = query.trim().length > 0;
   const hasActiveFilters = hasQuery || selectedTypeIds.length > 0;
-  const searchKey = `${query.trim()}\0${selectedTypeIds.slice().sort().join(",")}`;
+  const searchKey = `${query.trim()}\0${selectedTypeIds.slice().sort().join(",")}\0${timeWindow}`;
   const scrollY = useSharedValue(0);
   const savedScrollOffset = useRef(0);
   const previousSearchKeyRef = useRef(searchKey);
@@ -204,10 +219,19 @@ export function AppointmentSearchScreen() {
     setSelectedTypeIds((current) => current.filter((id) => id !== typeId));
   }, []);
 
+  const clearTimeWindow = useCallback(() => {
+    setTimeWindow(DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW);
+  }, []);
+
   const selectedTypes = useMemo(
     () => typeOptions.filter((type) => selectedTypeIds.includes(type.id)),
     [selectedTypeIds, typeOptions],
   );
+
+  const timeWindowChipLabel =
+    timeWindow === DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW
+      ? null
+      : appointmentSearchTimeWindowLabel(timeWindow);
 
   const searchBarReservedHeight = useMemo(
     () => getAppointmentSearchBarReservedHeight(insets.bottom, theme),
@@ -345,9 +369,11 @@ export function AppointmentSearchScreen() {
         error={error}
         hasActiveFilters={hasActiveFilters}
         isLoading={isLoading}
+        onSelectTimeWindow={setTimeWindow}
         onToggleType={toggleTypeFilter}
         query={query}
         selectedTypeIds={selectedTypeIds}
+        timeWindow={timeWindow}
         typeOptions={typeOptions}
       />
     ),
@@ -357,6 +383,7 @@ export function AppointmentSearchScreen() {
       isLoading,
       query,
       selectedTypeIds,
+      timeWindow,
       toggleTypeFilter,
       typeOptions,
     ],
@@ -395,6 +422,7 @@ export function AppointmentSearchScreen() {
       <AppointmentSearchBackButton
         collapseScrollDistance={collapseScrollDistance}
         initialTop={initialChevronTop}
+        onClearTimeWindow={clearTimeWindow}
         onClearType={clearTypeFilter}
         onPress={goBack}
         pinnedTop={pinnedChevronTop}
@@ -403,6 +431,7 @@ export function AppointmentSearchScreen() {
         safeAreaTop={insets.top}
         scrollY={scrollY}
         selectedTypes={selectedTypes}
+        timeWindowLabel={timeWindowChipLabel}
       />
     </View>
   );

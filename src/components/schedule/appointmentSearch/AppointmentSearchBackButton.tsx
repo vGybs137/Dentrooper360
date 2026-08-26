@@ -33,8 +33,10 @@ export type AppointmentSearchBackButtonProps = {
   safeAreaLeft: number;
   safeAreaRight: number;
   selectedTypes: readonly AppointmentSearchTypeOption[];
+  timeWindowLabel: string | null;
   onPress: () => void;
   onClearType: (typeId: string) => void;
+  onClearTimeWindow: () => void;
 };
 
 function AppointmentSearchBackButtonComponent({
@@ -46,12 +48,15 @@ function AppointmentSearchBackButtonComponent({
   safeAreaLeft,
   safeAreaRight,
   selectedTypes,
+  timeWindowLabel,
   onPress,
   onClearType,
+  onClearTimeWindow,
 }: AppointmentSearchBackButtonProps) {
   const theme = useThemeTokens();
   const touchSize = theme.semantic.size.touch;
   const pageInset = theme.semantic.space.page;
+  const hasFilterChips = selectedTypes.length > 0 || timeWindowLabel != null;
 
   const containerAnimatedStyle = useAnimatedStyle(() => ({
     top: Math.max(
@@ -159,7 +164,7 @@ function AppointmentSearchBackButtonComponent({
         />
       </Pressable>
 
-      {selectedTypes.length > 0 ? (
+      {hasFilterChips ? (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -172,6 +177,26 @@ function AppointmentSearchBackButtonComponent({
           }}
           style={{ flex: 1, marginLeft: theme.semantic.space.gap.default }}
         >
+          {timeWindowLabel ? (
+            <View style={chipStyle}>
+              <ThemedText numberOfLines={1} variant="label">
+                {timeWindowLabel}
+              </ThemedText>
+              <Pressable
+                accessibilityLabel={`Clear ${timeWindowLabel} filter`}
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={onClearTimeWindow}
+                style={clearHitStyle}
+              >
+                <SymbolView
+                  name={CLEAR_ICON}
+                  size={12}
+                  tintColor={theme.palette.foreground.muted}
+                />
+              </Pressable>
+            </View>
+          ) : null}
           {selectedTypes.map((type) => (
             <View key={type.id} style={chipStyle}>
               {type.color ? (

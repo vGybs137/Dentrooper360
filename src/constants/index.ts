@@ -41,6 +41,17 @@ export {
   MONTH_VIEW_SHEET_SWAP_PROGRESS,
   MONTH_VIEW_UNTYPED_OPACITY,
 } from "./schedule";
+export {
+  APPOINTMENT_SEARCH_TIME_WINDOWS,
+  DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW,
+  appointmentSearchTimeWindowLabel,
+  resolveAppointmentSearchTimeRange,
+} from "./appointmentSearch";
+export type {
+  AppointmentSearchTimeRange,
+  AppointmentSearchTimeWindow,
+  AppointmentSearchTimeWindowOption,
+} from "./appointmentSearch";
 export { AUTH_STORE_KEY } from "./storage";
 export {
   MIGRATIONS_ENABLED_AT_VERSION,

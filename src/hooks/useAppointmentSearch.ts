@@ -1,6 +1,11 @@
 import { Q } from "@nozbe/watermelondb";
 import { useEffect, useMemo, useState } from "react";
 
+import {
+  DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW,
+  resolveAppointmentSearchTimeRange,
+  type AppointmentSearchTimeWindow,
+} from "@/constants/appointmentSearch";
 import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import type AppointmentType from "@/database/models/AppointmentType";
@@ -44,10 +49,11 @@ export type UseAppointmentSearchResult = {
   error: Error | null;
 };
 
-/** Live appointment search filtered by subject and optional appointment types. */
+/** Live appointment search filtered by subject, types, and optional time window. */
 export function useAppointmentSearch(
   query: string,
   selectedTypeIds: readonly string[] = [],
+  timeWindow: AppointmentSearchTimeWindow = DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW,
 ): UseAppointmentSearchResult {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [types, setTypes] = useState(
@@ -56,13 +62,31 @@ export function useAppointmentSearch(
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  const timeRange = useMemo(
+    () => resolveAppointmentSearchTimeRange(timeWindow),
+    [timeWindow],
+  );
+  const rangeStartMs = timeRange?.startMs ?? null;
+  const rangeEndMs = timeRange?.endMs ?? null;
+
   useEffect(() => {
     setIsLoading(true);
     setError(null);
 
-    const appointmentsSubscription = database
-      .get<Appointment>("appointments")
-      .query(Q.sortBy("start_time", Q.desc))
+    const appointmentsQuery =
+      rangeStartMs != null && rangeEndMs != null
+        ? database
+            .get<Appointment>("appointments")
+            .query(
+              Q.where("start_time", Q.gte(rangeStartMs)),
+              Q.where("start_time", Q.lt(rangeEndMs)),
+              Q.sortBy("start_time", Q.desc),
+            )
+        : database
+            .get<Appointment>("appointments")
+            .query(Q.sortBy("start_time", Q.desc));
+
+    const appointmentsSubscription = appointmentsQuery
       .observeWithColumns([
         "patient_id",
         "type_id",
@@ -105,7 +129,7 @@ export function useAppointmentSearch(
       appointmentsSubscription.unsubscribe();
       typesSubscription.unsubscribe();
     };
-  }, []);
+  }, [rangeEndMs, rangeStartMs]);
 
   const typeOptions = useMemo<AppointmentSearchTypeOption[]>(
     () =>
