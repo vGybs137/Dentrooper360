@@ -10,6 +10,3 @@ export const TOKEN_REFRESH_CHECK_INTERVAL_MS = 60 * 1000;
 
 export const DEMO_CUSTOMER_ID = "C69B1B73-C143-4B55-8859-1A22EED3C6EA";
 export const PRODUCT_ID = "dentrooper360";
-
-/** Temporary: skip login/session/sync so the app can be used with the API offline. */
-export const BYPASS_AUTH = true;

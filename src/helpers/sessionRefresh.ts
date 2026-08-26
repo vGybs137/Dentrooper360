@@ -1,5 +1,4 @@
 import { refreshSession } from "@/api/functions/auth";
-import { BYPASS_AUTH } from "@/constants/auth";
 import { hydrateAuthStore, useAuthStore } from "@/stores";
 import { ApiError } from "@/types/api";
 import type { AuthSession } from "@/types/auth";
@@ -32,7 +31,7 @@ async function performSessionRefresh(): Promise<AuthSession> {
   try {
     return await refreshSession();
   } catch (error) {
-    if (!BYPASS_AUTH && error instanceof ApiError && error.status === 401) {
+    if (error instanceof ApiError && error.status === 401) {
       useAuthStore.getState().clearSession();
     }
 

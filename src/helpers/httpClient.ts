@@ -4,7 +4,6 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from "axios";
 
-import { BYPASS_AUTH } from "@/constants/auth";
 import { recycleTokens } from "@/helpers/sessionRefresh";
 import { hydrateAuthStore, useAuthStore } from "@/stores";
 import { ApiError, type ApiResponse, type ApiResponseError } from "@/types/api";
@@ -113,9 +112,7 @@ export async function retryUnauthorizedRequest(
     const next = await attachAccessToken(config);
     return client.request(next);
   } catch {
-    if (!BYPASS_AUTH) {
-      useAuthStore.getState().clearSession();
-    }
+    useAuthStore.getState().clearSession();
     return Promise.reject(await toRejectedError(error));
   }
 }

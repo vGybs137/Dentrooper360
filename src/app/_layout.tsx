@@ -8,6 +8,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AddAppointmentSheet } from "@/components/schedule/addAppointment";
 import { keepNativeSplashVisible } from "@/helpers/nativeSplash";
+import { usePeriodicSync } from "@/hooks/usePeriodicSync";
+import { useTokenRefresh } from "@/hooks/useTokenRefresh";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/theme";
 
@@ -35,8 +37,8 @@ Sentry.init({
 keepNativeSplashVisible();
 
 function RootLayout() {
-  // usePeriodicSync();
-  // useTokenRefresh();
+  usePeriodicSync();
+  useTokenRefresh();
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryProvider>

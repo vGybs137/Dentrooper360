@@ -14,9 +14,12 @@ export type PatientCardData = {
 };
 
 export function formatPatientName(
-  patient: Pick<Patient, "firstName" | "lastName">,
+  patient: Pick<Patient, "firstName" | "fatherName" | "lastName">,
 ): string {
-  return [patient.firstName, patient.lastName].filter(Boolean).join(" ").trim();
+  return [patient.firstName, patient.fatherName, patient.lastName]
+    .map((part) => part?.trim())
+    .filter(Boolean)
+    .join(" ");
 }
 
 export function formatPatientBalance(

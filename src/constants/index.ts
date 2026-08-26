@@ -5,7 +5,6 @@ export {
   AUTH_ME_PATH,
   AUTH_PAIR_PATH,
   AUTH_REFRESH_PATH,
-  BYPASS_AUTH,
   DEMO_CUSTOMER_ID,
   PRODUCT_ID,
 } from "./auth";

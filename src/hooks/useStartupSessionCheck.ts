@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { getCurrentUser, refreshSession } from "@/api";
-import { BYPASS_AUTH } from "@/constants/auth";
 import { queryKeys } from "@/constants/queryKeys";
 import {
   useAuthStore,
@@ -12,11 +11,6 @@ import {
 import { ApiError } from "@/types/api";
 
 async function validateSession() {
-  // AUTH BYPASSED: do not call /me or refresh while the API is offline.
-  if (BYPASS_AUTH) {
-    return useAuthStore.getState().user;
-  }
-
   try {
     const user = await getCurrentUser();
     useAuthStore.getState().setUser(user);

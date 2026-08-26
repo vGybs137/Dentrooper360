@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { BYPASS_AUTH } from "@/constants/auth";
 import { queryKeys } from "@/constants/queryKeys";
 import { synchronize } from "@/database/synchronize";
 import {
@@ -19,11 +18,6 @@ export function useStartupSync(sessionValid: boolean) {
   return useQuery({
     queryKey: queryKeys.sync.startup(customerId ?? ""),
     queryFn: async () => {
-      // AUTH BYPASSED: skip API sync so startup can finish offline.
-      if (BYPASS_AUTH) {
-        return true;
-      }
-
       await synchronize(customerId!);
       return true;
     },
