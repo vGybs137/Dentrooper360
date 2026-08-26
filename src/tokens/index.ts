@@ -18,6 +18,7 @@ export {
   type ThemePalette,
   type AccentTone,
   type BorderTone,
+  type CalendarTone,
   type ForegroundTone,
   type StatusTone,
   type SurfaceTone,

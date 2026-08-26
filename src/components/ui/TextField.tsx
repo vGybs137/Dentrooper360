@@ -1,9 +1,9 @@
-import React from "react";
+import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
+import { type ReactNode } from "react";
 import {
   TextInput,
   View,
   type StyleProp,
-  type TextStyle,
   type TextInputProps,
   type ViewStyle,
 } from "react-native";
@@ -15,7 +15,7 @@ import { Stack } from "./Stack";
 import { ThemedText } from "./ThemedText";
 
 type FieldSize = "sm" | "md" | "lg";
-type FieldVariant = "outline" | "soft";
+type FieldVariant = "outline" | "soft" | "bare";
 
 export type TextFieldProps = TextInputProps & {
   label?: string;
@@ -23,24 +23,20 @@ export type TextFieldProps = TextInputProps & {
   error?: string;
   size?: FieldSize;
   variant?: FieldVariant;
-  leading?: React.ReactNode;
-  trailing?: React.ReactNode;
+  /** Use gorhom BottomSheetTextInput so the sheet reacts to keyboard focus. */
+  bottomSheetInput?: boolean;
+  leading?: ReactNode;
+  trailing?: ReactNode;
   className?: string;
   containerClassName?: string;
   style?: StyleProp<ViewStyle>;
 };
 
-function resolveHeight(theme: ReturnType<typeof useThemeTokens>, size: FieldSize) {
-  switch (size) {
-    case "sm":
-      return theme.semantic.size["control-sm"];
-    case "lg":
-      return theme.semantic.size["control-lg"];
-    case "md":
-    default:
-      return theme.semantic.size.control;
-  }
-}
+const SIZE_MIN_HEIGHT: Record<FieldSize, string> = {
+  sm: "min-h-control-sm",
+  md: "min-h-control",
+  lg: "min-h-control-lg",
+};
 
 export function TextField({
   label,
@@ -48,56 +44,50 @@ export function TextField({
   error,
   size = "md",
   variant = "outline",
+  bottomSheetInput = false,
   leading,
   trailing,
   className,
   containerClassName,
   style,
   placeholderTextColor,
+  multiline,
   ...props
 }: TextFieldProps) {
   const theme = useThemeTokens();
-  const borderColor = error
-    ? theme.palette.alert.DEFAULT
-    : theme.palette.border.default;
-  const inputStyle: TextStyle = {
-    color: theme.palette.foreground.default,
-    fontSize: theme.semantic.type.body.fontSize,
-    lineHeight: theme.semantic.type.body.lineHeight,
-    fontWeight: theme.semantic.type.body.fontWeight as TextStyle["fontWeight"],
-    paddingVertical: theme.semantic.space.stack.compact,
-  };
+  const isBare = variant === "bare";
+  const Input = bottomSheetInput ? BottomSheetTextInput : TextInput;
 
   return (
     <Stack className={containerClassName} space="compact">
       {label ? <ThemedText variant="label">{label}</ThemedText> : null}
       <View
-        style={[
-          {
-            minHeight: resolveHeight(theme, size),
-            borderRadius: theme.semantic.radius.control,
-            borderWidth: theme.semantic.borderWidth.subtle,
-            borderColor,
-            backgroundColor:
-              variant === "soft"
-                ? theme.palette.surface.sunken
-                : theme.palette.surface.raised,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: theme.semantic.space.gap.compact,
-            paddingHorizontal: theme.semantic.space.inline.default,
-          },
-          style,
-        ]}
+        className={cn(
+          "flex-row items-center gap-gap-compact",
+          SIZE_MIN_HEIGHT[size],
+          isBare
+            ? "rounded-none border-0 bg-transparent px-0"
+            : cn(
+                "rounded-control border-subtle px-inline",
+                variant === "soft" ? "bg-surface-sunken" : "bg-surface-raised",
+                error ? "border-alert" : "border-border",
+              ),
+        )}
+        style={style}
       >
         {leading}
-        <TextInput
-          className={cn("text-body", className)}
+        <Input
+          {...props}
+          className={cn(
+            "flex-1 py-stack-compact text-body text-foreground-default",
+            multiline && "w-full",
+            className,
+          )}
+          multiline={multiline}
           placeholderTextColor={
             placeholderTextColor ?? theme.palette.foreground.muted
           }
-          style={[inputStyle, { flex: 1 }]}
-          {...props}
+          textAlignVertical={multiline ? "top" : props.textAlignVertical}
         />
         {trailing}
       </View>

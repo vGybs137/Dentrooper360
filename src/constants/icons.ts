@@ -35,3 +35,45 @@ export function visibilityIcon(isVisible: boolean) {
         web: "visibility",
       } as const);
 }
+
+export const searchIcon = {
+  ios: "magnifyingglass",
+  android: "search",
+  web: "search",
+} as const;
+
+export const clockIcon = {
+  ios: "clock",
+  android: "schedule",
+  web: "schedule",
+} as const;
+
+export const locationIcon = {
+  ios: "mappin.and.ellipse",
+  android: "location_on",
+  web: "location_on",
+} as const;
+
+export const notesIcon = {
+  ios: "note.text",
+  android: "notes",
+  web: "notes",
+} as const;
+
+export const chevronDownIcon = {
+  ios: "chevron.down",
+  android: "expand_more",
+  web: "expand_more",
+} as const;
+
+export const starIcon = {
+  ios: "star.fill",
+  android: "star",
+  web: "star",
+} as const;
+
+export const personAddIcon = {
+  ios: "person.badge.plus",
+  android: "person_add",
+  web: "person_add",
+} as const;

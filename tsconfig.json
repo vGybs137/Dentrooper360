@@ -21,6 +21,7 @@
     "nativewind-env.d.ts"
   ],
   "exclude": [
-    "example"
+    "example",
+    "**/*.test.ts"
   ]
 }

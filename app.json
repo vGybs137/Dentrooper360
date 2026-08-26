@@ -26,6 +26,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
+      "softwareKeyboardLayoutMode": "adjustResize",
       "package": "com.gabielchabab.Dentrooper360"
     },
     "web": {
@@ -70,7 +71,15 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "dentrooper-mobile",
+          "organization": "sol-t"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

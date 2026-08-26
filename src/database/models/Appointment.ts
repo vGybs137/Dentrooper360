@@ -14,6 +14,9 @@ export default class Appointment extends Model {
   } as const;
 
   @field("provider_id") providerId!: string;
+  @field("patient_id") patientId!: string | null;
+  @field("type_id") typeId!: string | null;
+  @field("location_id") locationId!: string | null;
   @relation("patients", "patient_id") patient!: Relation<Patient>;
   @relation("appointment_types", "type_id") type!: Relation<AppointmentType>;
   @relation("locations", "location_id") location!: Relation<Location>;
