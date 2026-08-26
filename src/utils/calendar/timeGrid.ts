@@ -166,11 +166,17 @@ export function clipEventToWorkingWindow(
 export function buildHourLabels(
   startHour: number,
   endHour: number,
-  locale?: string,
+  options?: {
+    locale?: string;
+    hour12?: boolean;
+  },
 ): HourLabel[] {
   const start = Math.max(0, Math.min(startHour, 23));
   const end = Math.max(start, Math.min(endHour, 23));
-  const formatter = new Intl.DateTimeFormat(locale, { hour: "numeric" });
+  const formatter = new Intl.DateTimeFormat(options?.locale, {
+    hour: "numeric",
+    ...(options?.hour12 === undefined ? {} : { hour12: options.hour12 }),
+  });
   const anchor = new Date(2000, 0, 1);
   const labels: HourLabel[] = [];
 

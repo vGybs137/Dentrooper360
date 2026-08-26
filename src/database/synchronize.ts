@@ -6,11 +6,32 @@ import {
 
 import { pullChanges, pushChanges } from "@/api/functions/sync";
 import { MIGRATIONS_ENABLED_AT_VERSION } from "@/constants/sync";
+import { canSyncOnCurrentNetwork } from "@/helpers/connectivity";
 import { toPullMigration } from "@/helpers/sync";
-import { hydrateSyncStatusStore, markSyncSucceeded } from "@/stores";
+import { hydrateSyncStatusStore, markSyncSucceeded, useSyncStatusStore } from "@/stores";
+import { ApiError } from "@/types/api";
 import type { MobilePushRequest } from "@/types/sync";
 
 import database from ".";
+
+export const SYNC_WIFI_ONLY_MESSAGE =
+  "Sync is limited to Wi-Fi. Connect to Wi-Fi or allow mobile data in Settings.";
+
+async function assertSyncNetworkAllowed(): Promise<void> {
+  await hydrateSyncStatusStore();
+  const wifiOnly = useSyncStatusStore.getState().syncWifiOnly;
+  const { allowed, reason } = await canSyncOnCurrentNetwork(wifiOnly);
+
+  if (allowed) {
+    return;
+  }
+
+  if (reason === "cellular") {
+    throw new ApiError(SYNC_WIFI_ONLY_MESSAGE, 422);
+  }
+
+  throw new ApiError("Unable to reach the server.", 0);
+}
 
 async function runSynchronize(customerId: string): Promise<void> {
   await watermelonSynchronize({
@@ -48,6 +69,8 @@ async function runSynchronize(customerId: string): Promise<void> {
 let inFlight: Promise<void> | null = null;
 
 export async function synchronize(customerId: string): Promise<void> {
+  await assertSyncNetworkAllowed();
+
   if (inFlight) {
     return inFlight;
   }

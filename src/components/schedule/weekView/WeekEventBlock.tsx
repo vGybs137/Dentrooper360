@@ -11,9 +11,10 @@ import {
 } from "@/constants/schedule";
 import { formatAppointmentEventTitle } from "@/helpers/appointmentSubject";
 import { withOpacity } from "@/helpers/color";
+import { formatTimeRange } from "@/helpers/timeFormat";
+import { useHourFormat } from "@/stores/schedulePreferencesStore";
 import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
-import { formatTimeRange } from "@/utils/calendar";
 
 export type WeekEventBlockVariant = "week" | "day";
 
@@ -37,11 +38,12 @@ function WeekEventBlockComponent({
   variant = "week",
 }: WeekEventBlockProps) {
   const theme = useThemeTokens();
+  const hourFormat = useHourFormat();
   const router = useRouter();
   const isDayVariant = variant === "day";
   const hasType = Boolean(event.color);
   const typeColor = event.color ?? theme.palette.border.strong;
-  const timeRange = formatTimeRange(event.startTime, event.endTime);
+  const timeRange = formatTimeRange(event.startTime, event.endTime, hourFormat);
   const durationMinutes = (event.endTime - event.startTime) / (60 * 1000);
   const isCompactDayEvent = isDayVariant && durationMinutes <= 30;
   const subjectLabel = event.title.trim() || "Appointment";

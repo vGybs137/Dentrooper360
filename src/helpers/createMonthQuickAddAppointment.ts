@@ -17,6 +17,7 @@ import {
 import { formatPatientName } from "@/helpers/patientDisplay";
 import { requestSync } from "@/helpers/requestSync";
 import { ADD_APPOINTMENT_SLOT_DURATION_MINUTES } from "@/stores/addAppointmentStore";
+import { resolveDefaultLocationId } from "@/stores/schedulePreferencesStore";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import {
   MINUTES_PER_HOUR,
@@ -84,15 +85,23 @@ async function loadLookups(): Promise<{
     toNamedCandidate(type.id, type.nameEn, type.nameAr, type.nameFr),
   );
 
-  // First raw row from the query (not alphabetically sorted options).
-  const fallbackLocationId = locationRecords[0]?.id ?? null;
-  const locations = locationRecords.map((location) =>
-    toNamedCandidate(
-      location.id,
-      location.nameEn,
-      location.nameAr,
-      location.nameFr,
-    ),
+  const locations = locationRecords
+    .map((location) =>
+      toNamedCandidate(
+        location.id,
+        location.nameEn,
+        location.nameAr,
+        location.nameFr,
+      ),
+    )
+    .sort((a, b) => {
+      const aName = a.names[0] ?? "";
+      const bName = b.names[0] ?? "";
+      return aName.localeCompare(bName);
+    });
+
+  const fallbackLocationId = resolveDefaultLocationId(
+    locations.map((location) => location.id),
   );
 
   return { patients, types, locations, fallbackLocationId };

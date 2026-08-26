@@ -1,17 +1,19 @@
 import { SYNC_AFTER_WRITE_DEBOUNCE_MS } from "@/constants/sync";
 import { synchronize } from "@/database/synchronize";
-import { isDeviceOnline } from "@/helpers/connectivity";
+import { canSyncOnCurrentNetwork } from "@/helpers/connectivity";
 import { useAuthStore, useSyncStatusStore } from "@/stores";
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingCustomerId: string | null = null;
 
 async function flushRequestSync(customerId: string): Promise<void> {
-  if (useSyncStatusStore.getState().isOfflineMode) {
+  const syncStatus = useSyncStatusStore.getState();
+  if (syncStatus.isOfflineMode) {
     return;
   }
 
-  if (!(await isDeviceOnline())) {
+  const { allowed } = await canSyncOnCurrentNetwork(syncStatus.syncWifiOnly);
+  if (!allowed) {
     return;
   }
 

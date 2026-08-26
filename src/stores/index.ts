@@ -25,10 +25,25 @@ export {
   useIsCalendarDaySelected,
 } from "./calendarSelectionStore";
 export {
+  applyScheduleViewPreference,
   setScheduleViewMode,
   useScheduleViewModeStore,
 } from "./scheduleViewModeStore";
 export type { ScheduleViewMode } from "./scheduleViewModeStore";
+export {
+  resolveDefaultLocationId,
+  resolveInitialScheduleViewMode,
+  useDefaultCalendarView,
+  useDefaultLocationId,
+  useHourFormat,
+  useSchedulePreferencesHasHydrated,
+  useSchedulePreferencesStore,
+  useWeekStartsOn,
+} from "./schedulePreferencesStore";
+export type {
+  DefaultCalendarView,
+  HourFormat,
+} from "./schedulePreferencesStore";
 export {
   ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
   useAddAppointmentEditingId,
@@ -53,4 +68,5 @@ export {
   useLastSuccessfulSyncAt,
   useSyncStatusHasHydrated,
   useSyncStatusStore,
+  useSyncWifiOnly,
 } from "./syncStatusStore";

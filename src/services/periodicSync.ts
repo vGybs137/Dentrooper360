@@ -2,7 +2,8 @@ import { AppState, type AppStateStatus, type NativeEventSubscription } from "rea
 
 import { SYNC_INTERVAL_MS } from "@/constants/sync";
 import { synchronize } from "@/database/synchronize";
-import { isDeviceOnline } from "@/helpers/connectivity";
+import { canSyncOnCurrentNetwork } from "@/helpers/connectivity";
+import { useSyncStatusStore } from "@/stores";
 
 let intervalId: ReturnType<typeof setInterval> | null = null;
 let appStateSubscription: NativeEventSubscription | null = null;
@@ -15,7 +16,9 @@ async function tick() {
     return;
   }
 
-  if (!(await isDeviceOnline())) {
+  const wifiOnly = useSyncStatusStore.getState().syncWifiOnly;
+  const { allowed } = await canSyncOnCurrentNetwork(wifiOnly);
+  if (!allowed) {
     return;
   }
 
@@ -24,6 +27,8 @@ async function tick() {
 
   try {
     await synchronize(activeCustomerId);
+  } catch {
+    // Reconnect and the next interval will retry.
   } finally {
     isTickInFlight = false;
   }

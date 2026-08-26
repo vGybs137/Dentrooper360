@@ -1,4 +1,4 @@
-import { memo, type ReactNode } from "react";
+import { memo, useEffect, type ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { DayCalendar } from "@/components/schedule/dayView";
@@ -6,9 +6,14 @@ import { MonthCalendar } from "@/components/schedule/monthView";
 import { ScheduleScreen } from "@/components/schedule/ScheduleScreen";
 import { WeekCalendar } from "@/components/schedule/weekView";
 import {
+  applyScheduleViewPreference,
   useScheduleViewModeStore,
   type ScheduleViewMode,
 } from "@/stores/scheduleViewModeStore";
+import {
+  useSchedulePreferencesHasHydrated,
+  useWeekStartsOn,
+} from "@/stores/schedulePreferencesStore";
 
 type CalendarLayerProps = {
   mode: ScheduleViewMode;
@@ -34,18 +39,27 @@ function CalendarLayer({ mode, activeMode, children }: CalendarLayerProps) {
 
 function ScheduleCalendarViewsComponent() {
   const viewMode = useScheduleViewModeStore((state) => state.viewMode);
+  const weekStartsOn = useWeekStartsOn();
+  const preferencesHydrated = useSchedulePreferencesHasHydrated();
+
+  useEffect(() => {
+    if (!preferencesHydrated) {
+      return;
+    }
+    applyScheduleViewPreference();
+  }, [preferencesHydrated]);
 
   return (
     <ScheduleScreen>
       <View style={styles.host}>
         <CalendarLayer activeMode={viewMode} mode="month">
-          <MonthCalendar weekStartsOn={1} />
+          <MonthCalendar weekStartsOn={weekStartsOn} />
         </CalendarLayer>
         <CalendarLayer activeMode={viewMode} mode="week">
-          <WeekCalendar weekStartsOn={1} />
+          <WeekCalendar weekStartsOn={weekStartsOn} />
         </CalendarLayer>
         <CalendarLayer activeMode={viewMode} mode="day">
-          <DayCalendar weekStartsOn={1} />
+          <DayCalendar weekStartsOn={weekStartsOn} />
         </CalendarLayer>
       </View>
     </ScheduleScreen>

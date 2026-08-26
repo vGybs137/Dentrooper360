@@ -3,9 +3,9 @@ import { memo, useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { formatAppointmentEventTitle } from "@/helpers/appointmentSubject";
+import { formatTimeRange } from "@/helpers/timeFormat";
+import { useHourFormat } from "@/stores/schedulePreferencesStore";
 import { useThemeTokens } from "@/theme";
-import { formatTimeRange } from "@/utils/calendar";
-
 import { MONTH_VIEW_EVENT_LIST_RAIL_WIDTH } from "@/constants/schedule";
 import type { MonthDayEventPreview } from "@/types/schedule";
 
@@ -16,8 +16,9 @@ export type DayEventListItemProps = {
 /** Day-events sheet row — title, type color rail, and time range. */
 function DayEventListItemComponent({ event }: DayEventListItemProps) {
   const theme = useThemeTokens();
+  const hourFormat = useHourFormat();
   const router = useRouter();
-  const timeRange = formatTimeRange(event.startTime, event.endTime);
+  const timeRange = formatTimeRange(event.startTime, event.endTime, hourFormat);
   const typeColor = event.color ?? theme.colors.borderStrong;
 
   const cardStyle = useMemo(

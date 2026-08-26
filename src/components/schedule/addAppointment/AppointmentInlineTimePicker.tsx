@@ -3,7 +3,9 @@ import DatePicker from "react-native-date-picker";
 import Animated from "react-native-reanimated";
 
 import { combineDateAndTime } from "@/helpers/appointmentDate";
+import { hourFormatLocale } from "@/helpers/timeFormat";
 import { useInlineCollapse } from "@/hooks/useInlineCollapse";
+import { useHourFormat } from "@/stores/schedulePreferencesStore";
 import { useAppTheme, useThemeTokens } from "@/theme";
 
 const TIME_PICKER_HEIGHT = 216;
@@ -23,6 +25,7 @@ export function AppointmentInlineTimePicker({
 }: AppointmentInlineTimePickerProps) {
   const theme = useThemeTokens();
   const { resolved } = useAppTheme();
+  const hourFormat = useHourFormat();
   const { containerStyle, mounted } = useInlineCollapse(
     visible,
     TIME_PICKER_HEIGHT,
@@ -48,7 +51,7 @@ export function AppointmentInlineTimePicker({
           date={value}
           dividerColor={theme.palette.border.subtle}
           is24hourSource="locale"
-          locale="en-US"
+          locale={hourFormatLocale(hourFormat)}
           minuteInterval={5}
           mode="time"
           onDateChange={(next) => {

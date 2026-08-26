@@ -266,15 +266,20 @@ export function formatWeekRangeLabel(
   return `${left} – ${right}`;
 }
 
-/** e.g. "9:00 – 9:30" */
+/** e.g. "9:00 – 9:30" or "09:00 – 09:30" depending on hour cycle. */
 export function formatTimeRange(
   startMs: number,
   endMs: number,
-  locale?: string,
+  options?: {
+    locale?: string;
+    /** When omitted, uses the device locale default hour cycle. */
+    hour12?: boolean;
+  },
 ): string {
-  const formatter = new Intl.DateTimeFormat(locale, {
+  const formatter = new Intl.DateTimeFormat(options?.locale, {
     hour: "numeric",
     minute: "2-digit",
+    ...(options?.hour12 === undefined ? {} : { hour12: options.hour12 }),
   });
   return `${formatter.format(new Date(startMs))} – ${formatter.format(new Date(endMs))}`;
 }

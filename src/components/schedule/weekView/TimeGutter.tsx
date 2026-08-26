@@ -2,10 +2,12 @@ import { memo, useMemo } from "react";
 import { View } from "react-native";
 
 import { ThemedText } from "@/components/ui";
-import { useThemeTokens } from "@/theme";
 import {
   WEEK_VIEW_GUTTER_LABEL_LINE_HEIGHT,
 } from "@/constants/schedule";
+import { formatHourLabel } from "@/helpers/timeFormat";
+import { useHourFormat } from "@/stores/schedulePreferencesStore";
+import { useThemeTokens } from "@/theme";
 import {
   MINUTES_PER_HOUR,
   minutesToYInWorkingWindow,
@@ -26,13 +28,6 @@ export type TimeGutterProps = {
 /** @deprecated Use WEEK_VIEW_GUTTER_LABEL_LINE_HEIGHT from @/constants/schedule */
 export const TIME_GUTTER_LABEL_LINE_HEIGHT = WEEK_VIEW_GUTTER_LABEL_LINE_HEIGHT;
 
-function formatGutterHourLabel(hour: number, locale?: string): string {
-  const anchor = new Date(2000, 0, 1, hour, 0, 0, 0);
-  return new Intl.DateTimeFormat(locale, { hour: "numeric" })
-    .format(anchor)
-    .replace(/\s/g, "");
-}
-
 function TimeGutterComponent({
   width,
   hourHeight,
@@ -42,16 +37,17 @@ function TimeGutterComponent({
   endHour = 23,
 }: TimeGutterProps) {
   const theme = useThemeTokens();
+  const hourFormat = useHourFormat();
   const pxPerMinute = hourHeight / MINUTES_PER_HOUR;
   const labels = useMemo(() => {
     const start = Math.max(0, Math.min(startHour, 23));
     const end = Math.max(start, Math.min(endHour, 23));
     const items: { hour: number; label: string }[] = [];
     for (let hour = start; hour <= end; hour++) {
-      items.push({ hour, label: formatGutterHourLabel(hour) });
+      items.push({ hour, label: formatHourLabel(hour, hourFormat) });
     }
     return items;
-  }, [endHour, startHour]);
+  }, [endHour, hourFormat, startHour]);
 
   const labelStyle = useMemo(
     () => ({

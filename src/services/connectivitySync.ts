@@ -1,8 +1,11 @@
 import NetInfo, { type NetInfoSubscription } from "@react-native-community/netinfo";
 
 import { synchronize } from "@/database/synchronize";
-import { isNetInfoOnline } from "@/helpers/connectivity";
-import { setOfflineMode } from "@/stores";
+import {
+  canSyncOnCurrentNetwork,
+  isNetInfoOnline,
+} from "@/helpers/connectivity";
+import { setOfflineMode, useSyncStatusStore } from "@/stores";
 
 let subscription: NetInfoSubscription | null = null;
 let activeCustomerId: string | null = null;
@@ -11,6 +14,12 @@ let isSyncInFlight = false;
 
 async function syncOnReconnect(customerId: string) {
   if (isSyncInFlight) {
+    return;
+  }
+
+  const wifiOnly = useSyncStatusStore.getState().syncWifiOnly;
+  const { allowed } = await canSyncOnCurrentNetwork(wifiOnly);
+  if (!allowed) {
     return;
   }
 

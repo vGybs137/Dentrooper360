@@ -17,11 +17,13 @@ import { generateGuid } from "@/helpers/guid";
 import { requestSync } from "@/helpers/requestSync";
 import {
   ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
+  resolveDefaultLocationId,
   useAddAppointmentIsPresented,
   useAddAppointmentSlot,
   useAddAppointmentStep,
   useAddAppointmentStore,
   useAuthUser,
+  useSchedulePreferencesStore,
 } from "@/stores";
 
 import {
@@ -117,7 +119,8 @@ export function useAddAppointmentForm() {
       patientId: null,
       subject: "",
       typeId: "",
-      locationId: "",
+      locationId:
+        useSchedulePreferencesStore.getState().defaultLocationId ?? "",
       startTime: slot.start,
       endTime: slot.end,
       description: "",
@@ -129,6 +132,32 @@ export function useAddAppointmentForm() {
     isPresented,
     slot?.start.getTime(),
     slot?.end.getTime(),
+  ]);
+
+  useEffect(() => {
+    if (!isPresented || !slot || editingAppointmentId) {
+      return;
+    }
+    if (options.locations.length === 0) {
+      return;
+    }
+
+    const availableIds = options.locations.map((item) => item.id);
+    const current = form.getValues("locationId");
+    if (current && availableIds.includes(current)) {
+      return;
+    }
+
+    const resolved = resolveDefaultLocationId(availableIds);
+    if (resolved) {
+      form.setValue("locationId", resolved);
+    }
+  }, [
+    editingAppointmentId,
+    form,
+    isPresented,
+    options.locations,
+    slot,
   ]);
 
   const selectedPatient: AppointmentPatientOption | null = useMemo(() => {

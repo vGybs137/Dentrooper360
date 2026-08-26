@@ -77,3 +77,45 @@ export const personAddIcon = {
   android: "person_add",
   web: "person_add",
 } as const;
+
+export const syncIcon = {
+  ios: "arrow.triangle.2.circlepath",
+  android: "sync",
+  web: "sync",
+} as const;
+
+export const wifiIcon = {
+  ios: "wifi",
+  android: "wifi",
+  web: "wifi",
+} as const;
+
+export const calendarIcon = {
+  ios: "calendar",
+  android: "calendar_month",
+  web: "calendar_month",
+} as const;
+
+export const weekStartIcon = {
+  ios: "calendar.badge.clock",
+  android: "date_range",
+  web: "date_range",
+} as const;
+
+export const pendingChangesIcon = {
+  ios: "tray.full",
+  android: "inbox",
+  web: "inbox",
+} as const;
+
+export const appearanceIcon = {
+  ios: "circle.lefthalf.filled",
+  android: "contrast",
+  web: "contrast",
+} as const;
+
+export const logoutIcon = {
+  ios: "rectangle.portrait.and.arrow.right",
+  android: "logout",
+  web: "logout",
+} as const;

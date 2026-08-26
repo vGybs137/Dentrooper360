@@ -20,6 +20,8 @@ export type DeleteConfirmationDialogProps = {
   message?: string;
   cancelLabel?: string;
   confirmLabel?: string;
+  /** Label while `confirming` is true. Defaults to "Deleting...". */
+  confirmingLabel?: string;
   /** Disables actions while a delete is in progress. */
   confirming?: boolean;
 };
@@ -32,6 +34,7 @@ export function DeleteConfirmationDialog({
   message = DELETE_CONFIRMATION_MESSAGE,
   cancelLabel = "Cancel",
   confirmLabel = "Yes, delete",
+  confirmingLabel = "Deleting...",
   confirming = false,
 }: DeleteConfirmationDialogProps) {
   const theme = useThemeTokens();
@@ -47,7 +50,7 @@ export function DeleteConfirmationDialog({
     >
       <View className="flex-1 justify-end">
         <Pressable
-          accessibilityLabel="Dismiss delete confirmation"
+          accessibilityLabel="Dismiss confirmation"
           accessibilityRole="button"
           className="absolute inset-0"
           onPress={confirming ? undefined : onCancel}
@@ -97,7 +100,7 @@ export function DeleteConfirmationDialog({
             <Button
               className="min-w-0 flex-1"
               disabled={confirming}
-              label={confirming ? "Deleting..." : confirmLabel}
+              label={confirming ? confirmingLabel : confirmLabel}
               onPress={onConfirm}
               tone="brand"
               variant="solid"

@@ -3,9 +3,10 @@ import { memo, useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { MONTH_VIEW_EVENT_LIST_RAIL_WIDTH } from "@/constants/schedule";
+import { formatTimeRange } from "@/helpers/timeFormat";
+import { useHourFormat } from "@/stores/schedulePreferencesStore";
 import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
-import { formatTimeRange } from "@/utils/calendar";
 
 export type AppointmentSearchResultItemProps = {
   event: MonthDayEventPreview;
@@ -58,8 +59,9 @@ function AppointmentSearchResultItemComponent({
   query = "",
 }: AppointmentSearchResultItemProps) {
   const theme = useThemeTokens();
+  const hourFormat = useHourFormat();
   const router = useRouter();
-  const timeRange = formatTimeRange(event.startTime, event.endTime);
+  const timeRange = formatTimeRange(event.startTime, event.endTime, hourFormat);
   const typeColor = event.color ?? theme.colors.borderStrong;
   const subjectParts = useMemo(
     () => splitSubjectByQuery(event.title, query),

@@ -9,18 +9,25 @@ export {
   PRODUCT_ID,
 } from "./auth";
 export {
+  appearanceIcon,
   checkCircleIcon,
   chevronDownIcon,
+  calendarIcon,
   clockIcon,
   lockIcon,
   locationIcon,
+  logoutIcon,
   notesIcon,
   personAddIcon,
   personIcon,
+  pendingChangesIcon,
   qrCodeIcon,
   searchIcon,
   starIcon,
+  syncIcon,
   visibilityIcon,
+  weekStartIcon,
+  wifiIcon,
 } from "./icons";
 export {
   MONTH_VIEW_CELL_GAP,
@@ -51,7 +58,7 @@ export type {
   AppointmentSearchTimeWindow,
   AppointmentSearchTimeWindowOption,
 } from "./appointmentSearch";
-export { AUTH_STORE_KEY } from "./storage";
+export { AUTH_STORE_KEY, SCHEDULE_PREFERENCES_STORE_KEY } from "./storage";
 export {
   MIGRATIONS_ENABLED_AT_VERSION,
   SYNC_INTERVAL_MS,

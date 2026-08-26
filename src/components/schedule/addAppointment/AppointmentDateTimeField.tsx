@@ -5,6 +5,8 @@ import { Pressable, View } from "react-native";
 
 import { ThemedText } from "@/components/ui";
 import { clockIcon } from "@/constants";
+import { dayjsTimePattern } from "@/helpers/timeFormat";
+import { useHourFormat } from "@/stores/schedulePreferencesStore";
 import { useThemeTokens } from "@/theme";
 import { cn } from "@/utils/cn";
 
@@ -61,11 +63,12 @@ export function AppointmentDateTimeField({
   onExpandedChange,
 }: AppointmentDateTimeFieldProps) {
   const theme = useThemeTokens();
+  const hourFormat = useHourFormat();
+  const timePattern = dayjsTimePattern(hourFormat);
 
   const dateLabel = dayjs(startTime).format("D MMM, YYYY");
-  const startLabel = dayjs(startTime).format("h:mm A");
-  const endLabel = dayjs(endTime).format("h:mm A");
-
+  const startLabel = dayjs(startTime).format(timePattern);
+  const endLabel = dayjs(endTime).format(timePattern);
   const toggle = (panel: Exclude<AppointmentDateTimeExpanded, null>) => {
     onExpandedChange(expanded === panel ? null : panel);
   };

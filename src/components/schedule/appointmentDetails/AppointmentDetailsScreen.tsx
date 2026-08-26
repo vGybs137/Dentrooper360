@@ -34,8 +34,10 @@ import {
   mapPatientToCardData,
 } from "@/helpers/patientDisplay";
 import { requestSync } from "@/helpers/requestSync";
+import { dayjsTimePattern } from "@/helpers/timeFormat";
 import { useAppointmentDetails } from "@/hooks/useAppointmentDetails";
 import { useAddAppointmentStore } from "@/stores";
+import { useHourFormat } from "@/stores/schedulePreferencesStore";
 import { useThemeTokens } from "@/theme";
 import { cn } from "@/utils/cn";
 
@@ -176,10 +178,11 @@ function ReadOnlyDateTime({
   endTime: Date;
 }) {
   const theme = useThemeTokens();
+  const hourFormat = useHourFormat();
+  const timePattern = dayjsTimePattern(hourFormat);
   const dateLabel = dayjs(startTime).format("D MMM, YYYY");
-  const startLabel = dayjs(startTime).format("h:mm A");
-  const endLabel = dayjs(endTime).format("h:mm A");
-
+  const startLabel = dayjs(startTime).format(timePattern);
+  const endLabel = dayjs(endTime).format(timePattern);
   return (
     <View className="gap-gap-compact">
       <View className="items-start gap-2">

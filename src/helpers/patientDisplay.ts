@@ -1,6 +1,9 @@
 import dayjs from "dayjs";
 
 import type Patient from "@/database/models/Patient";
+import { dayjsDateTimePattern } from "@/helpers/timeFormat";
+import type { HourFormat } from "@/stores/schedulePreferencesStore";
+import { useSchedulePreferencesStore } from "@/stores/schedulePreferencesStore";
 
 export type PatientCardData = {
   id: string;
@@ -43,12 +46,15 @@ export function formatPatientNextVisit(
 /** Compact label for patient cards, e.g. "23 Aug, 2:00 PM". */
 export function formatNextVisitLabel(
   date: Date | null | undefined,
+  hourFormat?: HourFormat,
 ): string | null {
   if (!date || Number.isNaN(date.getTime())) {
     return null;
   }
 
-  return dayjs(date).format("D MMM, h:mm A");
+  const format =
+    hourFormat ?? useSchedulePreferencesStore.getState().hourFormat;
+  return dayjs(date).format(dayjsDateTimePattern(format));
 }
 
 export function mapPatientToCardData(
