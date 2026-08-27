@@ -1,9 +1,9 @@
 import { SymbolView } from "expo-symbols";
 import { memo, useCallback, useMemo, useState } from "react";
-import { Controller, useWatch } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 import { View } from "react-native";
 
-import { TextField, ThemedView, type DropdownOption } from "@/components/ui";
+import { ThemedText, ThemedView, type DropdownOption } from "@/components/ui";
 import { locationIcon, notesIcon } from "@/constants";
 import type { AddAppointmentFormState } from "@/hooks/useAddAppointmentForm";
 import { useThemeTokens } from "@/theme";
@@ -90,25 +90,18 @@ function AddAppointmentDetailsStepComponent({
 
   return (
     <ThemedView space="default" variant="stack">
-      <Controller
-        control={control}
+      <ThemedText
+        as="input"
+        bottomSheetInput
+        editable={!selectedPatient}
+        fieldVariant="bare"
         name="subject"
+        placeholder={
+          selectedPatient
+            ? "Patient name and phone"
+            : "Appointment subject"
+        }
         rules={{ required: !selectedPatient }}
-        render={({ field: { onChange, value }, fieldState: { error } }) => (
-          <TextField
-            bottomSheetInput
-            editable={!selectedPatient}
-            error={error?.message}
-            onChangeText={onChange}
-            placeholder={
-              selectedPatient
-                ? "Patient name and phone"
-                : "Appointment subject"
-            }
-            value={value}
-            variant="bare"
-          />
-        )}
       />
 
       <FormDivider className="mt-2" />
@@ -164,10 +157,6 @@ function AddAppointmentDetailsStepComponent({
 
       <FormDivider />
 
-      <Controller
-        control={control}
-        name="description"
-        render={({ field: { onChange, value } }) => (
           <View className="w-full flex-row items-start gap-3">
             <View className="mt-stack-compact size-5 items-center justify-center">
               <SymbolView
@@ -177,25 +166,23 @@ function AddAppointmentDetailsStepComponent({
               />
             </View>
             <View className="min-w-0 flex-1">
-              <TextField
+              <ThemedText
+                as="input"
                 bottomSheetInput
                 className="min-h-[96px] w-full px-inline"
+                fieldVariant="bare"
                 multiline
+                name="description"
                 numberOfLines={4}
-                onChangeText={onChange}
                 onBlur={onNotesBlur}
                 onFocus={() => {
                   setExpandedField(null);
                   onNotesFocus?.();
                 }}
                 placeholder="Add notes"
-                value={value}
-                variant="bare"
               />
             </View>
           </View>
-        )}
-      />
     </ThemedView>
   );
 }

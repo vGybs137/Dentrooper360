@@ -5,7 +5,6 @@ import Animated from "react-native-reanimated";
 
 import {
   ColorSwatch,
-  TextField,
   ThemedText,
   type DropdownOption,
 } from "@/components/ui";
@@ -181,16 +180,17 @@ export function AppointmentInlineSelect({
           style={containerStyle}
         >
           <View className="w-full">
-            <TextField
+            <ThemedText
+              as="input"
               autoCapitalize="none"
               autoCorrect={false}
               bottomSheetInput
               containerClassName="w-full"
+              fieldVariant="bare"
               onChangeText={setSearchQuery}
               placeholder={resolvedSearchPlaceholder}
               returnKeyType="search"
               value={searchQuery}
-              variant="bare"
             />
             <InlineSelectDivider />
 

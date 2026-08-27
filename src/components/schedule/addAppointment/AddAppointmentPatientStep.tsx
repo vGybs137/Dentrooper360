@@ -3,7 +3,7 @@ import { useWatch } from "react-hook-form";
 import { ActivityIndicator, View } from "react-native";
 
 import { PatientCard } from "@/components/patients";
-import { TextField, ThemedText, ThemedView } from "@/components/ui";
+import { ThemedText, ThemedView } from "@/components/ui";
 import type { AddAppointmentFormState } from "@/hooks/useAddAppointmentForm";
 import type { AppointmentPatientOption } from "@/hooks/useAppointmentFormOptions";
 import { useThemeTokens } from "@/theme";
@@ -41,16 +41,17 @@ function AddAppointmentPatientStepComponent({
   return (
     <ThemedView space="default" variant="stack">
       <View className="w-full">
-        <TextField
+        <ThemedText
+          as="input"
           autoCapitalize="none"
           autoCorrect={false}
           bottomSheetInput
           containerClassName="w-full"
+          fieldVariant="bare"
           onChangeText={setPatientSearch}
           placeholder="Search patients..."
           returnKeyType="search"
           value={patientSearch}
-          variant="bare"
         />
         <PatientSearchDivider />
       </View>

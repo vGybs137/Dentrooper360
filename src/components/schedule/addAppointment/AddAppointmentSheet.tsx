@@ -27,6 +27,7 @@ import {
 } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { FormProvider } from "react-hook-form";
 
 import { Button, ThemedText } from "@/components/ui";
 import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
@@ -337,7 +338,8 @@ export function AddAppointmentSheet() {
     : undefined;
 
   return (
-    <BottomSheetModal
+    <FormProvider {...formState.form}>
+      <BottomSheetModal
       ref={sheetRef}
       android_keyboardInputMode="adjustResize"
       backdropComponent={renderBackdrop}
@@ -398,6 +400,7 @@ export function AddAppointmentSheet() {
           )}
         </Animated.View>
       </BottomSheetScrollView>
-    </BottomSheetModal>
+      </BottomSheetModal>
+    </FormProvider>
   );
 }
