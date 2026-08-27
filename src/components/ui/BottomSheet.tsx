@@ -11,7 +11,7 @@ import {
   useBottomSheetMotion,
   type BottomSheetMotion,
 } from "@/hooks/useBottomSheetMotion";
-import { useThemeTokens } from "@/theme";
+import { semantic } from "@/tokens";
 import { cn } from "@/utils/cn";
 
 import { ThemedView, type ThemedViewProps } from "./ThemedView";
@@ -48,9 +48,8 @@ export function BottomSheet({
   ...props
 }: BottomSheetProps) {
   const insets = useSafeAreaInsets();
-  const theme = useThemeTokens();
   const paddingBottom =
-    (bottomInset ?? theme.semantic.space.section) + insets.bottom;
+    (bottomInset ?? semantic.space.section) + insets.bottom;
 
   const internalMotion = useBottomSheetMotion({
     enabled: animated && motion === undefined,

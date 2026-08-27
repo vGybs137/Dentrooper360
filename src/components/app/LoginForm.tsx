@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
 import { lockIcon, personIcon, visibilityIcon } from "@/constants";
 import { useLoginForm, type LoginFormState } from "@/hooks/useLoginForm";
-import { useThemeTokens } from "@/theme";
+import { semantic } from "@/tokens";
 
 import {
   FeedbackOverlay,
@@ -77,7 +77,6 @@ export function LoginForm({
   contentStyle,
   onFieldsLayout,
 }: LoginFormProps) {
-  const theme = useThemeTokens();
   const insets = useSafeAreaInsets();
   const footerOffset = useSplashFooterOffset();
   const login = useLoginForm();
@@ -94,7 +93,7 @@ export function LoginForm({
       <View className="flex-1">
       <View
         className="flex-1 justify-end"
-        style={{ paddingTop: insets.top + theme.semantic.space.page }}
+        style={{ paddingTop: insets.top + semantic.space.page }}
       >
         {logo}
         <Animated.View
@@ -167,7 +166,7 @@ export function LoginForm({
                     ? "Hide password"
                     : "Show password"
                 }
-                hitSlop={theme.semantic.space.inset.compact}
+                hitSlop={semantic.space.inset.compact}
                 onPress={login.togglePasswordVisibility}
                 size="sm"
                 tone="neutral"

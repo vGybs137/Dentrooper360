@@ -4,7 +4,8 @@ import { View } from "react-native";
 
 import { AppointmentSearchResultItem } from "@/components/schedule/appointmentSearch/AppointmentSearchResultItem";
 import { ThemedText, ThemedView } from "@/components/ui";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { primitives, semantic } from "@/tokens";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import { parseDayKey, sameDay, toLocalDate, todayCalendarDate, type DayKey } from "@/utils/calendar";
 
@@ -24,7 +25,7 @@ function AppointmentSearchDayGroupComponent({
   events,
   query = "",
 }: AppointmentSearchDayGroupProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const dayLabel = useMemo(() => formatSearchDayLabel(dayKey), [dayKey]);
   const isToday = useMemo(
     () => sameDay(parseDayKey(dayKey), todayCalendarDate()),
@@ -33,52 +34,52 @@ function AppointmentSearchDayGroupComponent({
 
   const groupStyle = useMemo(
     () => ({
-      paddingHorizontal: theme.semantic.space.page,
-      paddingBottom: theme.semantic.space.section,
+      paddingHorizontal: semantic.space.page,
+      paddingBottom: semantic.space.section,
     }),
-    [theme],
+    [],
   );
 
   const headerRowStyle = useMemo(
     () => ({
       flexDirection: "row" as const,
       alignItems: "center" as const,
-      gap: theme.semantic.space.gap.default,
-      marginBottom: theme.semantic.space.stack.compact,
+      gap: semantic.space.gap.default,
+      marginBottom: semantic.space.stack.compact,
     }),
-    [theme],
+    [],
   );
 
   const todayBadgeStyle = useMemo(
     () => ({
-      borderRadius: theme.semantic.radius.control,
-      paddingHorizontal: theme.semantic.space.inline.compact,
-      paddingVertical: theme.semantic.space.stack.compact,
-      backgroundColor: theme.palette.surface.inverse,
+      borderRadius: semantic.radius.control,
+      paddingHorizontal: semantic.space.inline.compact,
+      paddingVertical: semantic.space.stack.compact,
+      backgroundColor: native.surface.inverse,
     }),
-    [theme],
+    [native],
   );
 
   const todayTextStyle = useMemo(
     () => ({
-      fontWeight: theme.primitives.fontWeight.bold as "700",
+      fontWeight: primitives.fontWeight.bold as "700",
     }),
-    [theme],
+    [],
   );
 
   const separatorWrapStyle = useMemo(
     () => ({
-      paddingVertical: theme.semantic.space.stack.default,
+      paddingVertical: semantic.space.stack.default,
     }),
-    [theme],
+    [],
   );
 
   const separatorStyle = useMemo(
     () => ({
-      height: theme.semantic.borderWidth.subtle,
-      backgroundColor: theme.palette.border.subtle,
+      height: semantic.borderWidth.subtle,
+      backgroundColor: native.border.subtle,
     }),
-    [theme],
+    [native],
   );
 
   return (

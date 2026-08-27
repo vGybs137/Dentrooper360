@@ -7,14 +7,14 @@ import { synchronize } from "@/database/synchronize";
 import { useIsOnCellular } from "@/hooks/useIsOnCellular";
 import { useSyncStatus } from "@/hooks/useSyncStatus";
 import { useCustomerId, useSyncStatusStore, useSyncWifiOnly } from "@/stores";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
 import { ApiError } from "@/types/api";
 
 import { formatLastSyncedAt } from "@/helpers/formatLastSyncedAt";
 import { SettingsRow, SettingsSection } from "./SettingsSection";
 
 export function SettingsSyncSection() {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const customerId = useCustomerId();
   const { isOffline, hasUnsynced, lastSuccessfulSyncAt, refresh } =
     useSyncStatus();
@@ -118,10 +118,10 @@ export function SettingsSyncSection() {
             accessibilityLabel="Sync on Wi-Fi only"
             onValueChange={setSyncWifiOnly}
             trackColor={{
-              false: theme.palette.border.subtle,
-              true: theme.palette.brand.default,
+              false: native.border.subtle,
+              true: native.brand.default,
             }}
-            thumbColor={theme.palette.surface.raised}
+            thumbColor={native.surface.raised}
             value={syncWifiOnly}
           />
         }

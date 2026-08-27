@@ -8,15 +8,13 @@ import {
 } from "react-native-reanimated";
 
 import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
-import { useThemeTokens } from "@/theme";
 
 /**
  * Shared height/opacity collapse used by inline calendar, time, and select panels.
  * Keeps children mounted through the exit animation, then reports `mounted: false`.
  */
 export function useInlineCollapse(visible: boolean, contentHeight: number) {
-  const theme = useThemeTokens();
-  const duration = getAuthSlideDuration(theme);
+  const duration = getAuthSlideDuration();
   const progress = useSharedValue(visible ? 1 : 0);
   const [mounted, setMounted] = useState(visible);
 

@@ -33,7 +33,8 @@ import {
   useAddAppointmentIsPresented,
   useAddAppointmentStore,
 } from "@/stores";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 
 import { AddAppointmentDetailsStep } from "./AddAppointmentDetailsStep";
 import { AddAppointmentPatientStep } from "./AddAppointmentPatientStep";
@@ -48,7 +49,7 @@ type StepDirection = "forward" | "back";
 const FOOTER_ESTIMATED_HEIGHT = 76;
 
 export function AddAppointmentSheet() {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const sheetRef = useRef<SheetModalRef>(null);
@@ -79,7 +80,7 @@ export function AddAppointmentSheet() {
     submit,
   } = formState;
 
-  const slideDuration = getAuthSlideDuration(theme);
+  const slideDuration = getAuthSlideDuration();
   const snapHeight = Math.min(
     windowHeight * SHEET_HEIGHT_RATIO,
     SHEET_MAX_HEIGHT,
@@ -225,8 +226,8 @@ export function AddAppointmentSheet() {
         <View
           className="min-h-control flex-row items-center justify-between border-t border-border-subtle px-inline pt-3"
           style={{
-            backgroundColor: theme.palette.surface.default,
-            paddingBottom: theme.semantic.space.section + insets.bottom,
+            backgroundColor: native.surface.default,
+            paddingBottom: semantic.space.section + insets.bottom,
           }}
         >
           {step === "details" ? (
@@ -292,39 +293,39 @@ export function AddAppointmentSheet() {
       insets.bottom,
       isEditing,
       isSubmitting,
+      native,
       step,
       submitError,
-      theme,
     ],
   );
 
   const handleIndicatorStyle = useMemo(
     () => ({
-      backgroundColor: theme.palette.foreground.muted,
+      backgroundColor: native.foreground.muted,
     }),
-    [theme],
+    [native],
   );
 
   const backgroundStyle = useMemo(
     () => ({
-      backgroundColor: theme.palette.surface.default,
-      borderTopLeftRadius: theme.semantic.radius.card,
-      borderTopRightRadius: theme.semantic.radius.card,
+      backgroundColor: native.surface.default,
+      borderTopLeftRadius: semantic.radius.card,
+      borderTopRightRadius: semantic.radius.card,
     }),
-    [theme],
+    [native],
   );
 
   const contentPadding = useMemo(
     () => ({
-      paddingHorizontal: theme.semantic.space.inline.default,
-      paddingTop: theme.semantic.space.stack.default,
+      paddingHorizontal: semantic.space.inline.default,
+      paddingTop: semantic.space.stack.default,
       paddingBottom:
-        theme.semantic.space.section +
+        semantic.space.section +
         FOOTER_ESTIMATED_HEIGHT +
         insets.bottom +
         (notesFocused ? notesKeyboardInset : 0),
     }),
-    [insets.bottom, notesFocused, notesKeyboardInset, theme],
+    [insets.bottom, notesFocused, notesKeyboardInset],
   );
 
   const hasStepTransitioned = hasStepTransitionedRef.current;
@@ -366,10 +367,10 @@ export function AddAppointmentSheet() {
           <View
             className="mb-stack flex-row items-center justify-between pb-3"
             style={{
-              borderBottomWidth: theme.semantic.borderWidth.subtle,
-              borderBottomColor: theme.palette.border.subtle,
-              marginHorizontal: -theme.semantic.space.inline.default,
-              paddingHorizontal: theme.semantic.space.inline.default,
+              borderBottomWidth: semantic.borderWidth.subtle,
+              borderBottomColor: native.border.subtle,
+              marginHorizontal: -semantic.space.inline.default,
+              paddingHorizontal: semantic.space.inline.default,
             }}
           >
             <ThemedText variant="title">

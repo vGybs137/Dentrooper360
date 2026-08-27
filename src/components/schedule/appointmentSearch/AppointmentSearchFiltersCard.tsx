@@ -7,7 +7,8 @@ import {
   type AppointmentSearchTimeWindow,
 } from "@/constants/appointmentSearch";
 import type { AppointmentSearchTypeOption } from "@/hooks/useAppointmentSearch";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 import { cn } from "@/utils/cn";
 
 export type AppointmentSearchFiltersCardProps = {
@@ -25,29 +26,29 @@ function AppointmentSearchFiltersCardComponent({
   timeWindow,
   onSelectTimeWindow,
 }: AppointmentSearchFiltersCardProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
 
   const pillsWrapStyle = useMemo(
     () => ({
       flexDirection: "row" as const,
       flexWrap: "wrap" as const,
-      gap: theme.semantic.space.gap.compact,
+      gap: semantic.space.gap.compact,
     }),
-    [theme],
+    [],
   );
 
   const cardsWrapStyle = useMemo(
     () => ({
-      gap: theme.semantic.space.stack.default,
+      gap: semantic.space.stack.default,
     }),
-    [theme],
+    [],
   );
 
   const cardStyle = useMemo(
     () => ({
-      backgroundColor: theme.palette.surface.sunken,
+      backgroundColor: native.surface.sunken,
     }),
-    [theme],
+    [native],
   );
 
   return (
@@ -72,7 +73,7 @@ function AppointmentSearchFiltersCardComponent({
                 ripple={false}
                 size="none"
                 style={{
-                  borderColor: theme.palette.foreground.default,
+                  borderColor: native.foreground.default,
                 }}
                 tone="neutral"
                 variant="ghost"
@@ -107,9 +108,9 @@ function AppointmentSearchFiltersCardComponent({
                   ripple={false}
                   size="none"
                   style={{
-                    borderColor: theme.palette.foreground.default,
+                    borderColor: native.foreground.default,
                     ...(isSelected && type.color
-                      ? { backgroundColor: theme.palette.surface.sunken }
+                      ? { backgroundColor: native.surface.sunken }
                       : undefined),
                   }}
                   tone="neutral"
@@ -118,7 +119,7 @@ function AppointmentSearchFiltersCardComponent({
                   {type.color ? (
                     <ColorSwatch
                       color={type.color}
-                      size={theme.semantic.size["icon-sm"]}
+                      size={semantic.size["icon-sm"]}
                     />
                   ) : null}
                   <ThemedText variant="label">{type.name}</ThemedText>

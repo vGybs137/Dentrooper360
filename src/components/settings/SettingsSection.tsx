@@ -2,7 +2,8 @@ import type { ComponentProps, ReactNode } from "react";
 import { View } from "react-native";
 
 import { ThemedIcon, ThemedText } from "@/components/ui";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { primitives, semantic } from "@/tokens";
 
 export type SettingsSymbolName = NonNullable<
   ComponentProps<typeof ThemedIcon>["name"]
@@ -20,26 +21,26 @@ export function SettingsSection({
   label: string;
   children: ReactNode;
 }) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
 
   return (
-    <View style={{ gap: theme.semantic.space.gap.compact }}>
+    <View style={{ gap: semantic.space.gap.compact }}>
       <ThemedText
         tone="muted"
         variant="label"
         style={{
-          paddingHorizontal: theme.semantic.space.inline.compact,
-          fontWeight: theme.primitives.fontWeight.medium,
+          paddingHorizontal: semantic.space.inline.compact,
+          fontWeight: primitives.fontWeight.medium,
         }}
       >
         {label}
       </ThemedText>
       <View
         style={{
-          borderRadius: theme.semantic.radius.card,
-          backgroundColor: theme.palette.surface.raised,
+          borderRadius: semantic.radius.card,
+          backgroundColor: native.surface.raised,
           borderWidth: 1,
-          borderColor: theme.palette.border.subtle,
+          borderColor: native.border.subtle,
           overflow: "hidden",
         }}
       >
@@ -58,8 +59,6 @@ export function SettingsRowLabel({
   description: string;
   icon: SettingsSymbolName;
 }) {
-  const theme = useThemeTokens();
-
   return (
     <View
       style={{
@@ -67,13 +66,13 @@ export function SettingsRowLabel({
         minWidth: 0,
         flexDirection: "row",
         alignItems: "flex-start",
-        gap: theme.semantic.space.gap.default,
+        gap: semantic.space.gap.default,
       }}
     >
       <View
         style={{
-          width: theme.semantic.size.icon,
-          height: theme.semantic.size.icon,
+          width: semantic.size.icon,
+          height: semantic.size.icon,
           alignItems: "center",
           justifyContent: "center",
           marginTop: 2,
@@ -85,12 +84,12 @@ export function SettingsRowLabel({
         style={{
           flex: 1,
           minWidth: 0,
-          gap: theme.semantic.space.gap.compact,
+          gap: semantic.space.gap.compact,
         }}
       >
         <ThemedText
           numberOfLines={1}
-          style={{ fontWeight: theme.primitives.fontWeight.semibold }}
+          style={{ fontWeight: primitives.fontWeight.semibold }}
           variant="body"
         >
           {title}
@@ -116,19 +115,19 @@ export function SettingsRow({
   trailing: ReactNode;
   last?: boolean;
 }) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
 
   return (
     <View
       style={{
         flexDirection: "row",
         alignItems: "center",
-        gap: theme.semantic.space.gap.default,
-        paddingHorizontal: theme.semantic.space.inline.comfortable,
-        paddingVertical: theme.semantic.space.stack.default,
+        gap: semantic.space.gap.default,
+        paddingHorizontal: semantic.space.inline.comfortable,
+        paddingVertical: semantic.space.stack.default,
         borderBottomWidth: last ? 0 : 1,
-        borderBottomColor: theme.palette.border.subtle,
-        minHeight: theme.semantic.size.touch,
+        borderBottomColor: native.border.subtle,
+        minHeight: semantic.size.touch,
       }}
     >
       <SettingsRowLabel

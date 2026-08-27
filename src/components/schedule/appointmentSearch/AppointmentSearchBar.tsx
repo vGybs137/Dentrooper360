@@ -21,7 +21,8 @@ import {
 } from "@/components/schedule/monthView/MonthQuickAddField";
 import { Button, ThemedIcon } from "@/components/ui";
 import { searchIcon } from "@/constants";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { primitives, semantic } from "@/tokens";
 
 const FOCUS_ANIMATION = {
   duration: 280,
@@ -43,9 +44,8 @@ export type AppointmentSearchBarProps = {
 
 export function getAppointmentSearchBarReservedHeight(
   bottomInset: number,
-  theme: ReturnType<typeof useThemeTokens>,
 ) {
-  const verticalPad = theme.semantic.space.stack.compact;
+  const verticalPad = semantic.space.stack.compact;
   return MONTH_QUICK_ADD_COLLAPSED_HEIGHT + verticalPad + verticalPad + bottomInset;
 }
 
@@ -55,7 +55,7 @@ function AppointmentSearchBarComponent({
   autoFocus = false,
   placeholder = "Search by subject...",
 }: AppointmentSearchBarProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const insets = useSafeAreaInsets();
   const reservedRef = useRef<RNView>(null);
   const bottomPadRef = useRef(0);
@@ -64,12 +64,12 @@ function AppointmentSearchBarComponent({
   const focusProgress = useSharedValue(0);
   const liftSV = useSharedValue(0);
 
-  const verticalPad = theme.semantic.space.stack.compact;
+  const verticalPad = semantic.space.stack.compact;
   const bottomPad = verticalPad + insets.bottom;
-  const keyboardGap = theme.semantic.space.stack.default;
+  const keyboardGap = semantic.space.stack.default;
   bottomPadRef.current = bottomPad;
   keyboardGapRef.current = keyboardGap;
-  const sideInset = theme.semantic.space.page;
+  const sideInset = semantic.space.page;
   const canClear = value.length > 0;
 
   const handleClear = useCallback(() => {
@@ -125,9 +125,9 @@ function AppointmentSearchBarComponent({
   const reservedStyle = useMemo(
     () => ({
       height: MONTH_QUICK_ADD_COLLAPSED_HEIGHT + verticalPad + bottomPad,
-      zIndex: theme.semantic.zIndex.sticky,
+      zIndex: semantic.zIndex.sticky,
     }),
-    [bottomPad, theme, verticalPad],
+    [bottomPad, verticalPad],
   );
 
   const pillAnimatedStyle = useAnimatedStyle(() => {
@@ -149,38 +149,38 @@ function AppointmentSearchBarComponent({
       flex: 1,
       flexDirection: "row" as const,
       alignItems: "center" as const,
-      paddingLeft: theme.semantic.space.inline.default,
-      paddingRight: theme.semantic.space.inline.compact,
-      backgroundColor: theme.palette.calendar.quickAdd,
-      borderRadius: theme.semantic.radius.pill,
-      shadowColor: theme.palette.foreground.default,
+      paddingLeft: semantic.space.inline.default,
+      paddingRight: semantic.space.inline.compact,
+      backgroundColor: native.calendar.quickAdd,
+      borderRadius: semantic.radius.pill,
+      shadowColor: native.foreground.default,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.1,
       shadowRadius: 3,
-      elevation: theme.semantic.elevation.raised,
+      elevation: semantic.elevation.raised,
     }),
-    [theme],
+    [native],
   );
 
   const inputStyle = useMemo(
     () => ({
       flex: 1,
       paddingVertical: 0,
-      color: theme.palette.foreground.default,
-      fontSize: theme.primitives.fontSize.md,
-      lineHeight: theme.primitives.lineHeight.md,
+      color: native.foreground.default,
+      fontSize: primitives.fontSize.md,
+      lineHeight: primitives.lineHeight.md,
     }),
-    [theme],
+    [native],
   );
 
   const clearHitStyle = useMemo(
     () => ({
-      width: theme.semantic.size.control,
-      height: theme.semantic.size.control,
+      width: semantic.size.control,
+      height: semantic.size.control,
       alignItems: "center" as const,
       justifyContent: "center" as const,
     }),
-    [theme],
+    [],
   );
 
   const slotStyle = useMemo(
@@ -205,7 +205,7 @@ function AppointmentSearchBarComponent({
         <View style={pillStaticStyle}>
           <ThemedIcon
             name={searchIcon}
-            style={{ marginRight: theme.semantic.space.gap.compact }}
+            style={{ marginRight: semantic.space.gap.compact }}
             tone="muted"
           />
           <TextInput
@@ -217,7 +217,7 @@ function AppointmentSearchBarComponent({
             onChangeText={onChangeText}
             onFocus={() => setFocused(true)}
             placeholder={placeholder}
-            placeholderTextColor={theme.palette.foreground.muted}
+            placeholderTextColor={native.foreground.muted}
             returnKeyType="search"
             style={inputStyle}
             value={value}

@@ -9,7 +9,8 @@ import Animated, {
 
 import { Button, ColorSwatch, ThemedIcon, ThemedText } from "@/components/ui";
 import type { AppointmentSearchTypeOption } from "@/hooks/useAppointmentSearch";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 
 const CHEVRON_LEFT_ICON = {
   ios: "chevron.left",
@@ -52,9 +53,9 @@ function AppointmentSearchBackButtonComponent({
   onClearType,
   onClearTimeWindow,
 }: AppointmentSearchBackButtonProps) {
-  const theme = useThemeTokens();
-  const touchSize = theme.semantic.size.touch;
-  const pageInset = theme.semantic.space.page;
+  const native = useNativeColors();
+  const touchSize = semantic.size.touch;
+  const pageInset = semantic.space.page;
   const hasFilterChips = selectedTypes.length > 0 || timeWindowLabel != null;
 
   const containerAnimatedStyle = useAnimatedStyle(() => ({
@@ -92,11 +93,11 @@ function AppointmentSearchBackButtonComponent({
       ...hitStyle,
       position: "absolute" as const,
       borderRadius: touchSize / 2,
-      backgroundColor: theme.palette.surface.raised,
-      borderWidth: theme.semantic.borderWidth.subtle,
-      borderColor: theme.colors.borderStrong,
+      backgroundColor: native.surface.raised,
+      borderWidth: semantic.borderWidth.subtle,
+      borderColor: native.border.strong,
     }),
-    [hitStyle, theme],
+    [hitStyle, native, touchSize],
   );
 
   const slotStyle = useMemo(
@@ -104,40 +105,40 @@ function AppointmentSearchBackButtonComponent({
       position: "absolute" as const,
       left: safeAreaLeft + pageInset,
       right: safeAreaRight + pageInset,
-      zIndex: theme.semantic.zIndex.sticky,
+      zIndex: semantic.zIndex.sticky,
       flexDirection: "row" as const,
       alignItems: "center" as const,
       justifyContent: "space-between" as const,
-      gap: theme.semantic.space.gap.compact,
+      gap: semantic.space.gap.compact,
     }),
-    [pageInset, safeAreaLeft, safeAreaRight, theme],
+    [pageInset, safeAreaLeft, safeAreaRight],
   );
 
   const chipStyle = useMemo(
     () => ({
       flexDirection: "row" as const,
       alignItems: "center" as const,
-      gap: theme.semantic.space.gap.compact,
-      height: theme.semantic.size["control-sm"],
-      borderRadius: theme.semantic.radius.pill,
-      borderWidth: theme.semantic.borderWidth.subtle,
-      borderColor: theme.palette.foreground.default,
-      paddingLeft: theme.semantic.space.inline.compact,
-      paddingRight: theme.semantic.space.stack.compact,
-      backgroundColor: theme.palette.surface.sunken,
+      gap: semantic.space.gap.compact,
+      height: semantic.size["control-sm"],
+      borderRadius: semantic.radius.pill,
+      borderWidth: semantic.borderWidth.subtle,
+      borderColor: native.foreground.default,
+      paddingLeft: semantic.space.inline.compact,
+      paddingRight: semantic.space.stack.compact,
+      backgroundColor: native.surface.sunken,
       maxWidth: 160,
     }),
-    [theme],
+    [native],
   );
 
   const clearHitStyle = useMemo(
     () => ({
-      width: theme.semantic.size["icon-sm"] + theme.semantic.space.stack.compact,
-      height: theme.semantic.size["control-sm"],
+      width: semantic.size["icon-sm"] + semantic.space.stack.compact,
+      height: semantic.size["control-sm"],
       alignItems: "center" as const,
       justifyContent: "center" as const,
     }),
-    [theme],
+    [],
   );
 
   return (
@@ -169,10 +170,10 @@ function AppointmentSearchBackButtonComponent({
           contentContainerStyle={{
             alignItems: "center",
             justifyContent: "flex-end",
-            gap: theme.semantic.space.gap.compact,
+            gap: semantic.space.gap.compact,
             flexGrow: 1,
           }}
-          style={{ flex: 1, marginLeft: theme.semantic.space.gap.default }}
+          style={{ flex: 1, marginLeft: semantic.space.gap.default }}
         >
           {timeWindowLabel ? (
             <View style={chipStyle}>

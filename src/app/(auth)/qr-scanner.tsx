@@ -18,7 +18,8 @@ import { useLoginLogoRestLayout } from "@/hooks/useAuthLogoRestOffset";
 import { usePairMutation } from "@/hooks/usePairMutation";
 import { useQrScannerMotion } from "@/hooks/useQrScannerMotion";
 import { useRestoreOnboarding } from "@/stores";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 
 const VIEWFINDER_MAX = 280;
 
@@ -26,13 +27,13 @@ export default function QrScannerScreen() {
   const router = useRouter();
   const { from } = useLocalSearchParams<{ from?: string | string[] }>();
   const fromOnboarding = isFromOnboarding(from);
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const restoreOnboarding = useRestoreOnboarding();
   const { width: windowWidth } = useWindowDimensions();
   const onLoginLogoRestLayout = useLoginLogoRestLayout();
-  const scanInset = theme.semantic.space.inline.default;
+  const scanInset = semantic.space.inline.default;
   const viewfinderSize = Math.min(
-    windowWidth - theme.semantic.space.inline.comfortable * 4,
+    windowWidth - semantic.space.inline.comfortable * 4,
     VIEWFINDER_MAX,
   );
 
@@ -211,8 +212,8 @@ export default function QrScannerScreen() {
 
   const frameColor =
     status === "paired"
-      ? theme.palette.success.DEFAULT
-      : theme.palette.brand.default;
+      ? native.success.DEFAULT
+      : native.brand.default;
 
   return (
     <ThemedView

@@ -4,7 +4,8 @@ import Animated from "react-native-reanimated";
 import { Button, ThemedIcon, ThemedText } from "@/components/ui";
 import { chevronDownIcon } from "@/constants";
 import { useInlineCollapse } from "@/hooks/useInlineCollapse";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { primitives, semantic } from "@/tokens";
 
 import {
   SettingsRowLabel,
@@ -35,12 +36,12 @@ export function SettingsSelectRow<T extends string | number>({
   onToggle: () => void;
   last?: boolean;
 }) {
-  const theme = useThemeTokens();
-  const optionGap = theme.semantic.space.gap.compact;
+  const native = useNativeColors();
+  const optionGap = semantic.space.gap.compact;
   const contentHeight =
     options.length * OPTION_ROW_HEIGHT +
     Math.max(options.length - 1, 0) * optionGap +
-    theme.semantic.space.stack.compact;
+    semantic.space.stack.compact;
   const { containerStyle, mounted } = useInlineCollapse(
     expanded,
     contentHeight,
@@ -51,7 +52,7 @@ export function SettingsSelectRow<T extends string | number>({
     <View
       style={{
         borderBottomWidth: last ? 0 : 1,
-        borderBottomColor: theme.palette.border.subtle,
+        borderBottomColor: native.border.subtle,
       }}
     >
       <Button
@@ -61,10 +62,10 @@ export function SettingsSelectRow<T extends string | number>({
         ripple={false}
         size="none"
         style={{
-          gap: theme.semantic.space.gap.default,
-          paddingHorizontal: theme.semantic.space.inline.comfortable,
-          paddingVertical: theme.semantic.space.stack.default,
-          minHeight: theme.semantic.size.touch,
+          gap: semantic.space.gap.default,
+          paddingHorizontal: semantic.space.inline.comfortable,
+          paddingVertical: semantic.space.stack.default,
+          minHeight: semantic.size.touch,
         }}
         tone="neutral"
         variant="ghost"
@@ -79,13 +80,13 @@ export function SettingsSelectRow<T extends string | number>({
             flexShrink: 0,
             flexDirection: "row",
             alignItems: "center",
-            gap: theme.semantic.space.gap.compact,
+            gap: semantic.space.gap.compact,
           }}
         >
           <ThemedText
             tone="brand"
             variant="label"
-            style={{ fontWeight: theme.primitives.fontWeight.semibold }}
+            style={{ fontWeight: primitives.fontWeight.semibold }}
           >
             {selected?.label ?? "—"}
           </ThemedText>
@@ -105,8 +106,8 @@ export function SettingsSelectRow<T extends string | number>({
         >
           <View
             style={{
-              paddingBottom: theme.semantic.space.stack.compact,
-              paddingHorizontal: theme.semantic.space.inline.comfortable,
+              paddingBottom: semantic.space.stack.compact,
+              paddingHorizontal: semantic.space.inline.comfortable,
               alignItems: "center",
               justifyContent: "center",
               gap: optionGap,
@@ -139,8 +140,8 @@ export function SettingsSelectRow<T extends string | number>({
                     variant="body"
                     style={{
                       fontWeight: isSelected
-                        ? theme.primitives.fontWeight.semibold
-                        : theme.primitives.fontWeight.regular,
+                        ? primitives.fontWeight.semibold
+                        : primitives.fontWeight.regular,
                     }}
                   >
                     {option.label}

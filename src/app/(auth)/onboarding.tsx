@@ -12,11 +12,12 @@ import {
   useAuthFlowSplashIntro,
   useBeginOnboardingExit,
 } from "@/stores";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const splashIntro = useAuthFlowSplashIntro();
   const isLeaving = useAuthFlowIsLeaving();
   const beginOnboardingExit = useBeginOnboardingExit();
@@ -59,8 +60,8 @@ export default function OnboardingScreen() {
             }}
             size="lg"
             style={{
-              backgroundColor: theme.palette.brand.subtle,
-              borderRadius: theme.semantic.radius.card,
+              backgroundColor: native.brand.subtle,
+              borderRadius: semantic.radius.card,
             }}
             tone="brand"
             variant="outline"

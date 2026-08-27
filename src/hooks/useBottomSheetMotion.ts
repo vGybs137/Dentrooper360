@@ -12,7 +12,6 @@ import {
   AUTH_SLIDE_EASING,
   getAuthSlideDuration,
 } from "@/helpers/authMotion";
-import { useThemeTokens } from "@/theme";
 
 export type UseBottomSheetMotionOptions = {
   enabled?: boolean;
@@ -31,7 +30,6 @@ export function useBottomSheetMotion({
   sheetHeight: externalSheetHeight,
   onMeasured,
 }: UseBottomSheetMotionOptions = {}) {
-  const theme = useThemeTokens();
   const internalProgress = useSharedValue(enabled ? 0 : 1);
   const internalExitProgress = useSharedValue(0);
   const internalSheetHeight = useSharedValue(0);
@@ -39,7 +37,7 @@ export function useBottomSheetMotion({
   const exitProgress = externalExitProgress ?? internalExitProgress;
   const sheetHeight = externalSheetHeight ?? internalSheetHeight;
   const started = useSharedValue(false);
-  const moveMs = getAuthSlideDuration(theme);
+  const moveMs = getAuthSlideDuration();
   const moveEasing = AUTH_SLIDE_EASING;
   const ownsProgress = externalProgress === undefined;
 

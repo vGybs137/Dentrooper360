@@ -15,7 +15,8 @@ import {
   useAuthUser,
   useSchedulePreferencesStore,
 } from "@/stores";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { primitives, semantic } from "@/tokens";
 import { ApiError } from "@/types/api";
 
 const OPTION_ROW_HEIGHT = 44;
@@ -32,7 +33,7 @@ function initialsFromName(name: string): string {
 }
 
 export function SettingsProfileCard() {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const router = useRouter();
   const queryClient = useQueryClient();
   const user = useAuthUser();
@@ -65,11 +66,11 @@ export function SettingsProfileCard() {
     locationOptions.find((option) => option.value === selectedLocationId)
       ?.label ?? (locationsLoading ? "Loading…" : "No location");
 
-  const optionGap = theme.semantic.space.gap.compact;
+  const optionGap = semantic.space.gap.compact;
   const contentHeight =
     locationOptions.length * OPTION_ROW_HEIGHT +
     Math.max(locationOptions.length - 1, 0) * optionGap +
-    theme.semantic.space.stack.compact;
+    semantic.space.stack.compact;
   const { containerStyle, mounted } = useInlineCollapse(
     locationExpanded && locationOptions.length > 0,
     contentHeight,
@@ -143,10 +144,10 @@ export function SettingsProfileCard() {
     <>
       <View
       style={{
-        borderRadius: theme.semantic.radius.card,
-        backgroundColor: theme.palette.surface.raised,
+        borderRadius: semantic.radius.card,
+        backgroundColor: native.surface.raised,
         borderWidth: 1,
-        borderColor: theme.palette.border.subtle,
+        borderColor: native.border.subtle,
         overflow: "hidden",
       }}
     >
@@ -154,25 +155,25 @@ export function SettingsProfileCard() {
         style={{
           flexDirection: "row",
           alignItems: "center",
-          gap: theme.semantic.space.gap.default,
-          paddingHorizontal: theme.semantic.space.inline.comfortable,
-          paddingVertical: theme.semantic.space.stack.default,
+          gap: semantic.space.gap.default,
+          paddingHorizontal: semantic.space.inline.comfortable,
+          paddingVertical: semantic.space.stack.default,
         }}
       >
         <View
           style={{
-            width: theme.semantic.size.touch,
-            height: theme.semantic.size.touch,
-            borderRadius: theme.semantic.radius.pill,
+            width: semantic.size.touch,
+            height: semantic.size.touch,
+            borderRadius: semantic.radius.pill,
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: theme.palette.brand.subtle,
+            backgroundColor: native.brand.subtle,
           }}
         >
           <ThemedText
             tone="brand"
             variant="body"
-            style={{ fontWeight: theme.primitives.fontWeight.semibold }}
+            style={{ fontWeight: primitives.fontWeight.semibold }}
           >
             {initialsFromName(displayName)}
           </ThemedText>
@@ -182,7 +183,7 @@ export function SettingsProfileCard() {
           <ThemedText
             numberOfLines={1}
             variant="body"
-            style={{ fontWeight: theme.primitives.fontWeight.semibold }}
+            style={{ fontWeight: primitives.fontWeight.semibold }}
           >
             {displayName}
           </ThemedText>
@@ -201,8 +202,8 @@ export function SettingsProfileCard() {
           onPress={requestLogout}
           size="none"
           style={{
-            width: theme.semantic.size.touch,
-            height: theme.semantic.size.touch,
+            width: semantic.size.touch,
+            height: semantic.size.touch,
             alignItems: "center",
             justifyContent: "center",
           }}
@@ -219,8 +220,8 @@ export function SettingsProfileCard() {
       {logoutError ? (
         <View
           style={{
-            paddingHorizontal: theme.semantic.space.inline.comfortable,
-            paddingBottom: theme.semantic.space.stack.compact,
+            paddingHorizontal: semantic.space.inline.comfortable,
+            paddingBottom: semantic.space.stack.compact,
           }}
         >
           <ThemedText tone="alert" variant="label">
@@ -232,8 +233,8 @@ export function SettingsProfileCard() {
       <View
         style={{
           height: 1,
-          backgroundColor: theme.palette.border.subtle,
-          marginHorizontal: theme.semantic.space.inline.comfortable,
+          backgroundColor: native.border.subtle,
+          marginHorizontal: semantic.space.inline.comfortable,
         }}
       />
 
@@ -249,10 +250,10 @@ export function SettingsProfileCard() {
         ripple={false}
         size="none"
         style={{
-          gap: theme.semantic.space.gap.compact,
-          paddingHorizontal: theme.semantic.space.inline.comfortable,
-          paddingVertical: theme.semantic.space.stack.default,
-          minHeight: theme.semantic.size.touch,
+          gap: semantic.space.gap.compact,
+          paddingHorizontal: semantic.space.inline.comfortable,
+          paddingVertical: semantic.space.stack.default,
+          minHeight: semantic.size.touch,
         }}
         tone="neutral"
         variant="ghost"
@@ -261,7 +262,7 @@ export function SettingsProfileCard() {
           align="center"
           numberOfLines={1}
           variant="body"
-          style={{ fontWeight: theme.primitives.fontWeight.medium }}
+          style={{ fontWeight: primitives.fontWeight.medium }}
         >
           {selectedLocationLabel}
         </ThemedText>
@@ -282,8 +283,8 @@ export function SettingsProfileCard() {
         >
           <View
             style={{
-              paddingBottom: theme.semantic.space.stack.compact,
-              paddingHorizontal: theme.semantic.space.inline.comfortable,
+              paddingBottom: semantic.space.stack.compact,
+              paddingHorizontal: semantic.space.inline.comfortable,
               alignItems: "center",
               gap: optionGap,
             }}
@@ -314,8 +315,8 @@ export function SettingsProfileCard() {
                     variant="body"
                     style={{
                       fontWeight: isSelected
-                        ? theme.primitives.fontWeight.semibold
-                        : theme.primitives.fontWeight.regular,
+                        ? primitives.fontWeight.semibold
+                        : primitives.fontWeight.regular,
                     }}
                   >
                     {option.label}

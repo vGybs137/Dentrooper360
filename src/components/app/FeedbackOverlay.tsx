@@ -11,7 +11,8 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 
 const markLogo = require("../../assets/no-text-logo.svg");
 const wordmarkLogo = require("../../assets/text-logo.svg");
@@ -57,20 +58,20 @@ export function FeedbackOverlay({
   continueLabel = "Continue",
   retryLabel = "Try again",
 }: FeedbackOverlayProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const didAutoActionRef = useRef(false);
 
   const isSuccess = stage === "success";
   const isError = stage === "error";
 
-  const badgeSize = theme.semantic.size["control-lg"];
-  const badgeIconSize = theme.semantic.size.icon * 1.2;
-  const tickMs = theme.semantic.motion.enter.duration;
+  const badgeSize = semantic.size["control-lg"];
+  const badgeIconSize = semantic.size.icon * 1.2;
+  const tickMs = semantic.motion.enter.duration;
   const badgeProgress = useSharedValue(0);
 
   const badgeColor = isError
-    ? theme.palette.alert.DEFAULT
-    : theme.palette.brand.default;
+    ? native.alert.DEFAULT
+    : native.brand.default;
 
   useEffect(() => {
     if (!isSuccess && !isError) {
@@ -147,20 +148,20 @@ export function FeedbackOverlay({
         variant="card"
         style={{
           maxWidth: 360,
-          paddingTop: theme.semantic.space.section * 1.4,
-          paddingBottom: theme.semantic.space.section,
-          paddingHorizontal: theme.semantic.space.inline.comfortable,
-          gap: theme.semantic.space.section,
+          paddingTop: semantic.space.section * 1.4,
+          paddingBottom: semantic.space.section,
+          paddingHorizontal: semantic.space.inline.comfortable,
+          gap: semantic.space.section,
           overflow: "visible",
         }}
       >
         <View
           className="absolute items-center justify-center"
           style={{
-            top: -((badgeSize * 1.4) / 2 + theme.semantic.space.gap.compact),
+            top: -((badgeSize * 1.4) / 2 + semantic.space.gap.compact),
             width: badgeSize * 1.4,
             height: badgeSize * 1.4,
-            borderRadius: theme.semantic.radius.pill,
+            borderRadius: semantic.radius.pill,
             backgroundColor: badgeColor,
           }}
         >
@@ -169,7 +170,7 @@ export function FeedbackOverlay({
               <ThemedIcon
                 dimension={badgeIconSize}
                 name={checkIcon}
-                tintColor={theme.palette.brand.text}
+                tintColor={native.brand.text}
               />
             </Animated.View>
           ) : isError ? (
@@ -177,11 +178,11 @@ export function FeedbackOverlay({
               <ThemedIcon
                 dimension={badgeIconSize}
                 name={errorIcon}
-                tintColor={theme.palette.alert.text}
+                tintColor={native.alert.text}
               />
             </Animated.View>
           ) : (
-            <ActivityIndicator color={theme.palette.brand.text} size="small" />
+            <ActivityIndicator color={native.brand.text} size="small" />
           )}
         </View>
 
@@ -189,7 +190,7 @@ export function FeedbackOverlay({
           <ThemedView
             align="center"
             space="comfortable"
-            style={{ paddingTop: theme.semantic.space.gap.default * 0.8 }}
+            style={{ paddingTop: semantic.space.gap.default * 0.8 }}
             variant="stack"
           >
             <ThemedText align="center" variant="display">
@@ -197,9 +198,9 @@ export function FeedbackOverlay({
             </ThemedText>
             <View
               style={{
-                width: theme.semantic.space.section * 4,
-                height: theme.semantic.borderWidth.strong,
-                backgroundColor: theme.palette.border.strong,
+                width: semantic.space.section * 4,
+                height: semantic.borderWidth.strong,
+                backgroundColor: native.border.strong,
               }}
             />
             <ThemedText align="center" tone={isError ? "alert" : "muted"}>
@@ -210,7 +211,7 @@ export function FeedbackOverlay({
 
         <View
           style={{
-            minHeight: theme.semantic.size.control,
+            minHeight: semantic.size.control,
             minWidth: 130,
             alignItems: "center",
             justifyContent: "center",

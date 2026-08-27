@@ -7,7 +7,8 @@ import { Button } from "@/components/ui";
 import { MONTH_VIEW_EVENT_LIST_RAIL_WIDTH } from "@/constants/schedule";
 import { formatTimeRange } from "@/helpers/timeFormat";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { primitives, semantic } from "@/tokens";
 import type { MonthDayEventPreview } from "@/types/schedule";
 
 export type AppointmentSearchResultItemProps = {
@@ -60,11 +61,11 @@ function AppointmentSearchResultItemComponent({
   event,
   query = "",
 }: AppointmentSearchResultItemProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const hourFormat = useHourFormat();
   const router = useRouter();
   const timeRange = formatTimeRange(event.startTime, event.endTime, hourFormat);
-  const typeColor = event.color ?? theme.colors.borderStrong;
+  const typeColor = event.color ?? native.border.strong;
   const subjectParts = useMemo(
     () => splitSubjectByQuery(event.title, query),
     [event.title, query],
@@ -75,54 +76,54 @@ function AppointmentSearchResultItemComponent({
       flexDirection: "row" as const,
       alignItems: "stretch" as const,
       overflow: "hidden" as const,
-      paddingVertical: theme.semantic.space.stack.compact,
-      gap: theme.semantic.space.stack.compact,
+      paddingVertical: semantic.space.stack.compact,
+      gap: semantic.space.stack.compact,
     }),
-    [theme],
+    [],
   );
 
   const railStyle = useMemo(
     () => ({
       width: MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
-      borderRadius: theme.primitives.radius.xs,
+      borderRadius: primitives.radius.xs,
       backgroundColor: typeColor,
     }),
-    [theme, typeColor],
+    [ typeColor],
   );
 
   const titleStyle = useMemo(
     () => ({
-      fontSize: theme.primitives.fontSize.sm,
-      lineHeight: theme.primitives.lineHeight.sm,
-      fontWeight: theme.primitives.fontWeight.semibold,
+      fontSize: primitives.fontSize.sm,
+      lineHeight: primitives.lineHeight.sm,
+      fontWeight: primitives.fontWeight.semibold,
     }),
-    [theme],
+    [],
   );
 
   const metaStyle = useMemo(
     () => ({
-      marginTop: theme.primitives.space[2],
-      color: theme.colors.textMuted,
-      fontSize: theme.primitives.fontSize.xs,
-      lineHeight: theme.primitives.lineHeight.xs,
-      fontWeight: theme.primitives.fontWeight.regular,
+      marginTop: primitives.space[2],
+      color: native.foreground.muted,
+      fontSize: primitives.fontSize.xs,
+      lineHeight: primitives.lineHeight.xs,
+      fontWeight: primitives.fontWeight.regular,
     }),
-    [theme],
+    [native],
   );
 
   const highlightStyle = useMemo(
     () => ({
-      color: theme.palette.brand.default,
-      fontWeight: theme.primitives.fontWeight.bold as "700",
+      color: native.brand.default,
+      fontWeight: primitives.fontWeight.bold as "700",
     }),
-    [theme],
+    [native],
   );
 
   const subjectStyle = useMemo(
     () => ({
-      color: theme.colors.text,
+      color: native.foreground.default,
     }),
-    [theme],
+    [native],
   );
 
   return (
@@ -147,7 +148,7 @@ function AppointmentSearchResultItemComponent({
             </Text>
           ))}
           {event.typeName ? (
-            <Text style={{ color: theme.colors.text }}> - </Text>
+            <Text style={{ color: native.foreground.default }}> - </Text>
           ) : null}
           {event.typeName ? (
             <Text style={{ color: typeColor }}>{event.typeName}</Text>

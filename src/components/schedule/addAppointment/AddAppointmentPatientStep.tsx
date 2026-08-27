@@ -6,7 +6,7 @@ import { PatientCard } from "@/components/patients";
 import { ThemedText, ThemedView } from "@/components/ui";
 import type { AddAppointmentFormState } from "@/hooks/useAddAppointmentForm";
 import type { AppointmentPatientOption } from "@/hooks/useAppointmentFormOptions";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
 
 type AddAppointmentPatientStepProps = {
   formState: AddAppointmentFormState;
@@ -19,7 +19,7 @@ function PatientSearchDivider() {
 function AddAppointmentPatientStepComponent({
   formState,
 }: AddAppointmentPatientStepProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const {
     control,
     options,
@@ -58,7 +58,7 @@ function AddAppointmentPatientStepComponent({
 
       {options.patientsLoading ? (
         <View className="items-center py-6">
-          <ActivityIndicator color={theme.palette.brand.default} />
+          <ActivityIndicator color={native.brand.default} />
         </View>
       ) : options.error ? (
         <ThemedText tone="alert" variant="body">

@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { type AnimatedStyle } from "react-native-reanimated";
 
 import { ThemedText, ThemedView } from "@/components/ui";
-import { useThemeTokens } from "@/theme";
+import { semantic } from "@/tokens";
 
 const markLogo = require("../../assets/no-text-logo.svg");
 const wordmarkLogo = require("../../assets/text-logo.svg");
@@ -62,26 +62,24 @@ export function SplashAttribution() {
 }
 
 export function useSplashFooterOffset() {
-  const theme = useThemeTokens();
   const insets = useSafeAreaInsets();
 
   return (
-    theme.semantic.type.label.lineHeight * 2 +
-    theme.semantic.space.gap.compact +
-    theme.semantic.space.page +
+    semantic.type.label.lineHeight * 2 +
+    semantic.space.gap.compact +
+    semantic.space.page +
     insets.bottom
   );
 }
 
 export function SplashFooter() {
-  const theme = useThemeTokens();
   const insets = useSafeAreaInsets();
 
   return (
     <View
       className="absolute inset-x-0 bottom-0 items-center"
       pointerEvents="none"
-      style={{ paddingBottom: theme.semantic.space.page + insets.bottom }}
+      style={{ paddingBottom: semantic.space.page + insets.bottom }}
     >
       <SplashAttribution />
     </View>
@@ -89,7 +87,6 @@ export function SplashFooter() {
 }
 
 export function BrandedSplash({ children }: { children?: ReactNode }) {
-  const theme = useThemeTokens();
   const insets = useSafeAreaInsets();
 
   return (
@@ -111,9 +108,9 @@ export function BrandedSplash({ children }: { children?: ReactNode }) {
           bottom: 0,
           left: 0,
           alignItems: "center",
-          paddingHorizontal: theme.semantic.space.inline.comfortable,
-          paddingBottom: theme.semantic.space.page + insets.bottom,
-          gap: theme.semantic.space.gap.default,
+          paddingHorizontal: semantic.space.inline.comfortable,
+          paddingBottom: semantic.space.page + insets.bottom,
+          gap: semantic.space.gap.default,
         }}
       >
         {children}

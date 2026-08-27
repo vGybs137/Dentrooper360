@@ -24,9 +24,3 @@ export {
   type SurfaceTone,
 } from "./colors";
 export { getNativeColors, type NativeColorScheme } from "./nativeColors";
-export {
-  getRuntimeTheme,
-  runtimeThemes,
-  type ResolvedTheme,
-  type RuntimeTheme,
-} from "./theme";

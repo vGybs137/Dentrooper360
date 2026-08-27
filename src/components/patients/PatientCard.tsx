@@ -7,7 +7,8 @@ import {
   formatPatientNextVisit,
   type PatientCardData,
 } from "@/helpers/patientDisplay";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 
 const AVATAR_SIZE = 30;
 const INDICATOR_SIZE = 22;
@@ -57,7 +58,7 @@ function PatientAvatar({ profilePhoto }: { profilePhoto: string | null }) {
 }
 
 function SelectionIndicator({ selected }: { selected: boolean }) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
 
   if (selected) {
     return (
@@ -76,8 +77,8 @@ function SelectionIndicator({ selected }: { selected: boolean }) {
         height: INDICATOR_SIZE,
         borderRadius: INDICATOR_SIZE / 2,
         borderWidth: 2,
-        borderColor: theme.palette.border.default,
-        backgroundColor: theme.palette.surface.default,
+        borderColor: native.border.default,
+        backgroundColor: native.surface.default,
       }}
     />
   );
@@ -90,7 +91,7 @@ export function PatientCard({
   onPress,
   style,
 }: PatientCardProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const isSelected = selectable && selected;
 
   const content = (
@@ -98,12 +99,12 @@ export function PatientCard({
       borderTone={isSelected ? "none" : "subtle"}
       variant="card"
       style={[
-        { backgroundColor: theme.palette.surface.sunken },
+        { backgroundColor: native.surface.sunken },
         isSelected
           ? {
               borderWidth: 2,
-              borderColor: theme.palette.brand.default,
-              backgroundColor: theme.palette.brand.subtle,
+              borderColor: native.brand.default,
+              backgroundColor: native.brand.subtle,
             }
           : undefined,
         style,
@@ -130,7 +131,7 @@ export function PatientCard({
               flex: 1,
               minWidth: 0,
               justifyContent: "center",
-              paddingHorizontal: theme.semantic.space.gap.default,
+              paddingHorizontal: semantic.space.gap.default,
             }}
           >
             <View
@@ -157,7 +158,7 @@ export function PatientCard({
           <View
             style={{
               flexDirection: "row",
-              paddingLeft: theme.semantic.space.gap.default,
+              paddingLeft: semantic.space.gap.default,
               paddingVertical: 2,
             }}
             className="flex-1 justify-between"
@@ -186,7 +187,7 @@ export function PatientCard({
       accessibilityState={{ selected: isSelected }}
       android_ripple={
         selectable
-          ? { color: theme.palette.brand.subtle, borderless: false }
+          ? { color: native.brand.subtle, borderless: false }
           : undefined
       }
       onPress={onPress}

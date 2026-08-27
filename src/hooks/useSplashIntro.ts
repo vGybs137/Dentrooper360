@@ -13,10 +13,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BRAND_WORDMARK_HEIGHT } from "@/components/app/BrandLogo";
 import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
 import { getEstimatedLoginLogoRestTranslateY, getLoginLogoRestTranslateY } from "@/hooks/useAuthLogoRestOffset";
-import { useThemeTokens } from "@/theme";
+import { semantic } from "@/tokens";
 
 export function useSplashIntro(enabled: boolean) {
-  const theme = useThemeTokens();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const progress = useSharedValue(enabled ? 0 : 1);
@@ -24,18 +23,18 @@ export function useSplashIntro(enabled: boolean) {
   const contentHeight = useSharedValue(0);
   const logoHeight = useSharedValue(0);
   const started = useSharedValue(false);
-  const holdMs = theme.semantic.motion.overlay.duration * 2;
-  const moveMs = getAuthSlideDuration(theme);
+  const holdMs = semantic.motion.overlay.duration * 2;
+  const moveMs = getAuthSlideDuration();
   const moveEasing = AUTH_SLIDE_EASING;
   const headingBlock =
-    theme.semantic.space.section +
-    theme.semantic.type.display.lineHeight +
-    theme.semantic.space.gap.compact +
-    theme.semantic.type.body.lineHeight;
+    semantic.space.section +
+    semantic.type.display.lineHeight +
+    semantic.space.gap.compact +
+    semantic.type.body.lineHeight;
   const fieldsBlock =
-    theme.semantic.space.section * 2 +
-    theme.semantic.size["control-lg"] * 2 +
-    theme.semantic.space.gap.default;
+    semantic.space.section * 2 +
+    semantic.size["control-lg"] * 2 +
+    semantic.space.gap.default;
 
   function start() {
     if (!enabled || started.value) {

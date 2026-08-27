@@ -3,10 +3,9 @@ import { View } from "react-native";
 
 import { ThemedText } from "@/components/ui";
 import { useSyncStatus } from "@/hooks/useSyncStatus";
-import { useThemeTokens } from "@/theme";
+import { semantic } from "@/tokens";
 
 function ScheduleSyncStatusBannerComponent() {
-  const theme = useThemeTokens();
   const { isOffline, hasUnsynced } = useSyncStatus();
 
   if (!isOffline && !hasUnsynced) {
@@ -20,7 +19,7 @@ function ScheduleSyncStatusBannerComponent() {
   return (
     <View
       style={{
-        paddingBottom: theme.semantic.space.stack.compact,
+        paddingBottom: semantic.space.stack.compact,
       }}
     >
       <ThemedText tone={isOffline ? "alert" : "muted"} variant="label">

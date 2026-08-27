@@ -1,7 +1,8 @@
 import { Modal, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { primitives, semantic } from "@/tokens";
 
 import { Button } from "./Button";
 import { ThemedText } from "./ThemedText";
@@ -37,7 +38,7 @@ export function DeleteConfirmationDialog({
   confirmingLabel = "Deleting...",
   confirming = false,
 }: DeleteConfirmationDialogProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const insets = useSafeAreaInsets();
 
   return (
@@ -56,7 +57,7 @@ export function DeleteConfirmationDialog({
           ripple={false}
           size="none"
           style={{
-            backgroundColor: `rgba(0,0,0,${theme.semantic.opacity.scrim})`,
+            backgroundColor: `rgba(0,0,0,${semantic.opacity.scrim})`,
           }}
           tone="neutral"
           variant="ghost"
@@ -64,20 +65,20 @@ export function DeleteConfirmationDialog({
 
         <View
           style={{
-            marginHorizontal: theme.semantic.space.inline.default,
+            marginHorizontal: semantic.space.inline.default,
             marginBottom:
-              theme.semantic.space.stack.compact + Math.max(insets.bottom, 0),
-            paddingHorizontal: theme.semantic.space.inline.comfortable,
-            paddingTop: theme.semantic.space.section,
-            paddingBottom: theme.semantic.space.section,
-            backgroundColor: theme.palette.surface.raised,
-            borderRadius: theme.semantic.radius.dialog,
-            gap: theme.semantic.space.stack.default,
+              semantic.space.stack.compact + Math.max(insets.bottom, 0),
+            paddingHorizontal: semantic.space.inline.comfortable,
+            paddingTop: semantic.space.section,
+            paddingBottom: semantic.space.section,
+            backgroundColor: native.surface.raised,
+            borderRadius: semantic.radius.dialog,
+            gap: semantic.space.stack.default,
           }}
         >
           <ThemedText
             align="center"
-            style={{ fontWeight: theme.primitives.fontWeight.semibold }}
+            style={{ fontWeight: primitives.fontWeight.semibold }}
             tone="alert"
             variant="title"
           >
@@ -90,7 +91,7 @@ export function DeleteConfirmationDialog({
 
           <View
             className="flex-row"
-            style={{ gap: theme.semantic.space.gap.default }}
+            style={{ gap: semantic.space.gap.default }}
           >
             <Button
               className="min-w-0 flex-1"

@@ -11,7 +11,7 @@ import {
   type ThemedIconProps,
 } from "@/components/ui";
 import { useInlineCollapse } from "@/hooks/useInlineCollapse";
-import { useThemeTokens } from "@/theme";
+import { semantic } from "@/tokens";
 import { cn } from "@/utils/cn";
 
 export type AppointmentInlineSelectOption = DropdownOption;
@@ -115,11 +115,10 @@ export function AppointmentInlineSelect({
   visible,
   onToggle,
 }: AppointmentInlineSelectProps) {
-  const theme = useThemeTokens();
   const [searchQuery, setSearchQuery] = useState("");
-  const optionGap = theme.semantic.space.stack.compact;
-  const listPadTop = theme.semantic.space.gap.compact;
-  const searchRowHeight = theme.semantic.size.control;
+  const optionGap = semantic.space.stack.compact;
+  const listPadTop = semantic.space.gap.compact;
+  const searchRowHeight = semantic.size.control;
   const resolvedSearchPlaceholder =
     searchPlaceholder ??
     `Search ${placeholder.replace(/^Select\s+/i, "").toLowerCase()}...`;

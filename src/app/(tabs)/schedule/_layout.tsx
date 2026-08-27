@@ -1,10 +1,11 @@
 import { Drawer } from "expo-router/drawer";
 
 import { ScheduleDrawerContent } from "@/components/schedule/ScheduleDrawerContent";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 
 export default function ScheduleDrawerLayout() {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
 
   return (
     <Drawer
@@ -13,13 +14,13 @@ export default function ScheduleDrawerLayout() {
         headerShown: false,
         drawerType: "front",
         sceneStyle: {
-          backgroundColor: theme.palette.surface.default,
+          backgroundColor: native.surface.default,
         },
         drawerStyle: {
           width: 280,
-          backgroundColor: theme.palette.surface.sunken,
+          backgroundColor: native.surface.sunken,
         },
-        overlayColor: `rgba(0,0,0,${theme.semantic.opacity.scrim})`,
+        overlayColor: `rgba(0,0,0,${semantic.opacity.scrim})`,
         swipeEdgeWidth: 40,
       }}
     >

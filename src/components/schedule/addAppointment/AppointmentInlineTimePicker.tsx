@@ -6,7 +6,7 @@ import { combineDateAndTime } from "@/helpers/appointmentDate";
 import { hourFormatLocale } from "@/helpers/timeFormat";
 import { useInlineCollapse } from "@/hooks/useInlineCollapse";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
-import { useResolvedTheme, useThemeTokens } from "@/theme";
+import { useNativeColors, useResolvedTheme } from "@/theme";
 
 const TIME_PICKER_HEIGHT = 216;
 
@@ -23,7 +23,7 @@ export function AppointmentInlineTimePicker({
   baseDate,
   onSelectTime,
 }: AppointmentInlineTimePickerProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const resolved = useResolvedTheme();
   const hourFormat = useHourFormat();
   const { containerStyle, mounted } = useInlineCollapse(
@@ -49,7 +49,7 @@ export function AppointmentInlineTimePicker({
       >
         <DatePicker
           date={value}
-          dividerColor={theme.palette.border.subtle}
+          dividerColor={native.border.subtle}
           is24hourSource="locale"
           locale={hourFormatLocale(hourFormat)}
           minuteInterval={5}

@@ -1,10 +1,10 @@
 export { ThemeEffects } from "./ThemeEffects";
-export { useNativeColors, useThemeTokens } from "./themeHooks";
+export { useNativeColors } from "./themeHooks";
 export {
   applyThemeColorScheme,
   useResolvedTheme,
   useThemeMode,
   useThemePreferencesStore,
+  type ResolvedTheme,
   type ThemeMode,
 } from "@/stores/themePreferencesStore";
-export type { ResolvedTheme } from "@/tokens";

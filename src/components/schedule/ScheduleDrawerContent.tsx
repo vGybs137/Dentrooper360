@@ -14,11 +14,12 @@ import {
   useAddAppointmentStore,
   useScheduleViewModeStore,
 } from "@/stores";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 
 function ScheduleDrawerContentComponent(props: DrawerContentComponentProps) {
   const { navigation } = props;
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const insets = useSafeAreaInsets();
   const viewMode = useScheduleViewModeStore((state) => state.viewMode);
   const clearOrCloseAddAppointment = useAddAppointmentStore(
@@ -27,20 +28,20 @@ function ScheduleDrawerContentComponent(props: DrawerContentComponentProps) {
 
   const headerStyle = useMemo(
     () => ({
-      paddingHorizontal: theme.semantic.space.inline.default,
-      paddingBottom: theme.semantic.space.stack.default,
-      gap: theme.semantic.space.gap.compact,
+      paddingHorizontal: semantic.space.inline.default,
+      paddingBottom: semantic.space.stack.default,
+      gap: semantic.space.gap.compact,
     }),
-    [theme],
+    [],
   );
 
   const contentContainerStyle = useMemo(
     () => ({
-      paddingTop: insets.top + theme.semantic.space.page,
-      paddingBottom: insets.bottom + theme.semantic.space.stack.default,
+      paddingTop: insets.top + semantic.space.page,
+      paddingBottom: insets.bottom + semantic.space.stack.default,
       paddingLeft: insets.left,
     }),
-    [insets.bottom, insets.left, insets.top, theme],
+    [insets.bottom, insets.left, insets.top],
   );
 
   return (
@@ -54,8 +55,8 @@ function ScheduleDrawerContentComponent(props: DrawerContentComponentProps) {
       {SCHEDULE_VIEW_MODES.map(({ mode, label, icon }) => (
         <DrawerItem
           key={mode}
-          activeBackgroundColor={theme.palette.brand.subtle}
-          activeTintColor={theme.palette.brand.default}
+          activeBackgroundColor={native.brand.subtle}
+          activeTintColor={native.brand.default}
           focused={viewMode === mode}
           icon={({ color, size }) => (
             <ThemedIcon
@@ -64,7 +65,7 @@ function ScheduleDrawerContentComponent(props: DrawerContentComponentProps) {
               tintColor={color}
             />
           )}
-          inactiveTintColor={theme.palette.foreground.muted}
+          inactiveTintColor={native.foreground.muted}
           label={label}
           onPress={() => {
             clearOrCloseAddAppointment();

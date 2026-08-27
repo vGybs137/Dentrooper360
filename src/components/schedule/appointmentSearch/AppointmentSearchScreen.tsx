@@ -24,7 +24,8 @@ import {
   type AppointmentSearchTimeWindow,
 } from "@/constants/appointmentSearch";
 import { useAppointmentSearch } from "@/hooks/useAppointmentSearch";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import {
   parseDayKey,
@@ -114,7 +115,7 @@ function SearchListEmptyContent({
   timeWindow: AppointmentSearchTimeWindow;
   typeOptions: ReturnType<typeof useAppointmentSearch>["typeOptions"];
 }) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
 
   return (
     <View>
@@ -128,7 +129,7 @@ function SearchListEmptyContent({
 
       {isLoading ? (
         <View className="items-center pt-stack-default">
-          <ActivityIndicator color={theme.palette.brand.default} />
+          <ActivityIndicator color={native.brand.default} />
         </View>
       ) : null}
 
@@ -174,7 +175,6 @@ const searchListHeaderComponent = (
 );
 
 export function AppointmentSearchScreen() {
-  const theme = useThemeTokens();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const router = useRouter();
@@ -233,14 +233,14 @@ export function AppointmentSearchScreen() {
       : appointmentSearchTimeWindowLabel(timeWindow);
 
   const searchBarReservedHeight = useMemo(
-    () => getAppointmentSearchBarReservedHeight(insets.bottom, theme),
-    [insets.bottom, theme],
+    () => getAppointmentSearchBarReservedHeight(insets.bottom),
+    [insets.bottom],
   );
 
-  const titleTopPadding = theme.semantic.space.section * 2;
-  const titleBottomPadding = theme.semantic.space.section;
-  const displayLineHeight = theme.semantic.type.display.lineHeight;
-  const chevronRowHeight = theme.semantic.size.touch;
+  const titleTopPadding = semantic.space.section * 2;
+  const titleBottomPadding = semantic.space.section;
+  const displayLineHeight = semantic.type.display.lineHeight;
+  const chevronRowHeight = semantic.size.touch;
   const pinnedChevronTop = 0;
   const initialChevronTop =
     pinnedChevronTop + titleTopPadding + displayLineHeight + titleBottomPadding;
@@ -390,10 +390,10 @@ export function AppointmentSearchScreen() {
 
   const contentContainerStyle = useMemo(
     () => ({
-      paddingBottom: theme.semantic.space.page,
+      paddingBottom: semantic.space.page,
       minHeight: listViewportHeight + collapseScrollDistance,
     }),
-    [collapseScrollDistance, listViewportHeight, theme.semantic.space.page],
+    [collapseScrollDistance, listViewportHeight, semantic.space.page],
   );
 
   return (

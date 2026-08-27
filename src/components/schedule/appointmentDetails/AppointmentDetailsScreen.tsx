@@ -35,7 +35,8 @@ import { dayjsTimePattern } from "@/helpers/timeFormat";
 import { useAppointmentDetails } from "@/hooks/useAppointmentDetails";
 import { useAddAppointmentStore } from "@/stores";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { primitives, semantic } from "@/tokens";
 import { cn } from "@/utils/cn";
 
 const AVATAR_SIZE = 80;
@@ -86,19 +87,19 @@ function PatientHero({
   profilePhoto: string | null;
   onPress?: () => void;
 }) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const insets = useSafeAreaInsets();
 
   const content = (
     <View
       className="w-full items-center"
       style={{
-        backgroundColor: theme.palette.surface.sunken,
-        borderBottomLeftRadius: theme.semantic.radius.dialog,
-        borderBottomRightRadius: theme.semantic.radius.dialog,
-        paddingTop: insets.top + theme.semantic.space.section,
-        paddingBottom: theme.semantic.space.section,
-        gap: theme.semantic.space.stack.default,
+        backgroundColor: native.surface.sunken,
+        borderBottomLeftRadius: semantic.radius.dialog,
+        borderBottomRightRadius: semantic.radius.dialog,
+        paddingTop: insets.top + semantic.space.section,
+        paddingBottom: semantic.space.section,
+        gap: semantic.space.stack.default,
       }}
     >
       {hasPatient ? (
@@ -110,7 +111,7 @@ function PatientHero({
               width: AVATAR_SIZE,
               height: AVATAR_SIZE,
               borderRadius: AVATAR_SIZE / 2,
-              backgroundColor: theme.palette.surface.sunken,
+              backgroundColor: native.surface.sunken,
             }}
           />
         ) : (
@@ -125,8 +126,8 @@ function PatientHero({
       <View
         className="w-full flex-row items-center"
         style={{
-          paddingHorizontal: theme.semantic.space.inline.default,
-          gap: theme.semantic.space.gap.compact,
+          paddingHorizontal: semantic.space.inline.default,
+          gap: semantic.space.gap.compact,
         }}
       >
         <ThemedText
@@ -134,7 +135,7 @@ function PatientHero({
           className="min-w-0 flex-1"
           numberOfLines={2}
           style={{
-            fontWeight: theme.primitives.fontWeight.semibold,
+            fontWeight: primitives.fontWeight.semibold,
           }}
           variant="title"
         >
@@ -241,11 +242,11 @@ function DetailsActionItem({
   onPress: () => void;
   tone?: "default" | "alert";
 }) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const color =
     tone === "alert"
-      ? theme.palette.alert.DEFAULT
-      : theme.palette.foreground.default;
+      ? native.alert.DEFAULT
+      : native.foreground.default;
 
   return (
     <Button
@@ -264,7 +265,7 @@ function DetailsActionItem({
         tone={tone === "alert" ? "alert" : "default"}
       />
       <ThemedText
-        style={{ color, fontWeight: theme.primitives.fontWeight.medium }}
+        style={{ color, fontWeight: primitives.fontWeight.medium }}
         variant="label"
       >
         {label}
@@ -282,22 +283,22 @@ function DetailsActionBar({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
 
   return (
     <View
       style={{
-        paddingHorizontal: theme.semantic.space.inline.default,
-        paddingBottom: theme.semantic.space.stack.compact,
+        paddingHorizontal: semantic.space.inline.default,
+        paddingBottom: semantic.space.stack.compact,
       }}
     >
       <View
         className="flex-row items-stretch"
         style={{
-          backgroundColor: theme.palette.surface.default,
-          borderColor: theme.palette.border.subtle,
-          borderWidth: theme.semantic.borderWidth.subtle,
-          borderRadius: theme.semantic.radius.card,
+          backgroundColor: native.surface.default,
+          borderColor: native.border.subtle,
+          borderWidth: semantic.borderWidth.subtle,
+          borderRadius: semantic.radius.card,
           minHeight: ACTION_BAR_HEIGHT,
         }}
       >
@@ -325,11 +326,11 @@ export type AppointmentDetailsScreenProps = {
 export function AppointmentDetailsScreen({
   appointmentId,
 }: AppointmentDetailsScreenProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const router = useRouter();
   const { details, isLoading, error } = useAppointmentDetails(appointmentId);
   const openForEdit = useAddAppointmentStore((state) => state.openForEdit);
-  const slideDuration = getAuthSlideDuration(theme);
+  const slideDuration = getAuthSlideDuration();
   const [deleteVisible, setDeleteVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -406,7 +407,7 @@ export function AppointmentDetailsScreen({
   const title = details?.appointment.subject?.trim() || "Appointment";
   const typeName = details?.type?.nameEn?.trim() || null;
   const typeColor =
-    details?.type?.color ?? theme.palette.foreground.muted;
+    details?.type?.color ?? native.foreground.muted;
   const locationName = details?.location?.nameEn?.trim() || null;
   const notes = details?.appointment.description?.trim() || null;
 
@@ -425,7 +426,7 @@ export function AppointmentDetailsScreen({
         scroll={false}
         variant="screen"
       >
-        <ActivityIndicator color={theme.palette.brand.default} />
+        <ActivityIndicator color={native.brand.default} />
       </ThemedView>
     );
   }
@@ -468,9 +469,9 @@ export function AppointmentDetailsScreen({
         className="flex-1"
         contentContainerStyle={{
           paddingBottom:
-            theme.semantic.space.section +
+            semantic.space.section +
             ACTION_BAR_HEIGHT +
-            theme.semantic.space.stack.compact,
+            semantic.space.stack.compact,
         }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -491,8 +492,8 @@ export function AppointmentDetailsScreen({
 
           <View
             style={{
-              paddingHorizontal: theme.semantic.space.inline.default,
-              paddingTop: theme.semantic.space.section,
+              paddingHorizontal: semantic.space.inline.default,
+              paddingTop: semantic.space.section,
             }}
           >
             <ThemedView space="default" variant="stack">
@@ -520,7 +521,7 @@ export function AppointmentDetailsScreen({
                 leading={
                   <InlineSelectSymbolLeading
                     name={locationIcon}
-                    tintColor={theme.palette.foreground.muted}
+                    tintColor={native.foreground.muted}
                   />
                 }
                 muted={!locationName}
