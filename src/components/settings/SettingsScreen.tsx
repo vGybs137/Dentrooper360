@@ -1,5 +1,5 @@
 import { useSegments } from "expo-router";
-import { Platform, useWindowDimensions, View } from "react-native";
+import { useWindowDimensions } from "react-native";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -7,13 +7,10 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText, ThemedView } from "@/components/ui";
-import { BOTTOM_TAB_INSET } from "@/constants/navigation";
+import { getWebTabBarInset } from "@/constants/navigation";
 import { useThemeTokens } from "@/theme";
 
 import { SettingsPreferencesSection } from "./SettingsPreferencesSection";
@@ -27,8 +24,7 @@ export function SettingsScreen() {
   const { height: windowHeight } = useWindowDimensions();
   const scrollY = useSharedValue(0);
 
-  const bottomInset =
-    Platform.OS === "web" && segments[0] === "(tabs)" ? BOTTOM_TAB_INSET : 0;
+  const bottomInset = getWebTabBarInset(segments[0]);
 
   const titleTopPadding = theme.semantic.space.section * 2;
   const titleBottomPadding = theme.semantic.space.section;
@@ -57,13 +53,13 @@ export function SettingsScreen() {
   }));
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: theme.palette.surface.default,
-      }}
+    <ThemedView
+      edges={["top", "left", "right"]}
+      inset="none"
+      padBottom={false}
+      scroll={false}
+      variant="screen"
     >
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
         <Animated.ScrollView
           contentContainerStyle={{
             paddingBottom: contentBottomPadding,
@@ -101,7 +97,6 @@ export function SettingsScreen() {
             <SettingsSyncSection />
           </ThemedView>
         </Animated.ScrollView>
-      </SafeAreaView>
-    </View>
+    </ThemedView>
   );
 }

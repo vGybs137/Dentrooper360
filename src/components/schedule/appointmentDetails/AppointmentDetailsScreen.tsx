@@ -9,10 +9,7 @@ import {
   View,
 } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   InlineSelectColorLeading,
@@ -421,47 +418,51 @@ export function AppointmentDetailsScreen({
 
   if (isLoading) {
     return (
-      <SafeAreaView
-        className="flex-1"
-        style={{ backgroundColor: theme.palette.surface.default }}
+      <ThemedView
+        contentClassName="items-center justify-center"
+        inset="none"
+        padBottom={false}
+        scroll={false}
+        variant="screen"
       >
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color={theme.palette.brand.default} />
-        </View>
-      </SafeAreaView>
+        <ActivityIndicator color={theme.palette.brand.default} />
+      </ThemedView>
     );
   }
 
   if (error || !details) {
     return (
-      <SafeAreaView
-        className="flex-1"
-        style={{ backgroundColor: theme.palette.surface.default }}
+      <ThemedView
+        contentClassName="items-center justify-center px-page"
+        inset="none"
+        padBottom={false}
+        scroll={false}
+        variant="screen"
       >
-        <View className="flex-1 items-center justify-center px-page">
-          <ThemedView align="center" space="default" variant="stack">
-            <ThemedText align="center" tone="muted">
-              {error
-                ? "Unable to load this appointment."
-                : "This appointment could not be found."}
-            </ThemedText>
-            <Button
-              label="Back to schedule"
-              onPress={goBack}
-              tone="neutral"
-              variant="outline"
-            />
-          </ThemedView>
-        </View>
-      </SafeAreaView>
+        <ThemedView align="center" space="default" variant="stack">
+          <ThemedText align="center" tone="muted">
+            {error
+              ? "Unable to load this appointment."
+              : "This appointment could not be found."}
+          </ThemedText>
+          <Button
+            label="Back to schedule"
+            onPress={goBack}
+            tone="neutral"
+            variant="outline"
+          />
+        </ThemedView>
+      </ThemedView>
     );
   }
 
   return (
-    <SafeAreaView
-      className="flex-1"
+    <ThemedView
       edges={["bottom", "left", "right"]}
-      style={{ backgroundColor: theme.palette.surface.default }}
+      inset="none"
+      padBottom={false}
+      scroll={false}
+      variant="screen"
     >
       <ScrollView
         className="flex-1"
@@ -558,6 +559,6 @@ export function AppointmentDetailsScreen({
         onConfirm={handleConfirmDelete}
         visible={deleteVisible}
       />
-    </SafeAreaView>
+    </ThemedView>
   );
 }

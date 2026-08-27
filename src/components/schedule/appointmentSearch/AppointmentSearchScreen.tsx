@@ -7,7 +7,6 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 import {
-  SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
@@ -18,7 +17,7 @@ import {
 } from "@/components/schedule/appointmentSearch/AppointmentSearchBar";
 import { AppointmentSearchDayGroup } from "@/components/schedule/appointmentSearch/AppointmentSearchDayGroup";
 import { AppointmentSearchFiltersCard } from "@/components/schedule/appointmentSearch/AppointmentSearchFiltersCard";
-import { ThemedText } from "@/components/ui";
+import { ThemedText, ThemedView } from "@/components/ui";
 import {
   appointmentSearchTimeWindowLabel,
   DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW,
@@ -398,8 +397,29 @@ export function AppointmentSearchScreen() {
   );
 
   return (
-    <View className="flex-1 bg-surface-default">
-      <SafeAreaView className="flex-1" edges={["top", "left", "right"]}>
+    <ThemedView
+      edges={["top", "left", "right"]}
+      inset="none"
+      overlay={
+        <AppointmentSearchBackButton
+          collapseScrollDistance={collapseScrollDistance}
+          initialTop={initialChevronTop}
+          onClearTimeWindow={clearTimeWindow}
+          onClearType={clearTypeFilter}
+          onPress={goBack}
+          pinnedTop={pinnedChevronTop}
+          safeAreaLeft={insets.left}
+          safeAreaRight={insets.right}
+          safeAreaTop={insets.top}
+          scrollY={scrollY}
+          selectedTypes={selectedTypes}
+          timeWindowLabel={timeWindowChipLabel}
+        />
+      }
+      padBottom={false}
+      scroll={false}
+      variant="screen"
+    >
         <Animated.FlatList
           ref={flatListRef}
           contentContainerStyle={contentContainerStyle}
@@ -417,22 +437,6 @@ export function AppointmentSearchScreen() {
         />
 
         <AppointmentSearchBar autoFocus onChangeText={setQuery} value={query} />
-      </SafeAreaView>
-
-      <AppointmentSearchBackButton
-        collapseScrollDistance={collapseScrollDistance}
-        initialTop={initialChevronTop}
-        onClearTimeWindow={clearTimeWindow}
-        onClearType={clearTypeFilter}
-        onPress={goBack}
-        pinnedTop={pinnedChevronTop}
-        safeAreaLeft={insets.left}
-        safeAreaRight={insets.right}
-        safeAreaTop={insets.top}
-        scrollY={scrollY}
-        selectedTypes={selectedTypes}
-        timeWindowLabel={timeWindowChipLabel}
-      />
-    </View>
+    </ThemedView>
   );
 }

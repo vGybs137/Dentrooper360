@@ -124,6 +124,8 @@ export type ThemedViewProps = ViewProps &
     header?: ThemedViewHeader;
     keyboardAvoiding?: boolean;
     transparent?: boolean;
+    /** Rendered above the screen, outside SafeArea (floating chrome). */
+    overlay?: React.ReactNode;
   };
 
 function screenInsetClass(
@@ -171,6 +173,7 @@ function ThemedScreen({
   header,
   keyboardAvoiding = false,
   transparent = false,
+  overlay,
   children,
   ...props
 }: ThemedViewProps) {
@@ -196,7 +199,7 @@ function ThemedScreen({
     children
   );
 
-  const body = (
+  let body = (
     <SafeAreaView className={bodyClass} edges={edges} style={style} {...props}>
       {scroll ? (
         <ScrollView
@@ -221,18 +224,27 @@ function ThemedScreen({
     </SafeAreaView>
   );
 
-  if (!keyboardAvoiding) {
+  if (keyboardAvoiding) {
+    body = (
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        className="flex-1"
+        pointerEvents={props.pointerEvents}
+      >
+        {body}
+      </KeyboardAvoidingView>
+    );
+  }
+
+  if (!overlay) {
     return body;
   }
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      className="flex-1"
-      pointerEvents={props.pointerEvents}
-    >
+    <View className="flex-1">
       {body}
-    </KeyboardAvoidingView>
+      {overlay}
+    </View>
   );
 }
 
@@ -258,6 +270,7 @@ export function ThemedView({
   header,
   keyboardAvoiding,
   transparent,
+  overlay,
   ...props
 }: ThemedViewProps) {
   if (variant === "screen") {
@@ -272,6 +285,7 @@ export function ThemedView({
         header={header}
         inset={inset ?? "default"}
         keyboardAvoiding={keyboardAvoiding}
+        overlay={overlay}
         padBottom={padBottom}
         scroll={scroll}
         style={style}
