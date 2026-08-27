@@ -95,12 +95,12 @@ function WeekDayHeaderCell({
       }}
       ripple={false}
       size="none"
-      style={{ flex: 1, minWidth: 0, alignSelf: "stretch" }}
+      style={{ flex: 1, minWidth: 0 }}
       tone="neutral"
       unstable_pressDelay={0}
       variant="ghost"
     >
-      <View style={{ flex: 1, alignItems: "center" }}>
+      <View style={{ width: "100%", alignItems: "center" }}>
         <ThemedText
           align="center"
           tone={isSunday ? "alert" : "muted"}
@@ -126,6 +126,7 @@ function WeekDayHeaderRowComponent({
   onLayout,
   useHighlightContext = false,
 }: WeekDayHeaderRowProps) {
+  const native = useNativeColors();
   const labels = useMemo(() => weekdayLabels(weekStartsOn), [weekStartsOn]);
   const cells = useMemo(
     () => buildWeekCells(weekStartKey, focusMonthForWeek(weekStartKey)),
@@ -135,11 +136,15 @@ function WeekDayHeaderRowComponent({
   const rootStyle = useMemo(
     () => ({
       flexDirection: "row" as const,
+      alignItems: "center" as const,
       width: "100%" as const,
       alignSelf: "stretch" as const,
+      flexShrink: 0,
+      zIndex: 1,
       paddingBottom: semantic.space.stack.compact,
+      backgroundColor: native.surface.default,
     }),
-    [],
+    [native],
   );
 
   return (

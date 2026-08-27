@@ -74,7 +74,7 @@ const WeekPage = memo(function WeekPage({
         useHighlightContext
       />
       <View
-        style={{ flex: 1 }}
+        style={{ flex: 1, overflow: "hidden", minHeight: 0 }}
         {...(sheetOpen ? {} : gridTouchHandlers)}
         pointerEvents={sheetOpen ? "none" : "auto"}
       >

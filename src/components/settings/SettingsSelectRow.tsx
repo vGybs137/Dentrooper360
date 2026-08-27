@@ -57,45 +57,51 @@ export function SettingsSelectRow<T extends string | number>({
     >
       <Button
         accessibilityState={{ expanded }}
-        className="w-full flex-row items-center"
+        className="w-full"
         onPress={onToggle}
         ripple={false}
         size="none"
-        style={{
-          gap: semantic.space.gap.default,
-          paddingHorizontal: semantic.space.inline.comfortable,
-          paddingVertical: semantic.space.stack.default,
-          minHeight: semantic.size.touch,
-        }}
         tone="neutral"
         variant="ghost"
       >
-        <SettingsRowLabel
-          title={title}
-          description={description}
-          icon={icon}
-        />
         <View
           style={{
-            flexShrink: 0,
+            width: "100%",
             flexDirection: "row",
             alignItems: "center",
-            gap: semantic.space.gap.compact,
+            gap: semantic.space.gap.default,
+            paddingHorizontal: semantic.space.inline.comfortable,
+            paddingVertical: semantic.space.stack.default,
+            minHeight: semantic.size.touch,
           }}
         >
-          <ThemedText
-            tone="brand"
-            variant="label"
-            style={{ fontWeight: primitives.fontWeight.semibold }}
-          >
-            {selected?.label ?? "—"}
-          </ThemedText>
-          <ThemedIcon
-            className={expanded ? "rotate-180" : undefined}
-            dimension={16}
-            name={chevronDownIcon}
-            tone="muted"
+          <SettingsRowLabel
+            title={title}
+            description={description}
+            icon={icon}
           />
+          <View
+            style={{
+              flexShrink: 0,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: semantic.space.gap.compact,
+            }}
+          >
+            <ThemedText
+              tone="brand"
+              variant="label"
+              style={{ fontWeight: primitives.fontWeight.semibold }}
+            >
+              {selected?.label ?? "—"}
+            </ThemedText>
+            <ThemedIcon
+              className={expanded ? "rotate-180" : undefined}
+              dimension={16}
+              name={chevronDownIcon}
+              tone="muted"
+            />
+          </View>
         </View>
       </Button>
 
