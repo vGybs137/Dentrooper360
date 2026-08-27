@@ -70,9 +70,18 @@ export function SettingsPreferencesSection() {
   );
   const [expandedSelect, setExpandedSelect] =
     useState<PreferenceSelectKey | null>(null);
+  const [snapAppearanceClosed, setSnapAppearanceClosed] = useState(false);
 
   function toggleSelect(key: PreferenceSelectKey) {
+    if (key === "appearance") {
+      setSnapAppearanceClosed(false);
+    }
     setExpandedSelect((current) => (current === key ? null : key));
+  }
+
+  function handleAppearanceChange(next: ThemeMode) {
+    setSnapAppearanceClosed(true);
+    setMode(next);
   }
 
   function handleDefaultCalendarViewChange(next: DefaultCalendarView) {
@@ -92,8 +101,9 @@ export function SettingsPreferencesSection() {
         icon={appearanceIcon}
         options={APPEARANCE_OPTIONS}
         value={mode}
-        onChange={setMode}
+        onChange={handleAppearanceChange}
         expanded={expandedSelect === "appearance"}
+        instantCollapse={snapAppearanceClosed}
         onToggle={() => toggleSelect("appearance")}
       />
       <SettingsSelectRow<DefaultCalendarView>

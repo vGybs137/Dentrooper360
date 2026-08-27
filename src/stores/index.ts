@@ -46,6 +46,7 @@ export type {
 } from "./schedulePreferencesStore";
 export {
   applyThemeColorScheme,
+  useIsSwitchingTheme,
   useResolvedTheme,
   useThemeMode,
   useThemePreferencesHasHydrated,

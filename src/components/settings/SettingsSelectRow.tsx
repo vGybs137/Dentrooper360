@@ -25,6 +25,7 @@ export function SettingsSelectRow<T extends string | number>({
   expanded,
   onToggle,
   last = false,
+  instantCollapse = false,
 }: {
   title: string;
   description: string;
@@ -35,6 +36,7 @@ export function SettingsSelectRow<T extends string | number>({
   expanded: boolean;
   onToggle: () => void;
   last?: boolean;
+  instantCollapse?: boolean;
 }) {
   const optionGap = semantic.space.gap.compact;
   const contentHeight =
@@ -44,6 +46,7 @@ export function SettingsSelectRow<T extends string | number>({
   const { containerStyle, chevronStyle, mounted } = useInlineCollapse(
     expanded,
     contentHeight,
+    { instant: instantCollapse && !expanded },
   );
   const selected = options.find((option) => option.value === value);
 

@@ -18,9 +18,13 @@ type PersistedThemePreferences = {
 };
 
 type ThemePreferencesState = PersistedThemePreferences & {
+  appliedMode: ThemeMode;
+  isSwitching: boolean;
   hasHydrated: boolean;
   setHasHydrated: (value: boolean) => void;
   setMode: (mode: ThemeMode) => void;
+  commitAppliedTheme: () => void;
+  endThemeSwitch: () => void;
 };
 
 const securePersistStorage: PersistStorage<PersistedThemePreferences> =
@@ -39,12 +43,21 @@ export const useThemePreferencesStore = create<ThemePreferencesState>()(
   persist(
     (set, get) => ({
       mode: "system",
+      appliedMode: "system",
+      isSwitching: false,
       hasHydrated: false,
       setHasHydrated: (value) => set({ hasHydrated: value }),
       setMode: (mode) => {
         if (get().mode === mode) return;
-        set({ mode });
+        set({ mode, isSwitching: true });
+      },
+      commitAppliedTheme: () => {
+        const mode = get().mode;
         applyThemeColorScheme(mode);
+        set({ appliedMode: mode });
+      },
+      endThemeSwitch: () => {
+        set({ isSwitching: false });
       },
     }),
     {
@@ -52,8 +65,13 @@ export const useThemePreferencesStore = create<ThemePreferencesState>()(
       storage: securePersistStorage,
       partialize: ({ mode }) => ({ mode }),
       onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
-        applyThemeColorScheme(state?.mode ?? "system");
+        const mode = state?.mode ?? "system";
+        applyThemeColorScheme(mode);
+        useThemePreferencesStore.setState({
+          hasHydrated: true,
+          appliedMode: mode,
+          isSwitching: false,
+        });
       },
     },
   ),
@@ -67,11 +85,15 @@ export function useThemePreferencesHasHydrated() {
   return useThemePreferencesStore((state) => state.hasHydrated);
 }
 
+export function useIsSwitchingTheme() {
+  return useThemePreferencesStore((state) => state.isSwitching);
+}
+
 export function useResolvedTheme(): ResolvedTheme {
-  const mode = useThemePreferencesStore((state) => state.mode);
+  const appliedMode = useThemePreferencesStore((state) => state.appliedMode);
   const systemScheme = useColorScheme();
-  if (mode === "system") {
+  if (appliedMode === "system") {
     return systemScheme === "dark" ? "dark" : "light";
   }
-  return mode;
+  return appliedMode;
 }

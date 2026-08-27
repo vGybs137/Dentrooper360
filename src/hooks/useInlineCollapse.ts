@@ -13,21 +13,32 @@ import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
  * Shared height/opacity collapse used by inline calendar, time, and select panels.
  * Keeps children mounted through the exit animation, then reports `mounted: false`.
  */
-export function useInlineCollapse(visible: boolean, contentHeight: number) {
+export function useInlineCollapse(
+  visible: boolean,
+  contentHeight: number,
+  options?: { instant?: boolean },
+) {
   const duration = getAuthSlideDuration();
   const progress = useSharedValue(visible ? 1 : 0);
   const [mounted, setMounted] = useState(visible);
+  const instant = options?.instant === true;
 
   useEffect(() => {
     if (visible) {
       setMounted(true);
     }
 
+    if (!visible && instant) {
+      progress.value = 0;
+      setMounted(false);
+      return;
+    }
+
     progress.value = withTiming(visible ? 1 : 0, {
       duration,
       easing: AUTH_SLIDE_EASING,
     });
-  }, [duration, progress, visible]);
+  }, [duration, instant, progress, visible]);
 
   useAnimatedReaction(
     () => progress.value,

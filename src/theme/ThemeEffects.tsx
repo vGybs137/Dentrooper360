@@ -3,19 +3,50 @@ import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
 
 import {
-  applyThemeColorScheme,
+  useIsSwitchingTheme,
   useResolvedTheme,
   useThemePreferencesStore,
 } from "@/stores/themePreferencesStore";
-import { getNativeColors } from "@/tokens";
+import { getNativeColors, semantic } from "@/tokens";
 
 export function ThemeEffects() {
-  const mode = useThemePreferencesStore((state) => state.mode);
+  const isSwitching = useIsSwitchingTheme();
   const resolved = useResolvedTheme();
 
   useEffect(() => {
-    applyThemeColorScheme(mode);
-  }, [mode]);
+    if (!isSwitching) {
+      return;
+    }
+
+    const startedAt = Date.now();
+    const minDuration = semantic.motion.overlay.duration;
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let secondFrame: number | undefined;
+
+    const firstFrame = requestAnimationFrame(() => {
+      useThemePreferencesStore.getState().commitAppliedTheme();
+      secondFrame = requestAnimationFrame(() => {
+        const remaining = Math.max(0, minDuration - (Date.now() - startedAt));
+        timeoutId = setTimeout(() => {
+          if (!cancelled) {
+            useThemePreferencesStore.getState().endThemeSwitch();
+          }
+        }, remaining);
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(firstFrame);
+      if (secondFrame !== undefined) {
+        cancelAnimationFrame(secondFrame);
+      }
+      if (timeoutId !== undefined) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isSwitching]);
 
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(
