@@ -1,37 +1,53 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import React from "react";
 import { View, type StyleProp, type ViewProps, type ViewStyle } from "react-native";
 
-import { useThemeTokens } from "@/theme";
 import { cn } from "@/utils/cn";
-import type { BorderTone, SurfaceTone } from "@/tokens";
 
-type RadiusVariant = "none" | "control" | "card" | "overlay" | "dialog" | "pill";
-type Density = "compact" | "default" | "comfortable" | "none";
+const themedViewVariants = cva("", {
+  variants: {
+    surface: {
+      default: "bg-surface-default",
+      sunken: "bg-surface-sunken",
+      raised: "bg-surface-raised",
+      overlay: "bg-surface-overlay",
+      inverse: "bg-surface-inverse",
+    },
+    borderTone: {
+      none: "border-0",
+      subtle: "border-subtle border-border-subtle",
+      default: "border-subtle border-border-default",
+      strong: "border-subtle border-border-strong",
+      focus: "border-subtle border-border-focus",
+    },
+    radius: {
+      none: "rounded-none",
+      control: "rounded-control",
+      card: "rounded-card",
+      overlay: "rounded-overlay",
+      dialog: "rounded-dialog",
+      pill: "rounded-pill",
+    },
+    inset: {
+      none: "",
+      compact: "p-inset-compact",
+      default: "p-inset",
+      comfortable: "p-inset-comfortable",
+    },
+  },
+  defaultVariants: {
+    surface: "default",
+    borderTone: "none",
+    radius: "none",
+    inset: "none",
+  },
+});
 
-export type ThemedViewProps = ViewProps & {
-  surface?: SurfaceTone;
-  borderTone?: BorderTone | "none";
-  radius?: RadiusVariant;
-  inset?: Density;
-  className?: string;
-  style?: StyleProp<ViewStyle>;
-};
-
-function resolveRadius(radius: RadiusVariant, theme: ReturnType<typeof useThemeTokens>) {
-  if (radius === "none") {
-    return 0;
-  }
-
-  return theme.semantic.radius[radius];
-}
-
-function resolveInset(inset: Density, theme: ReturnType<typeof useThemeTokens>) {
-  if (inset === "none") {
-    return 0;
-  }
-
-  return theme.semantic.space.inset[inset];
-}
+export type ThemedViewProps = ViewProps &
+  VariantProps<typeof themedViewVariants> & {
+    className?: string;
+    style?: StyleProp<ViewStyle>;
+  };
 
 export function ThemedView({
   surface = "default",
@@ -42,29 +58,13 @@ export function ThemedView({
   style,
   ...props
 }: ThemedViewProps) {
-  const theme = useThemeTokens();
-  const borderWidth = borderTone === "none" ? 0 : theme.semantic.borderWidth.subtle;
-
   return (
     <View
-      className={cn(className)}
-      style={[
-        {
-          backgroundColor: theme.palette.surface[surface],
-          borderColor:
-            borderTone === "none"
-              ? "transparent"
-              : theme.palette.border[borderTone],
-          borderWidth,
-          ...(radius === "none"
-            ? null
-            : { borderRadius: resolveRadius(radius, theme) }),
-          ...(inset === "none"
-            ? null
-            : { padding: resolveInset(inset, theme) }),
-        },
-        style,
-      ]}
+      className={cn(
+        themedViewVariants({ surface, borderTone, radius, inset }),
+        className,
+      )}
+      style={style}
       {...props}
     />
   );

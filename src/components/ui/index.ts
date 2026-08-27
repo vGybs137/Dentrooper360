@@ -8,6 +8,7 @@ export { Dropdown } from "./Dropdown";
 export { Screen } from "./Screen";
 export { Stack } from "./Stack";
 export { TextField } from "./TextField";
+export { ThemedIcon } from "./ThemedIcon";
 export { ThemedText } from "./ThemedText";
 export { ThemedView } from "./ThemedView";
 
@@ -20,6 +21,7 @@ export type { DropdownOption, DropdownProps } from "./Dropdown";
 export type { ScreenProps } from "./Screen";
 export type { StackProps } from "./Stack";
 export type { TextFieldProps } from "./TextField";
+export type { ThemedIconProps } from "./ThemedIcon";
 export type { ThemedTextProps } from "./ThemedText";
 export type { ThemedViewProps } from "./ThemedView";
 

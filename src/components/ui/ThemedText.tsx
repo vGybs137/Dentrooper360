@@ -1,47 +1,46 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import React from "react";
 import { Text, type StyleProp, type TextProps, type TextStyle } from "react-native";
 
-import { useThemeTokens } from "@/theme";
 import { cn } from "@/utils/cn";
 
-type TextVariant = "label" | "body" | "title" | "display";
-type TextTone =
-  | "default"
-  | "muted"
-  | "inverse"
-  | "brand"
-  | "accent"
-  | "success"
-  | "alert";
-type TextAlign = "auto" | "left" | "center" | "right" | "justify";
+const themedTextVariants = cva("shrink", {
+  variants: {
+    variant: {
+      label: "text-label",
+      body: "text-body",
+      title: "text-title",
+      display: "text-display",
+    },
+    tone: {
+      default: "text-foreground-default",
+      muted: "text-foreground-muted",
+      inverse: "text-foreground-inverse",
+      brand: "text-brand-default",
+      accent: "text-accent-default",
+      success: "text-success-default",
+      alert: "text-alert-default",
+    },
+    align: {
+      auto: "",
+      left: "text-left",
+      center: "text-center",
+      right: "text-right",
+      justify: "text-justify",
+    },
+  },
+  defaultVariants: {
+    variant: "body",
+    tone: "default",
+    align: "auto",
+  },
+});
 
-export type ThemedTextProps = TextProps & {
-  variant?: TextVariant;
-  tone?: TextTone;
-  align?: TextAlign;
-  className?: string;
-  style?: StyleProp<TextStyle>;
-};
-
-function getTextColor(tone: TextTone, theme: ReturnType<typeof useThemeTokens>) {
-  switch (tone) {
-    case "muted":
-      return theme.palette.foreground.muted;
-    case "inverse":
-      return theme.palette.foreground.inverse;
-    case "brand":
-      return theme.palette.brand.default;
-    case "accent":
-      return theme.palette.accent.default;
-    case "success":
-      return theme.palette.success.DEFAULT;
-    case "alert":
-      return theme.palette.alert.DEFAULT;
-    case "default":
-    default:
-      return theme.palette.foreground.default;
-  }
-}
+export type ThemedTextProps = TextProps &
+  VariantProps<typeof themedTextVariants> & {
+    className?: string;
+    style?: StyleProp<TextStyle>;
+  };
 
 export function ThemedText({
   variant = "body",
@@ -51,20 +50,10 @@ export function ThemedText({
   style,
   ...props
 }: ThemedTextProps) {
-  const theme = useThemeTokens();
-  const typeToken = theme.semantic.type[variant];
-  const textStyle: TextStyle = {
-    color: getTextColor(tone, theme),
-    fontSize: typeToken.fontSize,
-    lineHeight: typeToken.lineHeight,
-    fontWeight: typeToken.fontWeight as TextStyle["fontWeight"],
-    textAlign: align,
-  };
-
   return (
     <Text
-      className={cn("shrink text-body", className)}
-      style={[textStyle, style]}
+      className={cn(themedTextVariants({ variant, tone, align }), className)}
+      style={style}
       {...props}
     />
   );
