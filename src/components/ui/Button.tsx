@@ -285,7 +285,7 @@ export function Button({
         style={style as never}
         testID={testID}
       >
-        <View className={cn(composedClassName, "h-full w-full")} onLayout={handleLayout}>
+        <View onLayout={handleLayout} style={{ flex: 1, minWidth: 0 }}>
           {inner}
         </View>
       </GesturePressable>

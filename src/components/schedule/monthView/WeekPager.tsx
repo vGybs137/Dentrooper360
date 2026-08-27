@@ -8,10 +8,10 @@ import React, {
 } from "react";
 import { View } from "react-native";
 import PagerView from "react-native-pager-view";
+import { semantic } from "@/tokens";
 
 import type { MonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
 import { monthEventsSlice } from "@/helpers/scheduleEvents";
-import { useThemeTokens } from "@/theme";
 import {
   addMonths,
   focusMonthForWeek,
@@ -68,9 +68,8 @@ const WeekPagerInner = forwardRef<WeekPagerHandle, WeekPagerProps>(
     },
     ref,
   ) {
-    const theme = useThemeTokens();
     const pagerRef = useRef<PagerViewRef>(null);
-    const pageMargin = theme.semantic.space.stack.compact;
+    const pageMargin = semantic.space.stack.compact;
 
     useImperativeHandle(
       ref,

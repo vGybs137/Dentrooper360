@@ -1,6 +1,8 @@
 import { useRouter, type Href } from "expo-router";
 import { memo, useCallback, useMemo } from "react";
 import { Text, View, type ViewStyle } from "react-native";
+import { useNativeColors } from "@/theme";
+import { primitives, semantic } from "@/tokens";
 
 import { Button } from "@/components/ui";
 
@@ -15,7 +17,6 @@ import { formatAppointmentEventTitle } from "@/helpers/appointmentSubject";
 import { withOpacity } from "@/helpers/color";
 import { formatTimeRange } from "@/helpers/timeFormat";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
-import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
 
 export type WeekEventBlockVariant = "week" | "day";
@@ -39,12 +40,12 @@ function WeekEventBlockComponent({
   width,
   variant = "week",
 }: WeekEventBlockProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const hourFormat = useHourFormat();
   const router = useRouter();
   const isDayVariant = variant === "day";
   const hasType = Boolean(event.color);
-  const typeColor = event.color ?? theme.palette.border.strong;
+  const typeColor = event.color ?? native.border.strong;
   const timeRange = formatTimeRange(event.startTime, event.endTime, hourFormat);
   const durationMinutes = (event.endTime - event.startTime) / (60 * 1000);
   const isCompactDayEvent = isDayVariant && durationMinutes <= 30;
@@ -68,15 +69,15 @@ function WeekEventBlockComponent({
       flex: 1,
       flexDirection: "row" as const,
       overflow: "hidden" as const,
-      borderRadius: theme.primitives.radius.xs,
+      borderRadius: primitives.radius.xs,
       backgroundColor: withOpacity(
-        theme.colors.brand,
+        native.brand.default,
         MONTH_VIEW_EVENT_CARD_BRAND_ALPHA,
       ),
-      borderWidth: theme.semantic.borderWidth.subtle,
-      borderColor: theme.colors.borderSubtle,
+      borderWidth: semantic.borderWidth.subtle,
+      borderColor: native.border.subtle,
     }),
-    [theme],
+    [native],
   );
 
   /** Week: full-height strip. Day: track that centers the type pill. */
@@ -86,10 +87,10 @@ function WeekEventBlockComponent({
         ? {
             alignSelf: "stretch" as const,
             justifyContent: "center" as const,
-            paddingLeft: theme.primitives.space[4],
+            paddingLeft: primitives.space[4],
           }
         : null,
-    [isDayVariant, theme],
+    [isDayVariant],
   );
 
   const railStyle = useMemo(
@@ -98,7 +99,7 @@ function WeekEventBlockComponent({
         ? {
             width: MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
             height: "80%" as const,
-            borderRadius: theme.primitives.radius.full,
+            borderRadius: primitives.radius.full,
             backgroundColor: typeColor,
             opacity: hasType ? 1 : MONTH_VIEW_UNTYPED_OPACITY,
           }
@@ -107,7 +108,7 @@ function WeekEventBlockComponent({
             backgroundColor: typeColor,
             opacity: hasType ? 1 : MONTH_VIEW_UNTYPED_OPACITY,
           },
-    [hasType, isDayVariant, theme, typeColor],
+    [hasType, isDayVariant, native, typeColor],
   );
 
   const bodyStyle = useMemo(
@@ -115,46 +116,46 @@ function WeekEventBlockComponent({
       flex: 1,
       minWidth: 0,
       paddingHorizontal: isDayVariant
-        ? theme.primitives.space[4]
-        : theme.primitives.space[2],
+        ? primitives.space[4]
+        : primitives.space[2],
       paddingVertical: isDayVariant
-        ? theme.primitives.space[4]
-        : theme.primitives.space[2],
+        ? primitives.space[4]
+        : primitives.space[2],
       justifyContent:
         isDayVariant && !isCompactDayEvent
           ? ("flex-start" as const)
           : ("center" as const),
     }),
-    [isCompactDayEvent, isDayVariant, theme],
+    [isCompactDayEvent, isDayVariant, native],
   );
 
   const titleStyle = useMemo(
     () =>
       isDayVariant
         ? {
-            color: theme.colors.text,
-            fontSize: theme.primitives.fontSize.sm,
-            lineHeight: theme.primitives.lineHeight.sm,
-            fontWeight: theme.primitives.fontWeight.semibold as "600",
+            color: native.foreground.default,
+            fontSize: primitives.fontSize.sm,
+            lineHeight: primitives.lineHeight.sm,
+            fontWeight: primitives.fontWeight.semibold as "600",
           }
         : {
-            color: theme.colors.text,
+            color: native.foreground.default,
             fontSize: 9,
             lineHeight: 11,
-            fontWeight: theme.primitives.fontWeight.medium as "500",
+            fontWeight: primitives.fontWeight.medium as "500",
           },
-    [isDayVariant, theme],
+    [isDayVariant, native],
   );
 
   const timeStyle = useMemo(
     () => ({
-      marginTop: theme.primitives.space[2],
-      color: theme.colors.textMuted,
-      fontSize: theme.primitives.fontSize.xs,
-      lineHeight: theme.primitives.lineHeight.xs,
-      fontWeight: theme.primitives.fontWeight.regular as "400",
+      marginTop: primitives.space[2],
+      color: native.foreground.muted,
+      fontSize: primitives.fontSize.xs,
+      lineHeight: primitives.lineHeight.xs,
+      fontWeight: primitives.fontWeight.regular as "400",
     }),
-    [theme],
+    [native],
   );
 
   const listTitle = formatAppointmentEventTitle(event.title, event.typeName);
@@ -182,9 +183,9 @@ function WeekEventBlockComponent({
           {isDayVariant ? (
             isCompactDayEvent ? (
               <Text numberOfLines={1} style={titleStyle}>
-                <Text style={{ color: theme.colors.text }}>{subjectLabel}</Text>
+                <Text style={{ color: native.foreground.default }}>{subjectLabel}</Text>
                 {event.typeName ? (
-                  <Text style={{ color: theme.colors.text }}> - </Text>
+                  <Text style={{ color: native.foreground.default }}> - </Text>
                 ) : null}
                 {event.typeName ? (
                   <Text style={{ color: typeColor }}>{event.typeName}</Text>
@@ -194,11 +195,11 @@ function WeekEventBlockComponent({
             ) : (
               <>
                 <Text numberOfLines={1} style={titleStyle}>
-                  <Text style={{ color: theme.colors.text }}>
+                  <Text style={{ color: native.foreground.default }}>
                     {subjectLabel}
                   </Text>
                   {event.typeName ? (
-                    <Text style={{ color: theme.colors.text }}> - </Text>
+                    <Text style={{ color: native.foreground.default }}> - </Text>
                   ) : null}
                   {event.typeName ? (
                     <Text style={{ color: typeColor }}>{event.typeName}</Text>

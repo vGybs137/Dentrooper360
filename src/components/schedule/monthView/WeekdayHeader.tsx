@@ -1,9 +1,9 @@
 import { memo, useMemo } from "react";
 import { View } from "react-native";
+import { semantic } from "@/tokens";
 
 import { ThemedText } from "@/components/ui";
 import { weekdayLabels } from "@/helpers/weekdayLabels";
-import { useThemeTokens } from "@/theme";
 import type { WeekdayIndex } from "@/utils/calendar";
 
 export type WeekdayHeaderProps = {
@@ -11,15 +11,14 @@ export type WeekdayHeaderProps = {
 };
 
 function WeekdayHeaderComponent({ weekStartsOn = 0 }: WeekdayHeaderProps) {
-  const theme = useThemeTokens();
   const labels = useMemo(() => weekdayLabels(weekStartsOn), [weekStartsOn]);
 
   const rootStyle = useMemo(
     () => ({
-      paddingBottom: theme.semantic.space.stack.compact,
-      marginBottom: theme.semantic.space.stack.compact,
+      paddingBottom: semantic.space.stack.compact,
+      marginBottom: semantic.space.stack.compact,
     }),
-    [theme],
+    [],
   );
 
   return (

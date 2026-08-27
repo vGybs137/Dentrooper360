@@ -15,10 +15,11 @@ import {
 } from "react-native";
 import { FlatList, Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { useSharedValue } from "react-native-reanimated";
+import { useNativeColors } from "@/theme";
+import { primitives, semantic } from "@/tokens";
 
 import { DayHeaderLabel } from "@/components/schedule/DayHeaderLabel";
 import { ThemedText } from "@/components/ui";
-import { useThemeTokens } from "@/theme";
 import type { DayKey } from "@/utils/calendar";
 
 import type {
@@ -64,7 +65,7 @@ const DayEventsSheetInner = forwardRef<
   },
   ref,
 ) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const scrollOffsetSV = useSharedValue(0);
   const dismissDragSV = useSharedValue(false);
   const touchStartYSV = useSharedValue(0);
@@ -90,9 +91,9 @@ const DayEventsSheetInner = forwardRef<
 
   const listContentStyle = useMemo(
     () => ({
-      paddingBottom: theme.semantic.space.section,
+      paddingBottom: semantic.space.section,
     }),
-    [theme],
+    [],
   );
 
   const rootStyle = useMemo(
@@ -104,40 +105,40 @@ const DayEventsSheetInner = forwardRef<
       height: snapHeight,
       // No elevation/zIndex — raised stacking escapes overflow clips on Android
       // and let the closed sheet paint under Quick Add.
-      backgroundColor: theme.palette.surface.default,
-      borderTopLeftRadius: theme.semantic.radius.card,
-      borderTopRightRadius: theme.semantic.radius.card,
+      backgroundColor: native.surface.default,
+      borderTopLeftRadius: semantic.radius.card,
+      borderTopRightRadius: semantic.radius.card,
       overflow: "hidden" as const,
     }),
-    [snapHeight, theme],
+    [snapHeight, native],
   );
 
   const handleStyle = useMemo(
     () => ({
       alignItems: "center" as const,
-      paddingTop: theme.semantic.space.stack.compact,
-      paddingBottom: theme.semantic.space.stack.compact,
+      paddingTop: semantic.space.stack.compact,
+      paddingBottom: semantic.space.stack.compact,
     }),
-    [theme],
+    [],
   );
 
   const handlePillStyle = useMemo(
     () => ({
-      width: theme.primitives.space[24] + theme.primitives.space[12],
-      height: theme.primitives.space[4],
-      borderRadius: theme.primitives.radius.full,
-      backgroundColor: theme.palette.foreground.muted,
+      width: primitives.space[24] + primitives.space[12],
+      height: primitives.space[4],
+      borderRadius: primitives.radius.full,
+      backgroundColor: native.foreground.muted,
     }),
-    [theme],
+    [native],
   );
 
   const headerStyle = useMemo(
     () => ({
-      backgroundColor: theme.palette.surface.default,
-      borderBottomWidth: theme.semantic.borderWidth.subtle,
-      borderBottomColor: theme.palette.border.subtle,
+      backgroundColor: native.surface.default,
+      borderBottomWidth: semantic.borderWidth.subtle,
+      borderBottomColor: native.border.subtle,
     }),
-    [theme],
+    [native],
   );
 
   const ListEmpty = useMemo(
@@ -156,12 +157,12 @@ const DayEventsSheetInner = forwardRef<
       <View
         className="mx-page"
         style={{
-          height: theme.semantic.borderWidth.subtle,
-          backgroundColor: theme.palette.border.subtle,
+          height: semantic.borderWidth.subtle,
+          backgroundColor: native.border.subtle,
         }}
       />
     ),
-    [theme],
+    [native],
   );
 
   const onScroll = useCallback(
@@ -174,10 +175,10 @@ const DayEventsSheetInner = forwardRef<
   const failOffsetX = useMemo(
     () =>
       [
-        -theme.semantic.space.inline.compact,
-        theme.semantic.space.inline.compact,
+        -semantic.space.inline.compact,
+        semantic.space.inline.compact,
       ] as [number, number],
-    [theme],
+    [],
   );
 
   /** Handle + day header — always dismisses (no scroll competition). */

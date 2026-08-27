@@ -7,6 +7,7 @@ import {
   type UseControllerProps,
 } from "react-hook-form";
 import {
+  StyleSheet,
   Text,
   TextInput,
   View,
@@ -18,6 +19,7 @@ import {
 } from "react-native";
 
 import { useNativeColors } from "@/theme";
+import type { ThemePalette } from "@/tokens";
 import { cn } from "@/utils/cn";
 
 const themedTextVariants = cva("shrink", {
@@ -29,13 +31,13 @@ const themedTextVariants = cva("shrink", {
       display: "text-display",
     },
     tone: {
-      default: "text-foreground-default",
-      muted: "text-foreground-muted",
-      inverse: "text-foreground-inverse",
-      brand: "text-brand-default",
-      accent: "text-accent-default",
-      success: "text-success-default",
-      alert: "text-alert-default",
+      default: "",
+      muted: "",
+      inverse: "",
+      brand: "",
+      accent: "",
+      success: "",
+      alert: "",
     },
     align: {
       auto: "",
@@ -87,6 +89,28 @@ export type ThemedTextInputProps = Omit<TextInputProps, "style"> & {
 
 export type ThemedTextProps = ThemedTextDisplayProps | ThemedTextInputProps;
 
+function colorForTone(
+  palette: ThemePalette,
+  tone: ThemedTextDisplayProps["tone"],
+) {
+  switch (tone) {
+    case "muted":
+      return palette.foreground.muted;
+    case "inverse":
+      return palette.foreground.inverse;
+    case "brand":
+      return palette.brand.default;
+    case "accent":
+      return palette.accent.default;
+    case "success":
+      return palette.success.DEFAULT;
+    case "alert":
+      return palette.alert.DEFAULT;
+    default:
+      return palette.foreground.default;
+  }
+}
+
 export function ThemedText(props: ThemedTextDisplayProps): React.ReactElement;
 export function ThemedText(props: ThemedTextInputProps): React.ReactElement;
 export function ThemedText(props: ThemedTextProps) {
@@ -107,11 +131,16 @@ export function ThemedText(props: ThemedTextProps) {
     style,
     ...rest
   } = props;
+  const native = useNativeColors();
+  const resolvedTone = tone ?? "default";
 
   return (
     <Text
-      className={cn(themedTextVariants({ variant, tone, align }), className)}
-      style={style}
+      className={cn(themedTextVariants({ variant, align }), className)}
+      style={StyleSheet.flatten([
+        { color: colorForTone(native, resolvedTone) },
+        style,
+      ])}
       {...rest}
     />
   );

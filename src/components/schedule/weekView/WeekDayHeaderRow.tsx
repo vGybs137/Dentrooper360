@@ -1,5 +1,7 @@
 import { memo, useMemo } from "react";
 import { View, type LayoutChangeEvent } from "react-native";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 
 import { Button, ThemedText } from "@/components/ui";
 import { MONTH_VIEW_DAY_NUMBER_SIZE } from "@/constants/schedule";
@@ -10,7 +12,6 @@ import {
   useCalendarSelectionStore,
   useIsCalendarDaySelected,
 } from "@/stores/calendarSelectionStore";
-import { useThemeTokens } from "@/theme";
 import type { DayPressHandler } from "@/types/schedule";
 import {
   buildWeekCells,
@@ -47,7 +48,7 @@ function WeekDayHeaderCell({
   onDayPress,
   useHighlightContext = false,
 }: WeekDayHeaderCellProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const highlightDayKey = useWeekHighlightDayKey();
   const storeSelected = useIsCalendarDaySelected(cell.dayKey);
   const selected = useHighlightContext
@@ -64,12 +65,12 @@ function WeekDayHeaderCell({
       justifyContent: "center" as const,
       overflow: "hidden" as const,
       backgroundColor: selected
-        ? theme.palette.brand.default
+        ? native.brand.default
         : cell.isToday
-          ? theme.palette.brand.subtle
+          ? native.brand.subtle
           : "transparent",
     }),
-    [cell.isToday, selected, theme],
+    [cell.isToday, selected, native],
   );
 
   const dayTone = selected
@@ -94,21 +95,24 @@ function WeekDayHeaderCell({
       }}
       ripple={false}
       size="none"
-      style={({ pressed }) => [
-        { flex: 1, alignItems: "center", alignSelf: "stretch" },
-        pressed && !selected ? { opacity: 0.72 } : null,
-      ]}
+      style={{ flex: 1, minWidth: 0, alignSelf: "stretch" }}
       tone="neutral"
       unstable_pressDelay={0}
       variant="ghost"
     >
-      <ThemedText tone={isSunday ? "alert" : "muted"} variant="label">
-        {weekdayLabel}
-      </ThemedText>
-      <View style={dayCircleStyle}>
-        <ThemedText tone={dayTone} variant="label">
-          {cell.date.day}
+      <View style={{ flex: 1, alignItems: "center" }}>
+        <ThemedText
+          align="center"
+          tone={isSunday ? "alert" : "muted"}
+          variant="label"
+        >
+          {weekdayLabel}
         </ThemedText>
+        <View style={dayCircleStyle}>
+          <ThemedText align="center" tone={dayTone} variant="label">
+            {cell.date.day}
+          </ThemedText>
+        </View>
       </View>
     </Button>
   );
@@ -122,7 +126,6 @@ function WeekDayHeaderRowComponent({
   onLayout,
   useHighlightContext = false,
 }: WeekDayHeaderRowProps) {
-  const theme = useThemeTokens();
   const labels = useMemo(() => weekdayLabels(weekStartsOn), [weekStartsOn]);
   const cells = useMemo(
     () => buildWeekCells(weekStartKey, focusMonthForWeek(weekStartKey)),
@@ -132,13 +135,15 @@ function WeekDayHeaderRowComponent({
   const rootStyle = useMemo(
     () => ({
       flexDirection: "row" as const,
-      paddingBottom: theme.semantic.space.stack.compact,
+      width: "100%" as const,
+      alignSelf: "stretch" as const,
+      paddingBottom: semantic.space.stack.compact,
     }),
-    [theme],
+    [],
   );
 
   return (
-    <View className="w-full self-stretch" style={rootStyle} onLayout={onLayout}>
+    <View style={rootStyle} onLayout={onLayout}>
       <View style={{ width: gutterWidth }} />
       {cells.map((cell, index) => (
         <WeekDayHeaderCell

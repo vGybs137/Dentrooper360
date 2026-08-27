@@ -2,6 +2,8 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import type { ScrollView as ScrollViewType } from "react-native-gesture-handler";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 
 import {
   buildHalfHourLineTops,
@@ -24,7 +26,6 @@ import {
   WEEK_VIEW_SCROLL_PADDING_MINUTES,
 } from "@/constants/schedule";
 import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
-import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import {
   gridHeightForHourRange,
@@ -67,7 +68,7 @@ function DayTimeGridComponent({
   onVerticalScrollBegin,
   onVerticalScrollEnd,
 }: DayTimeGridProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const { startHour, endHour } = useUserScheduleHours();
   const scrollRef = useRef<ScrollViewType>(null);
   const hasScrolledRef = useRef(false);
@@ -171,11 +172,11 @@ function DayTimeGridComponent({
     return () => clearInterval(id);
   }, [showTodayNowIndicator]);
 
-  const gridBorderColor = theme.colors.borderStrong;
-  const gridBorderWidth = theme.semantic.borderWidth.strong;
-  const halfHourBorderColor = theme.colors.borderSubtle;
-  const halfHourBorderWidth = theme.semantic.borderWidth.subtle;
-  const nowIndicatorColor = theme.palette.brand.default;
+  const gridBorderColor = native.border.strong;
+  const gridBorderWidth = semantic.borderWidth.strong;
+  const halfHourBorderColor = native.border.subtle;
+  const halfHourBorderWidth = semantic.borderWidth.subtle;
+  const nowIndicatorColor = native.brand.default;
 
   const onContentSizeChange = useCallback(() => {
     if (hasScrolledRef.current) return;

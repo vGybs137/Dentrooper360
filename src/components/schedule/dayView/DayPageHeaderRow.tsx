@@ -1,8 +1,8 @@
 import { memo, useMemo } from "react";
 import { View } from "react-native";
+import { semantic } from "@/tokens";
 
 import { DayHeaderLabel } from "@/components/schedule/DayHeaderLabel";
-import { useThemeTokens } from "@/theme";
 import type { DayKey } from "@/utils/calendar";
 
 export type DayPageHeaderRowProps = {
@@ -14,23 +14,22 @@ function DayPageHeaderRowComponent({
   dayKey,
   gutterWidth,
 }: DayPageHeaderRowProps) {
-  const theme = useThemeTokens();
 
   const rootStyle = useMemo(
     () => ({
       flexDirection: "row" as const,
       alignItems: "center" as const,
-      paddingBottom: theme.semantic.space.stack.compact,
+      paddingBottom: semantic.space.stack.compact,
     }),
-    [theme],
+    [],
   );
 
   const labelStyle = useMemo(
     () => ({
-      paddingHorizontal: theme.semantic.space.stack.compact,
-      paddingVertical: theme.semantic.space.stack.comfortable,
+      paddingHorizontal: semantic.space.stack.compact,
+      paddingVertical: semantic.space.stack.comfortable,
     }),
-    [theme],
+    [],
   );
 
   return (

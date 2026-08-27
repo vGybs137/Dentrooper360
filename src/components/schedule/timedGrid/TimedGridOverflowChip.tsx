@@ -1,11 +1,12 @@
 import { memo, useMemo } from "react";
 import { Text, type ViewStyle } from "react-native";
+import { useNativeColors } from "@/theme";
+import { primitives, semantic } from "@/tokens";
 
 import { Button } from "@/components/ui";
 
 import { timedGridAbsoluteStyle } from "@/components/schedule/timedGrid/timedGridPositionStyle";
 import { TIMED_GRID_OVERFLOW_MIN_HEIGHT } from "@/constants/schedule";
-import { useThemeTokens } from "@/theme";
 
 export type TimedGridOverflowChipProps = {
   count: number;
@@ -22,7 +23,7 @@ function TimedGridOverflowChipComponent({
   left,
   width,
 }: TimedGridOverflowChipProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
 
   const style = useMemo(
     (): ViewStyle => ({
@@ -32,22 +33,22 @@ function TimedGridOverflowChipComponent({
       ),
       alignItems: "center",
       justifyContent: "center",
-      borderRadius: theme.primitives.radius.xs,
-      backgroundColor: theme.palette.surface.sunken,
-      borderWidth: theme.semantic.borderWidth.subtle,
-      borderColor: theme.colors.borderSubtle,
+      borderRadius: primitives.radius.xs,
+      backgroundColor: native.surface.sunken,
+      borderWidth: semantic.borderWidth.subtle,
+      borderColor: native.border.subtle,
     }),
-    [height, left, theme, top, width],
+    [height, left, native, top, width],
   );
 
   const labelStyle = useMemo(
     () => ({
-      color: theme.colors.textMuted,
+      color: native.foreground.muted,
       fontSize: 9,
       lineHeight: 11,
-      fontWeight: theme.primitives.fontWeight.semibold as "600",
+      fontWeight: primitives.fontWeight.semibold as "600",
     }),
-    [theme],
+    [native],
   );
 
   return (

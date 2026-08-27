@@ -14,12 +14,13 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { useNativeColors } from "@/theme";
+import { primitives, semantic } from "@/tokens";
 
 import { Button, ThemedIcon } from "@/components/ui";
 import { createMonthQuickAddAppointment } from "@/helpers/createMonthQuickAddAppointment";
 import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
 import { useAuthUser } from "@/stores";
-import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import type { DayKey } from "@/utils/calendar";
 
@@ -46,7 +47,7 @@ function MonthQuickAddFieldComponent({
   events,
   placeholder = "Add appointment...",
 }: MonthQuickAddFieldProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const user = useAuthUser();
   const { startHour, endHour } = useUserScheduleHours();
   const reservedRef = useRef<RNView>(null);
@@ -61,9 +62,9 @@ function MonthQuickAddFieldComponent({
 
   // Equal inset above/below the pill. Do not use safe-area bottom — NativeTabs
   // already sit under this screen, so insets.bottom would leave a large empty gap.
-  const verticalPad = theme.semantic.space.stack.compact;
+  const verticalPad = semantic.space.stack.compact;
   verticalPadRef.current = verticalPad;
-  const sideInset = theme.semantic.space.page;
+  const sideInset = semantic.space.page;
   const canSubmit = text.trim().length > 0 && !isSubmitting;
 
   useEffect(() => {
@@ -151,9 +152,9 @@ function MonthQuickAddFieldComponent({
   const reservedStyle = useMemo(
     () => ({
       height: MONTH_QUICK_ADD_COLLAPSED_HEIGHT + verticalPad * 2,
-      zIndex: theme.semantic.zIndex.sticky,
+      zIndex: semantic.zIndex.sticky,
     }),
-    [theme, verticalPad],
+    [verticalPad],
   );
 
   const pillAnimatedStyle = useAnimatedStyle(() => {
@@ -181,40 +182,40 @@ function MonthQuickAddFieldComponent({
       flex: 1,
       flexDirection: "row" as const,
       alignItems: "center" as const,
-      paddingLeft: theme.semantic.space.inline.default,
-      paddingRight: theme.semantic.space.inline.compact,
-      backgroundColor: theme.palette.calendar.quickAdd,
-      borderRadius: theme.semantic.radius.pill,
+      paddingLeft: semantic.space.inline.default,
+      paddingRight: semantic.space.inline.compact,
+      backgroundColor: native.calendar.quickAdd,
+      borderRadius: semantic.radius.pill,
       // Soft lift so the field reads above the calendar in light mode.
-      shadowColor: theme.palette.foreground.default,
+      shadowColor: native.foreground.default,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.1,
       shadowRadius: 3,
-      elevation: theme.semantic.elevation.raised,
+      elevation: semantic.elevation.raised,
     }),
-    [theme],
+    [native],
   );
 
   const inputStyle = useMemo(
     () => ({
       flex: 1,
       paddingVertical: 0,
-      color: theme.palette.foreground.default,
-      fontSize: theme.primitives.fontSize.md,
-      lineHeight: theme.primitives.lineHeight.md,
+      color: native.foreground.default,
+      fontSize: primitives.fontSize.md,
+      lineHeight: primitives.lineHeight.md,
     }),
-    [theme],
+    [native],
   );
 
   const plusHitStyle = useMemo(
     () => ({
-      width: theme.semantic.size.control,
-      height: theme.semantic.size.control,
+      width: semantic.size.control,
+      height: semantic.size.control,
       alignItems: "center" as const,
       justifyContent: "center" as const,
-      opacity: canSubmit ? 1 : theme.semantic.opacity.disabled,
+      opacity: canSubmit ? 1 : semantic.opacity.disabled,
     }),
-    [canSubmit, theme],
+    [canSubmit, native],
   );
 
   const slotStyle = useMemo(
@@ -237,7 +238,7 @@ function MonthQuickAddFieldComponent({
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             placeholder={placeholder}
-            placeholderTextColor={theme.palette.foreground.muted}
+            placeholderTextColor={native.foreground.muted}
             returnKeyType="done"
             blurOnSubmit
             onSubmitEditing={() => {

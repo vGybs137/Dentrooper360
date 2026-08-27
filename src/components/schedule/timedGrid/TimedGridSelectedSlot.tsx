@@ -1,12 +1,13 @@
 import { memo, useCallback } from "react";
 import { View } from "react-native";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 
 import { Button, ThemedText } from "@/components/ui";
 import {
   ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
   useAddAppointmentStore,
 } from "@/stores/addAppointmentStore";
-import { useThemeTokens } from "@/theme";
 import {
   minutesSpanToHeight,
   minutesToYInWorkingWindow,
@@ -29,7 +30,7 @@ function TimedGridSelectedSlotComponent({
   hourGap,
   variant = "day",
 }: TimedGridSelectedSlotProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const open = useAddAppointmentStore((state) => state.open);
 
   const top =
@@ -70,18 +71,18 @@ function TimedGridSelectedSlotComponent({
           flex: 1,
           alignItems: "center",
           justifyContent: "center",
-          borderWidth: theme.semantic.borderWidth.strong,
+          borderWidth: semantic.borderWidth.strong,
           borderStyle: "dashed",
           borderRadius: isWeek
-            ? theme.semantic.radius.control
-            : theme.semantic.radius.card,
-          backgroundColor: `${theme.palette.brand.default}24`,
-          borderColor: `${theme.palette.brand.strong}A6`,
+            ? semantic.radius.control
+            : semantic.radius.card,
+          backgroundColor: `${native.brand.default}24`,
+          borderColor: `${native.brand.strong}A6`,
         }}
       >
         <ThemedText
           style={{
-            color: theme.palette.brand.strong,
+            color: native.brand.strong,
             fontSize: isWeek ? 14 : 22,
             lineHeight: isWeek ? 16 : 24,
             fontWeight: "700",

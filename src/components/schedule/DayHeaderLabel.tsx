@@ -1,8 +1,8 @@
 import { memo, useMemo } from "react";
 import { View, type StyleProp, type ViewStyle } from "react-native";
+import { primitives, semantic } from "@/tokens";
 
 import { ThemedText } from "@/components/ui";
-import { useThemeTokens } from "@/theme";
 import {
   formatDayKeyDayWeekdayParts,
   formatDayKeyDayWeekdayShortParts,
@@ -25,7 +25,6 @@ function DayHeaderLabelComponent({
   weekdayFormat = "long",
   style,
 }: DayHeaderLabelProps) {
-  const theme = useThemeTokens();
   const date = useMemo(() => parseDayKey(dayKey), [dayKey]);
   const { day, weekday } = useMemo(
     () =>
@@ -42,25 +41,25 @@ function DayHeaderLabelComponent({
     () => ({
       flexDirection: "row" as const,
       alignItems: "baseline" as const,
-      gap: theme.primitives.space[8],
+      gap: primitives.space[8],
     }),
-    [theme],
+    [],
   );
 
   const dayStyle = useMemo(
     () => ({
-      fontSize: theme.semantic.type.title.fontSize,
-      lineHeight: theme.semantic.type.title.lineHeight,
-      fontWeight: theme.primitives.fontWeight.bold as "700",
+      fontSize: semantic.type.title.fontSize,
+      lineHeight: semantic.type.title.lineHeight,
+      fontWeight: primitives.fontWeight.bold as "700",
     }),
-    [theme],
+    [],
   );
 
   const weekdayStyle = useMemo(
     () => ({
-      fontWeight: theme.primitives.fontWeight.medium as "500",
+      fontWeight: primitives.fontWeight.medium as "500",
     }),
-    [theme],
+    [],
   );
 
   return (

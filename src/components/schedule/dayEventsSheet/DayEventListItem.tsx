@@ -1,13 +1,14 @@
 import { useRouter, type Href } from "expo-router";
 import { memo, useMemo } from "react";
 import { Text, View } from "react-native";
+import { useNativeColors } from "@/theme";
+import { primitives, semantic } from "@/tokens";
 
 import { Button } from "@/components/ui";
 
 import { formatAppointmentEventTitle } from "@/helpers/appointmentSubject";
 import { formatTimeRange } from "@/helpers/timeFormat";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
-import { useThemeTokens } from "@/theme";
 import { MONTH_VIEW_EVENT_LIST_RAIL_WIDTH } from "@/constants/schedule";
 import type { MonthDayEventPreview } from "@/types/schedule";
 
@@ -17,55 +18,55 @@ export type DayEventListItemProps = {
 
 /** Day-events sheet row — title, type color rail, and time range. */
 function DayEventListItemComponent({ event }: DayEventListItemProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const hourFormat = useHourFormat();
   const router = useRouter();
   const timeRange = formatTimeRange(event.startTime, event.endTime, hourFormat);
-  const typeColor = event.color ?? theme.colors.borderStrong;
+  const typeColor = event.color ?? native.border.strong;
 
   const cardStyle = useMemo(
     () => ({
       flexDirection: "row" as const,
       alignItems: "stretch" as const,
       overflow: "hidden" as const,
-      borderRadius: theme.semantic.radius.card,
-      paddingVertical: theme.semantic.space.stack.compact,
-      paddingLeft: theme.semantic.space.stack.compact,
-      paddingRight: theme.semantic.space.stack.default,
-      gap: theme.semantic.space.stack.compact,
-      borderColor: theme.colors.borderStrong,
+      borderRadius: semantic.radius.card,
+      paddingVertical: semantic.space.stack.compact,
+      paddingLeft: semantic.space.stack.compact,
+      paddingRight: semantic.space.stack.default,
+      gap: semantic.space.stack.compact,
+      borderColor: native.border.strong,
     }),
-    [theme],
+    [native],
   );
 
   const railStyle = useMemo(
     () => ({
       width: MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
-      marginRight: theme.semantic.space.stack.compact,
-      borderRadius: theme.primitives.radius.xs,
+      marginRight: semantic.space.stack.compact,
+      borderRadius: primitives.radius.xs,
       backgroundColor: typeColor,
     }),
-    [theme, typeColor],
+    [native, typeColor],
   );
 
   const titleStyle = useMemo(
     () => ({
-      fontSize: theme.primitives.fontSize.sm,
-      lineHeight: theme.primitives.lineHeight.sm,
-      fontWeight: theme.primitives.fontWeight.semibold,
+      fontSize: primitives.fontSize.sm,
+      lineHeight: primitives.lineHeight.sm,
+      fontWeight: primitives.fontWeight.semibold,
     }),
-    [theme],
+    [native],
   );
 
   const timeStyle = useMemo(
     () => ({
-      marginTop: theme.primitives.space[2],
-      color: theme.colors.text,
-      fontSize: theme.primitives.fontSize.xs,
-      lineHeight: theme.primitives.lineHeight.xs,
-      fontWeight: theme.primitives.fontWeight.regular,
+      marginTop: primitives.space[2],
+      color: native.foreground.default,
+      fontSize: primitives.fontSize.xs,
+      lineHeight: primitives.lineHeight.xs,
+      fontWeight: primitives.fontWeight.regular,
     }),
-    [theme],
+    [native],
   );
 
   const bodyStyle = useMemo(
@@ -94,11 +95,11 @@ function DayEventListItemComponent({ event }: DayEventListItemProps) {
         <View style={railStyle} />
         <View style={bodyStyle}>
           <Text numberOfLines={1} style={titleStyle}>
-            <Text style={{ color: theme.colors.text }}>
+            <Text style={{ color: native.foreground.default }}>
               {event.title.trim() || "Appointment"}
             </Text>
             {event.typeName ? (
-              <Text style={{ color: theme.colors.text }}> - </Text>
+              <Text style={{ color: native.foreground.default }}> - </Text>
             ) : null}
             {event.typeName ? (
               <Text style={{ color: typeColor }}>{event.typeName}</Text>

@@ -1,5 +1,6 @@
 import { memo, useMemo } from "react";
 import { View } from "react-native";
+import { primitives } from "@/tokens";
 
 import { ThemedText } from "@/components/ui";
 import {
@@ -7,7 +8,6 @@ import {
 } from "@/constants/schedule";
 import { formatHourLabel } from "@/helpers/timeFormat";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
-import { useThemeTokens } from "@/theme";
 import {
   MINUTES_PER_HOUR,
   minutesToYInWorkingWindow,
@@ -36,7 +36,6 @@ function TimeGutterComponent({
   startHour = 0,
   endHour = 23,
 }: TimeGutterProps) {
-  const theme = useThemeTokens();
   const hourFormat = useHourFormat();
   const pxPerMinute = hourHeight / MINUTES_PER_HOUR;
   const labels = useMemo(() => {
@@ -53,9 +52,9 @@ function TimeGutterComponent({
     () => ({
       fontSize: 10,
       lineHeight: WEEK_VIEW_GUTTER_LABEL_LINE_HEIGHT,
-      fontWeight: theme.primitives.fontWeight.regular as "400",
+      fontWeight: primitives.fontWeight.regular as "400",
     }),
-    [theme],
+    [],
   );
 
   return (
