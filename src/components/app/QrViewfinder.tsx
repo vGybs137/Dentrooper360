@@ -5,7 +5,6 @@ import Animated, { type AnimatedStyle } from "react-native-reanimated";
 import { Button, ThemedIcon, ThemedView } from "@/components/ui";
 import { qrCodeIcon } from "@/constants";
 import type { QrScanStatus } from "@/hooks/useQrScannerMotion";
-import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
 type CornerPlacement = "tl" | "tr" | "bl" | "br";
@@ -69,7 +68,6 @@ export function QrViewfinder({
   cameraPreview,
   onCancel,
 }: QrViewfinderProps) {
-  const native = useNativeColors();
   const cornerSize = semantic.size["icon-lg"];
   const cornerRadius = semantic.radius.overlay;
   const cornerThickness = semantic.borderWidth.strong;
@@ -78,12 +76,10 @@ export function QrViewfinder({
   return (
     <ThemedView align="center" space="comfortable" variant="stack">
       <View
-        className="overflow-hidden"
+        className="overflow-hidden rounded-overlay bg-brand-subtle"
         style={{
           width: viewfinderSize,
           height: viewfinderSize,
-          backgroundColor: native.brand.subtle,
-          borderRadius: semantic.radius.overlay,
         }}
       >
         {status === "ready" ? (
@@ -98,15 +94,8 @@ export function QrViewfinder({
               </View>
             )}
             <Animated.View
-              className="absolute h-0.5"
-              style={[
-                {
-                  left: scanInset,
-                  right: scanInset,
-                  backgroundColor: native.brand.default,
-                },
-                scanLineStyle,
-              ]}
+              className="absolute h-0.5 bg-brand-default"
+              style={[{ left: scanInset, right: scanInset }, scanLineStyle]}
             />
           </>
         ) : null}
@@ -122,13 +111,13 @@ export function QrViewfinder({
         ))}
       </View>
       <Button
+        className="rounded-card"
         disabled={status !== "ready"}
         label="Cancel"
         onPress={onCancel}
         size="lg"
         style={{
           width: viewfinderSize,
-          borderRadius: semantic.radius.card,
         }}
         tone="alert"
         variant="soft"

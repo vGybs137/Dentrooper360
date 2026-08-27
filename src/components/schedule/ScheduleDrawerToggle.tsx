@@ -2,6 +2,7 @@ import { memo, useCallback } from "react";
 import { useNavigation } from "expo-router";
 
 import { Button, ThemedIcon } from "@/components/ui";
+import { semantic } from "@/tokens";
 
 const menuIcon = {
   ios: "line.3.horizontal",
@@ -19,10 +20,15 @@ function ScheduleDrawerToggleComponent() {
   return (
     <Button
       accessibilityLabel="Open calendar views"
-      className="min-h-touch w-touch items-start"
       hitSlop={8}
       onPress={openDrawer}
       size="none"
+      style={{
+        width: semantic.size.touch,
+        height: semantic.size.touch,
+        alignItems: "flex-start",
+        justifyContent: "center",
+      }}
       tone="neutral"
       variant="ghost"
     >

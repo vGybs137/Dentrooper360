@@ -15,8 +15,7 @@ import {
   useAuthUser,
   useSchedulePreferencesStore,
 } from "@/stores";
-import { useNativeColors } from "@/theme";
-import { primitives, semantic } from "@/tokens";
+import { semantic } from "@/tokens";
 import { ApiError } from "@/types/api";
 
 const OPTION_ROW_HEIGHT = 44;
@@ -33,7 +32,6 @@ function initialsFromName(name: string): string {
 }
 
 export function SettingsProfileCard() {
-  const native = useNativeColors();
   const router = useRouter();
   const queryClient = useQueryClient();
   const user = useAuthUser();
@@ -71,7 +69,7 @@ export function SettingsProfileCard() {
     locationOptions.length * OPTION_ROW_HEIGHT +
     Math.max(locationOptions.length - 1, 0) * optionGap +
     semantic.space.stack.compact;
-  const { containerStyle, mounted } = useInlineCollapse(
+  const { containerStyle, chevronStyle, mounted } = useInlineCollapse(
     locationExpanded && locationOptions.length > 0,
     contentHeight,
   );
@@ -142,15 +140,7 @@ export function SettingsProfileCard() {
 
   return (
     <>
-      <View
-      style={{
-        borderRadius: semantic.radius.card,
-        backgroundColor: native.surface.raised,
-        borderWidth: 1,
-        borderColor: native.border.subtle,
-        overflow: "hidden",
-      }}
-    >
+      <ThemedView className="overflow-hidden" inset="none" variant="card">
       <View
         style={{
           flexDirection: "row",
@@ -161,30 +151,19 @@ export function SettingsProfileCard() {
         }}
       >
         <View
+          className="items-center justify-center rounded-pill bg-brand-subtle"
           style={{
             width: semantic.size.touch,
             height: semantic.size.touch,
-            borderRadius: semantic.radius.pill,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: native.brand.subtle,
           }}
         >
-          <ThemedText
-            tone="brand"
-            variant="body"
-            style={{ fontWeight: primitives.fontWeight.semibold }}
-          >
+          <ThemedText className="font-semibold" tone="brand" variant="body">
             {initialsFromName(displayName)}
           </ThemedText>
         </View>
 
-        <ThemedView space="compact" style={{ flex: 1, minWidth: 0 }} variant="stack">
-          <ThemedText
-            numberOfLines={1}
-            variant="body"
-            style={{ fontWeight: primitives.fontWeight.semibold }}
-          >
+        <View style={{ flex: 1, minWidth: 0, gap: semantic.space.gap.compact }}>
+          <ThemedText className="font-semibold" numberOfLines={1} variant="body">
             {displayName}
           </ThemedText>
           <ThemedText numberOfLines={1} tone="muted" variant="label">
@@ -192,7 +171,7 @@ export function SettingsProfileCard() {
               ? "Signing out…"
               : (displayEmail ?? "Clinic pairing stays on this device")}
           </ThemedText>
-        </ThemedView>
+        </View>
 
         <Button
           accessibilityLabel="Log out"
@@ -231,11 +210,8 @@ export function SettingsProfileCard() {
       ) : null}
 
       <View
-        style={{
-          height: 1,
-          backgroundColor: native.border.subtle,
-          marginHorizontal: semantic.space.inline.comfortable,
-        }}
+        className="h-px bg-border-subtle"
+        style={{ marginHorizontal: semantic.space.inline.comfortable }}
       />
 
       <Button
@@ -244,36 +220,44 @@ export function SettingsProfileCard() {
           expanded: locationExpanded,
           disabled: locationOptions.length === 0,
         }}
-        className="w-full flex-row items-center justify-center"
+        className="w-full"
         disabled={locationOptions.length === 0}
         onPress={() => setLocationExpanded((current) => !current)}
         ripple={false}
         size="none"
-        style={{
-          gap: semantic.space.gap.compact,
-          paddingHorizontal: semantic.space.inline.comfortable,
-          paddingVertical: semantic.space.stack.default,
-          minHeight: semantic.size.touch,
-        }}
         tone="neutral"
         variant="ghost"
       >
-        <ThemedText
-          align="center"
-          numberOfLines={1}
-          variant="body"
-          style={{ fontWeight: primitives.fontWeight.medium }}
+        <View
+          style={{
+            width: "100%",
+            minHeight: semantic.size.touch,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: semantic.space.gap.compact,
+            paddingHorizontal: semantic.space.inline.comfortable,
+            paddingVertical: semantic.space.stack.default,
+          }}
         >
-          {selectedLocationLabel}
-        </ThemedText>
-        {locationOptions.length > 0 ? (
-          <ThemedIcon
-            className={locationExpanded ? "rotate-180" : undefined}
-            dimension={16}
-            name={chevronDownIcon}
-            tone="muted"
-          />
-        ) : null}
+          <ThemedText
+            align="center"
+            className="font-medium"
+            numberOfLines={1}
+            variant="body"
+          >
+            {selectedLocationLabel}
+          </ThemedText>
+          {locationOptions.length > 0 ? (
+            <Animated.View style={chevronStyle}>
+              <ThemedIcon
+                dimension={16}
+                name={chevronDownIcon}
+                tone="muted"
+              />
+            </Animated.View>
+          ) : null}
+        </View>
       </Button>
 
       {mounted ? (
@@ -311,13 +295,9 @@ export function SettingsProfileCard() {
                 >
                   <ThemedText
                     align="center"
+                    className={isSelected ? "font-semibold" : undefined}
                     tone={isSelected ? "brand" : "default"}
                     variant="body"
-                    style={{
-                      fontWeight: isSelected
-                        ? primitives.fontWeight.semibold
-                        : primitives.fontWeight.regular,
-                    }}
                   >
                     {option.label}
                   </ThemedText>
@@ -327,7 +307,7 @@ export function SettingsProfileCard() {
           </View>
         </Animated.View>
         ) : null}
-      </View>
+      </ThemedView>
 
       <DeleteConfirmationDialog
         confirming={logoutMutation.isPending}

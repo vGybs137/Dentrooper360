@@ -45,5 +45,9 @@ export function useInlineCollapse(visible: boolean, contentHeight: number) {
     overflow: "hidden" as const,
   }));
 
-  return { containerStyle, mounted: visible || mounted };
+  const chevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${progress.value * 180}deg` }],
+  }));
+
+  return { containerStyle, chevronStyle, mounted: visible || mounted };
 }

@@ -215,7 +215,7 @@ const ThemedTextInput = forwardRef<
       <View
         className={cn(
           "flex-row items-center gap-gap-compact",
-          SIZE_MIN_HEIGHT[size],
+          !isBare && SIZE_MIN_HEIGHT[size],
           isBare
             ? "rounded-none border-0 bg-transparent px-0"
             : cn(

@@ -38,7 +38,7 @@ function InlineSelectLeadingSlot({ children }: LeadingSlotProps) {
 }
 
 type InlineSelectColorLeadingProps = {
-  color: string;
+  color?: string;
 };
 
 export function InlineSelectColorLeading({
@@ -47,7 +47,17 @@ export function InlineSelectColorLeading({
   return (
     <InlineSelectLeadingSlot>
       <View style={{ marginLeft: LEADING_SWATCH_NUDGE_X }}>
-        <ColorSwatch color={color} size={LEADING_SWATCH_SIZE} />
+        {color ? (
+          <ColorSwatch color={color} size={LEADING_SWATCH_SIZE} />
+        ) : (
+          <View
+            className="rounded-full bg-foreground-muted"
+            style={{
+              width: LEADING_SWATCH_SIZE,
+              height: LEADING_SWATCH_SIZE,
+            }}
+          />
+        )}
       </View>
     </InlineSelectLeadingSlot>
   );
@@ -55,20 +65,16 @@ export function InlineSelectColorLeading({
 
 type InlineSelectSymbolLeadingProps = {
   name: NonNullable<ThemedIconProps["name"]>;
-  tintColor: string;
+  tone?: ThemedIconProps["tone"];
 };
 
 export function InlineSelectSymbolLeading({
   name,
-  tintColor,
+  tone = "muted",
 }: InlineSelectSymbolLeadingProps) {
   return (
     <InlineSelectLeadingSlot>
-      <ThemedIcon
-        dimension={LEADING_SLOT_SIZE}
-        name={name}
-        tintColor={tintColor}
-      />
+      <ThemedIcon dimension={LEADING_SLOT_SIZE} name={name} tone={tone} />
     </InlineSelectLeadingSlot>
   );
 }

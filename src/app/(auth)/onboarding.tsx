@@ -12,12 +12,9 @@ import {
   useAuthFlowSplashIntro,
   useBeginOnboardingExit,
 } from "@/stores";
-import { useNativeColors } from "@/theme";
-import { semantic } from "@/tokens";
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const native = useNativeColors();
   const splashIntro = useAuthFlowSplashIntro();
   const isLeaving = useAuthFlowIsLeaving();
   const beginOnboardingExit = useBeginOnboardingExit();
@@ -58,13 +55,10 @@ export default function OnboardingScreen() {
                 params: { from: "onboarding" },
               } as Href);
             }}
+            className="rounded-card"
             size="lg"
-            style={{
-              backgroundColor: native.brand.subtle,
-              borderRadius: semantic.radius.card,
-            }}
             tone="brand"
-            variant="outline"
+            variant="soft"
           />
         </ThemedView>
       </AuthBottomSheet>

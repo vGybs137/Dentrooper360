@@ -2,7 +2,6 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Keyboard,
   Platform,
-  TextInput,
   View,
   type View as RNView,
 } from "react-native";
@@ -19,10 +18,10 @@ import {
   MONTH_QUICK_ADD_COLLAPSED_HEIGHT,
   MONTH_QUICK_ADD_EXPANDED_HEIGHT,
 } from "@/components/schedule/monthView/MonthQuickAddField";
-import { Button, ThemedIcon } from "@/components/ui";
+import { Button, ThemedIcon, ThemedText } from "@/components/ui";
 import { searchIcon } from "@/constants";
 import { useNativeColors } from "@/theme";
-import { primitives, semantic } from "@/tokens";
+import { semantic } from "@/tokens";
 
 const FOCUS_ANIMATION = {
   duration: 280,
@@ -162,15 +161,11 @@ function AppointmentSearchBarComponent({
     [native],
   );
 
-  const inputStyle = useMemo(
+  const inputChromeStyle = useMemo(
     () => ({
       flex: 1,
-      paddingVertical: 0,
-      color: native.foreground.default,
-      fontSize: primitives.fontSize.md,
-      lineHeight: primitives.lineHeight.md,
     }),
-    [native],
+    [],
   );
 
   const clearHitStyle = useMemo(
@@ -208,18 +203,21 @@ function AppointmentSearchBarComponent({
             style={{ marginRight: semantic.space.gap.compact }}
             tone="muted"
           />
-          <TextInput
+          <ThemedText
+            as="input"
             accessibilityLabel="Search appointments"
             autoCapitalize="none"
             autoCorrect={false}
             autoFocus={autoFocus}
+            className="py-0"
+            containerClassName="min-h-0 flex-1 gap-0"
+            fieldVariant="bare"
             onBlur={() => setFocused(false)}
             onChangeText={onChangeText}
             onFocus={() => setFocused(true)}
             placeholder={placeholder}
-            placeholderTextColor={native.foreground.muted}
             returnKeyType="search"
-            style={inputStyle}
+            style={inputChromeStyle}
             value={value}
           />
           {canClear ? (

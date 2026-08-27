@@ -7,9 +7,9 @@ import { Button } from "@/components/ui";
 import { MONTH_VIEW_EVENT_LIST_RAIL_WIDTH } from "@/constants/schedule";
 import { formatTimeRange } from "@/helpers/timeFormat";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
-import { useNativeColors } from "@/theme";
-import { primitives, semantic } from "@/tokens";
+import { primitives } from "@/tokens";
 import type { MonthDayEventPreview } from "@/types/schedule";
+import { cn } from "@/utils/cn";
 
 export type AppointmentSearchResultItemProps = {
   event: MonthDayEventPreview;
@@ -61,100 +61,67 @@ function AppointmentSearchResultItemComponent({
   event,
   query = "",
 }: AppointmentSearchResultItemProps) {
-  const native = useNativeColors();
   const hourFormat = useHourFormat();
   const router = useRouter();
   const timeRange = formatTimeRange(event.startTime, event.endTime, hourFormat);
-  const typeColor = event.color ?? native.border.strong;
   const subjectParts = useMemo(
     () => splitSubjectByQuery(event.title, query),
     [event.title, query],
   );
 
-  const rowStyle = useMemo(
-    () => ({
-      flexDirection: "row" as const,
-      alignItems: "stretch" as const,
-      overflow: "hidden" as const,
-      paddingVertical: semantic.space.stack.compact,
-      gap: semantic.space.stack.compact,
-    }),
-    [],
-  );
-
-  const railStyle = useMemo(
-    () => ({
-      width: MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
-      borderRadius: primitives.radius.xs,
-      backgroundColor: typeColor,
-    }),
-    [ typeColor],
-  );
-
-  const titleStyle = useMemo(
-    () => ({
-      fontSize: primitives.fontSize.sm,
-      lineHeight: primitives.lineHeight.sm,
-      fontWeight: primitives.fontWeight.semibold,
-    }),
-    [],
-  );
-
-  const metaStyle = useMemo(
-    () => ({
-      marginTop: primitives.space[2],
-      color: native.foreground.muted,
-      fontSize: primitives.fontSize.xs,
-      lineHeight: primitives.lineHeight.xs,
-      fontWeight: primitives.fontWeight.regular,
-    }),
-    [native],
-  );
-
-  const highlightStyle = useMemo(
-    () => ({
-      color: native.brand.default,
-      fontWeight: primitives.fontWeight.bold as "700",
-    }),
-    [native],
-  );
-
-  const subjectStyle = useMemo(
-    () => ({
-      color: native.foreground.default,
-    }),
-    [native],
-  );
-
   return (
     <Button
       accessibilityLabel={`${event.title}${event.typeName ? ` - ${event.typeName}` : ""}, ${timeRange}`}
+      className="flex-row items-stretch gap-stack-compact overflow-hidden py-stack-compact"
       onPress={() => router.push(`/appointments/${event.id}` as Href)}
       ripple={false}
       size="none"
-      style={rowStyle}
       tone="neutral"
       variant="ghost"
     >
-      <View style={railStyle} />
+      <View
+        className={cn(!event.color && "bg-border-strong")}
+        style={{
+          width: MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
+          borderRadius: primitives.radius.xs,
+          backgroundColor: event.color ?? undefined,
+        }}
+      />
       <View className="min-w-0 flex-1 justify-center">
-        <Text numberOfLines={1} style={titleStyle}>
+        <Text
+          className="text-sm font-semibold"
+          numberOfLines={1}
+          style={{ lineHeight: primitives.lineHeight.sm }}
+        >
           {subjectParts.map((part, index) => (
             <Text
               key={`${part.value}-${index}`}
-              style={part.highlighted ? highlightStyle : subjectStyle}
+              className={
+                part.highlighted
+                  ? "font-bold text-brand-default"
+                  : "text-foreground-default"
+              }
             >
               {part.value}
             </Text>
           ))}
           {event.typeName ? (
-            <Text style={{ color: native.foreground.default }}> - </Text>
+            <Text className="text-foreground-default"> - </Text>
           ) : null}
           {event.typeName ? (
-            <Text style={{ color: typeColor }}>{event.typeName}</Text>
+            <Text
+              className={event.color ? undefined : "text-foreground-muted"}
+              style={event.color ? { color: event.color } : undefined}
+            >
+              {event.typeName}
+            </Text>
           ) : null}
         </Text>
-        <Text numberOfLines={1} style={metaStyle}>
+        <Text
+          className="mt-0.5 text-xs font-normal text-foreground-muted"
+          numberOfLines={1}
+          style={{ lineHeight: primitives.lineHeight.xs }}
+        >
           {timeRange}
         </Text>
       </View>

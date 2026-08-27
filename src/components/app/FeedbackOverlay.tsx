@@ -13,6 +13,7 @@ import Animated, {
 import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
+import { cn } from "@/utils/cn";
 
 const markLogo = require("../../assets/no-text-logo.svg");
 const wordmarkLogo = require("../../assets/text-logo.svg");
@@ -68,10 +69,6 @@ export function FeedbackOverlay({
   const badgeIconSize = semantic.size.icon * 1.2;
   const tickMs = semantic.motion.enter.duration;
   const badgeProgress = useSharedValue(0);
-
-  const badgeColor = isError
-    ? native.alert.DEFAULT
-    : native.brand.default;
 
   useEffect(() => {
     if (!isSuccess && !isError) {
@@ -156,13 +153,14 @@ export function FeedbackOverlay({
         }}
       >
         <View
-          className="absolute items-center justify-center"
+          className={cn(
+            "absolute items-center justify-center rounded-pill",
+            isError ? "bg-alert-default" : "bg-brand-default",
+          )}
           style={{
             top: -((badgeSize * 1.4) / 2 + semantic.space.gap.compact),
             width: badgeSize * 1.4,
             height: badgeSize * 1.4,
-            borderRadius: semantic.radius.pill,
-            backgroundColor: badgeColor,
           }}
         >
           {isSuccess ? (
@@ -170,7 +168,7 @@ export function FeedbackOverlay({
               <ThemedIcon
                 dimension={badgeIconSize}
                 name={checkIcon}
-                tintColor={native.brand.text}
+                tone="inverse"
               />
             </Animated.View>
           ) : isError ? (
@@ -178,7 +176,7 @@ export function FeedbackOverlay({
               <ThemedIcon
                 dimension={badgeIconSize}
                 name={errorIcon}
-                tintColor={native.alert.text}
+                tone="inverse"
               />
             </Animated.View>
           ) : (
@@ -197,10 +195,10 @@ export function FeedbackOverlay({
               {title}
             </ThemedText>
             <View
+              className="bg-border-strong"
               style={{
                 width: semantic.space.section * 4,
                 height: semantic.borderWidth.strong,
-                backgroundColor: native.border.strong,
               }}
             />
             <ThemedText align="center" tone={isError ? "alert" : "muted"}>

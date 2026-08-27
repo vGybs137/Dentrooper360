@@ -9,7 +9,6 @@ import Animated, {
 
 import { Button, ColorSwatch, ThemedIcon, ThemedText } from "@/components/ui";
 import type { AppointmentSearchTypeOption } from "@/hooks/useAppointmentSearch";
-import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
 const CHEVRON_LEFT_ICON = {
@@ -53,7 +52,6 @@ function AppointmentSearchBackButtonComponent({
   onClearType,
   onClearTimeWindow,
 }: AppointmentSearchBackButtonProps) {
-  const native = useNativeColors();
   const touchSize = semantic.size.touch;
   const pageInset = semantic.space.page;
   const hasFilterChips = selectedTypes.length > 0 || timeWindowLabel != null;
@@ -93,11 +91,8 @@ function AppointmentSearchBackButtonComponent({
       ...hitStyle,
       position: "absolute" as const,
       borderRadius: touchSize / 2,
-      backgroundColor: native.surface.raised,
-      borderWidth: semantic.borderWidth.subtle,
-      borderColor: native.border.strong,
     }),
-    [hitStyle, native, touchSize],
+    [hitStyle, touchSize],
   );
 
   const slotStyle = useMemo(
@@ -112,23 +107,6 @@ function AppointmentSearchBackButtonComponent({
       gap: semantic.space.gap.compact,
     }),
     [pageInset, safeAreaLeft, safeAreaRight],
-  );
-
-  const chipStyle = useMemo(
-    () => ({
-      flexDirection: "row" as const,
-      alignItems: "center" as const,
-      gap: semantic.space.gap.compact,
-      height: semantic.size["control-sm"],
-      borderRadius: semantic.radius.pill,
-      borderWidth: semantic.borderWidth.subtle,
-      borderColor: native.foreground.default,
-      paddingLeft: semantic.space.inline.compact,
-      paddingRight: semantic.space.stack.compact,
-      backgroundColor: native.surface.sunken,
-      maxWidth: 160,
-    }),
-    [native],
   );
 
   const clearHitStyle = useMemo(
@@ -156,6 +134,7 @@ function AppointmentSearchBackButtonComponent({
         variant="ghost"
       >
         <Animated.View
+          className="absolute rounded-full border-subtle border-border-strong bg-surface-raised"
           pointerEvents="none"
           style={[circleStyle, circleAnimatedStyle]}
         />
@@ -176,7 +155,7 @@ function AppointmentSearchBackButtonComponent({
           style={{ flex: 1, marginLeft: semantic.space.gap.default }}
         >
           {timeWindowLabel ? (
-            <View style={chipStyle}>
+            <View className="h-control-sm max-w-[160px] flex-row items-center gap-gap-compact rounded-pill border-subtle border-foreground-default bg-surface-sunken pl-inline-compact pr-stack-compact">
               <ThemedText numberOfLines={1} variant="label">
                 {timeWindowLabel}
               </ThemedText>
@@ -199,7 +178,10 @@ function AppointmentSearchBackButtonComponent({
             </View>
           ) : null}
           {selectedTypes.map((type) => (
-            <View key={type.id} style={chipStyle}>
+            <View
+              className="h-control-sm max-w-[160px] flex-row items-center gap-gap-compact rounded-pill border-subtle border-foreground-default bg-surface-sunken pl-inline-compact pr-stack-compact"
+              key={type.id}
+            >
               {type.color ? (
                 <ColorSwatch color={type.color} size={8} />
               ) : null}

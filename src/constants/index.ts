@@ -11,7 +11,9 @@ export {
 export {
   appearanceIcon,
   checkCircleIcon,
+  chevronDisclosureIcon,
   chevronDownIcon,
+  chevronUpIcon,
   calendarIcon,
   clockIcon,
   lockIcon,

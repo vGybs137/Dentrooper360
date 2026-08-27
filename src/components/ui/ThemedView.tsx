@@ -338,11 +338,15 @@ export function ThemedView({
           : null,
         className,
       )}
-      style={[
-        align ? { alignItems: align } : null,
-        justify ? { justifyContent: justify } : null,
-        style,
-      ]}
+      style={
+        align || justify || style
+          ? [
+              align ? { alignItems: align } : null,
+              justify ? { justifyContent: justify } : null,
+              style,
+            ]
+          : undefined
+      }
       {...props}
     />
   );

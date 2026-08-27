@@ -3,7 +3,6 @@ import {
   Alert,
   Keyboard,
   Platform,
-  TextInput,
   View,
   type View as RNView,
 } from "react-native";
@@ -15,9 +14,9 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useNativeColors } from "@/theme";
-import { primitives, semantic } from "@/tokens";
+import { semantic } from "@/tokens";
 
-import { Button, ThemedIcon } from "@/components/ui";
+import { Button, ThemedIcon, ThemedText } from "@/components/ui";
 import { createMonthQuickAddAppointment } from "@/helpers/createMonthQuickAddAppointment";
 import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
 import { useAuthUser } from "@/stores";
@@ -196,15 +195,11 @@ function MonthQuickAddFieldComponent({
     [native],
   );
 
-  const inputStyle = useMemo(
+  const inputChromeStyle = useMemo(
     () => ({
       flex: 1,
-      paddingVertical: 0,
-      color: native.foreground.default,
-      fontSize: primitives.fontSize.md,
-      lineHeight: primitives.lineHeight.md,
     }),
-    [native],
+    [],
   );
 
   const plusHitStyle = useMemo(
@@ -232,21 +227,24 @@ function MonthQuickAddFieldComponent({
     <View ref={reservedRef} pointerEvents="box-none" style={reservedStyle}>
       <Animated.View style={[slotStyle, pillAnimatedStyle]}>
         <View style={pillStaticStyle}>
-          <TextInput
-            value={text}
+          <ThemedText
+            as="input"
+            accessibilityLabel="Quick add appointment"
+            blurOnSubmit
+            className="py-0"
+            containerClassName="min-h-0 flex-1 gap-0"
+            editable={!isSubmitting}
+            fieldVariant="bare"
+            onBlur={() => setFocused(false)}
             onChangeText={setText}
             onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            placeholder={placeholder}
-            placeholderTextColor={native.foreground.muted}
-            returnKeyType="done"
-            blurOnSubmit
             onSubmitEditing={() => {
               void handleSubmit();
             }}
-            editable={!isSubmitting}
-            style={inputStyle}
-            accessibilityLabel="Quick add appointment"
+            placeholder={placeholder}
+            returnKeyType="done"
+            style={inputChromeStyle}
+            value={text}
           />
           <Button
             accessibilityLabel="Add appointment"

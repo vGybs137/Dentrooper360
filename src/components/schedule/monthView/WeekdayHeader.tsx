@@ -15,23 +15,35 @@ function WeekdayHeaderComponent({ weekStartsOn = 0 }: WeekdayHeaderProps) {
 
   const rootStyle = useMemo(
     () => ({
+      flexDirection: "row" as const,
+      alignSelf: "stretch" as const,
+      width: "100%" as const,
       paddingBottom: semantic.space.stack.compact,
       marginBottom: semantic.space.stack.compact,
     }),
     [],
   );
 
+  const cellStyle = useMemo(
+    () => ({
+      flex: 1,
+      alignItems: "center" as const,
+    }),
+    [],
+  );
+
   return (
-    <View
-      className="w-full self-stretch"
-      style={[{ flexDirection: "row" }, rootStyle]}
-    >
+    <View style={rootStyle}>
       {labels.map((label, index) => {
         const weekday = ((weekStartsOn + index) % 7) as WeekdayIndex;
         const isSunday = weekday === 0;
         return (
-          <View key={`${label}-${index}`} className="flex-1 items-center">
-            <ThemedText tone={isSunday ? "alert" : "muted"} variant="label">
+          <View key={`${label}-${index}`} style={cellStyle}>
+            <ThemedText
+              style={{ textAlign: "center" }}
+              tone={isSunday ? "alert" : "muted"}
+              variant="label"
+            >
               {label}
             </ThemedText>
           </View>

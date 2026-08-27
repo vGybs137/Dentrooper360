@@ -4,8 +4,8 @@ import Animated from "react-native-reanimated";
 import { Button, ThemedIcon, ThemedText } from "@/components/ui";
 import { chevronDownIcon } from "@/constants";
 import { useInlineCollapse } from "@/hooks/useInlineCollapse";
-import { useNativeColors } from "@/theme";
-import { primitives, semantic } from "@/tokens";
+import { semantic } from "@/tokens";
+import { cn } from "@/utils/cn";
 
 import {
   SettingsRowLabel,
@@ -36,13 +36,12 @@ export function SettingsSelectRow<T extends string | number>({
   onToggle: () => void;
   last?: boolean;
 }) {
-  const native = useNativeColors();
   const optionGap = semantic.space.gap.compact;
   const contentHeight =
     options.length * OPTION_ROW_HEIGHT +
     Math.max(options.length - 1, 0) * optionGap +
     semantic.space.stack.compact;
-  const { containerStyle, mounted } = useInlineCollapse(
+  const { containerStyle, chevronStyle, mounted } = useInlineCollapse(
     expanded,
     contentHeight,
   );
@@ -50,10 +49,7 @@ export function SettingsSelectRow<T extends string | number>({
 
   return (
     <View
-      style={{
-        borderBottomWidth: last ? 0 : 1,
-        borderBottomColor: native.border.subtle,
-      }}
+      className={cn(!last && "border-b border-border-subtle")}
     >
       <Button
         accessibilityState={{ expanded }}
@@ -67,18 +63,18 @@ export function SettingsSelectRow<T extends string | number>({
         <View
           style={{
             width: "100%",
+            minHeight: semantic.size.touch,
             flexDirection: "row",
             alignItems: "center",
             gap: semantic.space.gap.default,
             paddingHorizontal: semantic.space.inline.comfortable,
             paddingVertical: semantic.space.stack.default,
-            minHeight: semantic.size.touch,
           }}
         >
           <SettingsRowLabel
-            title={title}
             description={description}
             icon={icon}
+            title={title}
           />
           <View
             style={{
@@ -88,19 +84,16 @@ export function SettingsSelectRow<T extends string | number>({
               gap: semantic.space.gap.compact,
             }}
           >
-            <ThemedText
-              tone="brand"
-              variant="label"
-              style={{ fontWeight: primitives.fontWeight.semibold }}
-            >
+            <ThemedText className="font-semibold" tone="brand" variant="label">
               {selected?.label ?? "—"}
             </ThemedText>
-            <ThemedIcon
-              className={expanded ? "rotate-180" : undefined}
-              dimension={16}
-              name={chevronDownIcon}
-              tone="muted"
-            />
+            <Animated.View style={chevronStyle}>
+              <ThemedIcon
+                dimension={16}
+                name={chevronDownIcon}
+                tone="muted"
+              />
+            </Animated.View>
           </View>
         </View>
       </Button>
@@ -142,13 +135,9 @@ export function SettingsSelectRow<T extends string | number>({
                 >
                   <ThemedText
                     align="center"
+                    className={isSelected ? "font-semibold" : undefined}
                     tone={isSelected ? "brand" : "default"}
                     variant="body"
-                    style={{
-                      fontWeight: isSelected
-                        ? primitives.fontWeight.semibold
-                        : primitives.fontWeight.regular,
-                    }}
                   >
                     {option.label}
                   </ThemedText>

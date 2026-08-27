@@ -36,7 +36,7 @@ import { useAppointmentDetails } from "@/hooks/useAppointmentDetails";
 import { useAddAppointmentStore } from "@/stores";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
 import { useNativeColors } from "@/theme";
-import { primitives, semantic } from "@/tokens";
+import { semantic } from "@/tokens";
 import { cn } from "@/utils/cn";
 
 const AVATAR_SIZE = 80;
@@ -87,19 +87,16 @@ function PatientHero({
   profilePhoto: string | null;
   onPress?: () => void;
 }) {
-  const native = useNativeColors();
   const insets = useSafeAreaInsets();
 
   const content = (
     <View
-      className="w-full items-center"
+      className="w-full items-center gap-stack bg-surface-sunken"
       style={{
-        backgroundColor: native.surface.sunken,
         borderBottomLeftRadius: semantic.radius.dialog,
         borderBottomRightRadius: semantic.radius.dialog,
         paddingTop: insets.top + semantic.space.section,
         paddingBottom: semantic.space.section,
-        gap: semantic.space.stack.default,
       }}
     >
       {hasPatient ? (
@@ -111,7 +108,6 @@ function PatientHero({
               width: AVATAR_SIZE,
               height: AVATAR_SIZE,
               borderRadius: AVATAR_SIZE / 2,
-              backgroundColor: native.surface.sunken,
             }}
           />
         ) : (
@@ -130,15 +126,12 @@ function PatientHero({
           gap: semantic.space.gap.compact,
         }}
       >
-        <ThemedText
-          align="center"
-          className="min-w-0 flex-1"
-          numberOfLines={2}
-          style={{
-            fontWeight: primitives.fontWeight.semibold,
-          }}
-          variant="title"
-        >
+          <ThemedText
+            align="center"
+            className="min-w-0 flex-1 font-semibold"
+            numberOfLines={2}
+            variant="title"
+          >
           {displayName}
         </ThemedText>
         {onPress ? (
@@ -242,12 +235,6 @@ function DetailsActionItem({
   onPress: () => void;
   tone?: "default" | "alert";
 }) {
-  const native = useNativeColors();
-  const color =
-    tone === "alert"
-      ? native.alert.DEFAULT
-      : native.foreground.default;
-
   return (
     <Button
       accessibilityLabel={label}
@@ -265,7 +252,8 @@ function DetailsActionItem({
         tone={tone === "alert" ? "alert" : "default"}
       />
       <ThemedText
-        style={{ color, fontWeight: primitives.fontWeight.medium }}
+        className="font-medium"
+        tone={tone === "alert" ? "alert" : "default"}
         variant="label"
       >
         {label}
@@ -283,25 +271,9 @@ function DetailsActionBar({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const native = useNativeColors();
-
   return (
-    <View
-      style={{
-        paddingHorizontal: semantic.space.inline.default,
-        paddingBottom: semantic.space.stack.compact,
-      }}
-    >
-      <View
-        className="flex-row items-stretch"
-        style={{
-          backgroundColor: native.surface.default,
-          borderColor: native.border.subtle,
-          borderWidth: semantic.borderWidth.subtle,
-          borderRadius: semantic.radius.card,
-          minHeight: ACTION_BAR_HEIGHT,
-        }}
-      >
+    <View className="px-inline pb-stack-compact">
+      <View className="min-h-[64px] flex-row items-stretch rounded-card border-subtle border-border-subtle bg-surface-default">
         <DetailsActionItem
           icon={CHEVRON_LEFT_ICON}
           label="Back"
@@ -406,8 +378,7 @@ export function AppointmentDetailsScreen({
 
   const title = details?.appointment.subject?.trim() || "Appointment";
   const typeName = details?.type?.nameEn?.trim() || null;
-  const typeColor =
-    details?.type?.color ?? native.foreground.muted;
+  const typeColor = details?.type?.color ?? undefined;
   const locationName = details?.location?.nameEn?.trim() || null;
   const notes = details?.appointment.description?.trim() || null;
 
@@ -519,10 +490,7 @@ export function AppointmentDetailsScreen({
               <DetailSelectRow
                 label={locationName ?? "No location"}
                 leading={
-                  <InlineSelectSymbolLeading
-                    name={locationIcon}
-                    tintColor={native.foreground.muted}
-                  />
+                  <InlineSelectSymbolLeading name={locationIcon} />
                 }
                 muted={!locationName}
               />

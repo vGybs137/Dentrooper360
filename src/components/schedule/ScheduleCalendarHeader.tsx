@@ -16,6 +16,7 @@ function ScheduleCalendarHeaderComponent({ title }: ScheduleCalendarHeaderProps)
     () => ({
       flexDirection: "row" as const,
       alignItems: "center" as const,
+      width: "100%" as const,
       paddingBottom: semantic.space.stack.compact,
     }),
     [],
@@ -24,8 +25,19 @@ function ScheduleCalendarHeaderComponent({ title }: ScheduleCalendarHeaderProps)
   return (
     <View style={rootStyle}>
       <ScheduleDrawerToggle />
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <ThemedText numberOfLines={1} variant="title">
+      <View
+        style={{
+          flex: 1,
+          minWidth: 0,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ThemedText
+          numberOfLines={1}
+          style={{ textAlign: "center" }}
+          variant="title"
+        >
           {title}
         </ThemedText>
       </View>

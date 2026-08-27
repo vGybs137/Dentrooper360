@@ -1,7 +1,7 @@
 import { useRef, useState, type ReactNode } from "react";
 import { Modal, View, type LayoutRectangle } from "react-native";
 
-import { chevronDownIcon } from "@/constants";
+import { chevronDisclosureIcon } from "@/constants";
 import { cn } from "@/utils/cn";
 
 import { Button } from "./Button";
@@ -85,7 +85,11 @@ export function Dropdown({
               {hasValue ? (selected?.label ?? placeholder) : placeholder}
             </ThemedText>
             {showChevron ? (
-              <ThemedIcon dimension={18} name={chevronDownIcon} tone="muted" />
+              <ThemedIcon
+                dimension={18}
+                name={chevronDisclosureIcon(open)}
+                tone="muted"
+              />
             ) : null}
           </Button>
         </View>

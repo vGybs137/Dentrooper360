@@ -1,9 +1,9 @@
 import type { ComponentProps, ReactNode } from "react";
 import { View } from "react-native";
 
-import { ThemedIcon, ThemedText } from "@/components/ui";
-import { useNativeColors } from "@/theme";
-import { primitives, semantic } from "@/tokens";
+import { ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
+import { semantic } from "@/tokens";
+import { cn } from "@/utils/cn";
 
 export type SettingsSymbolName = NonNullable<
   ComponentProps<typeof ThemedIcon>["name"]
@@ -21,32 +21,19 @@ export function SettingsSection({
   label: string;
   children: ReactNode;
 }) {
-  const native = useNativeColors();
-
   return (
-    <View style={{ gap: semantic.space.gap.compact }}>
+    <ThemedView space="compact" variant="stack">
       <ThemedText
+        style={{ paddingHorizontal: semantic.space.inline.compact }}
         tone="muted"
         variant="label"
-        style={{
-          paddingHorizontal: semantic.space.inline.compact,
-          fontWeight: primitives.fontWeight.medium,
-        }}
       >
         {label}
       </ThemedText>
-      <View
-        style={{
-          borderRadius: semantic.radius.card,
-          backgroundColor: native.surface.raised,
-          borderWidth: 1,
-          borderColor: native.border.subtle,
-          overflow: "hidden",
-        }}
-      >
+      <ThemedView className="overflow-hidden" inset="none" variant="card">
         {children}
-      </View>
-    </View>
+      </ThemedView>
+    </ThemedView>
   );
 }
 
@@ -87,11 +74,7 @@ export function SettingsRowLabel({
           gap: semantic.space.gap.compact,
         }}
       >
-        <ThemedText
-          numberOfLines={1}
-          style={{ fontWeight: primitives.fontWeight.semibold }}
-          variant="body"
-        >
+        <ThemedText className="font-semibold" numberOfLines={1} variant="body">
           {title}
         </ThemedText>
         <ThemedText tone="muted" variant="label">
@@ -101,6 +84,15 @@ export function SettingsRowLabel({
     </View>
   );
 }
+
+const settingsRowContentStyle = {
+  flexDirection: "row" as const,
+  alignItems: "center" as const,
+  gap: semantic.space.gap.default,
+  paddingHorizontal: semantic.space.inline.comfortable,
+  paddingVertical: semantic.space.stack.default,
+  minHeight: semantic.size.touch,
+};
 
 export function SettingsRow({
   title,
@@ -115,28 +107,17 @@ export function SettingsRow({
   trailing: ReactNode;
   last?: boolean;
 }) {
-  const native = useNativeColors();
-
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: semantic.space.gap.default,
-        paddingHorizontal: semantic.space.inline.comfortable,
-        paddingVertical: semantic.space.stack.default,
-        borderBottomWidth: last ? 0 : 1,
-        borderBottomColor: native.border.subtle,
-        minHeight: semantic.size.touch,
-      }}
-    >
-      <SettingsRowLabel
-        title={title}
-        description={description}
-        icon={icon}
-      />
-      <View style={{ flexShrink: 0, justifyContent: "center" }}>
-        {trailing}
+    <View className={cn(!last && "border-b border-border-subtle")}>
+      <View style={settingsRowContentStyle}>
+        <SettingsRowLabel
+          description={description}
+          icon={icon}
+          title={title}
+        />
+        <View style={{ flexShrink: 0, justifyContent: "center" }}>
+          {trailing}
+        </View>
       </View>
     </View>
   );

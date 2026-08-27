@@ -1,11 +1,11 @@
 import { Modal, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useNativeColors } from "@/theme";
-import { primitives, semantic } from "@/tokens";
+import { semantic } from "@/tokens";
 
 import { Button } from "./Button";
 import { ThemedText } from "./ThemedText";
+import { ThemedView } from "./ThemedView";
 
 export const DELETE_CONFIRMATION_TITLE = "Delete";
 export const DELETE_CONFIRMATION_MESSAGE =
@@ -38,7 +38,6 @@ export function DeleteConfirmationDialog({
   confirmingLabel = "Deleting...",
   confirming = false,
 }: DeleteConfirmationDialogProps) {
-  const native = useNativeColors();
   const insets = useSafeAreaInsets();
 
   return (
@@ -63,22 +62,20 @@ export function DeleteConfirmationDialog({
           variant="ghost"
         />
 
-        <View
+        <ThemedView
+          className="mx-inline px-inline-comfortable py-section"
+          inset="none"
+          radius="dialog"
+          space="default"
           style={{
-            marginHorizontal: semantic.space.inline.default,
             marginBottom:
               semantic.space.stack.compact + Math.max(insets.bottom, 0),
-            paddingHorizontal: semantic.space.inline.comfortable,
-            paddingTop: semantic.space.section,
-            paddingBottom: semantic.space.section,
-            backgroundColor: native.surface.raised,
-            borderRadius: semantic.radius.dialog,
-            gap: semantic.space.stack.default,
           }}
+          variant="card"
         >
           <ThemedText
             align="center"
-            style={{ fontWeight: primitives.fontWeight.semibold }}
+            className="font-semibold"
             tone="alert"
             variant="title"
           >
@@ -89,10 +86,7 @@ export function DeleteConfirmationDialog({
             {message}
           </ThemedText>
 
-          <View
-            className="flex-row"
-            style={{ gap: semantic.space.gap.default }}
-          >
+          <ThemedView className="flex-row" space="default" variant="stack" direction="row">
             <Button
               className="min-w-0 flex-1"
               disabled={confirming}
@@ -109,8 +103,8 @@ export function DeleteConfirmationDialog({
               tone="brand"
               variant="solid"
             />
-          </View>
-        </View>
+          </ThemedView>
+        </ThemedView>
       </View>
     </Modal>
   );

@@ -66,6 +66,16 @@ export const chevronDownIcon = {
   web: "expand_more",
 } as const;
 
+export const chevronUpIcon = {
+  ios: "chevron.up",
+  android: "expand_less",
+  web: "expand_less",
+} as const;
+
+export function chevronDisclosureIcon(expanded: boolean) {
+  return expanded ? chevronUpIcon : chevronDownIcon;
+}
+
 export const starIcon = {
   ios: "star.fill",
   android: "star",

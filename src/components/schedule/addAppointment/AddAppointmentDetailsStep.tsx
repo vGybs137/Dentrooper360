@@ -10,7 +10,6 @@ import {
 } from "@/components/ui";
 import { locationIcon, notesIcon } from "@/constants";
 import type { AddAppointmentFormState } from "@/hooks/useAddAppointmentForm";
-import { useNativeColors } from "@/theme";
 import { cn } from "@/utils/cn";
 
 import {
@@ -40,7 +39,6 @@ function AddAppointmentDetailsStepComponent({
   onNotesFocus,
   onNotesBlur,
 }: AddAppointmentDetailsStepProps) {
-  const native = useNativeColors();
   const [expandedField, setExpandedField] = useState<ExpandedField>(null);
   const {
     control,
@@ -70,7 +68,7 @@ function AddAppointmentDetailsStepComponent({
   );
 
   const selectedType = typeOptions.find((option) => option.value === typeId);
-  const typeColor = selectedType?.color ?? native.foreground.muted;
+  const typeColor = selectedType?.color ?? undefined;
 
   const locationOptions: DropdownOption[] = useMemo(
     () =>
@@ -140,12 +138,7 @@ function AddAppointmentDetailsStepComponent({
       <FormDivider />
 
       <AppointmentInlineSelect
-        leading={
-          <InlineSelectSymbolLeading
-            name={locationIcon}
-            tintColor={native.foreground.muted}
-          />
-        }
+        leading={<InlineSelectSymbolLeading name={locationIcon} />}
         onChange={(value) =>
           setValue("locationId", value, {
             shouldDirty: true,
