@@ -11,8 +11,8 @@ import {
 import { useThemeTokens } from "@/theme";
 import { cn } from "@/utils/cn";
 
-import { Stack } from "./Stack";
 import { ThemedText } from "./ThemedText";
+import { ThemedView } from "./ThemedView";
 
 type FieldSize = "sm" | "md" | "lg";
 type FieldVariant = "outline" | "soft" | "bare";
@@ -59,7 +59,7 @@ export function TextField({
   const Input = bottomSheetInput ? BottomSheetTextInput : TextInput;
 
   return (
-    <Stack className={containerClassName} space="compact">
+    <ThemedView className={containerClassName} space="compact" variant="stack">
       {label ? <ThemedText variant="label">{label}</ThemedText> : null}
       <View
         className={cn(
@@ -100,6 +100,6 @@ export function TextField({
           {hint}
         </ThemedText>
       ) : null}
-    </Stack>
+    </ThemedView>
   );
 }

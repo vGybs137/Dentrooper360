@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
 import { Pressable, View } from "react-native";
 
-import { Card, ColorSwatch, ThemedText } from "@/components/ui";
+import { ColorSwatch, ThemedText, ThemedView } from "@/components/ui";
 import {
   APPOINTMENT_SEARCH_TIME_WINDOWS,
   type AppointmentSearchTimeWindow,
@@ -52,7 +52,7 @@ function AppointmentSearchFiltersCardComponent({
 
   return (
     <View className="px-page pt-stack-default" style={cardsWrapStyle}>
-      <Card style={cardStyle}>
+      <ThemedView variant="card" style={cardStyle}>
         <View style={pillsWrapStyle}>
           {APPOINTMENT_SEARCH_TIME_WINDOWS.map((option) => {
             const isSelected = timeWindow === option.id;
@@ -79,9 +79,9 @@ function AppointmentSearchFiltersCardComponent({
             );
           })}
         </View>
-      </Card>
+      </ThemedView>
 
-      <Card style={cardStyle}>
+      <ThemedView variant="card" style={cardStyle}>
         {types.length === 0 ? (
           <ThemedText tone="muted" variant="body">
             No appointment types available.
@@ -121,7 +121,7 @@ function AppointmentSearchFiltersCardComponent({
             })}
           </View>
         )}
-      </Card>
+      </ThemedView>
     </View>
   );
 }

@@ -1,27 +1,26 @@
 import type { ReactNode } from "react";
 
 import { ScheduleSyncStatusBanner } from "@/components/schedule/ScheduleSyncStatusBanner";
-import { Screen } from "@/components/ui";
-import { useThemeTokens } from "@/theme";
+import { ThemedView } from "@/components/ui";
+import { semantic } from "@/tokens";
 
 type ScheduleScreenProps = {
   children: ReactNode;
 };
 
 export function ScheduleScreen({ children }: ScheduleScreenProps) {
-  const theme = useThemeTokens();
-
   return (
-    <Screen
+    <ThemedView
+      bottomInset={semantic.space.stack.compact}
       edges={["top", "left", "right"]}
       inset="compact"
       padBottom={false}
-      bottomInset={theme.semantic.space.stack.compact}
       scroll={false}
-      style={{ backgroundColor: theme.palette.surface.default }}
+      surface="default"
+      variant="screen"
     >
       <ScheduleSyncStatusBanner />
       {children}
-    </Screen>
+    </ThemedView>
   );
 }

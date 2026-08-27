@@ -3,7 +3,7 @@ import { memo, useMemo } from "react";
 import { View } from "react-native";
 
 import { AppointmentSearchResultItem } from "@/components/schedule/appointmentSearch/AppointmentSearchResultItem";
-import { Card, ThemedText } from "@/components/ui";
+import { ThemedText, ThemedView } from "@/components/ui";
 import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import { parseDayKey, sameDay, toLocalDate, todayCalendarDate, type DayKey } from "@/utils/calendar";
@@ -95,7 +95,7 @@ function AppointmentSearchDayGroupComponent({
           {dayLabel}
         </ThemedText>
       </View>
-      <Card style={{ backgroundColor: theme.palette.surface.sunken }}>
+      <ThemedView surface="sunken" variant="card">
         {events.map((event, index) => (
           <View key={event.id}>
             {index > 0 ? (
@@ -106,7 +106,7 @@ function AppointmentSearchDayGroupComponent({
             <AppointmentSearchResultItem event={event} query={query} />
           </View>
         ))}
-      </Card>
+      </ThemedView>
     </View>
   );
 }

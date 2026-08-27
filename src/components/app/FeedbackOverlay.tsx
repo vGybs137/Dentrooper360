@@ -11,7 +11,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import { Button, Card, Stack, ThemedText } from "@/components/ui";
+import { Button, ThemedText, ThemedView } from "@/components/ui";
 import { useThemeTokens } from "@/theme";
 
 const markLogo = require("../../assets/no-text-logo.svg");
@@ -143,8 +143,9 @@ export function FeedbackOverlay({
       pointerEvents="auto"
       style={{ backgroundColor: "rgba(24, 24, 27, 0.35)" }}
     >
-      <Card
+      <ThemedView
         className="w-full items-center"
+        variant="card"
         style={{
           maxWidth: 360,
           paddingTop: theme.semantic.space.section * 1.4,
@@ -185,11 +186,12 @@ export function FeedbackOverlay({
           )}
         </View>
 
-        <Stack align="center" space="comfortable">
-          <Stack
+        <ThemedView align="center" space="comfortable" variant="stack">
+          <ThemedView
             align="center"
             space="comfortable"
             style={{ paddingTop: theme.semantic.space.gap.default * 0.8 }}
+            variant="stack"
           >
             <ThemedText align="center" variant="display">
               {title}
@@ -204,8 +206,8 @@ export function FeedbackOverlay({
             <ThemedText align="center" tone={isError ? "alert" : "muted"}>
               {message}
             </ThemedText>
-          </Stack>
-        </Stack>
+          </ThemedView>
+        </ThemedView>
 
         <View
           style={{
@@ -254,7 +256,7 @@ export function FeedbackOverlay({
             }}
           />
         </View>
-      </Card>
+      </ThemedView>
     </View>
   );
 }

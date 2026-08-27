@@ -4,7 +4,7 @@ import { View, type StyleProp, type ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { type AnimatedStyle } from "react-native-reanimated";
 
-import { Stack, ThemedText, ThemedView } from "@/components/ui";
+import { ThemedText, ThemedView } from "@/components/ui";
 import { useThemeTokens } from "@/theme";
 
 const markLogo = require("../../assets/no-text-logo.svg");
@@ -24,7 +24,7 @@ export function BrandLogo({
   wordmarkStyle,
 }: BrandLogoProps) {
   return (
-    <Stack space="default" align="center">
+    <ThemedView align="center" space="default" variant="stack">
       <Image
         accessibilityLabel="Dentrooper 360 mark"
         contentFit="contain"
@@ -44,20 +44,20 @@ export function BrandLogo({
           />
         </Animated.View>
       ) : null}
-    </Stack>
+    </ThemedView>
   );
 }
 
 export function SplashAttribution() {
   return (
-    <Stack space="compact" align="center">
+    <ThemedView align="center" space="compact" variant="stack">
       <ThemedText align="center" tone="muted" variant="label">
         From
       </ThemedText>
       <ThemedText align="center" variant="label">
         Sol-T Solutions
       </ThemedText>
-    </Stack>
+    </ThemedView>
   );
 }
 

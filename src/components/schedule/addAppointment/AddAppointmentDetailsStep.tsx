@@ -3,11 +3,7 @@ import { memo, useCallback, useMemo, useState } from "react";
 import { Controller, useWatch } from "react-hook-form";
 import { View } from "react-native";
 
-import {
-  Stack,
-  TextField,
-  type DropdownOption,
-} from "@/components/ui";
+import { TextField, ThemedView, type DropdownOption } from "@/components/ui";
 import { locationIcon, notesIcon } from "@/constants";
 import type { AddAppointmentFormState } from "@/hooks/useAddAppointmentForm";
 import { useThemeTokens } from "@/theme";
@@ -93,7 +89,7 @@ function AddAppointmentDetailsStepComponent({
       : null;
 
   return (
-    <Stack space="default">
+    <ThemedView space="default" variant="stack">
       <Controller
         control={control}
         name="subject"
@@ -200,7 +196,7 @@ function AddAppointmentDetailsStepComponent({
           </View>
         )}
       />
-    </Stack>
+    </ThemedView>
   );
 }
 

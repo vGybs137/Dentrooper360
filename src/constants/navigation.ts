@@ -8,6 +8,12 @@ export const BOTTOM_TAB_INSET =
     default: 80,
   }) ?? 80;
 
+export function getWebTabBarInset(rootSegment: string | undefined) {
+  return Platform.OS === "web" && rootSegment === "(tabs)"
+    ? BOTTOM_TAB_INSET
+    : 0;
+}
+
 export type AppTabDefinition = {
   name: string;
   label: string;

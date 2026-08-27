@@ -3,7 +3,7 @@ import { type ReactNode } from "react";
 import { View, type StyleProp, type ViewStyle } from "react-native";
 import Animated, { type AnimatedStyle } from "react-native-reanimated";
 
-import { Button, Stack } from "@/components/ui";
+import { Button, ThemedView } from "@/components/ui";
 import { qrCodeIcon } from "@/constants";
 import type { QrScanStatus } from "@/hooks/useQrScannerMotion";
 import { useThemeTokens } from "@/theme";
@@ -76,7 +76,7 @@ export function QrViewfinder({
   const iconSize = theme.semantic.size["icon-lg"] * 2;
 
   return (
-    <Stack align="center" space="comfortable">
+    <ThemedView align="center" space="comfortable" variant="stack">
       <View
         className="overflow-hidden"
         style={{
@@ -133,6 +133,6 @@ export function QrViewfinder({
         tone="alert"
         variant="soft"
       />
-    </Stack>
+    </ThemedView>
   );
 }

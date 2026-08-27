@@ -1,23 +1,38 @@
-import { AppScreenShell, AppSectionCard } from "@/components/app/AppScreenShell";
-import { Stack, ThemedText } from "@/components/ui";
+import { useSegments } from "expo-router";
+
+import { ThemedText, ThemedView } from "@/components/ui";
+import { getWebTabBarInset } from "@/constants/navigation";
 
 export default function PaymentsScreen() {
+  const segments = useSegments();
+
   return (
-    <AppScreenShell
-      description="This tab is ready for payment ledgers, transactions, filters, and settlement workflows."
-      eyebrow="Main app"
-      title="Payments"
+    <ThemedView
+      bottomInset={getWebTabBarInset(segments[0])}
+      header={{
+        description:
+          "This tab is ready for payment ledgers, transactions, filters, and settlement workflows.",
+        eyebrow: "Main app",
+        title: "Payments",
+      }}
+      scroll
+      variant="screen"
     >
-      <AppSectionCard
-        title="Planned content"
-        description="Skeleton placeholder for the payments dashboard."
-      >
-        <Stack space="compact">
-          <ThemedText tone="muted">
-            Add summaries, transaction lists, and payment actions here.
-          </ThemedText>
-        </Stack>
-      </AppSectionCard>
-    </AppScreenShell>
+      <ThemedView variant="card">
+        <ThemedView space="default" variant="stack">
+          <ThemedView space="compact" variant="stack">
+            <ThemedText variant="title">Planned content</ThemedText>
+            <ThemedText tone="muted">
+              Skeleton placeholder for the payments dashboard.
+            </ThemedText>
+          </ThemedView>
+          <ThemedView space="compact" variant="stack">
+            <ThemedText tone="muted">
+              Add summaries, transaction lists, and payment actions here.
+            </ThemedText>
+          </ThemedView>
+        </ThemedView>
+      </ThemedView>
+    </ThemedView>
   );
 }

@@ -5,7 +5,7 @@ import { Pressable, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button, Stack, TextField, ThemedText } from "@/components/ui";
+import { Button, TextField, ThemedText, ThemedView } from "@/components/ui";
 import { lockIcon, personIcon, visibilityIcon } from "@/constants";
 import { useLoginForm, type LoginFormState } from "@/hooks/useLoginForm";
 import { useThemeTokens } from "@/theme";
@@ -101,14 +101,14 @@ export function LoginForm({
           className="px-inline-comfortable pt-section"
           style={contentStyle}
         >
-          <Stack space="compact">
+          <ThemedView space="compact" variant="stack">
             <ThemedText align="center" variant="display">
               Welcome back!
             </ThemedText>
             <ThemedText align="center" tone="muted">
               Please enter your details.
             </ThemedText>
-          </Stack>
+          </ThemedView>
         </Animated.View>
       </View>
       <Animated.View
@@ -118,9 +118,9 @@ export function LoginForm({
         }}
         style={contentStyle}
       >
-        <Stack space="default">
+        <ThemedView space="default" variant="stack">
           {!login.customerId ? (
-            <Stack space="compact">
+            <ThemedView space="compact" variant="stack">
               <ThemedText align="center" tone="muted">
                 Pair this device with a clinic QR code before signing in.
               </ThemedText>
@@ -130,7 +130,7 @@ export function LoginForm({
                 tone="brand"
                 variant="outline"
               />
-            </Stack>
+            </ThemedView>
           ) : null}
           <Controller
             control={control}
@@ -201,7 +201,7 @@ export function LoginForm({
               />
             )}
           />
-        </Stack>
+        </ThemedView>
       </Animated.View>
       <Animated.View
         className="flex-1 px-inline-comfortable"

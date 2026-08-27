@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { AuthBottomSheet } from "@/components/app/AuthBottomSheet";
 import { BrandLogo } from "@/components/app/BrandLogo";
 import { SplashIntroLayout } from "@/components/app/SplashIntroLayout";
-import { Button, Stack, ThemedText } from "@/components/ui";
+import { Button, ThemedText, ThemedView } from "@/components/ui";
 import { qrCodeIcon } from "@/constants";
 import { hideNativeSplash } from "@/helpers/nativeSplash";
 import {
@@ -32,8 +32,8 @@ export default function OnboardingScreen() {
       logo={<BrandLogo wordmarkStyle={splashIntro.dismissWordmarkStyle} />}
     >
       <AuthBottomSheet pointerEvents={isLeaving ? "none" : "auto"}>
-        <Stack space="comfortable">
-          <Stack space="default">
+        <ThemedView space="comfortable" variant="stack">
+          <ThemedView space="default" variant="stack">
             <ThemedText align="center" tone="brand" variant="title">
               Access, manage, and stay in control — wherever you are.
             </ThemedText>
@@ -42,7 +42,7 @@ export default function OnboardingScreen() {
               Dentrooper 360 → register product → registration key{"\n"}
               and scan the QR code available.
             </ThemedText>
-          </Stack>
+          </ThemedView>
           <Button
             disabled={isLeaving}
             icon={
@@ -72,7 +72,7 @@ export default function OnboardingScreen() {
             tone="brand"
             variant="outline"
           />
-        </Stack>
+        </ThemedView>
       </AuthBottomSheet>
     </SplashIntroLayout>
   );

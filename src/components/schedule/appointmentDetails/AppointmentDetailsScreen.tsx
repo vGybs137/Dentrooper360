@@ -23,8 +23,8 @@ import {
 import {
   Button,
   DeleteConfirmationDialog,
-  Stack,
   ThemedText,
+  ThemedView,
 } from "@/components/ui";
 import { clockIcon, locationIcon, notesIcon, personIcon } from "@/constants";
 import database from "@/database";
@@ -440,7 +440,7 @@ export function AppointmentDetailsScreen({
         style={{ backgroundColor: theme.palette.surface.default }}
       >
         <View className="flex-1 items-center justify-center px-page">
-          <Stack space="default" align="center">
+          <ThemedView align="center" space="default" variant="stack">
             <ThemedText align="center" tone="muted">
               {error
                 ? "Unable to load this appointment."
@@ -452,7 +452,7 @@ export function AppointmentDetailsScreen({
               tone="neutral"
               variant="outline"
             />
-          </Stack>
+          </ThemedView>
         </View>
       </SafeAreaView>
     );
@@ -495,7 +495,7 @@ export function AppointmentDetailsScreen({
               paddingTop: theme.semantic.space.section,
             }}
           >
-            <Stack space="default">
+            <ThemedView space="default" variant="stack">
               <ThemedText variant="body">{title}</ThemedText>
 
               <FormDivider className="mt-2" />
@@ -546,7 +546,7 @@ export function AppointmentDetailsScreen({
                   </ThemedText>
                 </View>
               </View>
-            </Stack>
+            </ThemedView>
           </View>
         </Animated.View>
       </ScrollView>

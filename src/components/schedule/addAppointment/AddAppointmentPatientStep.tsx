@@ -3,7 +3,7 @@ import { useWatch } from "react-hook-form";
 import { ActivityIndicator, View } from "react-native";
 
 import { PatientCard } from "@/components/patients";
-import { Stack, TextField, ThemedText } from "@/components/ui";
+import { TextField, ThemedText, ThemedView } from "@/components/ui";
 import type { AddAppointmentFormState } from "@/hooks/useAddAppointmentForm";
 import type { AppointmentPatientOption } from "@/hooks/useAppointmentFormOptions";
 import { useThemeTokens } from "@/theme";
@@ -39,7 +39,7 @@ function AddAppointmentPatientStepComponent({
   );
 
   return (
-    <Stack space="default">
+    <ThemedView space="default" variant="stack">
       <View className="w-full">
         <TextField
           autoCapitalize="none"
@@ -68,7 +68,7 @@ function AddAppointmentPatientStepComponent({
           No patients match your search.
         </ThemedText>
       ) : (
-        <Stack space="compact">
+        <ThemedView space="compact" variant="stack">
           {options.patients.map((patient) => (
             <PatientCard
               key={patient.id}
@@ -78,9 +78,9 @@ function AddAppointmentPatientStepComponent({
               selected={patient.id === patientId}
             />
           ))}
-        </Stack>
+        </ThemedView>
       )}
-    </Stack>
+    </ThemedView>
   );
 }
 

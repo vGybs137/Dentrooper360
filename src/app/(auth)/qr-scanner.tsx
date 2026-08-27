@@ -4,14 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import Animated from "react-native-reanimated";
 
-import { AuthScreenShell } from "@/components/app/AuthScreenShell";
-import { BRAND_MARK_SIZE, BrandLogo } from "@/components/app/BrandLogo";
+import { BrandLogo, BRAND_MARK_SIZE, SplashFooter } from "@/components/app/BrandLogo";
 import {
   FeedbackOverlay,
   type FeedbackOverlayProps,
 } from "@/components/app/FeedbackOverlay";
 import { LoginForm } from "@/components/app/LoginForm";
 import { QrViewfinder } from "@/components/app/QrViewfinder";
+import { ThemedView } from "@/components/ui";
 import { getDeviceInfo, getOrCreateDeviceId } from "@/helpers/deviceId";
 import { isFromOnboarding } from "@/helpers/routeParams";
 import { useLoginLogoRestLayout } from "@/hooks/useAuthLogoRestOffset";
@@ -215,11 +215,19 @@ export default function QrScannerScreen() {
       : theme.palette.brand.default;
 
   return (
-    <AuthScreenShell
-      footerVisibility={fromOnboarding ? "hidden" : "always"}
+    <ThemedView
+      className="overflow-hidden"
+      edges={[]}
+      inset="none"
+      keyboardAvoiding
+      padBottom={false}
       pointerEvents="box-none"
+      scroll={false}
+      surface="sunken"
       transparent={fromOnboarding}
+      variant="screen"
     >
+      {fromOnboarding ? null : <SplashFooter />}
       {status === "paired" ? (
         <LoginForm
           contentStyle={loginStyle}
@@ -266,6 +274,6 @@ export default function QrScannerScreen() {
       </Animated.View>
 
       {scanFeedback ? <FeedbackOverlay {...scanFeedback} /> : null}
-    </AuthScreenShell>
+    </ThemedView>
   );
 }

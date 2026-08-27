@@ -6,7 +6,7 @@ import { Pressable, View } from "react-native";
 import Animated from "react-native-reanimated";
 
 import { logout } from "@/api";
-import { DeleteConfirmationDialog, Stack, ThemedText } from "@/components/ui";
+import { DeleteConfirmationDialog, ThemedText, ThemedView } from "@/components/ui";
 import { chevronDownIcon, logoutIcon } from "@/constants";
 import { useAppointmentFormOptions } from "@/hooks/useAppointmentFormOptions";
 import { useInlineCollapse } from "@/hooks/useInlineCollapse";
@@ -179,7 +179,7 @@ export function SettingsProfileCard() {
           </ThemedText>
         </View>
 
-        <Stack space="compact" style={{ flex: 1, minWidth: 0 }}>
+        <ThemedView space="compact" style={{ flex: 1, minWidth: 0 }} variant="stack">
           <ThemedText
             numberOfLines={1}
             variant="body"
@@ -192,7 +192,7 @@ export function SettingsProfileCard() {
               ? "Signing out…"
               : (displayEmail ?? "Clinic pairing stays on this device")}
           </ThemedText>
-        </Stack>
+        </ThemedView>
 
         <Pressable
           accessibilityLabel="Log out"

@@ -7,7 +7,7 @@ import {
   type ViewStyle,
 } from "react-native";
 
-import { Card, ThemedText } from "@/components/ui";
+import { ThemedText, ThemedView } from "@/components/ui";
 import { checkCircleIcon, personIcon, starIcon } from "@/constants";
 import {
   formatPatientBalance,
@@ -107,8 +107,9 @@ export function PatientCard({
   const isSelected = selectable && selected;
 
   const content = (
-    <Card
+    <ThemedView
       borderTone={isSelected ? "none" : "subtle"}
+      variant="card"
       style={[
         { backgroundColor: theme.palette.surface.sunken },
         isSelected
@@ -189,7 +190,7 @@ export function PatientCard({
           </View>
         </View>
       </View>
-    </Card>
+    </ThemedView>
   );
 
   if (!onPress) {

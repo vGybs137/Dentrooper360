@@ -12,7 +12,7 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-import { Stack, ThemedText } from "@/components/ui";
+import { ThemedText, ThemedView } from "@/components/ui";
 import { BOTTOM_TAB_INSET } from "@/constants/navigation";
 import { useThemeTokens } from "@/theme";
 
@@ -91,14 +91,15 @@ export function SettingsScreen() {
             </ThemedText>
           </Animated.View>
 
-          <Stack
+          <ThemedView
             space="comfortable"
             style={{ marginTop: theme.semantic.space.section }}
+            variant="stack"
           >
             <SettingsProfileCard />
             <SettingsPreferencesSection />
             <SettingsSyncSection />
-          </Stack>
+          </ThemedView>
         </Animated.ScrollView>
       </SafeAreaView>
     </View>
