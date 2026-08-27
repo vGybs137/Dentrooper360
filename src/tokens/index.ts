@@ -22,7 +22,8 @@ export {
   type ForegroundTone,
   type StatusTone,
   type SurfaceTone,
-} from "./palette";
+} from "./colors";
+export { getNativeColors, type NativeColorScheme } from "./nativeColors";
 export {
   getRuntimeTheme,
   runtimeThemes,

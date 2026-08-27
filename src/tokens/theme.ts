@@ -1,6 +1,6 @@
 import { primitives } from "./primitives";
 import { semantic } from "./semantic";
-import { themePalettes, type ThemePalette } from "./palette";
+import { themePalettes, type ThemePalette } from "./colors";
 
 export type ResolvedTheme = keyof typeof themePalettes;
 

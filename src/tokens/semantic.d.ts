@@ -116,5 +116,10 @@ export const semantic: {
       strong: string;
       text: string;
     };
+    calendar: {
+      default: string;
+      muted: string;
+      quickAdd: string;
+    };
   };
 };

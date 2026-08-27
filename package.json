@@ -58,6 +58,8 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
+    "tokens:css": "node scripts/generate-theme-css.mjs",
+    "prestart": "npm run tokens:css",
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",

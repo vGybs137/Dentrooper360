@@ -153,6 +153,7 @@ const nativewindTheme = {
     accent: semantic.color.accent,
     success: semantic.color.success,
     alert: semantic.color.alert,
+    calendar: semantic.color.calendar,
   },
 };
 
