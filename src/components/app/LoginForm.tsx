@@ -1,11 +1,10 @@
-import { SymbolView } from "expo-symbols";
 import { type ComponentProps, type ReactNode } from "react";
 import { FormProvider } from "react-hook-form";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button, ThemedText, ThemedView } from "@/components/ui";
+import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
 import { lockIcon, personIcon, visibilityIcon } from "@/constants";
 import { useLoginForm, type LoginFormState } from "@/hooks/useLoginForm";
 import { useThemeTokens } from "@/theme";
@@ -140,11 +139,7 @@ export function LoginForm({
             autoCorrect={false}
             editable={fieldsEditable}
             leading={
-              <SymbolView
-                name={personIcon}
-                size={theme.semantic.size.icon}
-                tintColor={theme.palette.foreground.muted}
-              />
+              <ThemedIcon name={personIcon} tone="muted" />
             }
             name="username"
             placeholder="Username"
@@ -157,11 +152,7 @@ export function LoginForm({
             autoComplete="password"
             editable={fieldsEditable}
             leading={
-              <SymbolView
-                name={lockIcon}
-                size={theme.semantic.size.icon}
-                tintColor={theme.palette.foreground.muted}
-              />
+              <ThemedIcon name={lockIcon} tone="muted" />
             }
             name="password"
             placeholder="Password"
@@ -170,22 +161,23 @@ export function LoginForm({
             size="lg"
             textContentType="password"
             trailing={
-              <Pressable
+              <Button
                 accessibilityLabel={
                   login.isPasswordVisible
                     ? "Hide password"
                     : "Show password"
                 }
-                accessibilityRole="button"
                 hitSlop={theme.semantic.space.inset.compact}
                 onPress={login.togglePasswordVisibility}
+                size="sm"
+                tone="neutral"
+                variant="ghost"
               >
-                <SymbolView
+                <ThemedIcon
                   name={visibilityIcon(login.isPasswordVisible)}
-                  size={theme.semantic.size.icon}
-                  tintColor={theme.palette.foreground.muted}
+                  tone="muted"
                 />
-              </Pressable>
+              </Button>
             }
           />
         </ThemedView>

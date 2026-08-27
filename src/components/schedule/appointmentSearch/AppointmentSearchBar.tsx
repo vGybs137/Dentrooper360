@@ -1,9 +1,7 @@
-import { SymbolView } from "expo-symbols";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Keyboard,
   Platform,
-  Pressable,
   TextInput,
   View,
   type View as RNView,
@@ -21,6 +19,7 @@ import {
   MONTH_QUICK_ADD_COLLAPSED_HEIGHT,
   MONTH_QUICK_ADD_EXPANDED_HEIGHT,
 } from "@/components/schedule/monthView/MonthQuickAddField";
+import { Button, ThemedIcon } from "@/components/ui";
 import { searchIcon } from "@/constants";
 import { useThemeTokens } from "@/theme";
 
@@ -204,11 +203,10 @@ function AppointmentSearchBarComponent({
         ]}
       >
         <View style={pillStaticStyle}>
-          <SymbolView
+          <ThemedIcon
             name={searchIcon}
-            size={theme.semantic.size.icon}
-            tintColor={theme.palette.foreground.muted}
             style={{ marginRight: theme.semantic.space.gap.compact }}
+            tone="muted"
           />
           <TextInput
             accessibilityLabel="Search appointments"
@@ -225,19 +223,17 @@ function AppointmentSearchBarComponent({
             value={value}
           />
           {canClear ? (
-            <Pressable
+            <Button
               accessibilityLabel="Clear search"
-              accessibilityRole="button"
               hitSlop={8}
               onPress={handleClear}
+              size="none"
               style={clearHitStyle}
+              tone="neutral"
+              variant="ghost"
             >
-              <SymbolView
-                name={CLEAR_ICON}
-                size={22}
-                tintColor={theme.palette.foreground.muted}
-              />
-            </Pressable>
+              <ThemedIcon dimension={22} name={CLEAR_ICON} tone="muted" />
+            </Button>
           ) : null}
         </View>
       </Animated.View>

@@ -1,12 +1,10 @@
 import dayjs from "dayjs";
 import { useRouter, type Href } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { useCallback, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Alert,
   Image,
-  Pressable,
   ScrollView,
   View,
 } from "react-native";
@@ -23,8 +21,10 @@ import {
 import {
   Button,
   DeleteConfirmationDialog,
+  ThemedIcon,
   ThemedText,
   ThemedView,
+  type ThemedIconProps,
 } from "@/components/ui";
 import { clockIcon, locationIcon, notesIcon, personIcon } from "@/constants";
 import database from "@/database";
@@ -117,10 +117,10 @@ function PatientHero({
             }}
           />
         ) : (
-          <SymbolView
+          <ThemedIcon
+            dimension={AVATAR_SIZE}
             name={personIcon}
-            size={AVATAR_SIZE}
-            tintColor={theme.palette.foreground.muted}
+            tone="muted"
           />
         )
       ) : null}
@@ -144,10 +144,10 @@ function PatientHero({
           {displayName}
         </ThemedText>
         {onPress ? (
-          <SymbolView
+          <ThemedIcon
+            dimension={35}
             name={CHEVRON_RIGHT_ICON}
-            size={35}
-            tintColor={theme.palette.foreground.muted}
+            tone="muted"
           />
         ) : null}
       </View>
@@ -159,14 +159,16 @@ function PatientHero({
   }
 
   return (
-    <Pressable
+    <Button
       accessibilityLabel={displayName}
-      accessibilityRole="button"
       onPress={onPress}
+      size="none"
       style={({ pressed }) => (pressed ? { opacity: 0.92 } : undefined)}
+      tone="neutral"
+      variant="ghost"
     >
       {content}
-    </Pressable>
+    </Button>
   );
 }
 
@@ -177,7 +179,6 @@ function ReadOnlyDateTime({
   startTime: Date;
   endTime: Date;
 }) {
-  const theme = useThemeTokens();
   const hourFormat = useHourFormat();
   const timePattern = dayjsTimePattern(hourFormat);
   const dateLabel = dayjs(startTime).format("D MMM, YYYY");
@@ -187,11 +188,7 @@ function ReadOnlyDateTime({
     <View className="gap-gap-compact">
       <View className="items-start gap-2">
         <View className="flex-row items-center gap-3">
-          <SymbolView
-            name={clockIcon}
-            size={20}
-            tintColor={theme.palette.foreground.muted}
-          />
+          <ThemedIcon dimension={20} name={clockIcon} tone="muted" />
           <View className="justify-center rounded-pill px-inline py-stack-compact">
             <ThemedText variant="body">{dateLabel}</ThemedText>
           </View>
@@ -202,11 +199,7 @@ function ReadOnlyDateTime({
             <ThemedText variant="body">{startLabel}</ThemedText>
           </View>
 
-          <SymbolView
-            name={ARROW_RIGHT_ICON}
-            size={14}
-            tintColor={theme.palette.foreground.muted}
-          />
+          <ThemedIcon dimension={14} name={ARROW_RIGHT_ICON} tone="muted" />
 
           <View className="justify-center rounded-pill px-inline py-stack-compact">
             <ThemedText variant="body">{endLabel}</ThemedText>
@@ -246,7 +239,7 @@ function DetailsActionItem({
   onPress,
   tone = "default",
 }: {
-  icon: React.ComponentProps<typeof SymbolView>["name"];
+  icon: NonNullable<ThemedIconProps["name"]>;
   label: string;
   onPress: () => void;
   tone?: "default" | "alert";
@@ -258,22 +251,28 @@ function DetailsActionItem({
       : theme.palette.foreground.default;
 
   return (
-    <Pressable
+    <Button
       accessibilityLabel={label}
-      accessibilityRole="button"
       className="min-w-0 flex-1 items-center justify-center gap-1 py-stack-compact"
       hitSlop={6}
       onPress={onPress}
+      size="none"
       style={({ pressed }) => (pressed ? { opacity: 0.7 } : undefined)}
+      tone="neutral"
+      variant="ghost"
     >
-      <SymbolView name={icon} size={22} tintColor={color} />
+      <ThemedIcon
+        dimension={22}
+        name={icon}
+        tone={tone === "alert" ? "alert" : "default"}
+      />
       <ThemedText
         style={{ color, fontWeight: theme.primitives.fontWeight.medium }}
         variant="label"
       >
         {label}
       </ThemedText>
-    </Pressable>
+    </Button>
   );
 }
 
@@ -530,11 +529,7 @@ export function AppointmentDetailsScreen({
 
               <View className="w-full flex-row items-start gap-3">
                 <View className="mt-stack-compact size-5 items-center justify-center">
-                  <SymbolView
-                    name={notesIcon}
-                    size={20}
-                    tintColor={theme.palette.foreground.muted}
-                  />
+                  <ThemedIcon dimension={20} name={notesIcon} tone="muted" />
                 </View>
                 <View className="min-w-0 flex-1">
                   <ThemedText

@@ -1,6 +1,5 @@
-import { SymbolView } from "expo-symbols";
 import { memo, useMemo } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -8,7 +7,7 @@ import Animated, {
   type SharedValue,
 } from "react-native-reanimated";
 
-import { ColorSwatch, ThemedText } from "@/components/ui";
+import { Button, ColorSwatch, ThemedIcon, ThemedText } from "@/components/ui";
 import type { AppointmentSearchTypeOption } from "@/hooks/useAppointmentSearch";
 import { useThemeTokens } from "@/theme";
 
@@ -146,23 +145,21 @@ function AppointmentSearchBackButtonComponent({
       pointerEvents="box-none"
       style={[slotStyle, containerAnimatedStyle]}
     >
-      <Pressable
+      <Button
         accessibilityLabel="Back"
-        accessibilityRole="button"
         hitSlop={8}
         onPress={onPress}
+        size="none"
         style={hitStyle}
+        tone="neutral"
+        variant="ghost"
       >
         <Animated.View
           pointerEvents="none"
           style={[circleStyle, circleAnimatedStyle]}
         />
-        <SymbolView
-          name={CHEVRON_LEFT_ICON}
-          size={theme.semantic.size.icon}
-          tintColor={theme.palette.foreground.default}
-        />
-      </Pressable>
+        <ThemedIcon name={CHEVRON_LEFT_ICON} />
+      </Button>
 
       {hasFilterChips ? (
         <ScrollView
@@ -182,19 +179,22 @@ function AppointmentSearchBackButtonComponent({
               <ThemedText numberOfLines={1} variant="label">
                 {timeWindowLabel}
               </ThemedText>
-              <Pressable
+              <Button
                 accessibilityLabel={`Clear ${timeWindowLabel} filter`}
-                accessibilityRole="button"
                 hitSlop={8}
                 onPress={onClearTimeWindow}
+                ripple={false}
+                size="none"
                 style={clearHitStyle}
+                tone="neutral"
+                variant="ghost"
               >
-                <SymbolView
+                <ThemedIcon
+                  dimension={12}
                   name={CLEAR_ICON}
-                  size={12}
-                  tintColor={theme.palette.foreground.muted}
+                  tone="muted"
                 />
-              </Pressable>
+              </Button>
             </View>
           ) : null}
           {selectedTypes.map((type) => (
@@ -205,19 +205,22 @@ function AppointmentSearchBackButtonComponent({
               <ThemedText numberOfLines={1} variant="label">
                 {type.name}
               </ThemedText>
-              <Pressable
+              <Button
                 accessibilityLabel={`Clear ${type.name} filter`}
-                accessibilityRole="button"
                 hitSlop={8}
                 onPress={() => onClearType(type.id)}
+                ripple={false}
+                size="none"
                 style={clearHitStyle}
+                tone="neutral"
+                variant="ghost"
               >
-                <SymbolView
+                <ThemedIcon
+                  dimension={12}
                   name={CLEAR_ICON}
-                  size={12}
-                  tintColor={theme.palette.foreground.muted}
+                  tone="muted"
                 />
-              </Pressable>
+              </Button>
             </View>
           ))}
         </ScrollView>

@@ -1,6 +1,8 @@
 import { useRouter, type Href } from "expo-router";
 import { memo, useMemo } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
+
+import { Button } from "@/components/ui";
 
 import { MONTH_VIEW_EVENT_LIST_RAIL_WIDTH } from "@/constants/schedule";
 import { formatTimeRange } from "@/helpers/timeFormat";
@@ -124,11 +126,14 @@ function AppointmentSearchResultItemComponent({
   );
 
   return (
-    <Pressable
-      accessibilityRole="button"
+    <Button
       accessibilityLabel={`${event.title}${event.typeName ? ` - ${event.typeName}` : ""}, ${timeRange}`}
       onPress={() => router.push(`/appointments/${event.id}` as Href)}
+      ripple={false}
+      size="none"
       style={rowStyle}
+      tone="neutral"
+      variant="ghost"
     >
       <View style={railStyle} />
       <View className="min-w-0 flex-1 justify-center">
@@ -152,7 +157,7 @@ function AppointmentSearchResultItemComponent({
           {timeRange}
         </Text>
       </View>
-    </Pressable>
+    </Button>
   );
 }
 

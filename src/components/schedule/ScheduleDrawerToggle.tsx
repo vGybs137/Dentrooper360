@@ -1,9 +1,7 @@
 import { memo, useCallback } from "react";
-import { Pressable } from "react-native";
-import { SymbolView } from "expo-symbols";
 import { useNavigation } from "expo-router";
 
-import { useThemeTokens } from "@/theme";
+import { Button, ThemedIcon } from "@/components/ui";
 
 const menuIcon = {
   ios: "line.3.horizontal",
@@ -12,7 +10,6 @@ const menuIcon = {
 } as const;
 
 function ScheduleDrawerToggleComponent() {
-  const theme = useThemeTokens();
   const navigation = useNavigation();
 
   const openDrawer = useCallback(() => {
@@ -20,24 +17,17 @@ function ScheduleDrawerToggleComponent() {
   }, [navigation]);
 
   return (
-    <Pressable
+    <Button
       accessibilityLabel="Open calendar views"
-      accessibilityRole="button"
+      className="min-h-touch w-touch items-start"
       hitSlop={8}
       onPress={openDrawer}
-      style={{
-        alignItems: "flex-start",
-        justifyContent: "center",
-        width: theme.semantic.size.touch,
-        minHeight: theme.semantic.size.touch,
-      }}
+      size="none"
+      tone="neutral"
+      variant="ghost"
     >
-      <SymbolView
-        name={menuIcon}
-        size={theme.semantic.size.icon}
-        tintColor={theme.palette.foreground.default}
-      />
-    </Pressable>
+      <ThemedIcon name={menuIcon} />
+    </Button>
   );
 }
 

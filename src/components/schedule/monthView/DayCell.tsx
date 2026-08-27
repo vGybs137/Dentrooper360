@@ -1,13 +1,12 @@
 import { memo, useMemo } from "react";
 import { View, type StyleProp, type ViewStyle } from "react-native";
-import { Pressable } from "react-native-gesture-handler";
 import Animated, {
   Extrapolation,
   interpolate,
   useAnimatedStyle,
 } from "react-native-reanimated";
 
-import { ThemedText } from "@/components/ui";
+import { Button, ThemedText } from "@/components/ui";
 import {
   selectCalendarDay,
   useCalendarSelectionStore,
@@ -283,12 +282,12 @@ function DayCellComponent({
   const showEvents = events.length > 0 && eventIndicators !== "none";
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
+    <Button
       accessibilityLabel={`${cell.dayKey}${cell.isToday ? ", today" : ""}${
         events.length ? `, ${events.length} events` : ""
       }`}
+      accessibilityState={{ selected }}
+      nestedScroll
       onPress={() => {
         const alreadySelected =
           useCalendarSelectionStore.getState().selectedDayKey === cell.dayKey;
@@ -297,11 +296,15 @@ function DayCellComponent({
         onDayPress?.(cell.dayKey, alreadySelected);
         selectCalendarDay(cell.dayKey);
       }}
+      ripple={false}
+      size="none"
       style={({ pressed }) => [
         cellStyle,
         style,
         pressed && !selected ? { opacity: 0.72 } : null,
       ]}
+      tone="neutral"
+      variant="ghost"
     >
       <View className="items-center" style={headerStyle}>
         <View style={dayNumberStyle}>
@@ -341,7 +344,7 @@ function DayCellComponent({
       {showEvents && eventIndicators === "dots" ? (
         <DayCellDotsOnlyMemo events={events} />
       ) : null}
-    </Pressable>
+    </Button>
   );
 }
 

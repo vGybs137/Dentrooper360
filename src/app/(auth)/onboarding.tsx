@@ -1,11 +1,10 @@
 import { type Href, useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { useEffect } from "react";
 
 import { AuthBottomSheet } from "@/components/app/AuthBottomSheet";
 import { BrandLogo } from "@/components/app/BrandLogo";
 import { SplashIntroLayout } from "@/components/app/SplashIntroLayout";
-import { Button, ThemedText, ThemedView } from "@/components/ui";
+import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
 import { qrCodeIcon } from "@/constants";
 import { hideNativeSplash } from "@/helpers/nativeSplash";
 import {
@@ -45,13 +44,7 @@ export default function OnboardingScreen() {
           </ThemedView>
           <Button
             disabled={isLeaving}
-            icon={
-              <SymbolView
-                name={qrCodeIcon}
-                size={theme.semantic.size.icon}
-                tintColor={theme.palette.brand.default}
-              />
-            }
+            icon={<ThemedIcon name={qrCodeIcon} tone="brand" />}
             label="Scan QR Code"
             onPress={() => {
               if (isLeaving) {

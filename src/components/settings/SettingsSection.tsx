@@ -1,11 +1,12 @@
 import type { ComponentProps, ReactNode } from "react";
 import { View } from "react-native";
-import { SymbolView } from "expo-symbols";
 
-import { ThemedText } from "@/components/ui";
+import { ThemedIcon, ThemedText } from "@/components/ui";
 import { useThemeTokens } from "@/theme";
 
-export type SettingsSymbolName = ComponentProps<typeof SymbolView>["name"];
+export type SettingsSymbolName = NonNullable<
+  ComponentProps<typeof ThemedIcon>["name"]
+>;
 
 export type SettingsSelectOption<T extends string | number> = {
   value: T;
@@ -78,11 +79,7 @@ export function SettingsRowLabel({
           marginTop: 2,
         }}
       >
-        <SymbolView
-          name={icon}
-          size={theme.semantic.size["icon-sm"]}
-          tintColor={theme.palette.foreground.default}
-        />
+        <ThemedIcon name={icon} size="sm" />
       </View>
       <View
         style={{

@@ -3,13 +3,12 @@ import {
   DrawerItem,
   type DrawerContentComponentProps,
 } from "expo-router/drawer";
-import { SymbolView } from "expo-symbols";
 import { memo, useMemo } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SCHEDULE_VIEW_MODES } from "@/components/schedule/scheduleViewModes";
-import { ThemedText } from "@/components/ui";
+import { ThemedIcon, ThemedText } from "@/components/ui";
 import {
   setScheduleViewMode,
   useAddAppointmentStore,
@@ -59,7 +58,11 @@ function ScheduleDrawerContentComponent(props: DrawerContentComponentProps) {
           activeTintColor={theme.palette.brand.default}
           focused={viewMode === mode}
           icon={({ color, size }) => (
-            <SymbolView name={icon} size={size} tintColor={color} />
+            <ThemedIcon
+              dimension={size}
+              name={icon}
+              tintColor={color}
+            />
           )}
           inactiveTintColor={theme.palette.foreground.muted}
           label={label}

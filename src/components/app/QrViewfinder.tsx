@@ -1,9 +1,8 @@
-import { SymbolView } from "expo-symbols";
 import { type ReactNode } from "react";
 import { View, type StyleProp, type ViewStyle } from "react-native";
 import Animated, { type AnimatedStyle } from "react-native-reanimated";
 
-import { Button, ThemedView } from "@/components/ui";
+import { Button, ThemedIcon, ThemedView } from "@/components/ui";
 import { qrCodeIcon } from "@/constants";
 import type { QrScanStatus } from "@/hooks/useQrScannerMotion";
 import { useThemeTokens } from "@/theme";
@@ -90,10 +89,10 @@ export function QrViewfinder({
           <>
             {cameraPreview ?? (
               <View className="absolute inset-0 items-center justify-center">
-                <SymbolView
+                <ThemedIcon
+                  dimension={iconSize}
                   name={qrCodeIcon}
-                  size={iconSize}
-                  tintColor={theme.palette.brand.default}
+                  tone="brand"
                 />
               </View>
             )}

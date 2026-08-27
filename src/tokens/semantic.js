@@ -158,12 +158,14 @@ const semantic = {
     },
     success: {
       DEFAULT: "var(--success-default)",
+      default: "var(--success-default)",
       subtle: "var(--success-subtle)",
       strong: "var(--success-strong)",
       text: "var(--success-text)",
     },
     alert: {
       DEFAULT: "var(--alert-default)",
+      default: "var(--alert-default)",
       subtle: "var(--alert-subtle)",
       strong: "var(--alert-strong)",
       text: "var(--alert-text)",

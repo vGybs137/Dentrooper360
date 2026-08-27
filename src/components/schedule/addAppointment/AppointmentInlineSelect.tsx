@@ -1,12 +1,14 @@
-import { SymbolView } from "expo-symbols";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import Animated from "react-native-reanimated";
 
 import {
+  Button,
   ColorSwatch,
+  ThemedIcon,
   ThemedText,
   type DropdownOption,
+  type ThemedIconProps,
 } from "@/components/ui";
 import { useInlineCollapse } from "@/hooks/useInlineCollapse";
 import { useThemeTokens } from "@/theme";
@@ -14,7 +16,7 @@ import { cn } from "@/utils/cn";
 
 export type AppointmentInlineSelectOption = DropdownOption;
 
-/** Matches SymbolView size={20} used for inline select leadings. */
+/** Matches ThemedIcon dimension={20} used for inline select leadings. */
 const LEADING_SLOT_SIZE = 20;
 const LEADING_SWATCH_SIZE = 10;
 /** Nudge swatch right so it aligns with SF Symbol optical inset. */
@@ -52,7 +54,7 @@ export function InlineSelectColorLeading({
 }
 
 type InlineSelectSymbolLeadingProps = {
-  name: React.ComponentProps<typeof SymbolView>["name"];
+  name: NonNullable<ThemedIconProps["name"]>;
   tintColor: string;
 };
 
@@ -62,7 +64,11 @@ export function InlineSelectSymbolLeading({
 }: InlineSelectSymbolLeadingProps) {
   return (
     <InlineSelectLeadingSlot>
-      <SymbolView name={name} size={LEADING_SLOT_SIZE} tintColor={tintColor} />
+      <ThemedIcon
+        dimension={LEADING_SLOT_SIZE}
+        name={name}
+        tintColor={tintColor}
+      />
     </InlineSelectLeadingSlot>
   );
 }
@@ -156,21 +162,25 @@ export function AppointmentInlineSelect({
           {leading}
         </View>
 
-        <Pressable
+        <Button
           accessibilityLabel={placeholder}
-          accessibilityRole="button"
           accessibilityState={{ expanded: visible }}
+          bottomSheet
           className={cn(
-            "min-h-control min-w-0 flex-1 justify-center rounded-pill px-inline py-stack-compact",
+            "min-h-control justify-center rounded-pill px-inline py-stack-compact",
             visible && "bg-brand-subtle",
           )}
           hitSlop={6}
           onPress={onToggle}
+          size="none"
+          style={{ flex: 1, minWidth: 0 }}
+          tone="neutral"
+          variant="ghost"
         >
           <ThemedText tone={hasValue ? "default" : "muted"} variant="body">
             {hasValue ? (selected?.label ?? placeholder) : placeholder}
           </ThemedText>
-        </Pressable>
+        </Button>
       </View>
 
       {mounted ? (
@@ -202,16 +212,21 @@ export function AppointmentInlineSelect({
                 filteredOptions.map((option, index) => {
                   const isSelected = option.value === value;
                   return (
-                    <Pressable
+                    <Button
                       key={option.value || `option-${index}`}
-                      accessibilityRole="button"
+                      accessibilityLabel={option.label}
                       accessibilityState={{ selected: isSelected }}
+                      bottomSheet
                       className={cn(
-                        "w-full flex-row items-center gap-2 px-inline",
+                        "h-full w-full flex-row items-center gap-2 px-inline",
                         isSelected && "rounded-pill bg-brand-subtle",
                       )}
                       onPress={() => selectOption(option.value)}
-                      style={{ height: OPTION_ROW_HEIGHT }}
+                      ripple={false}
+                      size="none"
+                      style={{ height: OPTION_ROW_HEIGHT, width: "100%" }}
+                      tone="neutral"
+                      variant="ghost"
                     >
                       {option.color ? (
                         <ColorSwatch color={option.color} />
@@ -223,7 +238,7 @@ export function AppointmentInlineSelect({
                       >
                         {option.label}
                       </ThemedText>
-                    </Pressable>
+                    </Button>
                   );
                 })
               ) : (

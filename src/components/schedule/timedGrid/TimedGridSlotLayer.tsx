@@ -1,6 +1,8 @@
 import { memo, useCallback } from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import type { GestureResponderEvent } from "react-native";
+
+import { Button } from "@/components/ui";
 
 import {
   useAddAppointmentSlot,
@@ -68,11 +70,15 @@ function TimedGridSlotLayerComponent({
 
   return (
     <>
-      <Pressable
+      <Button
         accessibilityLabel="Select time slot"
-        accessibilityRole="button"
+        nestedScroll
         onPress={handleGridPress}
+        ripple={false}
+        size="none"
         style={[StyleSheet.absoluteFill, { height: contentHeight, zIndex: 1 }]}
+        tone="neutral"
+        variant="ghost"
       />
       {showSelectedSlot ? (
         <TimedGridSelectedSlot

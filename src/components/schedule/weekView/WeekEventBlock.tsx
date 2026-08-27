@@ -1,6 +1,8 @@
 import { useRouter, type Href } from "expo-router";
 import { memo, useCallback, useMemo } from "react";
-import { Pressable, Text, View, type ViewStyle } from "react-native";
+import { Text, View, type ViewStyle } from "react-native";
+
+import { Button } from "@/components/ui";
 
 import { timedGridAbsoluteStyle } from "@/components/schedule/timedGrid/timedGridPositionStyle";
 import {
@@ -158,11 +160,15 @@ function WeekEventBlockComponent({
   const listTitle = formatAppointmentEventTitle(event.title, event.typeName);
 
   return (
-    <Pressable
-      accessibilityRole="button"
+    <Button
       accessibilityLabel={`${listTitle}, ${timeRange}`}
+      nestedScroll
       onPress={onPress}
+      ripple={false}
+      size="none"
       style={rootStyle}
+      tone="neutral"
+      variant="ghost"
     >
       <View style={cardStyle}>
         {isDayVariant ? (
@@ -210,7 +216,7 @@ function WeekEventBlockComponent({
           )}
         </View>
       </View>
-    </Pressable>
+    </Button>
   );
 }
 

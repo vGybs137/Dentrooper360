@@ -6,9 +6,9 @@ import {
   type TabListProps,
   type TabTriggerSlotProps,
 } from "expo-router/ui";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
-import { ThemedText } from "@/components/ui";
+import { Button, ThemedText } from "@/components/ui";
 import { APP_TABS } from "@/constants/navigation";
 import { useThemeTokens } from "@/theme";
 
@@ -31,14 +31,19 @@ export default function AppTabs() {
 
 function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
   const theme = useThemeTokens();
+  const tabLabel = typeof children === "string" ? children : undefined;
 
   return (
-    <Pressable
+    <Button
       {...props}
+      accessibilityLabel={props.accessibilityLabel ?? tabLabel}
+      size="none"
       style={({ pressed }) => [
         styles.tabButtonPressable,
         pressed ? styles.pressed : null,
       ]}
+      tone="neutral"
+      variant="ghost"
     >
       <View
         style={[
@@ -59,7 +64,7 @@ function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
           {children}
         </ThemedText>
       </View>
-    </Pressable>
+    </Button>
   );
 }
 

@@ -1,8 +1,7 @@
 import { memo, useMemo } from "react";
 import { View, type LayoutChangeEvent } from "react-native";
-import { Pressable } from "react-native-gesture-handler";
 
-import { ThemedText } from "@/components/ui";
+import { Button, ThemedText } from "@/components/ui";
 import { MONTH_VIEW_DAY_NUMBER_SIZE } from "@/constants/schedule";
 import { useWeekHighlightDayKey } from "@/contexts/WeekHighlightDayContext";
 import { weekdayLabels } from "@/helpers/weekdayLabels";
@@ -82,11 +81,10 @@ function WeekDayHeaderCell({
         : "default";
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
+    <Button
       accessibilityLabel={`${cell.dayKey}${cell.isToday ? ", today" : ""}`}
-      unstable_pressDelay={0}
+      accessibilityState={{ selected }}
+      nestedScroll
       onPress={() => {
         const alreadySelected = useHighlightContext
           ? highlightDayKey === cell.dayKey
@@ -94,10 +92,15 @@ function WeekDayHeaderCell({
         onDayPress?.(cell.dayKey, alreadySelected);
         selectCalendarDay(cell.dayKey);
       }}
+      ripple={false}
+      size="none"
       style={({ pressed }) => [
         { flex: 1, alignItems: "center", alignSelf: "stretch" },
         pressed && !selected ? { opacity: 0.72 } : null,
       ]}
+      tone="neutral"
+      unstable_pressDelay={0}
+      variant="ghost"
     >
       <ThemedText tone={isSunday ? "alert" : "muted"} variant="label">
         {weekdayLabel}
@@ -107,7 +110,7 @@ function WeekDayHeaderCell({
           {cell.date.day}
         </ThemedText>
       </View>
-    </Pressable>
+    </Button>
   );
 }
 

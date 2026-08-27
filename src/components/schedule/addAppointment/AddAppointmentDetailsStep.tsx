@@ -1,9 +1,13 @@
-import { SymbolView } from "expo-symbols";
 import { memo, useCallback, useMemo, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { View } from "react-native";
 
-import { ThemedText, ThemedView, type DropdownOption } from "@/components/ui";
+import {
+  ThemedIcon,
+  ThemedText,
+  ThemedView,
+  type DropdownOption,
+} from "@/components/ui";
 import { locationIcon, notesIcon } from "@/constants";
 import type { AddAppointmentFormState } from "@/hooks/useAddAppointmentForm";
 import { useThemeTokens } from "@/theme";
@@ -159,11 +163,7 @@ function AddAppointmentDetailsStepComponent({
 
           <View className="w-full flex-row items-start gap-3">
             <View className="mt-stack-compact size-5 items-center justify-center">
-              <SymbolView
-                name={notesIcon}
-                size={20}
-                tintColor={theme.palette.foreground.muted}
-              />
+              <ThemedIcon dimension={20} name={notesIcon} tone="muted" />
             </View>
             <View className="min-w-0 flex-1">
               <ThemedText

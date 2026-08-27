@@ -1,12 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter, type Href } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { useEffect, useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import Animated from "react-native-reanimated";
 
 import { logout } from "@/api";
-import { DeleteConfirmationDialog, ThemedText, ThemedView } from "@/components/ui";
+import { Button, DeleteConfirmationDialog, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
 import { chevronDownIcon, logoutIcon } from "@/constants";
 import { useAppointmentFormOptions } from "@/hooks/useAppointmentFormOptions";
 import { useInlineCollapse } from "@/hooks/useInlineCollapse";
@@ -194,31 +193,27 @@ export function SettingsProfileCard() {
           </ThemedText>
         </ThemedView>
 
-        <Pressable
+        <Button
           accessibilityLabel="Log out"
-          accessibilityRole="button"
           accessibilityState={{ disabled: !canLogout }}
           disabled={!canLogout}
           hitSlop={8}
           onPress={requestLogout}
+          size="none"
           style={{
             width: theme.semantic.size.touch,
             height: theme.semantic.size.touch,
             alignItems: "center",
             justifyContent: "center",
-            opacity: canLogout ? 1 : 0.4,
           }}
+          tone="neutral"
+          variant="ghost"
         >
-          <SymbolView
+          <ThemedIcon
             name={logoutIcon}
-            size={theme.semantic.size.icon}
-            tintColor={
-              canLogout
-                ? theme.palette.alert.DEFAULT
-                : theme.palette.foreground.muted
-            }
+            tone={canLogout ? "alert" : "muted"}
           />
-        </Pressable>
+        </Button>
       </View>
 
       {logoutError ? (
@@ -242,23 +237,25 @@ export function SettingsProfileCard() {
         }}
       />
 
-      <Pressable
-        accessibilityRole="button"
+      <Button
+        accessibilityLabel={selectedLocationLabel}
         accessibilityState={{
           expanded: locationExpanded,
           disabled: locationOptions.length === 0,
         }}
+        className="w-full flex-row items-center justify-center"
         disabled={locationOptions.length === 0}
         onPress={() => setLocationExpanded((current) => !current)}
+        ripple={false}
+        size="none"
         style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
           gap: theme.semantic.space.gap.compact,
           paddingHorizontal: theme.semantic.space.inline.comfortable,
           paddingVertical: theme.semantic.space.stack.default,
           minHeight: theme.semantic.size.touch,
         }}
+        tone="neutral"
+        variant="ghost"
       >
         <ThemedText
           align="center"
@@ -269,16 +266,14 @@ export function SettingsProfileCard() {
           {selectedLocationLabel}
         </ThemedText>
         {locationOptions.length > 0 ? (
-          <SymbolView
+          <ThemedIcon
+            className={locationExpanded ? "rotate-180" : undefined}
+            dimension={16}
             name={chevronDownIcon}
-            size={16}
-            style={{
-              transform: [{ rotate: locationExpanded ? "180deg" : "0deg" }],
-            }}
-            tintColor={theme.palette.foreground.muted}
+            tone="muted"
           />
         ) : null}
-      </Pressable>
+      </Button>
 
       {mounted ? (
         <Animated.View
@@ -296,20 +291,22 @@ export function SettingsProfileCard() {
             {locationOptions.map((option) => {
               const isSelected = option.value === selectedLocationId;
               return (
-                <Pressable
+                <Button
                   key={option.value}
-                  accessibilityRole="button"
+                  accessibilityLabel={option.label}
                   accessibilityState={{ selected: isSelected }}
+                  className="w-full items-center justify-center"
                   onPress={() => {
                     setDefaultLocationId(option.value);
                     setLocationExpanded(false);
                   }}
+                  ripple={false}
+                  size="none"
                   style={{
                     height: OPTION_ROW_HEIGHT,
-                    width: "100%",
-                    alignItems: "center",
-                    justifyContent: "center",
                   }}
+                  tone="neutral"
+                  variant="ghost"
                 >
                   <ThemedText
                     align="center"
@@ -323,7 +320,7 @@ export function SettingsProfileCard() {
                   >
                     {option.label}
                   </ThemedText>
-                </Pressable>
+                </Button>
               );
             })}
           </View>

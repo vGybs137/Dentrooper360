@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
-import { Pressable, Switch } from "react-native";
+import { Switch } from "react-native";
 
-import { ThemedText } from "@/components/ui";
+import { Button, ThemedText } from "@/components/ui";
 import { clockIcon, pendingChangesIcon, syncIcon, wifiIcon } from "@/constants";
 import { synchronize } from "@/database/synchronize";
 import { useIsOnCellular } from "@/hooks/useIsOnCellular";
@@ -138,22 +138,16 @@ export function SettingsSyncSection() {
         icon={syncIcon}
         last
         trailing={
-          <Pressable
-            accessibilityRole="button"
+          <Button
             disabled={!canSyncNow}
             hitSlop={8}
+            label={syncMutation.isPending ? "Syncing…" : "Sync"}
             onPress={requestSyncNow}
-          >
-            <ThemedText
-              tone={canSyncNow ? "brand" : "muted"}
-              variant="label"
-              style={{
-                fontWeight: theme.primitives.fontWeight.semibold,
-              }}
-            >
-              {syncMutation.isPending ? "Syncing…" : "Sync"}
-            </ThemedText>
-          </Pressable>
+            size="sm"
+            textClassName="font-semibold"
+            tone={canSyncNow ? "brand" : "neutral"}
+            variant="ghost"
+          />
         }
       />
     </SettingsSection>

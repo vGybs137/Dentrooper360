@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
-import { ColorSwatch, ThemedText, ThemedView } from "@/components/ui";
+import { Button, ColorSwatch, ThemedText, ThemedView } from "@/components/ui";
 import {
   APPOINTMENT_SEARCH_TIME_WINDOWS,
   type AppointmentSearchTimeWindow,
@@ -58,24 +58,27 @@ function AppointmentSearchFiltersCardComponent({
             const isSelected = timeWindow === option.id;
 
             return (
-              <Pressable
+              <Button
                 key={option.id}
-                accessibilityRole="button"
-                accessibilityState={{ selected: isSelected }}
                 accessibilityLabel={`Filter by ${option.label}`}
-                onPress={() =>
-                  onSelectTimeWindow(isSelected ? "all" : option.id)
-                }
+                accessibilityState={{ selected: isSelected }}
                 className={cn(
                   "flex-row items-center gap-gap-compact rounded-pill border px-inline py-stack-compact",
                   isSelected && "bg-brand-subtle",
                 )}
+                onPress={() =>
+                  onSelectTimeWindow(isSelected ? "all" : option.id)
+                }
+                ripple={false}
+                size="none"
                 style={{
                   borderColor: theme.palette.foreground.default,
                 }}
+                tone="neutral"
+                variant="ghost"
               >
                 <ThemedText variant="label">{option.label}</ThemedText>
-              </Pressable>
+              </Button>
             );
           })}
         </View>
@@ -92,22 +95,25 @@ function AppointmentSearchFiltersCardComponent({
               const isSelected = selectedTypeIds.includes(type.id);
 
               return (
-                <Pressable
+                <Button
                   key={type.id}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isSelected }}
                   accessibilityLabel={`Filter by ${type.name}`}
-                  onPress={() => onToggleType(type.id)}
+                  accessibilityState={{ selected: isSelected }}
                   className={cn(
                     "flex-row items-center gap-gap-compact rounded-pill border px-inline py-stack-compact",
                     isSelected && !type.color && "bg-brand-subtle",
                   )}
+                  onPress={() => onToggleType(type.id)}
+                  ripple={false}
+                  size="none"
                   style={{
                     borderColor: theme.palette.foreground.default,
                     ...(isSelected && type.color
                       ? { backgroundColor: theme.palette.surface.sunken }
                       : undefined),
                   }}
+                  tone="neutral"
+                  variant="ghost"
                 >
                   {type.color ? (
                     <ColorSwatch
@@ -116,7 +122,7 @@ function AppointmentSearchFiltersCardComponent({
                     />
                   ) : null}
                   <ThemedText variant="label">{type.name}</ThemedText>
-                </Pressable>
+                </Button>
               );
             })}
           </View>

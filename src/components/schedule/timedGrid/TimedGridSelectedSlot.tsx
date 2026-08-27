@@ -1,7 +1,7 @@
 import { memo, useCallback } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
-import { ThemedText } from "@/components/ui";
+import { Button, ThemedText } from "@/components/ui";
 import {
   ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
   useAddAppointmentStore,
@@ -48,11 +48,12 @@ function TimedGridSelectedSlotComponent({
   }, [open]);
 
   return (
-    <Pressable
+    <Button
       accessibilityHint="Tap to add an appointment"
       accessibilityLabel="Selected time slot"
-      accessibilityRole="button"
+      nestedScroll
       onPress={handlePress}
+      size="none"
       style={{
         position: "absolute",
         left: 0,
@@ -61,6 +62,8 @@ function TimedGridSelectedSlotComponent({
         height,
         zIndex: 2,
       }}
+      tone="neutral"
+      variant="ghost"
     >
       <View
         style={{
@@ -87,7 +90,7 @@ function TimedGridSelectedSlotComponent({
           +
         </ThemedText>
       </View>
-    </Pressable>
+    </Button>
   );
 }
 

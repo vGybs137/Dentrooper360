@@ -1,13 +1,6 @@
-import { SymbolView } from "expo-symbols";
-import {
-  Image,
-  Pressable,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from "react-native";
+import { Image, View, type StyleProp, type ViewStyle } from "react-native";
 
-import { ThemedText, ThemedView } from "@/components/ui";
+import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
 import { checkCircleIcon, personIcon, starIcon } from "@/constants";
 import {
   formatPatientBalance,
@@ -45,8 +38,6 @@ function MetricColumn({ label, value }: { label: string; value: string }) {
 }
 
 function PatientAvatar({ profilePhoto }: { profilePhoto: string | null }) {
-  const theme = useThemeTokens();
-
   if (profilePhoto) {
     return (
       <Image
@@ -61,11 +52,7 @@ function PatientAvatar({ profilePhoto }: { profilePhoto: string | null }) {
   }
 
   return (
-    <SymbolView
-      name={personIcon}
-      size={AVATAR_SIZE}
-      tintColor={theme.palette.foreground.muted}
-    />
+    <ThemedIcon dimension={AVATAR_SIZE} name={personIcon} tone="muted" />
   );
 }
 
@@ -74,10 +61,10 @@ function SelectionIndicator({ selected }: { selected: boolean }) {
 
   if (selected) {
     return (
-      <SymbolView
+      <ThemedIcon
+        dimension={INDICATOR_SIZE}
         name={checkCircleIcon}
-        size={INDICATOR_SIZE}
-        tintColor={theme.palette.brand.default}
+        tone="brand"
       />
     );
   }
@@ -162,11 +149,7 @@ export function PatientCard({
                 {patient.displayName}
               </ThemedText>
               {patient.isVip ? (
-                <SymbolView
-                  name={starIcon}
-                  size={14}
-                  tintColor={theme.palette.brand.default}
-                />
+                <ThemedIcon dimension={14} name={starIcon} tone="brand" />
               ) : null}
             </View>
           </View>
@@ -198,7 +181,7 @@ export function PatientCard({
   }
 
   return (
-    <Pressable
+    <Button
       accessibilityRole={selectable ? "radio" : "button"}
       accessibilityState={{ selected: isSelected }}
       android_ripple={
@@ -207,9 +190,13 @@ export function PatientCard({
           : undefined
       }
       onPress={onPress}
+      ripple={false}
+      size="none"
       style={({ pressed }) => (pressed ? { opacity: 0.92 } : undefined)}
+      tone="neutral"
+      variant="ghost"
     >
       {content}
-    </Pressable>
+    </Button>
   );
 }

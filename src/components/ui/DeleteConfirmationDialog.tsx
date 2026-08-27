@@ -1,4 +1,4 @@
-import { Modal, Pressable, View } from "react-native";
+import { Modal, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useThemeTokens } from "@/theme";
@@ -49,14 +49,17 @@ export function DeleteConfirmationDialog({
       visible={visible}
     >
       <View className="flex-1 justify-end">
-        <Pressable
+        <Button
           accessibilityLabel="Dismiss confirmation"
-          accessibilityRole="button"
-          className="absolute inset-0"
+          className="absolute inset-0 rounded-none"
           onPress={confirming ? undefined : onCancel}
+          ripple={false}
+          size="none"
           style={{
             backgroundColor: `rgba(0,0,0,${theme.semantic.opacity.scrim})`,
           }}
+          tone="neutral"
+          variant="ghost"
         />
 
         <View

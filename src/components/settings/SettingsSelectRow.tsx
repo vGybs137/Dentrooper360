@@ -1,8 +1,7 @@
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import Animated from "react-native-reanimated";
-import { SymbolView } from "expo-symbols";
 
-import { ThemedText } from "@/components/ui";
+import { Button, ThemedIcon, ThemedText } from "@/components/ui";
 import { chevronDownIcon } from "@/constants";
 import { useInlineCollapse } from "@/hooks/useInlineCollapse";
 import { useThemeTokens } from "@/theme";
@@ -55,18 +54,20 @@ export function SettingsSelectRow<T extends string | number>({
         borderBottomColor: theme.palette.border.subtle,
       }}
     >
-      <Pressable
-        accessibilityRole="button"
+      <Button
         accessibilityState={{ expanded }}
+        className="w-full flex-row items-center"
         onPress={onToggle}
+        ripple={false}
+        size="none"
         style={{
-          flexDirection: "row",
-          alignItems: "center",
           gap: theme.semantic.space.gap.default,
           paddingHorizontal: theme.semantic.space.inline.comfortable,
           paddingVertical: theme.semantic.space.stack.default,
           minHeight: theme.semantic.size.touch,
         }}
+        tone="neutral"
+        variant="ghost"
       >
         <SettingsRowLabel
           title={title}
@@ -88,14 +89,14 @@ export function SettingsSelectRow<T extends string | number>({
           >
             {selected?.label ?? "—"}
           </ThemedText>
-          <SymbolView
+          <ThemedIcon
+            className={expanded ? "rotate-180" : undefined}
+            dimension={16}
             name={chevronDownIcon}
-            size={16}
-            style={{ transform: [{ rotate: expanded ? "180deg" : "0deg" }] }}
-            tintColor={theme.palette.foreground.muted}
+            tone="muted"
           />
         </View>
-      </Pressable>
+      </Button>
 
       {mounted ? (
         <Animated.View
@@ -114,22 +115,23 @@ export function SettingsSelectRow<T extends string | number>({
             {options.map((option) => {
               const isSelected = option.value === value;
               return (
-                <Pressable
+                <Button
                   key={String(option.value)}
-                  accessibilityRole="button"
                   accessibilityState={{ selected: isSelected }}
+                  className="w-full items-center justify-center"
                   onPress={() => {
                     onChange(option.value);
                     if (expanded) {
                       onToggle();
                     }
                   }}
+                  ripple={false}
+                  size="none"
                   style={{
                     height: OPTION_ROW_HEIGHT,
-                    width: "100%",
-                    alignItems: "center",
-                    justifyContent: "center",
                   }}
+                  tone="neutral"
+                  variant="ghost"
                 >
                   <ThemedText
                     align="center"
@@ -143,7 +145,7 @@ export function SettingsSelectRow<T extends string | number>({
                   >
                     {option.label}
                   </ThemedText>
-                </Pressable>
+                </Button>
               );
             })}
           </View>

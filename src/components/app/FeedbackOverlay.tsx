@@ -1,5 +1,4 @@
 import { Image } from "expo-image";
-import { SymbolView } from "expo-symbols";
 import { useEffect, useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
 import Animated, {
@@ -11,7 +10,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import { Button, ThemedText, ThemedView } from "@/components/ui";
+import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
 import { useThemeTokens } from "@/theme";
 
 const markLogo = require("../../assets/no-text-logo.svg");
@@ -167,17 +166,17 @@ export function FeedbackOverlay({
         >
           {isSuccess ? (
             <Animated.View style={badgeIconStyle}>
-              <SymbolView
+              <ThemedIcon
+                dimension={badgeIconSize}
                 name={checkIcon}
-                size={badgeIconSize}
                 tintColor={theme.palette.brand.text}
               />
             </Animated.View>
           ) : isError ? (
             <Animated.View style={badgeIconStyle}>
-              <SymbolView
+              <ThemedIcon
+                dimension={badgeIconSize}
                 name={errorIcon}
-                size={badgeIconSize}
                 tintColor={theme.palette.alert.text}
               />
             </Animated.View>

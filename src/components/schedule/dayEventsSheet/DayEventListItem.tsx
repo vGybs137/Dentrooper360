@@ -1,6 +1,8 @@
 import { useRouter, type Href } from "expo-router";
 import { memo, useMemo } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
+
+import { Button } from "@/components/ui";
 
 import { formatAppointmentEventTitle } from "@/helpers/appointmentSubject";
 import { formatTimeRange } from "@/helpers/timeFormat";
@@ -78,11 +80,15 @@ function DayEventListItemComponent({ event }: DayEventListItemProps) {
   const listTitle = formatAppointmentEventTitle(event.title, event.typeName);
 
   return (
-    <Pressable
-      accessibilityRole="button"
+    <Button
       accessibilityLabel={`${listTitle}, ${timeRange}`}
-      onPress={() => router.push(`/appointments/${event.id}` as Href)}
       className="px-page py-stack-compact"
+      nestedScroll
+      onPress={() => router.push(`/appointments/${event.id}` as Href)}
+      ripple={false}
+      size="none"
+      tone="neutral"
+      variant="ghost"
     >
       <View style={cardStyle}>
         <View style={railStyle} />
@@ -103,7 +109,7 @@ function DayEventListItemComponent({ event }: DayEventListItemProps) {
           </Text>
         </View>
       </View>
-    </Pressable>
+    </Button>
   );
 }
 

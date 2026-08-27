@@ -1,5 +1,7 @@
 import { memo, useMemo } from "react";
-import { Pressable, Text, type ViewStyle } from "react-native";
+import { Text, type ViewStyle } from "react-native";
+
+import { Button } from "@/components/ui";
 
 import { timedGridAbsoluteStyle } from "@/components/schedule/timedGrid/timedGridPositionStyle";
 import { TIMED_GRID_OVERFLOW_MIN_HEIGHT } from "@/constants/schedule";
@@ -49,13 +51,17 @@ function TimedGridOverflowChipComponent({
   );
 
   return (
-    <Pressable
-      accessibilityRole="button"
+    <Button
       accessibilityLabel={`${count} more overlapping appointments`}
+      nestedScroll
+      ripple={false}
+      size="none"
       style={style}
+      tone="neutral"
+      variant="ghost"
     >
       <Text style={labelStyle}>{`+${count}`}</Text>
-    </Pressable>
+    </Button>
   );
 }
 

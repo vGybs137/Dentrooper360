@@ -3,12 +3,10 @@ import {
   BottomSheetFooter,
   BottomSheetModal,
   BottomSheetScrollView,
-  TouchableOpacity as BottomSheetTouchableOpacity,
   type BottomSheetBackdropProps,
   type BottomSheetFooterProps,
   type BottomSheetScrollViewMethods,
 } from "@gorhom/bottom-sheet";
-import { SymbolView } from "expo-symbols";
 import {
   useCallback,
   useEffect,
@@ -21,7 +19,6 @@ import {
 import {
   Keyboard,
   Platform,
-  Pressable,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -29,7 +26,7 @@ import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FormProvider } from "react-hook-form";
 
-import { Button, ThemedText } from "@/components/ui";
+import { Button, ThemedIcon, ThemedText } from "@/components/ui";
 import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
 import { useAddAppointmentForm } from "@/hooks/useAddAppointmentForm";
 import {
@@ -233,24 +230,25 @@ export function AddAppointmentSheet() {
           }}
         >
           {step === "details" ? (
-            <BottomSheetTouchableOpacity
+            <Button
               accessibilityLabel="Go back to patient step"
-              accessibilityRole="button"
-              activeOpacity={0.7}
-              className="size-control shrink-0 items-center justify-center rounded-control border-strong border-border"
+              bottomSheet
+              className="size-control shrink-0 rounded-control border-strong border-border"
               hitSlop={8}
               onPress={handleBack}
+              size="none"
+              tone="neutral"
+              variant="ghost"
             >
-              <SymbolView
+              <ThemedIcon
+                dimension={20}
                 name={{
                   ios: "chevron.left",
                   android: "chevron_left",
                   web: "chevron_left",
                 }}
-                size={20}
-                tintColor={theme.palette.foreground.default}
               />
-            </BottomSheetTouchableOpacity>
+            </Button>
           ) : (
             <View className="size-control shrink-0" />
           )}
@@ -338,8 +336,7 @@ export function AddAppointmentSheet() {
     : undefined;
 
   return (
-    <FormProvider {...formState.form}>
-      <BottomSheetModal
+    <BottomSheetModal
       ref={sheetRef}
       android_keyboardInputMode="adjustResize"
       backdropComponent={renderBackdrop}
@@ -356,6 +353,8 @@ export function AddAppointmentSheet() {
       {/*
         BottomSheetScrollView must be a direct modal child (not inside
         BottomSheetView / flex:1 overflow wrappers) or gestures steal scroll.
+        FormProvider must live inside this tree — the modal portals children
+        out of the React parent that wraps BottomSheetModal.
       */}
       <BottomSheetScrollView
         ref={scrollRef}
@@ -363,44 +362,48 @@ export function AddAppointmentSheet() {
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
       >
-        <View
-          className="mb-stack flex-row items-center justify-between pb-3"
-          style={{
-            borderBottomWidth: theme.semantic.borderWidth.subtle,
-            borderBottomColor: theme.palette.border.subtle,
-            marginHorizontal: -theme.semantic.space.inline.default,
-            paddingHorizontal: theme.semantic.space.inline.default,
-          }}
-        >
-          <ThemedText variant="title">
-            {isEditing ? "Edit Appointment" : "Add Appointment"}
-          </ThemedText>
-          <Pressable
-            accessibilityLabel="Close add appointment"
-            hitSlop={12}
-            onPress={requestClose}
+        <FormProvider {...formState.form}>
+          <View
+            className="mb-stack flex-row items-center justify-between pb-3"
+            style={{
+              borderBottomWidth: theme.semantic.borderWidth.subtle,
+              borderBottomColor: theme.palette.border.subtle,
+              marginHorizontal: -theme.semantic.space.inline.default,
+              paddingHorizontal: theme.semantic.space.inline.default,
+            }}
           >
-            <SymbolView
-              name={{ ios: "xmark", android: "close", web: "close" }}
-              size={22}
-              tintColor={theme.palette.foreground.default}
-            />
-          </Pressable>
-        </View>
+            <ThemedText variant="title">
+              {isEditing ? "Edit Appointment" : "Add Appointment"}
+            </ThemedText>
+            <Button
+              accessibilityLabel="Close add appointment"
+              bottomSheet
+              hitSlop={12}
+              onPress={requestClose}
+              size="sm"
+              tone="neutral"
+              variant="ghost"
+            >
+              <ThemedIcon
+                dimension={22}
+                name={{ ios: "xmark", android: "close", web: "close" }}
+              />
+            </Button>
+          </View>
 
-        <Animated.View key={step} entering={entering} exiting={exiting}>
-          {step === "patient" ? (
-            <AddAppointmentPatientStep formState={formState} />
-          ) : (
-            <AddAppointmentDetailsStep
-              formState={formState}
-              onNotesBlur={handleNotesBlur}
-              onNotesFocus={handleNotesFocus}
-            />
-          )}
-        </Animated.View>
+          <Animated.View key={step} entering={entering} exiting={exiting}>
+            {step === "patient" ? (
+              <AddAppointmentPatientStep formState={formState} />
+            ) : (
+              <AddAppointmentDetailsStep
+                formState={formState}
+                onNotesBlur={handleNotesBlur}
+                onNotesFocus={handleNotesFocus}
+              />
+            )}
+          </Animated.View>
+        </FormProvider>
       </BottomSheetScrollView>
-      </BottomSheetModal>
-    </FormProvider>
+    </BottomSheetModal>
   );
 }

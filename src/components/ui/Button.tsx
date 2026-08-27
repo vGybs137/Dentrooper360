@@ -7,9 +7,8 @@ import {
   type GestureResponderEvent,
   type LayoutRectangle,
   type PressableProps,
-  type StyleProp,
-  type ViewStyle,
 } from "react-native";
+import { Pressable as GesturePressable } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -22,31 +21,33 @@ import { ThemedText } from "./ThemedText";
 
 type ButtonTone = "neutral" | "brand" | "accent" | "success" | "alert";
 type ButtonVariant = "solid" | "soft" | "outline" | "ghost";
-type ButtonSize = "sm" | "md" | "lg";
+type ButtonSize = "sm" | "md" | "lg" | "none";
 
-export type ButtonProps = Omit<PressableProps, "style"> & {
-  label: string;
+export type ButtonProps = Omit<PressableProps, "children"> & {
+  label?: string;
   icon?: React.ReactNode;
+  children?: React.ReactNode;
   tone?: ButtonTone;
   variant?: ButtonVariant;
   size?: ButtonSize;
   /** Use gorhom touchable so presses register inside bottom sheets. */
   bottomSheet?: boolean;
+  /** Gesture-handler Pressable so nested pagers/scroll views still receive taps. */
+  nestedScroll?: boolean;
+  /** Ink ripple. Off for dense grids where it fights layout. */
+  ripple?: boolean;
   className?: string;
   textClassName?: string;
-  style?: StyleProp<ViewStyle>;
-  onPress?: (event: GestureResponderEvent) => void;
 };
 
-const buttonVariants = cva(
-  "flex-row items-center justify-center overflow-hidden rounded-control gap-gap-compact px-inline",
-  {
-    variants: {
-      size: {
-        sm: "min-h-control-sm",
-        md: "min-h-control",
-        lg: "min-h-control-lg",
-      },
+const buttonVariants = cva("overflow-hidden rounded-control gap-gap-compact", {
+  variants: {
+    size: {
+      sm: "min-h-control-sm flex-row items-center justify-center px-inline",
+      md: "min-h-control flex-row items-center justify-center px-inline",
+      lg: "min-h-control-lg flex-row items-center justify-center px-inline",
+      none: "min-h-0 px-0 rounded-none",
+    },
       variant: {
         solid: "border-0",
         soft: "border-0",
@@ -62,6 +63,10 @@ const buttonVariants = cva(
       },
       disabled: {
         true: "opacity-disabled",
+        false: "",
+      },
+      iconOnly: {
+        true: "aspect-square px-0",
         false: "",
       },
     },
@@ -87,6 +92,7 @@ const buttonVariants = cva(
       variant: "solid",
       tone: "brand",
       disabled: false,
+      iconOnly: false,
     },
   },
 );
@@ -131,10 +137,13 @@ const RIPPLE_OPACITY = 0.18;
 export function Button({
   label,
   icon,
+  children,
   tone = "brand",
   variant = "solid",
   size = "md",
   bottomSheet = false,
+  nestedScroll = false,
+  ripple = true,
   disabled,
   className,
   textClassName,
@@ -143,10 +152,14 @@ export function Button({
   onPressIn,
   onPressOut,
   accessibilityLabel,
+  accessibilityRole = "button",
   accessibilityState,
+  hitSlop,
   testID,
+  ...pressableProps
 }: ButtonProps) {
   const layoutRef = useRef<LayoutRectangle | null>(null);
+  const iconOnly = !label && size !== "none";
 
   const rippleScale = useSharedValue(0);
   const rippleOpacity = useSharedValue(0);
@@ -177,7 +190,7 @@ export function Button({
   const rippleStyle = useAnimatedStyle(() => {
     const d = rippleRadius.value * 2;
     return {
-      position: "absolute",
+      position: "absolute" as const,
       left: rippleX.value - rippleRadius.value,
       top: rippleY.value - rippleRadius.value,
       width: d,
@@ -197,64 +210,97 @@ export function Button({
   };
 
   const handlePressIn = (event: GestureResponderEvent) => {
-    const { locationX, locationY } = event.nativeEvent;
-    startRipple(locationX, locationY);
+    if (ripple) {
+      const { locationX, locationY } = event.nativeEvent;
+      startRipple(locationX, locationY);
+    }
     onPressIn?.(event);
   };
 
   const handlePressOut = (event: GestureResponderEvent) => {
-    endRipple();
+    if (ripple) {
+      endRipple();
+    }
     onPressOut?.(event);
   };
 
   const composedClassName = cn(
-    buttonVariants({ size, variant, tone, disabled: Boolean(disabled) }),
+    buttonVariants({
+      size,
+      variant,
+      tone,
+      disabled: Boolean(disabled),
+      iconOnly,
+    }),
     className,
   );
   const labelClassName = cn(buttonTextVariants({ variant, tone }), textClassName);
+  const resolvedAccessibilityLabel = accessibilityLabel ?? label;
 
-  const content = (
+  const inner = (
     <>
-      <Animated.View pointerEvents="none" style={rippleStyle} />
-      <View className="flex-row items-center gap-gap-compact">
-        {icon}
+      {ripple ? (
+        <Animated.View pointerEvents="none" style={rippleStyle} />
+      ) : null}
+      {icon}
+      {children}
+      {label ? (
         <ThemedText className={labelClassName} variant="label">
           {label}
         </ThemedText>
-      </View>
+      ) : null}
     </>
   );
 
   if (bottomSheet) {
     return (
       <BottomSheetTouchableOpacity
-        accessibilityLabel={accessibilityLabel}
-        accessibilityRole="button"
+        accessibilityLabel={resolvedAccessibilityLabel}
+        accessibilityRole={accessibilityRole}
         accessibilityState={accessibilityState}
         activeOpacity={0.85}
         disabled={disabled ?? undefined}
+        hitSlop={hitSlop ?? undefined}
         onLayout={handleLayout}
-        onPress={onPress}
-        style={style}
+        onPress={onPress ?? undefined}
+        style={typeof style === "function" ? undefined : style}
         testID={testID}
       >
-        <View className={composedClassName}>
-          {icon}
-          <ThemedText className={labelClassName} variant="label">
-            {label}
-          </ThemedText>
-        </View>
+        <View className={composedClassName}>{inner}</View>
       </BottomSheetTouchableOpacity>
+    );
+  }
+
+  if (nestedScroll) {
+    return (
+      <GesturePressable
+        accessibilityLabel={resolvedAccessibilityLabel}
+        accessibilityRole={accessibilityRole}
+        accessibilityState={accessibilityState}
+        disabled={Boolean(disabled)}
+        hitSlop={hitSlop as never}
+        onPress={onPress as never}
+        onPressIn={handlePressIn as never}
+        onPressOut={handlePressOut as never}
+        style={style as never}
+        testID={testID}
+      >
+        <View className={cn(composedClassName, "h-full w-full")} onLayout={handleLayout}>
+          {inner}
+        </View>
+      </GesturePressable>
     );
   }
 
   return (
     <Pressable
-      accessibilityLabel={accessibilityLabel}
-      accessibilityRole="button"
+      {...pressableProps}
+      accessibilityLabel={resolvedAccessibilityLabel}
+      accessibilityRole={accessibilityRole}
       accessibilityState={accessibilityState}
       className={composedClassName}
       disabled={disabled}
+      hitSlop={hitSlop}
       onLayout={handleLayout}
       onPress={onPress}
       onPressIn={handlePressIn}
@@ -262,7 +308,7 @@ export function Button({
       style={style}
       testID={testID}
     >
-      {content}
+      {inner}
     </Pressable>
   );
 }

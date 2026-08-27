@@ -1,10 +1,8 @@
-import { SymbolView } from "expo-symbols";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Keyboard,
   Platform,
-  Pressable,
   TextInput,
   View,
   type View as RNView,
@@ -17,6 +15,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+import { Button, ThemedIcon } from "@/components/ui";
 import { createMonthQuickAddAppointment } from "@/helpers/createMonthQuickAddAppointment";
 import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
 import { useAuthUser } from "@/stores";
@@ -248,8 +247,7 @@ function MonthQuickAddFieldComponent({
             style={inputStyle}
             accessibilityLabel="Quick add appointment"
           />
-          <Pressable
-            accessibilityRole="button"
+          <Button
             accessibilityLabel="Add appointment"
             accessibilityState={{ disabled: !canSubmit }}
             disabled={!canSubmit}
@@ -257,18 +255,20 @@ function MonthQuickAddFieldComponent({
             onPress={() => {
               void handleSubmit();
             }}
+            size="none"
             style={plusHitStyle}
+            tone="neutral"
+            variant="ghost"
           >
-            <SymbolView
+            <ThemedIcon
+              dimension={22}
               name={{
                 ios: "plus",
                 android: "add",
                 web: "add",
               }}
-              size={22}
-              tintColor={theme.palette.foreground.default}
             />
-          </Pressable>
+          </Button>
         </View>
       </Animated.View>
     </View>

@@ -1,17 +1,12 @@
-import { SymbolView } from "expo-symbols";
 import { useRef, useState, type ReactNode } from "react";
-import {
-  Modal,
-  Pressable,
-  View,
-  type LayoutRectangle,
-} from "react-native";
+import { Modal, View, type LayoutRectangle } from "react-native";
 
 import { chevronDownIcon } from "@/constants";
-import { useThemeTokens } from "@/theme";
 import { cn } from "@/utils/cn";
 
+import { Button } from "./Button";
 import { ColorSwatch } from "./ColorSwatch";
+import { ThemedIcon } from "./ThemedIcon";
 import { ThemedText } from "./ThemedText";
 
 export type DropdownOption = {
@@ -41,7 +36,6 @@ export function Dropdown({
   borderless = false,
   showChevron = true,
 }: DropdownProps) {
-  const theme = useThemeTokens();
   const triggerRef = useRef<View>(null);
   const [open, setOpen] = useState(false);
   const [menuLayout, setMenuLayout] = useState<LayoutRectangle | null>(null);
@@ -69,8 +63,7 @@ export function Dropdown({
           </ThemedText>
         ) : null}
         <View ref={triggerRef} collapsable={false}>
-          <Pressable
-            accessibilityRole="button"
+          <Button
             accessibilityState={{ expanded: open }}
             className={cn(
               "min-h-control flex-row items-center gap-gap-compact py-stack-compact",
@@ -79,6 +72,9 @@ export function Dropdown({
                 : "rounded-control border-subtle border-border-subtle bg-surface-raised px-inline",
             )}
             onPress={openMenu}
+            size="none"
+            tone="neutral"
+            variant="ghost"
           >
             {leading}
             <ThemedText
@@ -89,13 +85,9 @@ export function Dropdown({
               {hasValue ? (selected?.label ?? placeholder) : placeholder}
             </ThemedText>
             {showChevron ? (
-              <SymbolView
-                name={chevronDownIcon}
-                size={18}
-                tintColor={theme.palette.foreground.muted}
-              />
+              <ThemedIcon dimension={18} name={chevronDownIcon} tone="muted" />
             ) : null}
-          </Pressable>
+          </Button>
         </View>
       </View>
 
@@ -105,7 +97,15 @@ export function Dropdown({
         transparent
         visible={open}
       >
-        <Pressable className="flex-1" onPress={closeMenu}>
+        <Button
+          accessibilityLabel="Dismiss menu"
+          className="flex-1 rounded-none"
+          onPress={closeMenu}
+          ripple={false}
+          size="none"
+          tone="neutral"
+          variant="ghost"
+        >
           {menuLayout ? (
             <View
               className="absolute overflow-hidden rounded-control border-subtle border-border bg-surface-raised shadow-popover"
@@ -118,12 +118,11 @@ export function Dropdown({
               {options.map((option, index) => {
                 const isSelected = option.value === value;
                 return (
-                  <Pressable
+                  <Button
                     key={option.value || `option-${index}`}
-                    accessibilityRole="button"
                     accessibilityState={{ selected: isSelected }}
                     className={cn(
-                      "flex-row items-center gap-2 px-inline py-stack",
+                      "flex-row items-center justify-start gap-2 px-inline py-stack",
                       index > 0 && "border-t border-border-subtle",
                       isSelected && "bg-brand-subtle",
                     )}
@@ -131,6 +130,10 @@ export function Dropdown({
                       onChange(option.value);
                       closeMenu();
                     }}
+                    ripple={false}
+                    size="none"
+                    tone="neutral"
+                    variant="ghost"
                   >
                     {option.color ? <ColorSwatch color={option.color} /> : null}
                     <ThemedText
@@ -140,12 +143,12 @@ export function Dropdown({
                     >
                       {option.label}
                     </ThemedText>
-                  </Pressable>
+                  </Button>
                 );
               })}
             </View>
           ) : null}
-        </Pressable>
+        </Button>
       </Modal>
     </>
   );

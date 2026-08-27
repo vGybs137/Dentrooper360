@@ -1,69 +1,68 @@
-import { cva, type VariantProps } from "class-variance-authority";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
-import { cssInterop } from "nativewind";
 
-import { cn } from "@/utils/cn";
+import { semantic, type ThemePalette } from "@/tokens";
+import { useNativeColors } from "@/theme";
 
-const themedIconVariants = cva("", {
-  variants: {
-    tone: {
-      default: "tint-foreground-default",
-      muted: "tint-foreground-muted",
-      inverse: "tint-foreground-inverse",
-      brand: "tint-brand-default",
-      accent: "tint-accent-default",
-      success: "tint-success-default",
-      alert: "tint-alert-default",
-    },
-    size: {
-      sm: "size-icon-sm",
-      md: "size-icon",
-      lg: "size-icon-lg",
-    },
-  },
-  defaultVariants: {
-    tone: "default",
-    size: "md",
-  },
-});
+type IconTone =
+  | "default"
+  | "muted"
+  | "inverse"
+  | "brand"
+  | "accent"
+  | "success"
+  | "alert";
 
-function SymbolViewBase(props: SymbolViewProps) {
-  return <SymbolView {...props} />;
+type IconSize = "sm" | "md" | "lg";
+
+const ICON_SIZE: Record<IconSize, number> = {
+  sm: semantic.size["icon-sm"],
+  md: semantic.size.icon,
+  lg: semantic.size["icon-lg"],
+};
+
+export type ThemedIconProps = Omit<SymbolViewProps, "size"> & {
+  className?: string;
+  tone?: IconTone;
+  size?: IconSize;
+  /** Pixel size when sm/md/lg tokens are not enough (avatars, badges). */
+  dimension?: number;
+};
+
+function tintForTone(palette: ThemePalette, tone: IconTone) {
+  switch (tone) {
+    case "muted":
+      return palette.foreground.muted;
+    case "inverse":
+      return palette.foreground.inverse;
+    case "brand":
+      return palette.brand.default;
+    case "accent":
+      return palette.accent.default;
+    case "success":
+      return palette.success.DEFAULT;
+    case "alert":
+      return palette.alert.DEFAULT;
+    default:
+      return palette.foreground.default;
+  }
 }
 
-const InteropSymbolView = cssInterop(SymbolViewBase, {
-  className: {
-    target: "style",
-    nativeStyleToProp: {
-      color: "tintColor",
-      width: "size",
-    },
-  },
-});
-
-export type ThemedIconProps = Omit<SymbolViewProps, "size"> &
-  VariantProps<typeof themedIconVariants> & {
-    className?: string;
-  };
-
+/** SymbolView cannot take a className tint — hex is resolved here only. */
 export function ThemedIcon({
   tone = "default",
   size = "md",
-  className,
+  className: _className,
   tintColor,
+  dimension,
   ...props
 }: ThemedIconProps) {
+  const palette = useNativeColors();
+
   return (
-    <InteropSymbolView
+    <SymbolView
       {...props}
-      className={cn(
-        themedIconVariants({
-          size,
-          tone: tintColor == null ? tone : null,
-        }),
-        className,
-      )}
-      tintColor={tintColor}
+      size={dimension ?? ICON_SIZE[size]}
+      tintColor={tintColor ?? tintForTone(palette, tone)}
     />
   );
 }

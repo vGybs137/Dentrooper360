@@ -126,9 +126,9 @@ function ControlledThemedTextInput({
   value,
   ...props
 }: ThemedTextInputProps & { name: NonNullable<ThemedTextInputProps["name"]> }) {
-  const { control } = useFormContext();
+  const formContext = useFormContext();
   const { field, fieldState } = useController({
-    control,
+    control: formContext.control,
     name,
     rules,
   });
