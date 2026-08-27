@@ -6,7 +6,7 @@ import { combineDateAndTime } from "@/helpers/appointmentDate";
 import { hourFormatLocale } from "@/helpers/timeFormat";
 import { useInlineCollapse } from "@/hooks/useInlineCollapse";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
-import { useAppTheme, useThemeTokens } from "@/theme";
+import { useResolvedTheme, useThemeTokens } from "@/theme";
 
 const TIME_PICKER_HEIGHT = 216;
 
@@ -24,7 +24,7 @@ export function AppointmentInlineTimePicker({
   onSelectTime,
 }: AppointmentInlineTimePickerProps) {
   const theme = useThemeTokens();
-  const { resolved } = useAppTheme();
+  const resolved = useResolvedTheme();
   const hourFormat = useHourFormat();
   const { containerStyle, mounted } = useInlineCollapse(
     visible,

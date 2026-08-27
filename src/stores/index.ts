@@ -45,6 +45,14 @@ export type {
   HourFormat,
 } from "./schedulePreferencesStore";
 export {
+  applyThemeColorScheme,
+  useResolvedTheme,
+  useThemeMode,
+  useThemePreferencesHasHydrated,
+  useThemePreferencesStore,
+} from "./themePreferencesStore";
+export type { ResolvedTheme, ThemeMode } from "./themePreferencesStore";
+export {
   ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
   useAddAppointmentEditingId,
   useAddAppointmentIsPresented,

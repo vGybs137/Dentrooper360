@@ -10,10 +10,11 @@ import {
   applyScheduleViewPreference,
   setScheduleViewMode,
   useSchedulePreferencesStore,
+  useThemePreferencesStore,
   type DefaultCalendarView,
   type HourFormat,
+  type ThemeMode,
 } from "@/stores";
-import { useAppTheme, type ThemeMode } from "@/theme";
 import type { WeekdayIndex } from "@/utils/calendar";
 
 import { SettingsSection } from "./SettingsSection";
@@ -49,7 +50,8 @@ const APPEARANCE_OPTIONS = [
 ];
 
 export function SettingsPreferencesSection() {
-  const { mode, setMode } = useAppTheme();
+  const mode = useThemePreferencesStore((state) => state.mode);
+  const setMode = useThemePreferencesStore((state) => state.setMode);
   const defaultCalendarView = useSchedulePreferencesStore(
     (state) => state.defaultCalendarView,
   );

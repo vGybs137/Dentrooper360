@@ -58,7 +58,11 @@ export type {
   AppointmentSearchTimeWindow,
   AppointmentSearchTimeWindowOption,
 } from "./appointmentSearch";
-export { AUTH_STORE_KEY, SCHEDULE_PREFERENCES_STORE_KEY } from "./storage";
+export {
+  AUTH_STORE_KEY,
+  SCHEDULE_PREFERENCES_STORE_KEY,
+  THEME_PREFERENCES_STORE_KEY,
+} from "./storage";
 export {
   MIGRATIONS_ENABLED_AT_VERSION,
   SYNC_INTERVAL_MS,

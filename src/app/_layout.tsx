@@ -12,7 +12,7 @@ import { useConnectivitySync } from "@/hooks/useConnectivitySync";
 import { usePeriodicSync } from "@/hooks/usePeriodicSync";
 import { useTokenRefresh } from "@/hooks/useTokenRefresh";
 import { QueryProvider } from "@/providers/QueryProvider";
-import { ThemeProvider } from "@/theme";
+import { ThemeEffects } from "@/theme";
 
 import * as Sentry from "@sentry/react-native";
 
@@ -44,20 +44,19 @@ function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryProvider>
-        <ThemeProvider>
-          <BottomSheetModalProvider>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="(auth)" options={{ animation: "none" }} />
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="appointments/search" />
-              <Stack.Screen name="appointments/[id]" />
-              <Stack.Screen name="patients/[id]" />
-              <Stack.Screen name="recalls/[id]" />
-            </Stack>
-            <AddAppointmentSheet />
-          </BottomSheetModalProvider>
-        </ThemeProvider>
+        <ThemeEffects />
+        <BottomSheetModalProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(auth)" options={{ animation: "none" }} />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="appointments/search" />
+            <Stack.Screen name="appointments/[id]" />
+            <Stack.Screen name="patients/[id]" />
+            <Stack.Screen name="recalls/[id]" />
+          </Stack>
+          <AddAppointmentSheet />
+        </BottomSheetModalProvider>
       </QueryProvider>
     </GestureHandlerRootView>
   );
