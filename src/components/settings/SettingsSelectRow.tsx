@@ -1,11 +1,11 @@
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import Animated from "react-native-reanimated";
-import { SymbolView } from "expo-symbols";
 
-import { ThemedText } from "@/components/ui";
+import { Button, ThemedIcon, ThemedText } from "@/components/ui";
 import { chevronDownIcon } from "@/constants";
 import { useInlineCollapse } from "@/hooks/useInlineCollapse";
-import { useThemeTokens } from "@/theme";
+import { semantic } from "@/tokens";
+import { cn } from "@/utils/cn";
 
 import {
   SettingsRowLabel,
@@ -25,6 +25,7 @@ export function SettingsSelectRow<T extends string | number>({
   expanded,
   onToggle,
   last = false,
+  instantCollapse = false,
 }: {
   title: string;
   description: string;
@@ -35,67 +36,70 @@ export function SettingsSelectRow<T extends string | number>({
   expanded: boolean;
   onToggle: () => void;
   last?: boolean;
+  instantCollapse?: boolean;
 }) {
-  const theme = useThemeTokens();
-  const optionGap = theme.semantic.space.gap.compact;
+  const optionGap = semantic.space.gap.compact;
   const contentHeight =
     options.length * OPTION_ROW_HEIGHT +
     Math.max(options.length - 1, 0) * optionGap +
-    theme.semantic.space.stack.compact;
-  const { containerStyle, mounted } = useInlineCollapse(
+    semantic.space.stack.compact;
+  const { containerStyle, chevronStyle, mounted } = useInlineCollapse(
     expanded,
     contentHeight,
+    { instant: instantCollapse && !expanded },
   );
   const selected = options.find((option) => option.value === value);
 
   return (
     <View
-      style={{
-        borderBottomWidth: last ? 0 : 1,
-        borderBottomColor: theme.palette.border.subtle,
-      }}
+      className={cn(!last && "border-b border-border-subtle")}
     >
-      <Pressable
-        accessibilityRole="button"
+      <Button
         accessibilityState={{ expanded }}
+        className="w-full"
         onPress={onToggle}
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: theme.semantic.space.gap.default,
-          paddingHorizontal: theme.semantic.space.inline.comfortable,
-          paddingVertical: theme.semantic.space.stack.default,
-          minHeight: theme.semantic.size.touch,
-        }}
+        ripple={false}
+        size="none"
+        tone="neutral"
+        variant="ghost"
       >
-        <SettingsRowLabel
-          title={title}
-          description={description}
-          icon={icon}
-        />
         <View
           style={{
-            flexShrink: 0,
+            width: "100%",
+            minHeight: semantic.size.touch,
             flexDirection: "row",
             alignItems: "center",
-            gap: theme.semantic.space.gap.compact,
+            gap: semantic.space.gap.default,
+            paddingHorizontal: semantic.space.inline.comfortable,
+            paddingVertical: semantic.space.stack.default,
           }}
         >
-          <ThemedText
-            tone="brand"
-            variant="label"
-            style={{ fontWeight: theme.primitives.fontWeight.semibold }}
-          >
-            {selected?.label ?? "—"}
-          </ThemedText>
-          <SymbolView
-            name={chevronDownIcon}
-            size={16}
-            style={{ transform: [{ rotate: expanded ? "180deg" : "0deg" }] }}
-            tintColor={theme.palette.foreground.muted}
+          <SettingsRowLabel
+            description={description}
+            icon={icon}
+            title={title}
           />
+          <View
+            style={{
+              flexShrink: 0,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: semantic.space.gap.compact,
+            }}
+          >
+            <ThemedText className="font-semibold" tone="brand" variant="label">
+              {selected?.label ?? "—"}
+            </ThemedText>
+            <Animated.View style={chevronStyle}>
+              <ThemedIcon
+                dimension={16}
+                name={chevronDownIcon}
+                tone="muted"
+              />
+            </Animated.View>
+          </View>
         </View>
-      </Pressable>
+      </Button>
 
       {mounted ? (
         <Animated.View
@@ -104,8 +108,8 @@ export function SettingsSelectRow<T extends string | number>({
         >
           <View
             style={{
-              paddingBottom: theme.semantic.space.stack.compact,
-              paddingHorizontal: theme.semantic.space.inline.comfortable,
+              paddingBottom: semantic.space.stack.compact,
+              paddingHorizontal: semantic.space.inline.comfortable,
               alignItems: "center",
               justifyContent: "center",
               gap: optionGap,
@@ -114,36 +118,33 @@ export function SettingsSelectRow<T extends string | number>({
             {options.map((option) => {
               const isSelected = option.value === value;
               return (
-                <Pressable
+                <Button
                   key={String(option.value)}
-                  accessibilityRole="button"
                   accessibilityState={{ selected: isSelected }}
+                  className="w-full items-center justify-center"
                   onPress={() => {
                     onChange(option.value);
                     if (expanded) {
                       onToggle();
                     }
                   }}
+                  ripple={false}
+                  size="none"
                   style={{
                     height: OPTION_ROW_HEIGHT,
-                    width: "100%",
-                    alignItems: "center",
-                    justifyContent: "center",
                   }}
+                  tone="neutral"
+                  variant="ghost"
                 >
                   <ThemedText
                     align="center"
+                    className={isSelected ? "font-semibold" : undefined}
                     tone={isSelected ? "brand" : "default"}
                     variant="body"
-                    style={{
-                      fontWeight: isSelected
-                        ? theme.primitives.fontWeight.semibold
-                        : theme.primitives.fontWeight.regular,
-                    }}
                   >
                     {option.label}
                   </ThemedText>
-                </Pressable>
+                </Button>
               );
             })}
           </View>

@@ -1,5 +1,5 @@
 import { useSegments } from "expo-router";
-import { Platform, useWindowDimensions, View } from "react-native";
+import { useWindowDimensions } from "react-native";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -7,14 +7,11 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Stack, ThemedText } from "@/components/ui";
-import { BOTTOM_TAB_INSET } from "@/constants/navigation";
-import { useThemeTokens } from "@/theme";
+import { ThemedText, ThemedView } from "@/components/ui";
+import { getWebTabBarInset } from "@/constants/navigation";
+import { semantic } from "@/tokens";
 
 import { SettingsPreferencesSection } from "./SettingsPreferencesSection";
 import { SettingsProfileCard } from "./SettingsProfileCard";
@@ -22,22 +19,20 @@ import { SettingsSyncSection } from "./SettingsSyncSection";
 
 export function SettingsScreen() {
   const segments = useSegments();
-  const theme = useThemeTokens();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const scrollY = useSharedValue(0);
 
-  const bottomInset =
-    Platform.OS === "web" && segments[0] === "(tabs)" ? BOTTOM_TAB_INSET : 0;
+  const bottomInset = getWebTabBarInset(segments[0]);
 
-  const titleTopPadding = theme.semantic.space.section * 2;
-  const titleBottomPadding = theme.semantic.space.section;
-  const displayLineHeight = theme.semantic.type.display.lineHeight;
+  const titleTopPadding = semantic.space.section * 2;
+  const titleBottomPadding = semantic.space.section;
+  const displayLineHeight = semantic.type.display.lineHeight;
   const titleBlockHeight =
     titleTopPadding + displayLineHeight + titleBottomPadding;
 
   const listViewportHeight = windowHeight - insets.top;
-  const contentBottomPadding = theme.semantic.space.page + bottomInset;
+  const contentBottomPadding = semantic.space.page + bottomInset;
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -57,17 +52,17 @@ export function SettingsScreen() {
   }));
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: theme.palette.surface.default,
-      }}
+    <ThemedView
+      edges={["top", "left", "right"]}
+      inset="none"
+      padBottom={false}
+      scroll={false}
+      variant="screen"
     >
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
         <Animated.ScrollView
           contentContainerStyle={{
             paddingBottom: contentBottomPadding,
-            paddingHorizontal: theme.semantic.space.inline.compact,
+            paddingHorizontal: semantic.space.inline.compact,
             // Same as Search: enough room to scroll the large title fully away.
             minHeight: listViewportHeight + titleBlockHeight,
           }}
@@ -91,16 +86,16 @@ export function SettingsScreen() {
             </ThemedText>
           </Animated.View>
 
-          <Stack
+          <ThemedView
             space="comfortable"
-            style={{ marginTop: theme.semantic.space.section }}
+            style={{ marginTop: semantic.space.section }}
+            variant="stack"
           >
             <SettingsProfileCard />
             <SettingsPreferencesSection />
             <SettingsSyncSection />
-          </Stack>
+          </ThemedView>
         </Animated.ScrollView>
-      </SafeAreaView>
-    </View>
+    </ThemedView>
   );
 }

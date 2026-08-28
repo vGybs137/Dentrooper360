@@ -106,15 +106,22 @@ export const semantic: {
     };
     success: {
       DEFAULT: string;
+      default: string;
       subtle: string;
       strong: string;
       text: string;
     };
     alert: {
       DEFAULT: string;
+      default: string;
       subtle: string;
       strong: string;
       text: string;
+    };
+    calendar: {
+      default: string;
+      muted: string;
+      quickAdd: string;
     };
   };
 };

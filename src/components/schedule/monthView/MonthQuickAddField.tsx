@@ -1,11 +1,8 @@
-import { SymbolView } from "expo-symbols";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Keyboard,
   Platform,
-  Pressable,
-  TextInput,
   View,
   type View as RNView,
 } from "react-native";
@@ -16,11 +13,13 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 
+import { Button, ThemedIcon, ThemedText } from "@/components/ui";
 import { createMonthQuickAddAppointment } from "@/helpers/createMonthQuickAddAppointment";
 import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
 import { useAuthUser } from "@/stores";
-import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import type { DayKey } from "@/utils/calendar";
 
@@ -47,7 +46,7 @@ function MonthQuickAddFieldComponent({
   events,
   placeholder = "Add appointment...",
 }: MonthQuickAddFieldProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const user = useAuthUser();
   const { startHour, endHour } = useUserScheduleHours();
   const reservedRef = useRef<RNView>(null);
@@ -62,9 +61,9 @@ function MonthQuickAddFieldComponent({
 
   // Equal inset above/below the pill. Do not use safe-area bottom — NativeTabs
   // already sit under this screen, so insets.bottom would leave a large empty gap.
-  const verticalPad = theme.semantic.space.stack.compact;
+  const verticalPad = semantic.space.stack.compact;
   verticalPadRef.current = verticalPad;
-  const sideInset = theme.semantic.space.page;
+  const sideInset = semantic.space.page;
   const canSubmit = text.trim().length > 0 && !isSubmitting;
 
   useEffect(() => {
@@ -152,9 +151,9 @@ function MonthQuickAddFieldComponent({
   const reservedStyle = useMemo(
     () => ({
       height: MONTH_QUICK_ADD_COLLAPSED_HEIGHT + verticalPad * 2,
-      zIndex: theme.semantic.zIndex.sticky,
+      zIndex: semantic.zIndex.sticky,
     }),
-    [theme, verticalPad],
+    [verticalPad],
   );
 
   const pillAnimatedStyle = useAnimatedStyle(() => {
@@ -182,40 +181,36 @@ function MonthQuickAddFieldComponent({
       flex: 1,
       flexDirection: "row" as const,
       alignItems: "center" as const,
-      paddingLeft: theme.semantic.space.inline.default,
-      paddingRight: theme.semantic.space.inline.compact,
-      backgroundColor: theme.palette.calendar.quickAdd,
-      borderRadius: theme.semantic.radius.pill,
+      paddingLeft: semantic.space.inline.default,
+      paddingRight: semantic.space.inline.compact,
+      backgroundColor: native.calendar.quickAdd,
+      borderRadius: semantic.radius.pill,
       // Soft lift so the field reads above the calendar in light mode.
-      shadowColor: theme.palette.foreground.default,
+      shadowColor: native.foreground.default,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.1,
       shadowRadius: 3,
-      elevation: theme.semantic.elevation.raised,
+      elevation: semantic.elevation.raised,
     }),
-    [theme],
+    [native],
   );
 
-  const inputStyle = useMemo(
+  const inputChromeStyle = useMemo(
     () => ({
       flex: 1,
-      paddingVertical: 0,
-      color: theme.palette.foreground.default,
-      fontSize: theme.primitives.fontSize.md,
-      lineHeight: theme.primitives.lineHeight.md,
     }),
-    [theme],
+    [],
   );
 
   const plusHitStyle = useMemo(
     () => ({
-      width: theme.semantic.size.control,
-      height: theme.semantic.size.control,
+      width: semantic.size.control,
+      height: semantic.size.control,
       alignItems: "center" as const,
       justifyContent: "center" as const,
-      opacity: canSubmit ? 1 : theme.semantic.opacity.disabled,
+      opacity: canSubmit ? 1 : semantic.opacity.disabled,
     }),
-    [canSubmit, theme],
+    [canSubmit, native],
   );
 
   const slotStyle = useMemo(
@@ -232,24 +227,26 @@ function MonthQuickAddFieldComponent({
     <View ref={reservedRef} pointerEvents="box-none" style={reservedStyle}>
       <Animated.View style={[slotStyle, pillAnimatedStyle]}>
         <View style={pillStaticStyle}>
-          <TextInput
-            value={text}
+          <ThemedText
+            as="input"
+            accessibilityLabel="Quick add appointment"
+            blurOnSubmit
+            className="py-0"
+            containerClassName="min-h-0 flex-1 gap-0"
+            editable={!isSubmitting}
+            fieldVariant="bare"
+            onBlur={() => setFocused(false)}
             onChangeText={setText}
             onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            placeholder={placeholder}
-            placeholderTextColor={theme.palette.foreground.muted}
-            returnKeyType="done"
-            blurOnSubmit
             onSubmitEditing={() => {
               void handleSubmit();
             }}
-            editable={!isSubmitting}
-            style={inputStyle}
-            accessibilityLabel="Quick add appointment"
+            placeholder={placeholder}
+            returnKeyType="done"
+            style={inputChromeStyle}
+            value={text}
           />
-          <Pressable
-            accessibilityRole="button"
+          <Button
             accessibilityLabel="Add appointment"
             accessibilityState={{ disabled: !canSubmit }}
             disabled={!canSubmit}
@@ -257,18 +254,20 @@ function MonthQuickAddFieldComponent({
             onPress={() => {
               void handleSubmit();
             }}
+            size="none"
             style={plusHitStyle}
+            tone="neutral"
+            variant="ghost"
           >
-            <SymbolView
+            <ThemedIcon
+              dimension={22}
               name={{
                 ios: "plus",
                 android: "add",
                 web: "add",
               }}
-              size={22}
-              tintColor={theme.palette.foreground.default}
             />
-          </Pressable>
+          </Button>
         </View>
       </Animated.View>
     </View>

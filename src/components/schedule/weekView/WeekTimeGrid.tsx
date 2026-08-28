@@ -2,6 +2,8 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import type { ScrollView as ScrollViewType } from "react-native-gesture-handler";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 
 import {
   buildHalfHourLineTops,
@@ -23,7 +25,6 @@ import {
 } from "@/constants/schedule";
 import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
 import type { WeekEventsByDay } from "@/hooks/schedule/useWeekAppointmentsCache";
-import { useThemeTokens } from "@/theme";
 import {
   addDays,
   gridHeightForHourRange,
@@ -78,7 +79,7 @@ function WeekTimeGridComponent({
   onVerticalScrollBegin,
   onVerticalScrollEnd,
 }: WeekTimeGridProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const { startHour, endHour } = useUserScheduleHours();
   const scrollRef = useRef<ScrollViewType>(null);
   const hasScrolledRef = useRef(false);
@@ -188,11 +189,11 @@ function WeekTimeGridComponent({
     return () => clearInterval(id);
   }, [showTodayNowIndicator]);
 
-  const gridBorderColor = theme.colors.borderStrong;
-  const gridBorderWidth = theme.semantic.borderWidth.strong;
-  const halfHourBorderColor = theme.colors.borderSubtle;
-  const halfHourBorderWidth = theme.semantic.borderWidth.subtle;
-  const nowIndicatorColor = theme.palette.brand.default;
+  const gridBorderColor = native.border.strong;
+  const gridBorderWidth = semantic.borderWidth.strong;
+  const halfHourBorderColor = native.border.subtle;
+  const halfHourBorderWidth = semantic.borderWidth.subtle;
+  const nowIndicatorColor = native.brand.default;
 
   const onContentSizeChange = useCallback(() => {
     if (hasScrolledRef.current) return;
@@ -211,7 +212,7 @@ function WeekTimeGridComponent({
   return (
     <ScrollView
       ref={scrollRef}
-      className="flex-1"
+      style={{ flex: 1 }}
       contentContainerStyle={{ flexGrow: 1 }}
       showsVerticalScrollIndicator={false}
       nestedScrollEnabled={Platform.OS === "android"}
@@ -231,7 +232,7 @@ function WeekTimeGridComponent({
           endHour={endHour}
         />
 
-        <View className="flex-1" style={{ position: "relative" }}>
+        <View style={{ flex: 1, position: "relative" }}>
           {halfHourLines.map((top, index) => (
             <View
               key={`half-hour-line-${index}`}

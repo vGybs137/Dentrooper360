@@ -2,7 +2,7 @@ import { type Href, useRouter } from "expo-router";
 import { useEffect } from "react";
 
 import { BrandedSplash } from "@/components/app/BrandLogo";
-import { Button, Stack, ThemedText } from "@/components/ui";
+import { Button, ThemedText, ThemedView } from "@/components/ui";
 import { hideNativeSplash } from "@/helpers/nativeSplash";
 import { useStartupSessionCheck } from "@/hooks/useStartupSessionCheck";
 import { useStartupSync } from "@/hooks/useStartupSync";
@@ -107,7 +107,7 @@ export default function Index() {
   return (
     <BrandedSplash>
       {showSyncRetry ? (
-        <Stack space="compact" align="center">
+        <ThemedView align="center" space="compact" variant="stack">
           <ThemedText align="center" tone="muted">
             Unable to sync clinic data. Check your connection and try again.
           </ThemedText>
@@ -119,10 +119,10 @@ export default function Index() {
             }}
             tone="brand"
           />
-        </Stack>
+        </ThemedView>
       ) : null}
       {showContinueOffline ? (
-        <Stack space="compact" align="center">
+        <ThemedView align="center" space="compact" variant="stack">
           <ThemedText align="center" tone="muted">
             Unable to sync right now. You can continue with previously synced
             clinic data.
@@ -145,7 +145,7 @@ export default function Index() {
             tone="brand"
             variant="outline"
           />
-        </Stack>
+        </ThemedView>
       ) : null}
     </BrandedSplash>
   );

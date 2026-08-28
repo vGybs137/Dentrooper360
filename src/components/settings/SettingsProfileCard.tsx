@@ -1,12 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter, type Href } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { useEffect, useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import Animated from "react-native-reanimated";
 
 import { logout } from "@/api";
-import { DeleteConfirmationDialog, Stack, ThemedText } from "@/components/ui";
+import { Button, DeleteConfirmationDialog, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
 import { chevronDownIcon, logoutIcon } from "@/constants";
 import { useAppointmentFormOptions } from "@/hooks/useAppointmentFormOptions";
 import { useInlineCollapse } from "@/hooks/useInlineCollapse";
@@ -16,7 +15,7 @@ import {
   useAuthUser,
   useSchedulePreferencesStore,
 } from "@/stores";
-import { useThemeTokens } from "@/theme";
+import { semantic } from "@/tokens";
 import { ApiError } from "@/types/api";
 
 const OPTION_ROW_HEIGHT = 44;
@@ -33,7 +32,6 @@ function initialsFromName(name: string): string {
 }
 
 export function SettingsProfileCard() {
-  const theme = useThemeTokens();
   const router = useRouter();
   const queryClient = useQueryClient();
   const user = useAuthUser();
@@ -66,12 +64,12 @@ export function SettingsProfileCard() {
     locationOptions.find((option) => option.value === selectedLocationId)
       ?.label ?? (locationsLoading ? "Loading…" : "No location");
 
-  const optionGap = theme.semantic.space.gap.compact;
+  const optionGap = semantic.space.gap.compact;
   const contentHeight =
     locationOptions.length * OPTION_ROW_HEIGHT +
     Math.max(locationOptions.length - 1, 0) * optionGap +
-    theme.semantic.space.stack.compact;
-  const { containerStyle, mounted } = useInlineCollapse(
+    semantic.space.stack.compact;
+  const { containerStyle, chevronStyle, mounted } = useInlineCollapse(
     locationExpanded && locationOptions.length > 0,
     contentHeight,
   );
@@ -142,49 +140,30 @@ export function SettingsProfileCard() {
 
   return (
     <>
-      <View
-      style={{
-        borderRadius: theme.semantic.radius.card,
-        backgroundColor: theme.palette.surface.raised,
-        borderWidth: 1,
-        borderColor: theme.palette.border.subtle,
-        overflow: "hidden",
-      }}
-    >
+      <ThemedView className="overflow-hidden" inset="none" variant="card">
       <View
         style={{
           flexDirection: "row",
           alignItems: "center",
-          gap: theme.semantic.space.gap.default,
-          paddingHorizontal: theme.semantic.space.inline.comfortable,
-          paddingVertical: theme.semantic.space.stack.default,
+          gap: semantic.space.gap.default,
+          paddingHorizontal: semantic.space.inline.comfortable,
+          paddingVertical: semantic.space.stack.default,
         }}
       >
         <View
+          className="items-center justify-center rounded-pill bg-brand-subtle"
           style={{
-            width: theme.semantic.size.touch,
-            height: theme.semantic.size.touch,
-            borderRadius: theme.semantic.radius.pill,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: theme.palette.brand.subtle,
+            width: semantic.size.touch,
+            height: semantic.size.touch,
           }}
         >
-          <ThemedText
-            tone="brand"
-            variant="body"
-            style={{ fontWeight: theme.primitives.fontWeight.semibold }}
-          >
+          <ThemedText className="font-semibold" tone="brand" variant="body">
             {initialsFromName(displayName)}
           </ThemedText>
         </View>
 
-        <Stack space="compact" style={{ flex: 1, minWidth: 0 }}>
-          <ThemedText
-            numberOfLines={1}
-            variant="body"
-            style={{ fontWeight: theme.primitives.fontWeight.semibold }}
-          >
+        <View style={{ flex: 1, minWidth: 0, gap: semantic.space.gap.compact }}>
+          <ThemedText className="font-semibold" numberOfLines={1} variant="body">
             {displayName}
           </ThemedText>
           <ThemedText numberOfLines={1} tone="muted" variant="label">
@@ -192,40 +171,36 @@ export function SettingsProfileCard() {
               ? "Signing out…"
               : (displayEmail ?? "Clinic pairing stays on this device")}
           </ThemedText>
-        </Stack>
+        </View>
 
-        <Pressable
+        <Button
           accessibilityLabel="Log out"
-          accessibilityRole="button"
           accessibilityState={{ disabled: !canLogout }}
           disabled={!canLogout}
           hitSlop={8}
           onPress={requestLogout}
+          size="none"
           style={{
-            width: theme.semantic.size.touch,
-            height: theme.semantic.size.touch,
+            width: semantic.size.touch,
+            height: semantic.size.touch,
             alignItems: "center",
             justifyContent: "center",
-            opacity: canLogout ? 1 : 0.4,
           }}
+          tone="neutral"
+          variant="ghost"
         >
-          <SymbolView
+          <ThemedIcon
             name={logoutIcon}
-            size={theme.semantic.size.icon}
-            tintColor={
-              canLogout
-                ? theme.palette.alert.DEFAULT
-                : theme.palette.foreground.muted
-            }
+            tone={canLogout ? "alert" : "muted"}
           />
-        </Pressable>
+        </Button>
       </View>
 
       {logoutError ? (
         <View
           style={{
-            paddingHorizontal: theme.semantic.space.inline.comfortable,
-            paddingBottom: theme.semantic.space.stack.compact,
+            paddingHorizontal: semantic.space.inline.comfortable,
+            paddingBottom: semantic.space.stack.compact,
           }}
         >
           <ThemedText tone="alert" variant="label">
@@ -235,50 +210,55 @@ export function SettingsProfileCard() {
       ) : null}
 
       <View
-        style={{
-          height: 1,
-          backgroundColor: theme.palette.border.subtle,
-          marginHorizontal: theme.semantic.space.inline.comfortable,
-        }}
+        className="h-px bg-border-subtle"
+        style={{ marginHorizontal: semantic.space.inline.comfortable }}
       />
 
-      <Pressable
-        accessibilityRole="button"
+      <Button
+        accessibilityLabel={selectedLocationLabel}
         accessibilityState={{
           expanded: locationExpanded,
           disabled: locationOptions.length === 0,
         }}
+        className="w-full"
         disabled={locationOptions.length === 0}
         onPress={() => setLocationExpanded((current) => !current)}
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: theme.semantic.space.gap.compact,
-          paddingHorizontal: theme.semantic.space.inline.comfortable,
-          paddingVertical: theme.semantic.space.stack.default,
-          minHeight: theme.semantic.size.touch,
-        }}
+        ripple={false}
+        size="none"
+        tone="neutral"
+        variant="ghost"
       >
-        <ThemedText
-          align="center"
-          numberOfLines={1}
-          variant="body"
-          style={{ fontWeight: theme.primitives.fontWeight.medium }}
+        <View
+          style={{
+            width: "100%",
+            minHeight: semantic.size.touch,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: semantic.space.gap.compact,
+            paddingHorizontal: semantic.space.inline.comfortable,
+            paddingVertical: semantic.space.stack.default,
+          }}
         >
-          {selectedLocationLabel}
-        </ThemedText>
-        {locationOptions.length > 0 ? (
-          <SymbolView
-            name={chevronDownIcon}
-            size={16}
-            style={{
-              transform: [{ rotate: locationExpanded ? "180deg" : "0deg" }],
-            }}
-            tintColor={theme.palette.foreground.muted}
-          />
-        ) : null}
-      </Pressable>
+          <ThemedText
+            align="center"
+            className="font-medium"
+            numberOfLines={1}
+            variant="body"
+          >
+            {selectedLocationLabel}
+          </ThemedText>
+          {locationOptions.length > 0 ? (
+            <Animated.View style={chevronStyle}>
+              <ThemedIcon
+                dimension={16}
+                name={chevronDownIcon}
+                tone="muted"
+              />
+            </Animated.View>
+          ) : null}
+        </View>
+      </Button>
 
       {mounted ? (
         <Animated.View
@@ -287,8 +267,8 @@ export function SettingsProfileCard() {
         >
           <View
             style={{
-              paddingBottom: theme.semantic.space.stack.compact,
-              paddingHorizontal: theme.semantic.space.inline.comfortable,
+              paddingBottom: semantic.space.stack.compact,
+              paddingHorizontal: semantic.space.inline.comfortable,
               alignItems: "center",
               gap: optionGap,
             }}
@@ -296,40 +276,38 @@ export function SettingsProfileCard() {
             {locationOptions.map((option) => {
               const isSelected = option.value === selectedLocationId;
               return (
-                <Pressable
+                <Button
                   key={option.value}
-                  accessibilityRole="button"
+                  accessibilityLabel={option.label}
                   accessibilityState={{ selected: isSelected }}
+                  className="w-full items-center justify-center"
                   onPress={() => {
                     setDefaultLocationId(option.value);
                     setLocationExpanded(false);
                   }}
+                  ripple={false}
+                  size="none"
                   style={{
                     height: OPTION_ROW_HEIGHT,
-                    width: "100%",
-                    alignItems: "center",
-                    justifyContent: "center",
                   }}
+                  tone="neutral"
+                  variant="ghost"
                 >
                   <ThemedText
                     align="center"
+                    className={isSelected ? "font-semibold" : undefined}
                     tone={isSelected ? "brand" : "default"}
                     variant="body"
-                    style={{
-                      fontWeight: isSelected
-                        ? theme.primitives.fontWeight.semibold
-                        : theme.primitives.fontWeight.regular,
-                    }}
                   >
                     {option.label}
                   </ThemedText>
-                </Pressable>
+                </Button>
               );
             })}
           </View>
         </Animated.View>
         ) : null}
-      </View>
+      </ThemedView>
 
       <DeleteConfirmationDialog
         confirming={logoutMutation.isPending}

@@ -3,10 +3,10 @@ import { useWatch } from "react-hook-form";
 import { ActivityIndicator, View } from "react-native";
 
 import { PatientCard } from "@/components/patients";
-import { Stack, TextField, ThemedText } from "@/components/ui";
+import { ThemedText, ThemedView } from "@/components/ui";
 import type { AddAppointmentFormState } from "@/hooks/useAddAppointmentForm";
 import type { AppointmentPatientOption } from "@/hooks/useAppointmentFormOptions";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
 
 type AddAppointmentPatientStepProps = {
   formState: AddAppointmentFormState;
@@ -19,7 +19,7 @@ function PatientSearchDivider() {
 function AddAppointmentPatientStepComponent({
   formState,
 }: AddAppointmentPatientStepProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const {
     control,
     options,
@@ -39,25 +39,26 @@ function AddAppointmentPatientStepComponent({
   );
 
   return (
-    <Stack space="default">
+    <ThemedView space="default" variant="stack">
       <View className="w-full">
-        <TextField
+        <ThemedText
+          as="input"
           autoCapitalize="none"
           autoCorrect={false}
           bottomSheetInput
           containerClassName="w-full"
+          fieldVariant="bare"
           onChangeText={setPatientSearch}
           placeholder="Search patients..."
           returnKeyType="search"
           value={patientSearch}
-          variant="bare"
         />
         <PatientSearchDivider />
       </View>
 
       {options.patientsLoading ? (
         <View className="items-center py-6">
-          <ActivityIndicator color={theme.palette.brand.default} />
+          <ActivityIndicator color={native.brand.default} />
         </View>
       ) : options.error ? (
         <ThemedText tone="alert" variant="body">
@@ -68,7 +69,7 @@ function AddAppointmentPatientStepComponent({
           No patients match your search.
         </ThemedText>
       ) : (
-        <Stack space="compact">
+        <ThemedView space="compact" variant="stack">
           {options.patients.map((patient) => (
             <PatientCard
               key={patient.id}
@@ -78,9 +79,9 @@ function AddAppointmentPatientStepComponent({
               selected={patient.id === patientId}
             />
           ))}
-        </Stack>
+        </ThemedView>
       )}
-    </Stack>
+    </ThemedView>
   );
 }
 

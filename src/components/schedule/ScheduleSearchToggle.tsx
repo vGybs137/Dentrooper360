@@ -1,13 +1,11 @@
 import { memo, useCallback } from "react";
-import { Pressable } from "react-native";
-import { SymbolView } from "expo-symbols";
 import { useRouter, type Href } from "expo-router";
 
+import { Button, ThemedIcon } from "@/components/ui";
 import { searchIcon } from "@/constants";
-import { useThemeTokens } from "@/theme";
+import { semantic } from "@/tokens";
 
 function ScheduleSearchToggleComponent() {
-  const theme = useThemeTokens();
   const router = useRouter();
 
   const openSearch = useCallback(() => {
@@ -15,24 +13,22 @@ function ScheduleSearchToggleComponent() {
   }, [router]);
 
   return (
-    <Pressable
+    <Button
       accessibilityLabel="Search appointments"
-      accessibilityRole="button"
       hitSlop={8}
       onPress={openSearch}
+      size="none"
       style={{
+        width: semantic.size.touch,
+        height: semantic.size.touch,
         alignItems: "flex-end",
         justifyContent: "center",
-        width: theme.semantic.size.touch,
-        minHeight: theme.semantic.size.touch,
       }}
+      tone="neutral"
+      variant="ghost"
     >
-      <SymbolView
-        name={searchIcon}
-        size={theme.semantic.size.icon}
-        tintColor={theme.palette.foreground.default}
-      />
-    </Pressable>
+      <ThemedIcon name={searchIcon} />
+    </Button>
   );
 }
 

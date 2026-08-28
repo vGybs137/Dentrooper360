@@ -177,7 +177,10 @@ export function WeekCalendar({ weekStartsOn = 0 }: WeekCalendarProps) {
 
   return (
     <WeekHighlightDayContext.Provider value={highlightDayKey}>
-      <View className="w-full flex-1 self-stretch" onLayout={onHostLayout}>
+      <View
+        onLayout={onHostLayout}
+        style={{ flex: 1, width: "100%", alignSelf: "stretch" }}
+      >
         <View onLayout={onChromeLayout}>
           <WeekCalendarHeader
             weekStartKey={visibleWeekStart}
@@ -185,7 +188,7 @@ export function WeekCalendar({ weekStartsOn = 0 }: WeekCalendarProps) {
           />
         </View>
 
-        <View className="flex-1 overflow-hidden">
+        <View style={{ flex: 1, overflow: "hidden" }}>
           <WeekCalendarPager
             weeks={weeks}
             initialIndex={initialIndex}

@@ -1,20 +1,20 @@
 import { useMutation } from "@tanstack/react-query";
-import { Pressable, Switch } from "react-native";
+import { Switch } from "react-native";
 
-import { ThemedText } from "@/components/ui";
+import { Button, ThemedText } from "@/components/ui";
 import { clockIcon, pendingChangesIcon, syncIcon, wifiIcon } from "@/constants";
 import { synchronize } from "@/database/synchronize";
 import { useIsOnCellular } from "@/hooks/useIsOnCellular";
 import { useSyncStatus } from "@/hooks/useSyncStatus";
 import { useCustomerId, useSyncStatusStore, useSyncWifiOnly } from "@/stores";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
 import { ApiError } from "@/types/api";
 
 import { formatLastSyncedAt } from "@/helpers/formatLastSyncedAt";
 import { SettingsRow, SettingsSection } from "./SettingsSection";
 
 export function SettingsSyncSection() {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const customerId = useCustomerId();
   const { isOffline, hasUnsynced, lastSuccessfulSyncAt, refresh } =
     useSyncStatus();
@@ -118,10 +118,10 @@ export function SettingsSyncSection() {
             accessibilityLabel="Sync on Wi-Fi only"
             onValueChange={setSyncWifiOnly}
             trackColor={{
-              false: theme.palette.border.subtle,
-              true: theme.palette.brand.default,
+              false: native.border.subtle,
+              true: native.brand.default,
             }}
-            thumbColor={theme.palette.surface.raised}
+            thumbColor={native.surface.raised}
             value={syncWifiOnly}
           />
         }
@@ -138,22 +138,16 @@ export function SettingsSyncSection() {
         icon={syncIcon}
         last
         trailing={
-          <Pressable
-            accessibilityRole="button"
+          <Button
             disabled={!canSyncNow}
             hitSlop={8}
+            label={syncMutation.isPending ? "Syncing…" : "Sync"}
             onPress={requestSyncNow}
-          >
-            <ThemedText
-              tone={canSyncNow ? "brand" : "muted"}
-              variant="label"
-              style={{
-                fontWeight: theme.primitives.fontWeight.semibold,
-              }}
-            >
-              {syncMutation.isPending ? "Syncing…" : "Sync"}
-            </ThemedText>
-          </Pressable>
+            size="sm"
+            textClassName="font-semibold"
+            tone={canSyncNow ? "brand" : "neutral"}
+            variant="ghost"
+          />
         }
       />
     </SettingsSection>

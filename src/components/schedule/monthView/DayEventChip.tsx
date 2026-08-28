@@ -1,7 +1,8 @@
 import { memo, useMemo } from "react";
 import { Text, View } from "react-native";
+import { useNativeColors } from "@/theme";
+import { primitives, semantic } from "@/tokens";
 
-import { useThemeTokens } from "@/theme";
 
 import {
   MONTH_VIEW_EVENT_CHIP_RAIL_WIDTH,
@@ -15,43 +16,43 @@ export type DayEventChipProps = {
 
 /** Compact in-cell event: type-color left rail + title. */
 function DayEventChipComponent({ event }: DayEventChipProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const hasType = Boolean(event.color);
-  const railColor = event.color ?? theme.palette.border.strong;
+  const railColor = event.color ?? native.border.strong;
 
   const rootStyle = useMemo(
     () => ({
       flexDirection: "row" as const,
       alignItems: "center" as const,
-      gap: theme.primitives.space[2],
-      minHeight: theme.semantic.space.stack.comfortable,
+      gap: primitives.space[2],
+      minHeight: semantic.space.stack.comfortable,
       overflow: "hidden" as const,
     }),
-    [theme],
+    [],
   );
 
   const railStyle = useMemo(
     () => ({
       width: MONTH_VIEW_EVENT_CHIP_RAIL_WIDTH,
       alignSelf: "stretch" as const,
-      minHeight: theme.semantic.space.stack.compact + theme.primitives.space[2],
-      borderRadius: theme.primitives.radius.xs / 2,
+      minHeight: semantic.space.stack.compact + primitives.space[2],
+      borderRadius: primitives.radius.xs / 2,
       backgroundColor: railColor,
       opacity: hasType ? 1 : MONTH_VIEW_UNTYPED_OPACITY,
     }),
-    [hasType, railColor, theme],
+    [hasType, railColor, native],
   );
 
   // Compact cell type — avoid ThemedText `text-body` class which overpowers in-cell size.
   const titleStyle = useMemo(
     () => ({
       flex: 1,
-      color: theme.palette.foreground.default,
+      color: native.foreground.default,
       fontSize: 9,
       lineHeight: 11,
-      fontWeight: theme.primitives.fontWeight.medium as "500",
+      fontWeight: primitives.fontWeight.medium as "500",
     }),
-    [theme],
+    [native],
   );
 
   return (

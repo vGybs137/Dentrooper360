@@ -1,13 +1,13 @@
-import { memo, useMemo } from "react";
-import { Pressable, View } from "react-native";
+import { memo } from "react";
+import { View } from "react-native";
 
-import { Card, ColorSwatch, ThemedText } from "@/components/ui";
+import { Button, ColorSwatch, ThemedText, ThemedView } from "@/components/ui";
 import {
   APPOINTMENT_SEARCH_TIME_WINDOWS,
   type AppointmentSearchTimeWindow,
 } from "@/constants/appointmentSearch";
 import type { AppointmentSearchTypeOption } from "@/hooks/useAppointmentSearch";
-import { useThemeTokens } from "@/theme";
+import { semantic } from "@/tokens";
 import { cn } from "@/utils/cn";
 
 export type AppointmentSearchFiltersCardProps = {
@@ -25,104 +25,77 @@ function AppointmentSearchFiltersCardComponent({
   timeWindow,
   onSelectTimeWindow,
 }: AppointmentSearchFiltersCardProps) {
-  const theme = useThemeTokens();
-
-  const pillsWrapStyle = useMemo(
-    () => ({
-      flexDirection: "row" as const,
-      flexWrap: "wrap" as const,
-      gap: theme.semantic.space.gap.compact,
-    }),
-    [theme],
-  );
-
-  const cardsWrapStyle = useMemo(
-    () => ({
-      gap: theme.semantic.space.stack.default,
-    }),
-    [theme],
-  );
-
-  const cardStyle = useMemo(
-    () => ({
-      backgroundColor: theme.palette.surface.sunken,
-    }),
-    [theme],
-  );
-
   return (
-    <View className="px-page pt-stack-default" style={cardsWrapStyle}>
-      <Card style={cardStyle}>
-        <View style={pillsWrapStyle}>
+    <ThemedView className="px-page pt-stack-default" space="default" variant="stack">
+      <ThemedView surface="sunken" variant="card">
+        <View className="flex-row flex-wrap gap-gap-compact">
           {APPOINTMENT_SEARCH_TIME_WINDOWS.map((option) => {
             const isSelected = timeWindow === option.id;
 
             return (
-              <Pressable
+              <Button
                 key={option.id}
-                accessibilityRole="button"
-                accessibilityState={{ selected: isSelected }}
                 accessibilityLabel={`Filter by ${option.label}`}
+                accessibilityState={{ selected: isSelected }}
+                className={cn(
+                  "flex-row items-center gap-gap-compact rounded-pill border border-foreground-default px-inline py-stack-compact",
+                  isSelected && "bg-brand-subtle",
+                )}
                 onPress={() =>
                   onSelectTimeWindow(isSelected ? "all" : option.id)
                 }
-                className={cn(
-                  "flex-row items-center gap-gap-compact rounded-pill border px-inline py-stack-compact",
-                  isSelected && "bg-brand-subtle",
-                )}
-                style={{
-                  borderColor: theme.palette.foreground.default,
-                }}
+                ripple={false}
+                size="none"
+                tone="neutral"
+                variant="ghost"
               >
                 <ThemedText variant="label">{option.label}</ThemedText>
-              </Pressable>
+              </Button>
             );
           })}
         </View>
-      </Card>
+      </ThemedView>
 
-      <Card style={cardStyle}>
+      <ThemedView surface="sunken" variant="card">
         {types.length === 0 ? (
           <ThemedText tone="muted" variant="body">
             No appointment types available.
           </ThemedText>
         ) : (
-          <View style={pillsWrapStyle}>
+          <View className="flex-row flex-wrap gap-gap-compact">
             {types.map((type) => {
               const isSelected = selectedTypeIds.includes(type.id);
 
               return (
-                <Pressable
+                <Button
                   key={type.id}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isSelected }}
                   accessibilityLabel={`Filter by ${type.name}`}
-                  onPress={() => onToggleType(type.id)}
+                  accessibilityState={{ selected: isSelected }}
                   className={cn(
-                    "flex-row items-center gap-gap-compact rounded-pill border px-inline py-stack-compact",
+                    "flex-row items-center gap-gap-compact rounded-pill border border-foreground-default px-inline py-stack-compact",
                     isSelected && !type.color && "bg-brand-subtle",
+                    isSelected && type.color && "bg-surface-sunken",
                   )}
-                  style={{
-                    borderColor: theme.palette.foreground.default,
-                    ...(isSelected && type.color
-                      ? { backgroundColor: theme.palette.surface.sunken }
-                      : undefined),
-                  }}
+                  onPress={() => onToggleType(type.id)}
+                  ripple={false}
+                  size="none"
+                  tone="neutral"
+                  variant="ghost"
                 >
                   {type.color ? (
                     <ColorSwatch
                       color={type.color}
-                      size={theme.semantic.size["icon-sm"]}
+                      size={semantic.size["icon-sm"]}
                     />
                   ) : null}
                   <ThemedText variant="label">{type.name}</ThemedText>
-                </Pressable>
+                </Button>
               );
             })}
           </View>
         )}
-      </Card>
-    </View>
+      </ThemedView>
+    </ThemedView>
   );
 }
 

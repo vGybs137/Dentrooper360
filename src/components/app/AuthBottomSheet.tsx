@@ -3,7 +3,7 @@ import { type ViewProps } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedView } from "@/components/ui";
-import { useThemeTokens } from "@/theme";
+import { semantic } from "@/tokens";
 import { cn } from "@/utils/cn";
 
 type AuthBottomSheetProps = {
@@ -18,14 +18,13 @@ export function AuthBottomSheet({
   className,
 }: AuthBottomSheetProps) {
   const insets = useSafeAreaInsets();
-  const theme = useThemeTokens();
 
   return (
     <ThemedView
       className={cn("rounded-t-dialog px-inline-comfortable pt-section", className)}
       pointerEvents={pointerEvents}
       surface="raised"
-      style={{ paddingBottom: theme.semantic.space.section + insets.bottom }}
+      style={{ paddingBottom: semantic.space.section + insets.bottom }}
     >
       {children}
     </ThemedView>

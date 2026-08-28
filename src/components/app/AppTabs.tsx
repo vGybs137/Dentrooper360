@@ -2,27 +2,27 @@ import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { Platform } from "react-native";
 
 import { APP_TABS } from "@/constants/navigation";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
 
 export default function AppTabs() {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
 
   return (
     <NativeTabs
-      backgroundColor={theme.palette.surface.sunken}
+      backgroundColor={native.surface.sunken}
       blurEffect={Platform.OS === "ios" ? "systemMaterial" : undefined}
       iconColor={{
-        default: theme.palette.foreground.muted,
-        selected: theme.palette.brand.default,
+        default: native.foreground.muted,
+        selected: native.brand.default,
       }}
-      indicatorColor={theme.palette.surface.default}
+      indicatorColor={native.surface.default}
       labelStyle={{
-        default: { color: theme.palette.foreground.muted },
-        selected: { color: theme.palette.foreground.default },
+        default: { color: native.foreground.muted },
+        selected: { color: native.foreground.default },
       }}
-      rippleColor={theme.palette.brand.subtle}
-      shadowColor={theme.palette.border.default}
-      tintColor={theme.palette.brand.default}
+      rippleColor={native.brand.subtle}
+      shadowColor={native.border.default}
+      tintColor={native.brand.default}
     >
       {APP_TABS.map((tab) => (
         <NativeTabs.Trigger key={tab.name} name={tab.name}>

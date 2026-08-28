@@ -341,6 +341,7 @@ export function useAddAppointmentForm() {
   });
 
   return {
+    form,
     control: form.control,
     setValue: form.setValue,
     options,

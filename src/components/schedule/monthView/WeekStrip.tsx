@@ -1,8 +1,9 @@
 import { memo, useCallback, useMemo, useState } from "react";
 import { View, type LayoutChangeEvent } from "react-native";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 
 import type { MonthEventsByDay } from "@/hooks/schedule/useMonthAppointmentsCache";
-import { useThemeTokens } from "@/theme";
 import {
   addMonths,
   buildWeekCells,
@@ -39,7 +40,7 @@ function WeekStripComponent({
   eventIndicators = "dots",
   onDayPress,
 }: WeekStripProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const [{ width, height }, setSize] = useState({ width: 0, height: 0 });
 
   const focusMonth = useMemo(
@@ -63,10 +64,10 @@ function WeekStripComponent({
 
   const rootStyle = useMemo(
     () => ({
-      borderRadius: theme.semantic.radius.card,
-      backgroundColor: theme.palette.surface.default,
+      borderRadius: semantic.radius.card,
+      backgroundColor: native.surface.default,
     }),
-    [theme],
+    [native],
   );
 
   const onLayout = useCallback((event: LayoutChangeEvent) => {

@@ -1,6 +1,5 @@
-import { SymbolView } from "expo-symbols";
 import { memo, useMemo } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -8,9 +7,9 @@ import Animated, {
   type SharedValue,
 } from "react-native-reanimated";
 
-import { ColorSwatch, ThemedText } from "@/components/ui";
+import { Button, ColorSwatch, ThemedIcon, ThemedText } from "@/components/ui";
 import type { AppointmentSearchTypeOption } from "@/hooks/useAppointmentSearch";
-import { useThemeTokens } from "@/theme";
+import { semantic } from "@/tokens";
 
 const CHEVRON_LEFT_ICON = {
   ios: "chevron.left",
@@ -53,9 +52,8 @@ function AppointmentSearchBackButtonComponent({
   onClearType,
   onClearTimeWindow,
 }: AppointmentSearchBackButtonProps) {
-  const theme = useThemeTokens();
-  const touchSize = theme.semantic.size.touch;
-  const pageInset = theme.semantic.space.page;
+  const touchSize = semantic.size.touch;
+  const pageInset = semantic.space.page;
   const hasFilterChips = selectedTypes.length > 0 || timeWindowLabel != null;
 
   const containerAnimatedStyle = useAnimatedStyle(() => ({
@@ -93,11 +91,8 @@ function AppointmentSearchBackButtonComponent({
       ...hitStyle,
       position: "absolute" as const,
       borderRadius: touchSize / 2,
-      backgroundColor: theme.palette.surface.raised,
-      borderWidth: theme.semantic.borderWidth.subtle,
-      borderColor: theme.colors.borderStrong,
     }),
-    [hitStyle, theme],
+    [hitStyle, touchSize],
   );
 
   const slotStyle = useMemo(
@@ -105,40 +100,23 @@ function AppointmentSearchBackButtonComponent({
       position: "absolute" as const,
       left: safeAreaLeft + pageInset,
       right: safeAreaRight + pageInset,
-      zIndex: theme.semantic.zIndex.sticky,
+      zIndex: semantic.zIndex.sticky,
       flexDirection: "row" as const,
       alignItems: "center" as const,
       justifyContent: "space-between" as const,
-      gap: theme.semantic.space.gap.compact,
+      gap: semantic.space.gap.compact,
     }),
-    [pageInset, safeAreaLeft, safeAreaRight, theme],
-  );
-
-  const chipStyle = useMemo(
-    () => ({
-      flexDirection: "row" as const,
-      alignItems: "center" as const,
-      gap: theme.semantic.space.gap.compact,
-      height: theme.semantic.size["control-sm"],
-      borderRadius: theme.semantic.radius.pill,
-      borderWidth: theme.semantic.borderWidth.subtle,
-      borderColor: theme.palette.foreground.default,
-      paddingLeft: theme.semantic.space.inline.compact,
-      paddingRight: theme.semantic.space.stack.compact,
-      backgroundColor: theme.palette.surface.sunken,
-      maxWidth: 160,
-    }),
-    [theme],
+    [pageInset, safeAreaLeft, safeAreaRight],
   );
 
   const clearHitStyle = useMemo(
     () => ({
-      width: theme.semantic.size["icon-sm"] + theme.semantic.space.stack.compact,
-      height: theme.semantic.size["control-sm"],
+      width: semantic.size["icon-sm"] + semantic.space.stack.compact,
+      height: semantic.size["control-sm"],
       alignItems: "center" as const,
       justifyContent: "center" as const,
     }),
-    [theme],
+    [],
   );
 
   return (
@@ -146,23 +124,22 @@ function AppointmentSearchBackButtonComponent({
       pointerEvents="box-none"
       style={[slotStyle, containerAnimatedStyle]}
     >
-      <Pressable
+      <Button
         accessibilityLabel="Back"
-        accessibilityRole="button"
         hitSlop={8}
         onPress={onPress}
+        size="none"
         style={hitStyle}
+        tone="neutral"
+        variant="ghost"
       >
         <Animated.View
+          className="absolute rounded-full border-subtle border-border-strong bg-surface-raised"
           pointerEvents="none"
           style={[circleStyle, circleAnimatedStyle]}
         />
-        <SymbolView
-          name={CHEVRON_LEFT_ICON}
-          size={theme.semantic.size.icon}
-          tintColor={theme.palette.foreground.default}
-        />
-      </Pressable>
+        <ThemedIcon name={CHEVRON_LEFT_ICON} />
+      </Button>
 
       {hasFilterChips ? (
         <ScrollView
@@ -172,52 +149,61 @@ function AppointmentSearchBackButtonComponent({
           contentContainerStyle={{
             alignItems: "center",
             justifyContent: "flex-end",
-            gap: theme.semantic.space.gap.compact,
+            gap: semantic.space.gap.compact,
             flexGrow: 1,
           }}
-          style={{ flex: 1, marginLeft: theme.semantic.space.gap.default }}
+          style={{ flex: 1, marginLeft: semantic.space.gap.default }}
         >
           {timeWindowLabel ? (
-            <View style={chipStyle}>
+            <View className="h-control-sm max-w-[160px] flex-row items-center gap-gap-compact rounded-pill border-subtle border-foreground-default bg-surface-sunken pl-inline-compact pr-stack-compact">
               <ThemedText numberOfLines={1} variant="label">
                 {timeWindowLabel}
               </ThemedText>
-              <Pressable
+              <Button
                 accessibilityLabel={`Clear ${timeWindowLabel} filter`}
-                accessibilityRole="button"
                 hitSlop={8}
                 onPress={onClearTimeWindow}
+                ripple={false}
+                size="none"
                 style={clearHitStyle}
+                tone="neutral"
+                variant="ghost"
               >
-                <SymbolView
+                <ThemedIcon
+                  dimension={12}
                   name={CLEAR_ICON}
-                  size={12}
-                  tintColor={theme.palette.foreground.muted}
+                  tone="muted"
                 />
-              </Pressable>
+              </Button>
             </View>
           ) : null}
           {selectedTypes.map((type) => (
-            <View key={type.id} style={chipStyle}>
+            <View
+              className="h-control-sm max-w-[160px] flex-row items-center gap-gap-compact rounded-pill border-subtle border-foreground-default bg-surface-sunken pl-inline-compact pr-stack-compact"
+              key={type.id}
+            >
               {type.color ? (
                 <ColorSwatch color={type.color} size={8} />
               ) : null}
               <ThemedText numberOfLines={1} variant="label">
                 {type.name}
               </ThemedText>
-              <Pressable
+              <Button
                 accessibilityLabel={`Clear ${type.name} filter`}
-                accessibilityRole="button"
                 hitSlop={8}
                 onPress={() => onClearType(type.id)}
+                ripple={false}
+                size="none"
                 style={clearHitStyle}
+                tone="neutral"
+                variant="ghost"
               >
-                <SymbolView
+                <ThemedIcon
+                  dimension={12}
                   name={CLEAR_ICON}
-                  size={12}
-                  tintColor={theme.palette.foreground.muted}
+                  tone="muted"
                 />
-              </Pressable>
+              </Button>
             </View>
           ))}
         </ScrollView>

@@ -1,20 +1,15 @@
 import dayjs from "dayjs";
 import { useRouter, type Href } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { useCallback, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Alert,
   Image,
-  Pressable,
   ScrollView,
   View,
 } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   InlineSelectColorLeading,
@@ -23,8 +18,10 @@ import {
 import {
   Button,
   DeleteConfirmationDialog,
-  Stack,
+  ThemedIcon,
   ThemedText,
+  ThemedView,
+  type ThemedIconProps,
 } from "@/components/ui";
 import { clockIcon, locationIcon, notesIcon, personIcon } from "@/constants";
 import database from "@/database";
@@ -38,7 +35,8 @@ import { dayjsTimePattern } from "@/helpers/timeFormat";
 import { useAppointmentDetails } from "@/hooks/useAppointmentDetails";
 import { useAddAppointmentStore } from "@/stores";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 import { cn } from "@/utils/cn";
 
 const AVATAR_SIZE = 80;
@@ -89,19 +87,16 @@ function PatientHero({
   profilePhoto: string | null;
   onPress?: () => void;
 }) {
-  const theme = useThemeTokens();
   const insets = useSafeAreaInsets();
 
   const content = (
     <View
-      className="w-full items-center"
+      className="w-full items-center gap-stack bg-surface-sunken"
       style={{
-        backgroundColor: theme.palette.surface.sunken,
-        borderBottomLeftRadius: theme.semantic.radius.dialog,
-        borderBottomRightRadius: theme.semantic.radius.dialog,
-        paddingTop: insets.top + theme.semantic.space.section,
-        paddingBottom: theme.semantic.space.section,
-        gap: theme.semantic.space.stack.default,
+        borderBottomLeftRadius: semantic.radius.dialog,
+        borderBottomRightRadius: semantic.radius.dialog,
+        paddingTop: insets.top + semantic.space.section,
+        paddingBottom: semantic.space.section,
       }}
     >
       {hasPatient ? (
@@ -113,14 +108,13 @@ function PatientHero({
               width: AVATAR_SIZE,
               height: AVATAR_SIZE,
               borderRadius: AVATAR_SIZE / 2,
-              backgroundColor: theme.palette.surface.sunken,
             }}
           />
         ) : (
-          <SymbolView
+          <ThemedIcon
+            dimension={AVATAR_SIZE}
             name={personIcon}
-            size={AVATAR_SIZE}
-            tintColor={theme.palette.foreground.muted}
+            tone="muted"
           />
         )
       ) : null}
@@ -128,26 +122,23 @@ function PatientHero({
       <View
         className="w-full flex-row items-center"
         style={{
-          paddingHorizontal: theme.semantic.space.inline.default,
-          gap: theme.semantic.space.gap.compact,
+          paddingHorizontal: semantic.space.inline.default,
+          gap: semantic.space.gap.compact,
         }}
       >
-        <ThemedText
-          align="center"
-          className="min-w-0 flex-1"
-          numberOfLines={2}
-          style={{
-            fontWeight: theme.primitives.fontWeight.semibold,
-          }}
-          variant="title"
-        >
+          <ThemedText
+            align="center"
+            className="min-w-0 flex-1 font-semibold"
+            numberOfLines={2}
+            variant="title"
+          >
           {displayName}
         </ThemedText>
         {onPress ? (
-          <SymbolView
+          <ThemedIcon
+            dimension={35}
             name={CHEVRON_RIGHT_ICON}
-            size={35}
-            tintColor={theme.palette.foreground.muted}
+            tone="muted"
           />
         ) : null}
       </View>
@@ -159,14 +150,16 @@ function PatientHero({
   }
 
   return (
-    <Pressable
+    <Button
       accessibilityLabel={displayName}
-      accessibilityRole="button"
       onPress={onPress}
+      size="none"
       style={({ pressed }) => (pressed ? { opacity: 0.92 } : undefined)}
+      tone="neutral"
+      variant="ghost"
     >
       {content}
-    </Pressable>
+    </Button>
   );
 }
 
@@ -177,7 +170,6 @@ function ReadOnlyDateTime({
   startTime: Date;
   endTime: Date;
 }) {
-  const theme = useThemeTokens();
   const hourFormat = useHourFormat();
   const timePattern = dayjsTimePattern(hourFormat);
   const dateLabel = dayjs(startTime).format("D MMM, YYYY");
@@ -187,11 +179,7 @@ function ReadOnlyDateTime({
     <View className="gap-gap-compact">
       <View className="items-start gap-2">
         <View className="flex-row items-center gap-3">
-          <SymbolView
-            name={clockIcon}
-            size={20}
-            tintColor={theme.palette.foreground.muted}
-          />
+          <ThemedIcon dimension={20} name={clockIcon} tone="muted" />
           <View className="justify-center rounded-pill px-inline py-stack-compact">
             <ThemedText variant="body">{dateLabel}</ThemedText>
           </View>
@@ -202,11 +190,7 @@ function ReadOnlyDateTime({
             <ThemedText variant="body">{startLabel}</ThemedText>
           </View>
 
-          <SymbolView
-            name={ARROW_RIGHT_ICON}
-            size={14}
-            tintColor={theme.palette.foreground.muted}
-          />
+          <ThemedIcon dimension={14} name={ARROW_RIGHT_ICON} tone="muted" />
 
           <View className="justify-center rounded-pill px-inline py-stack-compact">
             <ThemedText variant="body">{endLabel}</ThemedText>
@@ -246,34 +230,35 @@ function DetailsActionItem({
   onPress,
   tone = "default",
 }: {
-  icon: React.ComponentProps<typeof SymbolView>["name"];
+  icon: NonNullable<ThemedIconProps["name"]>;
   label: string;
   onPress: () => void;
   tone?: "default" | "alert";
 }) {
-  const theme = useThemeTokens();
-  const color =
-    tone === "alert"
-      ? theme.palette.alert.DEFAULT
-      : theme.palette.foreground.default;
-
   return (
-    <Pressable
+    <Button
       accessibilityLabel={label}
-      accessibilityRole="button"
       className="min-w-0 flex-1 items-center justify-center gap-1 py-stack-compact"
       hitSlop={6}
       onPress={onPress}
+      size="none"
       style={({ pressed }) => (pressed ? { opacity: 0.7 } : undefined)}
+      tone="neutral"
+      variant="ghost"
     >
-      <SymbolView name={icon} size={22} tintColor={color} />
+      <ThemedIcon
+        dimension={22}
+        name={icon}
+        tone={tone === "alert" ? "alert" : "default"}
+      />
       <ThemedText
-        style={{ color, fontWeight: theme.primitives.fontWeight.medium }}
+        className="font-medium"
+        tone={tone === "alert" ? "alert" : "default"}
         variant="label"
       >
         {label}
       </ThemedText>
-    </Pressable>
+    </Button>
   );
 }
 
@@ -286,25 +271,9 @@ function DetailsActionBar({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const theme = useThemeTokens();
-
   return (
-    <View
-      style={{
-        paddingHorizontal: theme.semantic.space.inline.default,
-        paddingBottom: theme.semantic.space.stack.compact,
-      }}
-    >
-      <View
-        className="flex-row items-stretch"
-        style={{
-          backgroundColor: theme.palette.surface.default,
-          borderColor: theme.palette.border.subtle,
-          borderWidth: theme.semantic.borderWidth.subtle,
-          borderRadius: theme.semantic.radius.card,
-          minHeight: ACTION_BAR_HEIGHT,
-        }}
-      >
+    <View className="px-inline pb-stack-compact">
+      <View className="min-h-[64px] flex-row items-stretch rounded-card border-subtle border-border-subtle bg-surface-default">
         <DetailsActionItem
           icon={CHEVRON_LEFT_ICON}
           label="Back"
@@ -329,11 +298,11 @@ export type AppointmentDetailsScreenProps = {
 export function AppointmentDetailsScreen({
   appointmentId,
 }: AppointmentDetailsScreenProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const router = useRouter();
   const { details, isLoading, error } = useAppointmentDetails(appointmentId);
   const openForEdit = useAddAppointmentStore((state) => state.openForEdit);
-  const slideDuration = getAuthSlideDuration(theme);
+  const slideDuration = getAuthSlideDuration();
   const [deleteVisible, setDeleteVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -409,8 +378,7 @@ export function AppointmentDetailsScreen({
 
   const title = details?.appointment.subject?.trim() || "Appointment";
   const typeName = details?.type?.nameEn?.trim() || null;
-  const typeColor =
-    details?.type?.color ?? theme.palette.foreground.muted;
+  const typeColor = details?.type?.color ?? undefined;
   const locationName = details?.location?.nameEn?.trim() || null;
   const notes = details?.appointment.description?.trim() || null;
 
@@ -422,55 +390,59 @@ export function AppointmentDetailsScreen({
 
   if (isLoading) {
     return (
-      <SafeAreaView
-        className="flex-1"
-        style={{ backgroundColor: theme.palette.surface.default }}
+      <ThemedView
+        contentClassName="items-center justify-center"
+        inset="none"
+        padBottom={false}
+        scroll={false}
+        variant="screen"
       >
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color={theme.palette.brand.default} />
-        </View>
-      </SafeAreaView>
+        <ActivityIndicator color={native.brand.default} />
+      </ThemedView>
     );
   }
 
   if (error || !details) {
     return (
-      <SafeAreaView
-        className="flex-1"
-        style={{ backgroundColor: theme.palette.surface.default }}
+      <ThemedView
+        contentClassName="items-center justify-center px-page"
+        inset="none"
+        padBottom={false}
+        scroll={false}
+        variant="screen"
       >
-        <View className="flex-1 items-center justify-center px-page">
-          <Stack space="default" align="center">
-            <ThemedText align="center" tone="muted">
-              {error
-                ? "Unable to load this appointment."
-                : "This appointment could not be found."}
-            </ThemedText>
-            <Button
-              label="Back to schedule"
-              onPress={goBack}
-              tone="neutral"
-              variant="outline"
-            />
-          </Stack>
-        </View>
-      </SafeAreaView>
+        <ThemedView align="center" space="default" variant="stack">
+          <ThemedText align="center" tone="muted">
+            {error
+              ? "Unable to load this appointment."
+              : "This appointment could not be found."}
+          </ThemedText>
+          <Button
+            label="Back to schedule"
+            onPress={goBack}
+            tone="neutral"
+            variant="outline"
+          />
+        </ThemedView>
+      </ThemedView>
     );
   }
 
   return (
-    <SafeAreaView
-      className="flex-1"
+    <ThemedView
       edges={["bottom", "left", "right"]}
-      style={{ backgroundColor: theme.palette.surface.default }}
+      inset="none"
+      padBottom={false}
+      scroll={false}
+      variant="screen"
     >
       <ScrollView
         className="flex-1"
         contentContainerStyle={{
           paddingBottom:
-            theme.semantic.space.section +
+            semantic.space.section +
             ACTION_BAR_HEIGHT +
-            theme.semantic.space.stack.compact,
+            semantic.space.stack.compact,
         }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -491,11 +463,11 @@ export function AppointmentDetailsScreen({
 
           <View
             style={{
-              paddingHorizontal: theme.semantic.space.inline.default,
-              paddingTop: theme.semantic.space.section,
+              paddingHorizontal: semantic.space.inline.default,
+              paddingTop: semantic.space.section,
             }}
           >
-            <Stack space="default">
+            <ThemedView space="default" variant="stack">
               <ThemedText variant="body">{title}</ThemedText>
 
               <FormDivider className="mt-2" />
@@ -518,10 +490,7 @@ export function AppointmentDetailsScreen({
               <DetailSelectRow
                 label={locationName ?? "No location"}
                 leading={
-                  <InlineSelectSymbolLeading
-                    name={locationIcon}
-                    tintColor={theme.palette.foreground.muted}
-                  />
+                  <InlineSelectSymbolLeading name={locationIcon} />
                 }
                 muted={!locationName}
               />
@@ -530,11 +499,7 @@ export function AppointmentDetailsScreen({
 
               <View className="w-full flex-row items-start gap-3">
                 <View className="mt-stack-compact size-5 items-center justify-center">
-                  <SymbolView
-                    name={notesIcon}
-                    size={20}
-                    tintColor={theme.palette.foreground.muted}
-                  />
+                  <ThemedIcon dimension={20} name={notesIcon} tone="muted" />
                 </View>
                 <View className="min-w-0 flex-1">
                   <ThemedText
@@ -546,7 +511,7 @@ export function AppointmentDetailsScreen({
                   </ThemedText>
                 </View>
               </View>
-            </Stack>
+            </ThemedView>
           </View>
         </Animated.View>
       </ScrollView>
@@ -563,6 +528,6 @@ export function AppointmentDetailsScreen({
         onConfirm={handleConfirmDelete}
         visible={deleteVisible}
       />
-    </SafeAreaView>
+    </ThemedView>
   );
 }

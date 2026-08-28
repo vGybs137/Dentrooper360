@@ -10,10 +10,11 @@ import {
   applyScheduleViewPreference,
   setScheduleViewMode,
   useSchedulePreferencesStore,
+  useThemePreferencesStore,
   type DefaultCalendarView,
   type HourFormat,
+  type ThemeMode,
 } from "@/stores";
-import { useAppTheme, type ThemeMode } from "@/theme";
 import type { WeekdayIndex } from "@/utils/calendar";
 
 import { SettingsSection } from "./SettingsSection";
@@ -49,7 +50,8 @@ const APPEARANCE_OPTIONS = [
 ];
 
 export function SettingsPreferencesSection() {
-  const { mode, setMode } = useAppTheme();
+  const mode = useThemePreferencesStore((state) => state.mode);
+  const setMode = useThemePreferencesStore((state) => state.setMode);
   const defaultCalendarView = useSchedulePreferencesStore(
     (state) => state.defaultCalendarView,
   );
@@ -68,9 +70,18 @@ export function SettingsPreferencesSection() {
   );
   const [expandedSelect, setExpandedSelect] =
     useState<PreferenceSelectKey | null>(null);
+  const [snapAppearanceClosed, setSnapAppearanceClosed] = useState(false);
 
   function toggleSelect(key: PreferenceSelectKey) {
+    if (key === "appearance") {
+      setSnapAppearanceClosed(false);
+    }
     setExpandedSelect((current) => (current === key ? null : key));
+  }
+
+  function handleAppearanceChange(next: ThemeMode) {
+    setSnapAppearanceClosed(true);
+    setMode(next);
   }
 
   function handleDefaultCalendarViewChange(next: DefaultCalendarView) {
@@ -90,8 +101,9 @@ export function SettingsPreferencesSection() {
         icon={appearanceIcon}
         options={APPEARANCE_OPTIONS}
         value={mode}
-        onChange={setMode}
+        onChange={handleAppearanceChange}
         expanded={expandedSelect === "appearance"}
+        instantCollapse={snapAppearanceClosed}
         onToggle={() => toggleSelect("appearance")}
       />
       <SettingsSelectRow<DefaultCalendarView>

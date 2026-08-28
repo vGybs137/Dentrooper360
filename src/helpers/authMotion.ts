@@ -1,13 +1,12 @@
 import { Easing } from "react-native-reanimated";
 
-import type { RuntimeTheme } from "@/tokens";
+import { semantic } from "@/tokens";
 
 export const AUTH_SLIDE_EASING = Easing.bezier(0.05, 0.7, 0.1, 1);
 
-export function getAuthSlideDuration(theme: RuntimeTheme): number {
+export function getAuthSlideDuration(): number {
   return (
-    theme.semantic.motion.overlay.duration +
-    theme.semantic.motion.enter.duration
+    semantic.motion.overlay.duration + semantic.motion.enter.duration
   );
 }
 

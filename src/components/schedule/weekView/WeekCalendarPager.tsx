@@ -1,12 +1,12 @@
 import { memo, useCallback, useMemo } from "react";
 import { View, type LayoutChangeEvent } from "react-native";
 import PagerView from "react-native-pager-view";
+import { semantic } from "@/tokens";
 
 import { WEEK_VIEW_PAGER_RENDER_RADIUS } from "@/constants/schedule";
 import type { WeekEventsByDay } from "@/hooks/schedule/useWeekAppointmentsCache";
 import { useWeekViewAxisLock } from "@/hooks/schedule/useWeekViewAxisLock";
 import { useAddAppointmentStore } from "@/stores/addAppointmentStore";
-import { useThemeTokens } from "@/theme";
 import type { DayPressHandler } from "@/types/schedule";
 import type { DayKey, WeekdayIndex } from "@/utils/calendar";
 
@@ -60,7 +60,7 @@ const WeekPage = memo(function WeekPage({
   resetAxisLock,
 }: WeekPageProps) {
   return (
-    <View collapsable={false} className="flex-1">
+    <View collapsable={false} style={{ flex: 1 }}>
       {/*
         Header stays outside any gesture wrapper so width/layout stay stable
         and day presses are not delayed by a competing pan recognizer.
@@ -74,7 +74,7 @@ const WeekPage = memo(function WeekPage({
         useHighlightContext
       />
       <View
-        className="flex-1"
+        style={{ flex: 1, overflow: "hidden", minHeight: 0 }}
         {...(sheetOpen ? {} : gridTouchHandlers)}
         pointerEvents={sheetOpen ? "none" : "auto"}
       >
@@ -105,8 +105,7 @@ function WeekCalendarPagerComponent({
   onDayHeaderLayout,
   sheetOpen = false,
 }: WeekCalendarPagerProps) {
-  const theme = useThemeTokens();
-  const pageMargin = theme.semantic.space.stack.compact;
+  const pageMargin = semantic.space.stack.compact;
   const {
     pagerScrollEnabled,
     gridTouchHandlers,
@@ -134,7 +133,7 @@ function WeekCalendarPagerComponent({
         const shouldRender =
           Math.abs(index - pageIndex) <= WEEK_VIEW_PAGER_RENDER_RADIUS;
         return (
-          <View key={weekStartKey} collapsable={false} className="flex-1">
+          <View key={weekStartKey} collapsable={false} style={{ flex: 1 }}>
             {shouldRender ? (
               <WeekPage
                 weekStartKey={weekStartKey}
@@ -150,7 +149,7 @@ function WeekCalendarPagerComponent({
                 resetAxisLock={resetAxisLock}
               />
             ) : (
-              <View className="flex-1" />
+              <View style={{ flex: 1 }} />
             )}
           </View>
         );

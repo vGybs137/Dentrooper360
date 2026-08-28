@@ -22,10 +22,5 @@ export {
   type ForegroundTone,
   type StatusTone,
   type SurfaceTone,
-} from "./palette";
-export {
-  getRuntimeTheme,
-  runtimeThemes,
-  type ResolvedTheme,
-  type RuntimeTheme,
-} from "./theme";
+} from "./colors";
+export { getNativeColors, type NativeColorScheme } from "./nativeColors";

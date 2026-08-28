@@ -1,8 +1,9 @@
 import { memo, useMemo } from "react";
 import { View } from "react-native";
+import { useNativeColors } from "@/theme";
+import { primitives } from "@/tokens";
 
 import { ThemedText } from "@/components/ui";
-import { useThemeTokens } from "@/theme";
 
 import {
   MONTH_VIEW_EVENT_DOT_SIZE,
@@ -17,7 +18,7 @@ export type DayEventDotsProps = {
 
 /** Compact type-colored dots for the week-pinned (sheet open) calendar. */
 function DayEventDotsComponent({ events }: DayEventDotsProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const visible = useMemo(
     () => events.slice(0, MONTH_VIEW_MAX_VISIBLE_DOTS),
     [events],
@@ -30,10 +31,10 @@ function DayEventDotsComponent({ events }: DayEventDotsProps) {
       flexWrap: "wrap" as const,
       justifyContent: "center" as const,
       alignItems: "center" as const,
-      gap: theme.primitives.space[2],
-      paddingHorizontal: theme.primitives.space[2] / 2,
+      gap: primitives.space[2],
+      paddingHorizontal: primitives.space[2] / 2,
     }),
-    [theme],
+    [native],
   );
 
   const untypedDotStyle = useMemo(
@@ -41,10 +42,10 @@ function DayEventDotsComponent({ events }: DayEventDotsProps) {
       width: MONTH_VIEW_EVENT_DOT_SIZE,
       height: MONTH_VIEW_EVENT_DOT_SIZE,
       borderRadius: MONTH_VIEW_EVENT_DOT_SIZE / 2,
-      backgroundColor: theme.palette.border.strong,
+      backgroundColor: native.border.strong,
       opacity: MONTH_VIEW_UNTYPED_OPACITY,
     }),
-    [theme.palette.border.strong],
+    [native.border.strong],
   );
 
   if (visible.length === 0) return null;

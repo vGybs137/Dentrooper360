@@ -1,14 +1,13 @@
-import { SymbolView } from "expo-symbols";
 import { type ComponentProps, type ReactNode } from "react";
-import { Controller } from "react-hook-form";
-import { Pressable, View } from "react-native";
+import { FormProvider } from "react-hook-form";
+import { View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button, Stack, TextField, ThemedText } from "@/components/ui";
+import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
 import { lockIcon, personIcon, visibilityIcon } from "@/constants";
 import { useLoginForm, type LoginFormState } from "@/hooks/useLoginForm";
-import { useThemeTokens } from "@/theme";
+import { semantic } from "@/tokens";
 
 import {
   FeedbackOverlay,
@@ -78,11 +77,10 @@ export function LoginForm({
   contentStyle,
   onFieldsLayout,
 }: LoginFormProps) {
-  const theme = useThemeTokens();
   const insets = useSafeAreaInsets();
   const footerOffset = useSplashFooterOffset();
   const login = useLoginForm();
-  const { control, formState } = login.form;
+  const { formState } = login.form;
   const fieldsEditable = !login.isSigningIn && !login.hasSignedIn;
   const canSubmit =
     Boolean(login.customerId) &&
@@ -91,24 +89,25 @@ export function LoginForm({
     !login.hasSignedIn;
 
   return (
-    <View className="flex-1">
+    <FormProvider {...login.form}>
+      <View className="flex-1">
       <View
         className="flex-1 justify-end"
-        style={{ paddingTop: insets.top + theme.semantic.space.page }}
+        style={{ paddingTop: insets.top + semantic.space.page }}
       >
         {logo}
         <Animated.View
           className="px-inline-comfortable pt-section"
           style={contentStyle}
         >
-          <Stack space="compact">
+          <ThemedView space="compact" variant="stack">
             <ThemedText align="center" variant="display">
               Welcome back!
             </ThemedText>
             <ThemedText align="center" tone="muted">
               Please enter your details.
             </ThemedText>
-          </Stack>
+          </ThemedView>
         </Animated.View>
       </View>
       <Animated.View
@@ -118,9 +117,9 @@ export function LoginForm({
         }}
         style={contentStyle}
       >
-        <Stack space="default">
+        <ThemedView space="default" variant="stack">
           {!login.customerId ? (
-            <Stack space="compact">
+            <ThemedView space="compact" variant="stack">
               <ThemedText align="center" tone="muted">
                 Pair this device with a clinic QR code before signing in.
               </ThemedText>
@@ -130,78 +129,57 @@ export function LoginForm({
                 tone="brand"
                 variant="outline"
               />
-            </Stack>
+            </ThemedView>
           ) : null}
-          <Controller
-            control={control}
+          <ThemedText
+            as="input"
+            autoCapitalize="none"
+            autoComplete="username"
+            autoCorrect={false}
+            editable={fieldsEditable}
+            leading={
+              <ThemedIcon name={personIcon} tone="muted" />
+            }
             name="username"
+            placeholder="Username"
             rules={{ required: true }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextField
-                autoCapitalize="none"
-                autoComplete="username"
-                autoCorrect={false}
-                editable={fieldsEditable}
-                leading={
-                  <SymbolView
-                    name={personIcon}
-                    size={theme.semantic.size.icon}
-                    tintColor={theme.palette.foreground.muted}
-                  />
-                }
-                onBlur={onBlur}
-                onChangeText={onChange}
-                placeholder="Username"
-                size="lg"
-                textContentType="username"
-                value={value}
-              />
-            )}
+            size="lg"
+            textContentType="username"
           />
-          <Controller
-            control={control}
+          <ThemedText
+            as="input"
+            autoComplete="password"
+            editable={fieldsEditable}
+            leading={
+              <ThemedIcon name={lockIcon} tone="muted" />
+            }
             name="password"
+            placeholder="Password"
             rules={{ required: true }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextField
-                autoComplete="password"
-                editable={fieldsEditable}
-                leading={
-                  <SymbolView
-                    name={lockIcon}
-                    size={theme.semantic.size.icon}
-                    tintColor={theme.palette.foreground.muted}
-                  />
+            secureTextEntry={!login.isPasswordVisible}
+            size="lg"
+            textContentType="password"
+            trailing={
+              <Button
+                accessibilityLabel={
+                  login.isPasswordVisible
+                    ? "Hide password"
+                    : "Show password"
                 }
-                onBlur={onBlur}
-                onChangeText={onChange}
-                placeholder="Password"
-                secureTextEntry={!login.isPasswordVisible}
-                size="lg"
-                textContentType="password"
-                trailing={
-                  <Pressable
-                    accessibilityLabel={
-                      login.isPasswordVisible
-                        ? "Hide password"
-                        : "Show password"
-                    }
-                    accessibilityRole="button"
-                    hitSlop={theme.semantic.space.inset.compact}
-                    onPress={login.togglePasswordVisibility}
-                  >
-                    <SymbolView
-                      name={visibilityIcon(login.isPasswordVisible)}
-                      size={theme.semantic.size.icon}
-                      tintColor={theme.palette.foreground.muted}
-                    />
-                  </Pressable>
-                }
-                value={value}
-              />
-            )}
+                hitSlop={semantic.space.inset.compact}
+                onPress={login.togglePasswordVisibility}
+                size="sm"
+                tone="neutral"
+                variant="ghost"
+              >
+                <ThemedIcon
+                  name={visibilityIcon(login.isPasswordVisible)}
+                  tone="muted"
+                />
+              </Button>
+            }
           />
-        </Stack>
+        </ThemedView>
       </Animated.View>
       <Animated.View
         className="flex-1 px-inline-comfortable"
@@ -225,6 +203,7 @@ export function LoginForm({
 
         return <FeedbackOverlay {...overlay} />;
       })()}
-    </View>
+      </View>
+    </FormProvider>
   );
 }

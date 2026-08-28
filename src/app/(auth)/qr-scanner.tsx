@@ -4,21 +4,22 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import Animated from "react-native-reanimated";
 
-import { AuthScreenShell } from "@/components/app/AuthScreenShell";
-import { BRAND_MARK_SIZE, BrandLogo } from "@/components/app/BrandLogo";
+import { BrandLogo, BRAND_MARK_SIZE, SplashFooter } from "@/components/app/BrandLogo";
 import {
   FeedbackOverlay,
   type FeedbackOverlayProps,
 } from "@/components/app/FeedbackOverlay";
 import { LoginForm } from "@/components/app/LoginForm";
 import { QrViewfinder } from "@/components/app/QrViewfinder";
+import { ThemedView } from "@/components/ui";
 import { getDeviceInfo, getOrCreateDeviceId } from "@/helpers/deviceId";
 import { isFromOnboarding } from "@/helpers/routeParams";
 import { useLoginLogoRestLayout } from "@/hooks/useAuthLogoRestOffset";
 import { usePairMutation } from "@/hooks/usePairMutation";
 import { useQrScannerMotion } from "@/hooks/useQrScannerMotion";
 import { useRestoreOnboarding } from "@/stores";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 
 const VIEWFINDER_MAX = 280;
 
@@ -26,13 +27,13 @@ export default function QrScannerScreen() {
   const router = useRouter();
   const { from } = useLocalSearchParams<{ from?: string | string[] }>();
   const fromOnboarding = isFromOnboarding(from);
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const restoreOnboarding = useRestoreOnboarding();
   const { width: windowWidth } = useWindowDimensions();
   const onLoginLogoRestLayout = useLoginLogoRestLayout();
-  const scanInset = theme.semantic.space.inline.default;
+  const scanInset = semantic.space.inline.default;
   const viewfinderSize = Math.min(
-    windowWidth - theme.semantic.space.inline.comfortable * 4,
+    windowWidth - semantic.space.inline.comfortable * 4,
     VIEWFINDER_MAX,
   );
 
@@ -211,15 +212,23 @@ export default function QrScannerScreen() {
 
   const frameColor =
     status === "paired"
-      ? theme.palette.success.DEFAULT
-      : theme.palette.brand.default;
+      ? native.success.DEFAULT
+      : native.brand.default;
 
   return (
-    <AuthScreenShell
-      footerVisibility={fromOnboarding ? "hidden" : "always"}
+    <ThemedView
+      className="overflow-hidden"
+      edges={[]}
+      inset="none"
+      keyboardAvoiding
+      padBottom={false}
       pointerEvents="box-none"
+      scroll={false}
+      surface="sunken"
       transparent={fromOnboarding}
+      variant="screen"
     >
+      {fromOnboarding ? null : <SplashFooter />}
       {status === "paired" ? (
         <LoginForm
           contentStyle={loginStyle}
@@ -266,6 +275,6 @@ export default function QrScannerScreen() {
       </Animated.View>
 
       {scanFeedback ? <FeedbackOverlay {...scanFeedback} /> : null}
-    </AuthScreenShell>
+    </ThemedView>
   );
 }

@@ -1,11 +1,10 @@
 import { type Href, useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { useEffect } from "react";
 
 import { AuthBottomSheet } from "@/components/app/AuthBottomSheet";
 import { BrandLogo } from "@/components/app/BrandLogo";
 import { SplashIntroLayout } from "@/components/app/SplashIntroLayout";
-import { Button, Stack, ThemedText } from "@/components/ui";
+import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
 import { qrCodeIcon } from "@/constants";
 import { hideNativeSplash } from "@/helpers/nativeSplash";
 import {
@@ -13,11 +12,9 @@ import {
   useAuthFlowSplashIntro,
   useBeginOnboardingExit,
 } from "@/stores";
-import { useThemeTokens } from "@/theme";
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const theme = useThemeTokens();
   const splashIntro = useAuthFlowSplashIntro();
   const isLeaving = useAuthFlowIsLeaving();
   const beginOnboardingExit = useBeginOnboardingExit();
@@ -32,8 +29,8 @@ export default function OnboardingScreen() {
       logo={<BrandLogo wordmarkStyle={splashIntro.dismissWordmarkStyle} />}
     >
       <AuthBottomSheet pointerEvents={isLeaving ? "none" : "auto"}>
-        <Stack space="comfortable">
-          <Stack space="default">
+        <ThemedView space="comfortable" variant="stack">
+          <ThemedView space="default" variant="stack">
             <ThemedText align="center" tone="brand" variant="title">
               Access, manage, and stay in control — wherever you are.
             </ThemedText>
@@ -42,16 +39,10 @@ export default function OnboardingScreen() {
               Dentrooper 360 → register product → registration key{"\n"}
               and scan the QR code available.
             </ThemedText>
-          </Stack>
+          </ThemedView>
           <Button
             disabled={isLeaving}
-            icon={
-              <SymbolView
-                name={qrCodeIcon}
-                size={theme.semantic.size.icon}
-                tintColor={theme.palette.brand.default}
-              />
-            }
+            icon={<ThemedIcon name={qrCodeIcon} tone="brand" />}
             label="Scan QR Code"
             onPress={() => {
               if (isLeaving) {
@@ -64,15 +55,12 @@ export default function OnboardingScreen() {
                 params: { from: "onboarding" },
               } as Href);
             }}
+            className="rounded-card"
             size="lg"
-            style={{
-              backgroundColor: theme.palette.brand.subtle,
-              borderRadius: theme.semantic.radius.card,
-            }}
             tone="brand"
-            variant="outline"
+            variant="soft"
           />
-        </Stack>
+        </ThemedView>
       </AuthBottomSheet>
     </SplashIntroLayout>
   );

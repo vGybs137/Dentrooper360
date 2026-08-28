@@ -1,0 +1,74 @@
+/* Generated from src/tokens/colors.js. Do not edit.
+   Run: npm run tokens:css */
+
+:root {
+  color-scheme: light;
+  --surface-default: #fbfcfe;
+  --surface-sunken: #fbfbfb;
+  --surface-raised: #ffffff;
+  --surface-overlay: #ffffff;
+  --surface-inverse: #18181b;
+  --foreground-default: #18181b;
+  --foreground-muted: #71717a;
+  --foreground-inverse: #fafafa;
+  --border-subtle: #e4e4e7;
+  --border-default: #d4d4d8;
+  --border-strong: #a1a1aa;
+  --border-focus: #0a9e91;
+  --brand-default: #0a9e91;
+  --brand-subtle: rgba(10, 158, 145, 0.12);
+  --brand-strong: #06796f;
+  --brand-text: #ffffff;
+  --accent-default: #1d4ed8;
+  --accent-subtle: rgba(29, 78, 216, 0.12);
+  --accent-strong: #1e40af;
+  --accent-text: #ffffff;
+  --success-default: #16a34a;
+  --success-subtle: rgba(22, 163, 74, 0.12);
+  --success-strong: #15803d;
+  --success-text: #ffffff;
+  --alert-default: #ef4444;
+  --alert-subtle: rgba(239, 68, 68, 0.12);
+  --alert-strong: #dc2626;
+  --alert-text: #ffffff;
+  --calendar-default: #f8f9fb;
+  --calendar-muted: #f9fafc;
+  --calendar-quickAdd: #fbfcfe;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --surface-default: #010101;
+    --surface-sunken: #0f1517;
+    --surface-raised: #111827;
+    --surface-overlay: #0b0f10;
+    --surface-inverse: #fafafa;
+    --foreground-default: #e5e7eb;
+    --foreground-muted: #9ca3af;
+    --foreground-inverse: #0b0f10;
+    --border-subtle: #27303a;
+    --border-default: #334155;
+    --border-strong: #475569;
+    --border-focus: #0a9e91;
+    --brand-default: #0a9e91;
+    --brand-subtle: rgba(10, 158, 145, 0.18);
+    --brand-strong: #06796f;
+    --brand-text: #ffffff;
+    --accent-default: #1d4ed8;
+    --accent-subtle: rgba(29, 78, 216, 0.18);
+    --accent-strong: #1e40af;
+    --accent-text: #ffffff;
+    --success-default: #16a34a;
+    --success-subtle: rgba(22, 163, 74, 0.18);
+    --success-strong: #15803d;
+    --success-text: #ffffff;
+    --alert-default: #ef4444;
+    --alert-subtle: rgba(239, 68, 68, 0.18);
+    --alert-strong: #dc2626;
+    --alert-text: #ffffff;
+    --calendar-default: #141414;
+    --calendar-muted: #0d0d0d;
+    --calendar-quickAdd: #3f3f3f;
+  }
+}

@@ -8,9 +8,9 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 
-import { AuthScreenShell } from "@/components/app/AuthScreenShell";
-import { BrandLogo } from "@/components/app/BrandLogo";
+import { BrandLogo, SplashFooter } from "@/components/app/BrandLogo";
 import { LoginForm } from "@/components/app/LoginForm";
+import { ThemedView } from "@/components/ui";
 import { hideNativeSplash } from "@/helpers/nativeSplash";
 import { isIntroFromSplash } from "@/helpers/routeParams";
 import {
@@ -66,7 +66,16 @@ export default function LoginScreen() {
   });
 
   return (
-    <AuthScreenShell footerVisibility="always">
+    <ThemedView
+      edges={[]}
+      inset="none"
+      keyboardAvoiding
+      padBottom={false}
+      scroll={false}
+      surface="sunken"
+      variant="screen"
+    >
+      <SplashFooter />
       <LoginForm
         contentStyle={incomingStyle}
         logo={
@@ -86,6 +95,6 @@ export default function LoginScreen() {
         }
         onFieldsLayout={splashIntro.onContentLayout}
       />
-    </AuthScreenShell>
+    </ThemedView>
   );
 }

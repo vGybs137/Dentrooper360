@@ -1,10 +1,11 @@
-import { Modal, Pressable, View } from "react-native";
+import { Modal, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useThemeTokens } from "@/theme";
+import { semantic } from "@/tokens";
 
 import { Button } from "./Button";
 import { ThemedText } from "./ThemedText";
+import { ThemedView } from "./ThemedView";
 
 export const DELETE_CONFIRMATION_TITLE = "Delete";
 export const DELETE_CONFIRMATION_MESSAGE =
@@ -37,7 +38,6 @@ export function DeleteConfirmationDialog({
   confirmingLabel = "Deleting...",
   confirming = false,
 }: DeleteConfirmationDialogProps) {
-  const theme = useThemeTokens();
   const insets = useSafeAreaInsets();
 
   return (
@@ -49,32 +49,33 @@ export function DeleteConfirmationDialog({
       visible={visible}
     >
       <View className="flex-1 justify-end">
-        <Pressable
+        <Button
           accessibilityLabel="Dismiss confirmation"
-          accessibilityRole="button"
-          className="absolute inset-0"
+          className="absolute inset-0 rounded-none"
           onPress={confirming ? undefined : onCancel}
+          ripple={false}
+          size="none"
           style={{
-            backgroundColor: `rgba(0,0,0,${theme.semantic.opacity.scrim})`,
+            backgroundColor: `rgba(0,0,0,${semantic.opacity.scrim})`,
           }}
+          tone="neutral"
+          variant="ghost"
         />
 
-        <View
+        <ThemedView
+          className="mx-inline px-inline-comfortable py-section"
+          inset="none"
+          radius="dialog"
+          space="default"
           style={{
-            marginHorizontal: theme.semantic.space.inline.default,
             marginBottom:
-              theme.semantic.space.stack.compact + Math.max(insets.bottom, 0),
-            paddingHorizontal: theme.semantic.space.inline.comfortable,
-            paddingTop: theme.semantic.space.section,
-            paddingBottom: theme.semantic.space.section,
-            backgroundColor: theme.palette.surface.raised,
-            borderRadius: theme.semantic.radius.dialog,
-            gap: theme.semantic.space.stack.default,
+              semantic.space.stack.compact + Math.max(insets.bottom, 0),
           }}
+          variant="card"
         >
           <ThemedText
             align="center"
-            style={{ fontWeight: theme.primitives.fontWeight.semibold }}
+            className="font-semibold"
             tone="alert"
             variant="title"
           >
@@ -85,10 +86,7 @@ export function DeleteConfirmationDialog({
             {message}
           </ThemedText>
 
-          <View
-            className="flex-row"
-            style={{ gap: theme.semantic.space.gap.default }}
-          >
+          <ThemedView className="flex-row" space="default" variant="stack" direction="row">
             <Button
               className="min-w-0 flex-1"
               disabled={confirming}
@@ -105,8 +103,8 @@ export function DeleteConfirmationDialog({
               tone="brand"
               variant="solid"
             />
-          </View>
-        </View>
+          </ThemedView>
+        </ThemedView>
       </View>
     </Modal>
   );

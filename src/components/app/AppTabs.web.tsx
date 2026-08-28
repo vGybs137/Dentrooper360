@@ -6,11 +6,12 @@ import {
   type TabListProps,
   type TabTriggerSlotProps,
 } from "expo-router/ui";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
-import { ThemedText } from "@/components/ui";
+import { Button, ThemedText } from "@/components/ui";
 import { APP_TABS } from "@/constants/navigation";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 
 export default function AppTabs() {
   return (
@@ -30,24 +31,29 @@ export default function AppTabs() {
 }
 
 function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
+  const tabLabel = typeof children === "string" ? children : undefined;
 
   return (
-    <Pressable
+    <Button
       {...props}
+      accessibilityLabel={props.accessibilityLabel ?? tabLabel}
+      size="none"
       style={({ pressed }) => [
         styles.tabButtonPressable,
         pressed ? styles.pressed : null,
       ]}
+      tone="neutral"
+      variant="ghost"
     >
       <View
         style={[
           styles.tabButtonView,
           {
             backgroundColor: isFocused
-              ? theme.palette.brand.subtle
-              : theme.palette.surface.sunken,
-            borderRadius: theme.semantic.radius.control,
+              ? native.brand.subtle
+              : native.surface.sunken,
+            borderRadius: semantic.radius.control,
           },
         ]}
       >
@@ -59,12 +65,12 @@ function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
           {children}
         </ThemedText>
       </View>
-    </Pressable>
+    </Button>
   );
 }
 
 function CustomTabList(props: TabListProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
 
   return (
     <View
@@ -72,8 +78,8 @@ function CustomTabList(props: TabListProps) {
       style={[
         styles.tabListContainer,
         {
-          backgroundColor: theme.palette.surface.sunken,
-          borderTopColor: theme.palette.border.default,
+          backgroundColor: native.surface.sunken,
+          borderTopColor: native.border.default,
         },
       ]}
     >
@@ -81,13 +87,13 @@ function CustomTabList(props: TabListProps) {
         style={[
           styles.innerContainer,
           {
-            backgroundColor: theme.palette.surface.raised,
-            borderColor: theme.palette.border.default,
-            borderRadius: theme.semantic.radius.pill,
-            gap: theme.semantic.space.gap.compact,
-            paddingHorizontal: theme.semantic.space.inline.default,
-            paddingVertical: theme.semantic.space.stack.compact,
-            shadowColor: theme.palette.foreground.default,
+            backgroundColor: native.surface.raised,
+            borderColor: native.border.default,
+            borderRadius: semantic.radius.pill,
+            gap: semantic.space.gap.compact,
+            paddingHorizontal: semantic.space.inline.default,
+            paddingVertical: semantic.space.stack.compact,
+            shadowColor: native.foreground.default,
           },
         ]}
       >

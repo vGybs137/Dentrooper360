@@ -11,11 +11,9 @@ import {
   getSlideFromRightToLeftOffset,
   getSlideToLeftOffset,
 } from "@/helpers/authMotion";
-import { useThemeTokens } from "@/theme";
 
 export function useAuthSlideDuration(): number {
-  const theme = useThemeTokens();
-  return getAuthSlideDuration(theme);
+  return getAuthSlideDuration();
 }
 
 export function useAuthSlideTiming() {

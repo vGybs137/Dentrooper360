@@ -3,8 +3,7 @@ import { memo, useMemo } from "react";
 import { View } from "react-native";
 
 import { AppointmentSearchResultItem } from "@/components/schedule/appointmentSearch/AppointmentSearchResultItem";
-import { Card, ThemedText } from "@/components/ui";
-import { useThemeTokens } from "@/theme";
+import { ThemedText, ThemedView } from "@/components/ui";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import { parseDayKey, sameDay, toLocalDate, todayCalendarDate, type DayKey } from "@/utils/calendar";
 
@@ -24,89 +23,38 @@ function AppointmentSearchDayGroupComponent({
   events,
   query = "",
 }: AppointmentSearchDayGroupProps) {
-  const theme = useThemeTokens();
   const dayLabel = useMemo(() => formatSearchDayLabel(dayKey), [dayKey]);
   const isToday = useMemo(
     () => sameDay(parseDayKey(dayKey), todayCalendarDate()),
     [dayKey],
   );
 
-  const groupStyle = useMemo(
-    () => ({
-      paddingHorizontal: theme.semantic.space.page,
-      paddingBottom: theme.semantic.space.section,
-    }),
-    [theme],
-  );
-
-  const headerRowStyle = useMemo(
-    () => ({
-      flexDirection: "row" as const,
-      alignItems: "center" as const,
-      gap: theme.semantic.space.gap.default,
-      marginBottom: theme.semantic.space.stack.compact,
-    }),
-    [theme],
-  );
-
-  const todayBadgeStyle = useMemo(
-    () => ({
-      borderRadius: theme.semantic.radius.control,
-      paddingHorizontal: theme.semantic.space.inline.compact,
-      paddingVertical: theme.semantic.space.stack.compact,
-      backgroundColor: theme.palette.surface.inverse,
-    }),
-    [theme],
-  );
-
-  const todayTextStyle = useMemo(
-    () => ({
-      fontWeight: theme.primitives.fontWeight.bold as "700",
-    }),
-    [theme],
-  );
-
-  const separatorWrapStyle = useMemo(
-    () => ({
-      paddingVertical: theme.semantic.space.stack.default,
-    }),
-    [theme],
-  );
-
-  const separatorStyle = useMemo(
-    () => ({
-      height: theme.semantic.borderWidth.subtle,
-      backgroundColor: theme.palette.border.subtle,
-    }),
-    [theme],
-  );
-
   return (
-    <View style={groupStyle}>
-      <View style={headerRowStyle}>
+    <View className="px-page pb-section">
+      <View className="mb-stack-compact flex-row items-center gap-gap">
         {isToday ? (
-          <View style={todayBadgeStyle}>
-            <ThemedText style={todayTextStyle} tone="inverse" variant="label">
+          <ThemedView className="rounded-control bg-surface-inverse px-inline-compact py-stack-compact">
+            <ThemedText className="font-bold" tone="inverse" variant="label">
               Today
             </ThemedText>
-          </View>
+          </ThemedView>
         ) : null}
         <ThemedText tone="muted" variant="label">
           {dayLabel}
         </ThemedText>
       </View>
-      <Card style={{ backgroundColor: theme.palette.surface.sunken }}>
+      <ThemedView inset="none" surface="sunken" variant="card">
         {events.map((event, index) => (
           <View key={event.id}>
             {index > 0 ? (
-              <View style={separatorWrapStyle}>
-                <View style={separatorStyle} />
+              <View className="py-stack-default">
+                <View className="h-px bg-border-subtle" />
               </View>
             ) : null}
             <AppointmentSearchResultItem event={event} query={query} />
           </View>
         ))}
-      </Card>
+      </ThemedView>
     </View>
   );
 }

@@ -1,20 +1,14 @@
-import { SymbolView } from "expo-symbols";
-import {
-  Image,
-  Pressable,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from "react-native";
+import { Image, View, type StyleProp, type ViewStyle } from "react-native";
 
-import { Card, ThemedText } from "@/components/ui";
+import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
 import { checkCircleIcon, personIcon, starIcon } from "@/constants";
 import {
   formatPatientBalance,
   formatPatientNextVisit,
   type PatientCardData,
 } from "@/helpers/patientDisplay";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
+import { cn } from "@/utils/cn";
 
 const AVATAR_SIZE = 30;
 const INDICATOR_SIZE = 22;
@@ -29,15 +23,11 @@ type PatientCardProps = {
 
 function MetricColumn({ label, value }: { label: string; value: string }) {
   return (
-    <View style={{ minWidth: 72, gap: 2 }}>
-      <ThemedText tone="muted" style={{ fontSize: 12 }} variant="label">
+    <View className="min-w-[72px] gap-0.5">
+      <ThemedText className="text-xs" tone="muted" variant="label">
         {label}
       </ThemedText>
-      <ThemedText
-        numberOfLines={1}
-        style={{ fontWeight: "400" }}
-        variant="label"
-      >
+      <ThemedText className="font-normal" numberOfLines={1} variant="label">
         {value}
       </ThemedText>
     </View>
@@ -45,8 +35,6 @@ function MetricColumn({ label, value }: { label: string; value: string }) {
 }
 
 function PatientAvatar({ profilePhoto }: { profilePhoto: string | null }) {
-  const theme = useThemeTokens();
-
   if (profilePhoto) {
     return (
       <Image
@@ -61,37 +49,25 @@ function PatientAvatar({ profilePhoto }: { profilePhoto: string | null }) {
   }
 
   return (
-    <SymbolView
-      name={personIcon}
-      size={AVATAR_SIZE}
-      tintColor={theme.palette.foreground.muted}
-    />
+    <ThemedIcon dimension={AVATAR_SIZE} name={personIcon} tone="muted" />
   );
 }
 
 function SelectionIndicator({ selected }: { selected: boolean }) {
-  const theme = useThemeTokens();
-
   if (selected) {
     return (
-      <SymbolView
+      <ThemedIcon
+        dimension={INDICATOR_SIZE}
         name={checkCircleIcon}
-        size={INDICATOR_SIZE}
-        tintColor={theme.palette.brand.default}
+        tone="brand"
       />
     );
   }
 
   return (
-    <View
-      style={{
-        width: INDICATOR_SIZE,
-        height: INDICATOR_SIZE,
-        borderRadius: INDICATOR_SIZE / 2,
-        borderWidth: 2,
-        borderColor: theme.palette.border.default,
-        backgroundColor: theme.palette.surface.default,
-      }}
+    <ThemedView
+      className="rounded-full border-2 border-border-default bg-surface-default"
+      style={{ width: INDICATOR_SIZE, height: INDICATOR_SIZE }}
     />
   );
 }
@@ -103,28 +79,24 @@ export function PatientCard({
   onPress,
   style,
 }: PatientCardProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const isSelected = selectable && selected;
 
   const content = (
-    <Card
+    <ThemedView
       borderTone={isSelected ? "none" : "subtle"}
-      style={[
-        { backgroundColor: theme.palette.surface.sunken },
+      className={cn(
         isSelected
-          ? {
-              borderWidth: 2,
-              borderColor: theme.palette.brand.default,
-              backgroundColor: theme.palette.brand.subtle,
-            }
-          : undefined,
-        style,
-      ]}
+          ? "border-2 border-brand-default bg-brand-subtle"
+          : "bg-surface-sunken",
+      )}
+      style={style}
+      variant="card"
     >
-      <View style={{ flexDirection: "row", alignItems: "stretch" }}>
+      <View className="flex-row items-stretch">
         <View
+          className="items-center"
           style={{
-            alignItems: "center",
             justifyContent: selectable ? "space-between" : "center",
             width: AVATAR_SIZE + 4,
             minHeight: selectable ? 72 : AVATAR_SIZE,
@@ -134,50 +106,25 @@ export function PatientCard({
           {selectable ? <SelectionIndicator selected={selected} /> : null}
         </View>
 
-        <View className="h-[90%] border-border-subtle border-l self-center" />
+        <View className="h-[90%] self-center border-l border-border-subtle" />
 
         <View className="flex-1">
-          <View
-            style={{
-              flex: 1,
-              minWidth: 0,
-              justifyContent: "center",
-              paddingHorizontal: theme.semantic.space.gap.default,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 6,
-                flexWrap: "wrap",
-              }}
-            >
+          <View className="min-w-0 flex-1 justify-center px-gap">
+            <View className="flex-row flex-wrap items-center gap-1.5">
               <ThemedText
+                className="shrink font-semibold"
                 numberOfLines={1}
-                style={{ flexShrink: 1, fontWeight: "600" }}
                 variant="body"
               >
                 {patient.displayName}
               </ThemedText>
               {patient.isVip ? (
-                <SymbolView
-                  name={starIcon}
-                  size={14}
-                  tintColor={theme.palette.brand.default}
-                />
+                <ThemedIcon dimension={14} name={starIcon} tone="brand" />
               ) : null}
             </View>
           </View>
 
-          <View
-            style={{
-              flexDirection: "row",
-              paddingLeft: theme.semantic.space.gap.default,
-              paddingVertical: 2,
-            }}
-            className="flex-1 justify-between"
-          >
+          <View className="flex-1 flex-row justify-between py-0.5 pl-gap">
             <MetricColumn
               label="Next visit"
               value={formatPatientNextVisit(patient.nextVisit)}
@@ -189,7 +136,7 @@ export function PatientCard({
           </View>
         </View>
       </View>
-    </Card>
+    </ThemedView>
   );
 
   if (!onPress) {
@@ -197,18 +144,22 @@ export function PatientCard({
   }
 
   return (
-    <Pressable
+    <Button
       accessibilityRole={selectable ? "radio" : "button"}
       accessibilityState={{ selected: isSelected }}
       android_ripple={
         selectable
-          ? { color: theme.palette.brand.subtle, borderless: false }
+          ? { color: native.brand.subtle, borderless: false }
           : undefined
       }
       onPress={onPress}
+      ripple={false}
+      size="none"
       style={({ pressed }) => (pressed ? { opacity: 0.92 } : undefined)}
+      tone="neutral"
+      variant="ghost"
     >
       {content}
-    </Pressable>
+    </Button>
   );
 }

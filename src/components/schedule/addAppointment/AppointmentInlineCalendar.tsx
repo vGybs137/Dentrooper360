@@ -8,7 +8,7 @@ import {
   toCalendarDateString,
 } from "@/helpers/appointmentDate";
 import { useInlineCollapse } from "@/hooks/useInlineCollapse";
-import { useThemeTokens } from "@/theme";
+import { useNativeColors } from "@/theme";
 
 const FALLBACK_CALENDAR_HEIGHT = 300;
 
@@ -23,7 +23,7 @@ export function AppointmentInlineCalendar({
   selectedDate,
   onSelectDate,
 }: AppointmentInlineCalendarProps) {
-  const theme = useThemeTokens();
+  const native = useNativeColors();
   const selectedDateValue = toCalendarDateString(selectedDate);
   const [visibleMonth, setVisibleMonth] = useState(selectedDateValue);
   const [contentHeight, setContentHeight] = useState(FALLBACK_CALENDAR_HEIGHT);
@@ -33,14 +33,14 @@ export function AppointmentInlineCalendar({
     () => ({
       backgroundColor: "transparent",
       calendarBackground: "transparent",
-      textSectionTitleColor: theme.palette.foreground.muted,
-      selectedDayBackgroundColor: theme.palette.brand.default,
-      selectedDayTextColor: theme.palette.brand.text,
-      todayTextColor: theme.palette.brand.default,
-      dayTextColor: theme.palette.foreground.default,
-      textDisabledColor: theme.palette.foreground.muted,
-      monthTextColor: theme.palette.foreground.default,
-      arrowColor: theme.palette.foreground.default,
+      textSectionTitleColor: native.foreground.muted,
+      selectedDayBackgroundColor: native.brand.default,
+      selectedDayTextColor: native.brand.text,
+      todayTextColor: native.brand.default,
+      dayTextColor: native.foreground.default,
+      textDisabledColor: native.foreground.muted,
+      monthTextColor: native.foreground.default,
+      arrowColor: native.foreground.default,
       textDayFontWeight: "400" as const,
       textMonthFontWeight: "600" as const,
       textDayHeaderFontWeight: "500" as const,
@@ -48,17 +48,17 @@ export function AppointmentInlineCalendar({
       textMonthFontSize: 17,
       textDayHeaderFontSize: 12,
     }),
-    [theme],
+    [native],
   );
 
   const markedDates = useMemo(
     () => ({
       [selectedDateValue]: {
         selected: true,
-        selectedColor: theme.palette.brand.default,
+        selectedColor: native.brand.default,
       },
     }),
-    [selectedDateValue, theme.palette.brand.default],
+    [selectedDateValue, native.brand.default],
   );
 
   const handleLayout = (event: LayoutChangeEvent) => {

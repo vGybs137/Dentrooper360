@@ -15,7 +15,7 @@ import {
   useSlideFromRightStyle,
   useSlideFromRightToLeftStyle,
 } from "@/hooks/useAuthMotion";
-import { useThemeTokens } from "@/theme";
+import { semantic } from "@/tokens";
 
 export type QrScanStatus = "ready" | "paired";
 
@@ -34,7 +34,6 @@ export function useQrScannerMotion({
   onRestoreOnboarding,
   onLeaveScanner,
 }: UseQrScannerMotionOptions) {
-  const theme = useThemeTokens();
   const slideTiming = useAuthSlideTiming();
   const [status, setStatus] = useState<QrScanStatus>("ready");
   const scanLine = useSharedValue(0);
@@ -62,7 +61,7 @@ export function useQrScannerMotion({
     scanLine.value = 0;
     scanLine.value = withRepeat(
       withTiming(1, {
-        duration: theme.semantic.motion.overlay.duration * 4,
+        duration: semantic.motion.overlay.duration * 4,
         easing: Easing.inOut(Easing.quad),
       }),
       -1,
@@ -72,7 +71,7 @@ export function useQrScannerMotion({
     return () => {
       cancelAnimation(scanLine);
     };
-  }, [scanLine, status, theme.semantic.motion.overlay.duration]);
+  }, [scanLine, status, semantic.motion.overlay.duration]);
 
   useEffect(() => {
     if (status !== "paired") {

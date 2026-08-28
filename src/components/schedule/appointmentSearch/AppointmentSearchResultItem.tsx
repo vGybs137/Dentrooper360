@@ -1,12 +1,15 @@
 import { useRouter, type Href } from "expo-router";
 import { memo, useMemo } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
+
+import { Button } from "@/components/ui";
 
 import { MONTH_VIEW_EVENT_LIST_RAIL_WIDTH } from "@/constants/schedule";
 import { formatTimeRange } from "@/helpers/timeFormat";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
-import { useThemeTokens } from "@/theme";
+import { primitives } from "@/tokens";
 import type { MonthDayEventPreview } from "@/types/schedule";
+import { cn } from "@/utils/cn";
 
 export type AppointmentSearchResultItemProps = {
   event: MonthDayEventPreview;
@@ -58,101 +61,71 @@ function AppointmentSearchResultItemComponent({
   event,
   query = "",
 }: AppointmentSearchResultItemProps) {
-  const theme = useThemeTokens();
   const hourFormat = useHourFormat();
   const router = useRouter();
   const timeRange = formatTimeRange(event.startTime, event.endTime, hourFormat);
-  const typeColor = event.color ?? theme.colors.borderStrong;
   const subjectParts = useMemo(
     () => splitSubjectByQuery(event.title, query),
     [event.title, query],
   );
 
-  const rowStyle = useMemo(
-    () => ({
-      flexDirection: "row" as const,
-      alignItems: "stretch" as const,
-      overflow: "hidden" as const,
-      paddingVertical: theme.semantic.space.stack.compact,
-      gap: theme.semantic.space.stack.compact,
-    }),
-    [theme],
-  );
-
-  const railStyle = useMemo(
-    () => ({
-      width: MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
-      borderRadius: theme.primitives.radius.xs,
-      backgroundColor: typeColor,
-    }),
-    [theme, typeColor],
-  );
-
-  const titleStyle = useMemo(
-    () => ({
-      fontSize: theme.primitives.fontSize.sm,
-      lineHeight: theme.primitives.lineHeight.sm,
-      fontWeight: theme.primitives.fontWeight.semibold,
-    }),
-    [theme],
-  );
-
-  const metaStyle = useMemo(
-    () => ({
-      marginTop: theme.primitives.space[2],
-      color: theme.colors.textMuted,
-      fontSize: theme.primitives.fontSize.xs,
-      lineHeight: theme.primitives.lineHeight.xs,
-      fontWeight: theme.primitives.fontWeight.regular,
-    }),
-    [theme],
-  );
-
-  const highlightStyle = useMemo(
-    () => ({
-      color: theme.palette.brand.default,
-      fontWeight: theme.primitives.fontWeight.bold as "700",
-    }),
-    [theme],
-  );
-
-  const subjectStyle = useMemo(
-    () => ({
-      color: theme.colors.text,
-    }),
-    [theme],
-  );
-
   return (
-    <Pressable
-      accessibilityRole="button"
+    <Button
       accessibilityLabel={`${event.title}${event.typeName ? ` - ${event.typeName}` : ""}, ${timeRange}`}
+      className="flex-row items-stretch gap-stack-compact overflow-hidden py-stack-compact"
       onPress={() => router.push(`/appointments/${event.id}` as Href)}
-      style={rowStyle}
+      ripple={false}
+      size="none"
+      tone="neutral"
+      variant="ghost"
     >
-      <View style={railStyle} />
+      <View
+        className={cn(!event.color && "bg-border-strong")}
+        style={{
+          width: MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
+          borderRadius: primitives.radius.xs,
+          backgroundColor: event.color ?? undefined,
+        }}
+      />
       <View className="min-w-0 flex-1 justify-center">
-        <Text numberOfLines={1} style={titleStyle}>
+        <Text
+          className="text-sm font-semibold"
+          numberOfLines={1}
+          style={{ lineHeight: primitives.lineHeight.sm }}
+        >
           {subjectParts.map((part, index) => (
             <Text
               key={`${part.value}-${index}`}
-              style={part.highlighted ? highlightStyle : subjectStyle}
+              className={
+                part.highlighted
+                  ? "font-bold text-brand-default"
+                  : "text-foreground-default"
+              }
             >
               {part.value}
             </Text>
           ))}
           {event.typeName ? (
-            <Text style={{ color: theme.colors.text }}> - </Text>
+            <Text className="text-foreground-default"> - </Text>
           ) : null}
           {event.typeName ? (
-            <Text style={{ color: typeColor }}>{event.typeName}</Text>
+            <Text
+              className={event.color ? undefined : "text-foreground-muted"}
+              style={event.color ? { color: event.color } : undefined}
+            >
+              {event.typeName}
+            </Text>
           ) : null}
         </Text>
-        <Text numberOfLines={1} style={metaStyle}>
+        <Text
+          className="mt-0.5 text-xs font-normal text-foreground-muted"
+          numberOfLines={1}
+          style={{ lineHeight: primitives.lineHeight.xs }}
+        >
           {timeRange}
         </Text>
       </View>
-    </Pressable>
+    </Button>
   );
 }
 

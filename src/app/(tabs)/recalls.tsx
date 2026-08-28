@@ -1,28 +1,41 @@
-import { type Href, useRouter } from "expo-router";
+import { type Href, useRouter, useSegments } from "expo-router";
 
-import { AppScreenShell, AppSectionCard } from "@/components/app/AppScreenShell";
-import { Button, Stack } from "@/components/ui";
+import { Button, ThemedText, ThemedView } from "@/components/ui";
+import { getWebTabBarInset } from "@/constants/navigation";
 
 export default function RecallsScreen() {
   const router = useRouter();
+  const segments = useSegments();
 
   return (
-    <AppScreenShell
-      description="Use this tab for recall queues, follow-up reminders, and recall lifecycle management."
-      eyebrow="Main app"
-      title="Recalls"
+    <ThemedView
+      bottomInset={getWebTabBarInset(segments[0])}
+      header={{
+        description:
+          "Use this tab for recall queues, follow-up reminders, and recall lifecycle management.",
+        eyebrow: "Main app",
+        title: "Recalls",
+      }}
+      scroll
+      variant="screen"
     >
-      <AppSectionCard
-        title="Primary action"
-        description="Recall detail pages are separate stack routes so they open outside the tab layout."
-      >
-        <Stack space="compact">
-          <Button
-            label="Open recall details"
-            onPress={() => router.push("/recalls/recall-001" as Href)}
-          />
-        </Stack>
-      </AppSectionCard>
-    </AppScreenShell>
+      <ThemedView variant="card">
+        <ThemedView space="default" variant="stack">
+          <ThemedView space="compact" variant="stack">
+            <ThemedText variant="title">Primary action</ThemedText>
+            <ThemedText tone="muted">
+              Recall detail pages are separate stack routes so they open
+              outside the tab layout.
+            </ThemedText>
+          </ThemedView>
+          <ThemedView space="compact" variant="stack">
+            <Button
+              label="Open recall details"
+              onPress={() => router.push("/recalls/recall-001" as Href)}
+            />
+          </ThemedView>
+        </ThemedView>
+      </ThemedView>
+    </ThemedView>
   );
 }

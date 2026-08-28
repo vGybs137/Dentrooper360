@@ -1,16 +1,15 @@
-import { SymbolView } from "expo-symbols";
 import { memo, useCallback, useMemo, useState } from "react";
-import { Controller, useWatch } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 import { View } from "react-native";
 
 import {
-  Stack,
-  TextField,
+  ThemedIcon,
+  ThemedText,
+  ThemedView,
   type DropdownOption,
 } from "@/components/ui";
 import { locationIcon, notesIcon } from "@/constants";
 import type { AddAppointmentFormState } from "@/hooks/useAddAppointmentForm";
-import { useThemeTokens } from "@/theme";
 import { cn } from "@/utils/cn";
 
 import {
@@ -40,7 +39,6 @@ function AddAppointmentDetailsStepComponent({
   onNotesFocus,
   onNotesBlur,
 }: AddAppointmentDetailsStepProps) {
-  const theme = useThemeTokens();
   const [expandedField, setExpandedField] = useState<ExpandedField>(null);
   const {
     control,
@@ -70,7 +68,7 @@ function AddAppointmentDetailsStepComponent({
   );
 
   const selectedType = typeOptions.find((option) => option.value === typeId);
-  const typeColor = selectedType?.color ?? theme.palette.foreground.muted;
+  const typeColor = selectedType?.color ?? undefined;
 
   const locationOptions: DropdownOption[] = useMemo(
     () =>
@@ -93,26 +91,19 @@ function AddAppointmentDetailsStepComponent({
       : null;
 
   return (
-    <Stack space="default">
-      <Controller
-        control={control}
+    <ThemedView space="default" variant="stack">
+      <ThemedText
+        as="input"
+        bottomSheetInput
+        editable={!selectedPatient}
+        fieldVariant="bare"
         name="subject"
+        placeholder={
+          selectedPatient
+            ? "Patient name and phone"
+            : "Appointment subject"
+        }
         rules={{ required: !selectedPatient }}
-        render={({ field: { onChange, value }, fieldState: { error } }) => (
-          <TextField
-            bottomSheetInput
-            editable={!selectedPatient}
-            error={error?.message}
-            onChangeText={onChange}
-            placeholder={
-              selectedPatient
-                ? "Patient name and phone"
-                : "Appointment subject"
-            }
-            value={value}
-            variant="bare"
-          />
-        )}
       />
 
       <FormDivider className="mt-2" />
@@ -147,12 +138,7 @@ function AddAppointmentDetailsStepComponent({
       <FormDivider />
 
       <AppointmentInlineSelect
-        leading={
-          <InlineSelectSymbolLeading
-            name={locationIcon}
-            tintColor={theme.palette.foreground.muted}
-          />
-        }
+        leading={<InlineSelectSymbolLeading name={locationIcon} />}
         onChange={(value) =>
           setValue("locationId", value, {
             shouldDirty: true,
@@ -168,39 +154,29 @@ function AddAppointmentDetailsStepComponent({
 
       <FormDivider />
 
-      <Controller
-        control={control}
-        name="description"
-        render={({ field: { onChange, value } }) => (
           <View className="w-full flex-row items-start gap-3">
             <View className="mt-stack-compact size-5 items-center justify-center">
-              <SymbolView
-                name={notesIcon}
-                size={20}
-                tintColor={theme.palette.foreground.muted}
-              />
+              <ThemedIcon dimension={20} name={notesIcon} tone="muted" />
             </View>
             <View className="min-w-0 flex-1">
-              <TextField
+              <ThemedText
+                as="input"
                 bottomSheetInput
                 className="min-h-[96px] w-full px-inline"
+                fieldVariant="bare"
                 multiline
+                name="description"
                 numberOfLines={4}
-                onChangeText={onChange}
                 onBlur={onNotesBlur}
                 onFocus={() => {
                   setExpandedField(null);
                   onNotesFocus?.();
                 }}
                 placeholder="Add notes"
-                value={value}
-                variant="bare"
               />
             </View>
           </View>
-        )}
-      />
-    </Stack>
+    </ThemedView>
   );
 }
 

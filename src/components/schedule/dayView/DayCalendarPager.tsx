@@ -1,11 +1,11 @@
 import { memo, useCallback, useMemo } from "react";
 import { View } from "react-native";
 import PagerView from "react-native-pager-view";
+import { semantic } from "@/tokens";
 
 import { DAY_VIEW_PAGER_RENDER_RADIUS } from "@/constants/schedule";
 import { useWeekViewAxisLock } from "@/hooks/schedule/useWeekViewAxisLock";
 import { useAddAppointmentStore } from "@/stores/addAppointmentStore";
-import { useThemeTokens } from "@/theme";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import type { DayKey } from "@/utils/calendar";
 
@@ -35,8 +35,7 @@ function DayCalendarPagerComponent({
   onPageSelected,
   onPageScrollStateChanged,
 }: DayCalendarPagerProps) {
-  const theme = useThemeTokens();
-  const pageMargin = theme.semantic.space.stack.compact;
+  const pageMargin = semantic.space.stack.compact;
   const {
     pagerScrollEnabled,
     gridTouchHandlers,

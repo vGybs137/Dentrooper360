@@ -1,12 +1,11 @@
-import { SymbolView } from "expo-symbols";
 import { type ReactNode } from "react";
 import { View, type StyleProp, type ViewStyle } from "react-native";
 import Animated, { type AnimatedStyle } from "react-native-reanimated";
 
-import { Button, Stack } from "@/components/ui";
+import { Button, ThemedIcon, ThemedView } from "@/components/ui";
 import { qrCodeIcon } from "@/constants";
 import type { QrScanStatus } from "@/hooks/useQrScannerMotion";
-import { useThemeTokens } from "@/theme";
+import { semantic } from "@/tokens";
 
 type CornerPlacement = "tl" | "tr" | "bl" | "br";
 
@@ -69,44 +68,34 @@ export function QrViewfinder({
   cameraPreview,
   onCancel,
 }: QrViewfinderProps) {
-  const theme = useThemeTokens();
-  const cornerSize = theme.semantic.size["icon-lg"];
-  const cornerRadius = theme.semantic.radius.overlay;
-  const cornerThickness = theme.semantic.borderWidth.strong;
-  const iconSize = theme.semantic.size["icon-lg"] * 2;
+  const cornerSize = semantic.size["icon-lg"];
+  const cornerRadius = semantic.radius.overlay;
+  const cornerThickness = semantic.borderWidth.strong;
+  const iconSize = semantic.size["icon-lg"] * 2;
 
   return (
-    <Stack align="center" space="comfortable">
+    <ThemedView align="center" space="comfortable" variant="stack">
       <View
-        className="overflow-hidden"
+        className="overflow-hidden rounded-overlay bg-brand-subtle"
         style={{
           width: viewfinderSize,
           height: viewfinderSize,
-          backgroundColor: theme.palette.brand.subtle,
-          borderRadius: theme.semantic.radius.overlay,
         }}
       >
         {status === "ready" ? (
           <>
             {cameraPreview ?? (
               <View className="absolute inset-0 items-center justify-center">
-                <SymbolView
+                <ThemedIcon
+                  dimension={iconSize}
                   name={qrCodeIcon}
-                  size={iconSize}
-                  tintColor={theme.palette.brand.default}
+                  tone="brand"
                 />
               </View>
             )}
             <Animated.View
-              className="absolute h-0.5"
-              style={[
-                {
-                  left: scanInset,
-                  right: scanInset,
-                  backgroundColor: theme.palette.brand.default,
-                },
-                scanLineStyle,
-              ]}
+              className="absolute h-0.5 bg-brand-default"
+              style={[{ left: scanInset, right: scanInset }, scanLineStyle]}
             />
           </>
         ) : null}
@@ -122,17 +111,17 @@ export function QrViewfinder({
         ))}
       </View>
       <Button
+        className="rounded-card"
         disabled={status !== "ready"}
         label="Cancel"
         onPress={onCancel}
         size="lg"
         style={{
           width: viewfinderSize,
-          borderRadius: theme.semantic.radius.card,
         }}
         tone="alert"
         variant="soft"
       />
-    </Stack>
+    </ThemedView>
   );
 }

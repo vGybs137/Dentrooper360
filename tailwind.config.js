@@ -1,3 +1,6 @@
+const plugin = require("tailwindcss/plugin");
+const flattenColorPalette =
+  require("tailwindcss/lib/util/flattenColorPalette").default;
 const { nativewindTheme } = require("./src/tokens/nativewindTheme");
 
 /** @type {import('tailwindcss').Config} */
@@ -24,5 +27,17 @@ module.exports = {
       transitionTimingFunction: nativewindTheme.transitionTimingFunction,
     },
   },
-  plugins: [],
+  plugins: [
+    plugin(({ matchUtilities, theme }) => {
+      matchUtilities(
+        {
+          tint: (value) => ({
+            color: value,
+            tintColor: value,
+          }),
+        },
+        { values: flattenColorPalette(theme("colors")), type: ["color"] },
+      );
+    }),
+  ],
 };
