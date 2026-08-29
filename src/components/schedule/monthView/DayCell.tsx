@@ -10,27 +10,26 @@ import { primitives, semantic } from "@/tokens";
 
 import { Button, ThemedText } from "@/components/ui";
 import {
+  MONTH_VIEW_CHIP_FADE_END,
+  MONTH_VIEW_CHIP_LINE_HEIGHT,
+  MONTH_VIEW_DAY_NUMBER_SIZE,
+  MONTH_VIEW_DOT_FADE_END,
+  MONTH_VIEW_DOT_FADE_START,
+  MONTH_VIEW_MUTED_DAY_OPACITY,
+} from "@/constants/schedule";
+import { useSheetOpenProgress } from "@/contexts/SheetOpenProgressContext";
+import { visibleChipCount } from "@/helpers/monthViewLayout";
+import {
   selectCalendarDay,
   useCalendarSelectionStore,
   useIsCalendarDaySelected,
 } from "@/stores/calendarSelectionStore";
+import type { DayPressHandler, MonthDayEventPreview } from "@/types/schedule";
 import type { DayCellModel } from "@/utils/calendar";
 import { weekdayIndex } from "@/utils/calendar";
 
-import {
-  MONTH_VIEW_CELL_GAP,
-  MONTH_VIEW_CHIP_FADE_END,
-  MONTH_VIEW_DAY_NUMBER_SIZE,
-  MONTH_VIEW_DOT_FADE_END,
-  MONTH_VIEW_DOT_FADE_START,
-  MONTH_VIEW_MAX_VISIBLE_EVENTS,
-  MONTH_VIEW_MUTED_DAY_OPACITY,
-} from "@/constants/schedule";
-import type { DayPressHandler, MonthDayEventPreview } from "@/types/schedule";
-
 import { DayEventChip } from "./DayEventChip";
 import { DayEventDots } from "./DayEventDots";
-import { useSheetOpenProgress } from "@/contexts/SheetOpenProgressContext";
 
 /** How event indicators render inside a day cell. */
 export type DayCellEventIndicators =
@@ -41,11 +40,9 @@ export type DayCellEventIndicators =
 
 export type DayCellProps = {
   cell: DayCellModel;
-  width: number;
-  height: number;
-  columnIndex: number;
-  rowIndex: number;
   events?: MonthDayEventPreview[];
+  /** Estimated chip slot height from window chrome — used before cell onLayout. */
+  eventsAvailableHeight: number;
   /** Default `crossfade` — chip↔dot progress worklets. Prefer static modes when settled. */
   eventIndicators?: DayCellEventIndicators;
   onDayPress?: DayPressHandler;
@@ -56,42 +53,14 @@ function useVisibleChips(
   events: MonthDayEventPreview[],
   availableHeight: number,
 ) {
-  const chipRowHeight =
-    semantic.space.stack.comfortable + primitives.space[2];
-  const overflowRowHeight = 11 + primitives.space[2];
-
   return useMemo(() => {
-    const maxBySpace = Math.max(
-      0,
-      Math.floor(availableHeight / Math.max(chipRowHeight, 1)),
-    );
-    let visibleCount = Math.min(
-      MONTH_VIEW_MAX_VISIBLE_EVENTS,
-      maxBySpace,
-      events.length,
-    );
-
-    if (events.length > visibleCount) {
-      const maxWithOverflow = Math.max(
-        0,
-        Math.floor(
-          (availableHeight - overflowRowHeight) / Math.max(chipRowHeight, 1),
-        ),
-      );
-      visibleCount = Math.min(
-        MONTH_VIEW_MAX_VISIBLE_EVENTS,
-        maxWithOverflow,
-        Math.max(0, events.length - 1),
-      );
-    }
-
-    const visible = events.slice(0, visibleCount);
+    const visibleCount = visibleChipCount(availableHeight, events.length);
     return {
-      visibleEvents: visible,
-      overflowCount: Math.max(0, events.length - visible.length),
+      visibleEvents: events.slice(0, visibleCount),
+      overflowCount: Math.max(0, events.length - visibleCount),
       chipsGapStyle: { gap: primitives.space[2] },
     };
-  }, [availableHeight, chipRowHeight, events, overflowRowHeight]);
+  }, [availableHeight, events]);
 }
 
 function DayCellChips({
@@ -107,7 +76,7 @@ function DayCellChips({
   );
 
   return (
-    <View style={[{ flex: 1, overflow: "hidden" }, chipsGapStyle]}>
+    <View style={[{ flex: 1, overflow: "hidden", minHeight: 0 }, chipsGapStyle]}>
       {visibleEvents.map((event) => (
         <DayEventChip key={event.id} event={event} />
       ))}
@@ -115,7 +84,7 @@ function DayCellChips({
         <ThemedText
           tone="muted"
           numberOfLines={1}
-          style={{ fontSize: 9, lineHeight: 11 }}
+          style={{ fontSize: 9, lineHeight: MONTH_VIEW_CHIP_LINE_HEIGHT }}
         >
           +{overflowCount} more
         </ThemedText>
@@ -128,7 +97,7 @@ const DayCellChipsMemo = memo(DayCellChips);
 
 function DayCellDotsOnly({ events }: { events: MonthDayEventPreview[] }) {
   return (
-    <View style={{ flex: 1, overflow: "hidden" }}>
+    <View style={{ flex: 1, overflow: "hidden", minHeight: 0 }}>
       <DayEventDots events={events} />
     </View>
   );
@@ -174,7 +143,7 @@ function DayCellEventsCrossfade({
   });
 
   return (
-    <View style={{ flex: 1, overflow: "hidden" }}>
+    <View style={{ flex: 1, overflow: "hidden", minHeight: 0 }}>
       <Animated.View style={[chipsGapStyle, chipsStyle]}>
         {visibleEvents.map((event) => (
           <DayEventChip key={event.id} event={event} />
@@ -183,7 +152,7 @@ function DayCellEventsCrossfade({
           <ThemedText
             tone="muted"
             numberOfLines={1}
-            style={{ fontSize: 9, lineHeight: 11 }}
+            style={{ fontSize: 9, lineHeight: MONTH_VIEW_CHIP_LINE_HEIGHT }}
           >
             +{overflowCount} more
           </ThemedText>
@@ -203,11 +172,8 @@ const DayCellEventsCrossfadeMemo = memo(DayCellEventsCrossfade);
 
 function DayCellComponent({
   cell,
-  width,
-  height,
-  columnIndex,
-  rowIndex,
   events = [],
+  eventsAvailableHeight,
   eventIndicators = "crossfade",
   onDayPress,
   style,
@@ -234,13 +200,12 @@ function DayCellComponent({
     [cell.isToday, selected, native],
   );
 
-  const cellHeight = rowIndex < 5 ? height - MONTH_VIEW_CELL_GAP : height;
   const cellStyle = useMemo(
     () => ({
-      width: columnIndex < 6 ? width - MONTH_VIEW_CELL_GAP : width,
-      height: cellHeight,
-      marginRight: columnIndex < 6 ? MONTH_VIEW_CELL_GAP : 0,
-      marginBottom: rowIndex < 5 ? MONTH_VIEW_CELL_GAP : 0,
+      flex: 1,
+      minWidth: 0,
+      minHeight: 0,
+      overflow: "hidden" as const,
       paddingHorizontal: semantic.space.stack.compact,
       paddingTop: semantic.space.stack.compact,
       paddingBottom: primitives.space[2],
@@ -251,16 +216,7 @@ function DayCellComponent({
         ? native.calendar.muted
         : native.calendar.default,
     }),
-    [cellHeight, columnIndex, muted, rowIndex, selected, native, width],
-  );
-
-  const eventsAvailableHeight = Math.max(
-    0,
-    cellHeight -
-      semantic.space.stack.compact -
-      primitives.space[2] -
-      MONTH_VIEW_DAY_NUMBER_SIZE -
-      semantic.space.stack.compact,
+    [muted, selected, native],
   );
 
   const headerStyle = useMemo(

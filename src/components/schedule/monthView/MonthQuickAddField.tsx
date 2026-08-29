@@ -17,17 +17,20 @@ import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
 import { Button, ThemedIcon, ThemedText } from "@/components/ui";
+import {
+  MONTH_QUICK_ADD_COLLAPSED_HEIGHT,
+  MONTH_QUICK_ADD_EXPANDED_HEIGHT,
+} from "@/constants/schedule";
 import { createMonthQuickAddAppointment } from "@/helpers/createMonthQuickAddAppointment";
 import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
 import { useAuthUser } from "@/stores";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import type { DayKey } from "@/utils/calendar";
 
-/** Collapsed pill height (token: control). */
-export const MONTH_QUICK_ADD_COLLAPSED_HEIGHT = 40;
-
-/** Expanded pill height while focused (token: control-lg + extra). */
-export const MONTH_QUICK_ADD_EXPANDED_HEIGHT = 56;
+export {
+  MONTH_QUICK_ADD_COLLAPSED_HEIGHT,
+  MONTH_QUICK_ADD_EXPANDED_HEIGHT,
+};
 
 const FOCUS_ANIMATION = {
   duration: 280,

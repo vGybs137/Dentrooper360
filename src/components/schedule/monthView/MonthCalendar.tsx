@@ -14,6 +14,7 @@ import { SheetOpenProgressContext } from "@/contexts/SheetOpenProgressContext";
 import { weekRowForDay, yearMonthFromDayKey } from "@/helpers/scheduleCalendar";
 import { useDayEventsSheetProgress } from "@/hooks/schedule/useDayEventsSheetProgress";
 import { useMonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
+import { useMonthViewLayout } from "@/hooks/schedule/useMonthViewLayout";
 import { useVisibleMonth } from "@/hooks/schedule/useVisibleMonth";
 import { useVisibleWeek } from "@/hooks/schedule/useVisibleWeek";
 import {
@@ -121,25 +122,32 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
   const sheetOpenRef = useRef(sheetOpen);
   sheetOpenRef.current = sheetOpen;
 
-  const pagerHeightSV = useSharedValue(0);
+  const layout = useMonthViewLayout();
+  const pagerHeightSV = useSharedValue(layout.pagerHeight);
   const selectedRowSV = useSharedValue(
     weekRowForDay(visibleMonth, weekStartsOn, selectedDayKey),
   );
 
-  const [hostHeight, setHostHeight] = useState(0);
-  const [chromeHeight, setChromeHeight] = useState(0);
-  const [pagerHeight, setPagerHeight] = useState(0);
+  const [hostHeight, setHostHeight] = useState(layout.hostHeight);
+  const [chromeHeight, setChromeHeight] = useState(layout.chromeHeight);
+  const [pagerHeight, setPagerHeight] = useState(layout.pagerHeight);
 
   const sheetSnapHeight = useMemo(() => {
-    if (hostHeight <= 0 || pagerHeight <= 0) return 0;
-    const weekHeight = pagerHeight / MONTH_GRID_ROWS;
-    return Math.max(0, Math.round(hostHeight - chromeHeight - weekHeight));
-  }, [chromeHeight, hostHeight, pagerHeight]);
-
-  const weekSlotHeight = useMemo(() => {
-    if (pagerHeight <= 0) return 0;
-    return pagerHeight / MONTH_GRID_ROWS;
-  }, [pagerHeight]);
+    const host = hostHeight > 0 ? hostHeight : layout.hostHeight;
+    const chrome = chromeHeight > 0 ? chromeHeight : layout.chromeHeight;
+    const pager = pagerHeight > 0 ? pagerHeight : layout.pagerHeight;
+    if (host <= 0 || pager <= 0) return layout.sheetSnapHeight;
+    const weekHeight = pager / MONTH_GRID_ROWS;
+    return Math.max(0, Math.round(host - chrome - weekHeight));
+  }, [
+    chromeHeight,
+    hostHeight,
+    layout.chromeHeight,
+    layout.hostHeight,
+    layout.pagerHeight,
+    layout.sheetSnapHeight,
+    pagerHeight,
+  ]);
 
   const syncMonthPagerToDay = useCallback(
     (dayKey: DayKey) => {
@@ -295,7 +303,12 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
 
   const weekClipStyle = useAnimatedStyle(() => {
     const progress = openProgress.value;
-    const full = Math.max(pagerHeightSV.value, 1);
+    // Closed sheet: flex fills the pager slot so MonthGrid paints on frame 1
+    // instead of sitting in a 1px box before onLayout measures pagerHeightSV.
+    if (progress <= 0) {
+      return { flex: 1, overflow: "hidden" as const };
+    }
+    const full = pagerHeightSV.value > 0 ? pagerHeightSV.value : 1;
     const week = full / MONTH_GRID_ROWS;
     return {
       height: interpolate(progress, [0, 1], [full, week]),
@@ -305,7 +318,10 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
 
   const weekPinStyle = useAnimatedStyle(() => {
     const progress = openProgress.value;
-    const full = Math.max(pagerHeightSV.value, 1);
+    if (progress <= 0) {
+      return { flex: 1 };
+    }
+    const full = pagerHeightSV.value > 0 ? pagerHeightSV.value : 1;
     const week = full / MONTH_GRID_ROWS;
     return {
       height: full,
@@ -338,16 +354,16 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
         : ("none" as const),
   }));
 
-  const weekOverlayStyle = useMemo(
-    () => ({
+  const weekOverlayStyle = useAnimatedStyle(() => {
+    const full = pagerHeightSV.value > 0 ? pagerHeightSV.value : 1;
+    return {
       position: "absolute" as const,
       top: 0,
       left: 0,
       right: 0,
-      height: weekSlotHeight,
-    }),
-    [weekSlotHeight],
-  );
+      height: full / MONTH_GRID_ROWS,
+    };
+  });
 
   // Keep crossfade for the whole open session so close can animate dots→chips
   // without a blank gap (settled "none"/"dots" remount races scheduleOnRN).
@@ -405,7 +421,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
                   />
                 </Animated.View>
 
-                {weekSlotHeight > 0 ? (
+                {sheetOpen || sheetMotionActive ? (
                   <Animated.View
                     animatedProps={weekTouchProps}
                     style={[weekOverlayStyle, weekPagerVisibilityStyle]}
