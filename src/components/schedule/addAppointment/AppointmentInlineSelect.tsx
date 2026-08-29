@@ -167,95 +167,104 @@ export function AppointmentInlineSelect({
           {leading}
         </View>
 
-        <Button
-          accessibilityLabel={placeholder}
-          accessibilityState={{ expanded: visible }}
-          bottomSheet
-          className={cn(
-            "min-h-control justify-center rounded-pill px-inline py-stack-compact",
-            visible && "bg-brand-subtle",
-          )}
-          hitSlop={6}
-          onPress={onToggle}
-          size="none"
-          style={{ flex: 1, minWidth: 0 }}
-          tone="neutral"
-          variant="ghost"
-        >
-          <ThemedText tone={hasValue ? "default" : "muted"} variant="body">
-            {hasValue ? (selected?.label ?? placeholder) : placeholder}
-          </ThemedText>
-        </Button>
+        <View className="min-w-0 flex-1 self-stretch">
+          <Button
+            accessibilityLabel={placeholder}
+            accessibilityState={{ expanded: visible }}
+            bottomSheet
+            className={cn(
+              "min-h-control w-full justify-center rounded-pill px-inline py-stack-compact",
+              visible && "bg-brand-subtle",
+            )}
+            hitSlop={6}
+            onPress={onToggle}
+            size="none"
+            style={{ width: "100%" }}
+            tone="neutral"
+            variant="ghost"
+          >
+            <ThemedText
+              className="w-full"
+              tone={hasValue ? "default" : "muted"}
+              variant="body"
+            >
+              {hasValue ? (selected?.label ?? placeholder) : placeholder}
+            </ThemedText>
+          </Button>
+        </View>
       </View>
 
       {mounted ? (
         <Animated.View
-          className="ml-8 flex-1"
+          className="w-full"
           pointerEvents={visible ? "auto" : "none"}
           style={containerStyle}
         >
-          <View className="w-full">
-            <ThemedText
-              as="input"
-              autoCapitalize="none"
-              autoCorrect={false}
-              bottomSheetInput
-              containerClassName="w-full"
-              fieldVariant="bare"
-              onChangeText={setSearchQuery}
-              placeholder={resolvedSearchPlaceholder}
-              returnKeyType="search"
-              value={searchQuery}
-            />
-            <InlineSelectDivider />
+          <View className="w-full flex-row items-start gap-3">
+            <View className="size-5 shrink-0" />
+            <View className="min-w-0 flex-1">
+              <ThemedText
+                as="input"
+                autoCapitalize="none"
+                autoCorrect={false}
+                bottomSheetInput
+                containerClassName="w-full"
+                fieldVariant="bare"
+                onChangeText={setSearchQuery}
+                placeholder={resolvedSearchPlaceholder}
+                returnKeyType="search"
+                value={searchQuery}
+              />
+              <InlineSelectDivider />
 
-            <View
-              className="w-full pt-gap-compact"
-              style={{ gap: optionGap }}
-            >
-              {hasFilteredOptions ? (
-                filteredOptions.map((option, index) => {
-                  const isSelected = option.value === value;
-                  return (
-                    <Button
-                      key={option.value || `option-${index}`}
-                      accessibilityLabel={option.label}
-                      accessibilityState={{ selected: isSelected }}
-                      bottomSheet
-                      className={cn(
-                        "h-full w-full flex-row items-center gap-2 px-inline",
-                        isSelected && "rounded-pill bg-brand-subtle",
-                      )}
-                      onPress={() => selectOption(option.value)}
-                      ripple={false}
-                      size="none"
-                      style={{ height: OPTION_ROW_HEIGHT, width: "100%" }}
-                      tone="neutral"
-                      variant="ghost"
-                    >
-                      {option.color ? (
-                        <ColorSwatch color={option.color} />
-                      ) : null}
-                      <ThemedText
-                        className={cn("flex-1", isSelected && "font-semibold")}
-                        tone={isSelected ? "brand" : "default"}
-                        variant="body"
+              <View
+                className="w-full pt-gap-compact"
+                style={{ gap: optionGap }}
+              >
+                {hasFilteredOptions ? (
+                  filteredOptions.map((option, index) => {
+                    const isSelected = option.value === value;
+                    return (
+                      <Button
+                        key={option.value || `option-${index}`}
+                        accessibilityLabel={option.label}
+                        accessibilityState={{ selected: isSelected }}
+                        bottomSheet
+                        className={cn(
+                          "h-full w-full flex-row items-center gap-2 px-inline",
+                          isSelected && "rounded-pill bg-brand-subtle",
+                        )}
+                        onPress={() => selectOption(option.value)}
+                        ripple={false}
+                        size="none"
+                        style={{ height: OPTION_ROW_HEIGHT, width: "100%" }}
+                        tone="neutral"
+                        variant="ghost"
                       >
-                        {option.label}
-                      </ThemedText>
-                    </Button>
-                  );
-                })
-              ) : (
-                <View
-                  className="w-full justify-center px-inline"
-                  style={{ height: OPTION_ROW_HEIGHT }}
-                >
-                  <ThemedText tone="muted" variant="body">
-                    No results found.
-                  </ThemedText>
-                </View>
-              )}
+                        {option.color ? (
+                          <ColorSwatch color={option.color} />
+                        ) : null}
+                        <ThemedText
+                          className={cn("flex-1", isSelected && "font-semibold")}
+                          tone={isSelected ? "brand" : "default"}
+                          variant="body"
+                        >
+                          {option.label}
+                        </ThemedText>
+                      </Button>
+                    );
+                  })
+                ) : (
+                  <View
+                    className="w-full justify-center px-inline"
+                    style={{ height: OPTION_ROW_HEIGHT }}
+                  >
+                    <ThemedText tone="muted" variant="body">
+                      No results found.
+                    </ThemedText>
+                  </View>
+                )}
+              </View>
             </View>
           </View>
         </Animated.View>

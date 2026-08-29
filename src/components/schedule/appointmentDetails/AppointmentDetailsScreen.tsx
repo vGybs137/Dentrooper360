@@ -224,6 +224,10 @@ function DetailSelectRow({
   );
 }
 
+function ActionSeparator() {
+  return <View className="h-[80%] w-px self-center bg-border-subtle" />;
+}
+
 function DetailsActionItem({
   icon,
   label,
@@ -273,13 +277,18 @@ function DetailsActionBar({
 }) {
   return (
     <View className="px-inline pb-stack-compact">
-      <View className="min-h-[64px] flex-row items-stretch rounded-card border-subtle border-border-subtle bg-surface-default">
+      <View
+        className="flex-row items-stretch rounded-card border-subtle border-border-subtle bg-surface-default"
+        style={{ height: ACTION_BAR_HEIGHT }}
+      >
         <DetailsActionItem
           icon={CHEVRON_LEFT_ICON}
           label="Back"
           onPress={onBack}
         />
+        <ActionSeparator />
         <DetailsActionItem icon={EDIT_ICON} label="Edit" onPress={onEdit} />
+        <ActionSeparator />
         <DetailsActionItem
           icon={DELETE_ICON}
           label="Delete"
