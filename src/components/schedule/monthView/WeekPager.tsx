@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { View } from "react-native";
 import PagerView from "react-native-pager-view";
+import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
 import type { MonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
@@ -68,8 +69,13 @@ const WeekPagerInner = forwardRef<WeekPagerHandle, WeekPagerProps>(
     },
     ref,
   ) {
+    const native = useNativeColors();
     const pagerRef = useRef<PagerViewRef>(null);
     const pageMargin = semantic.space.stack.compact;
+    const pagerStyle = useMemo(
+      () => ({ flex: 1, backgroundColor: native.surface.default }),
+      [native],
+    );
 
     useImperativeHandle(
       ref,
@@ -124,7 +130,7 @@ const WeekPagerInner = forwardRef<WeekPagerHandle, WeekPagerProps>(
     return (
       <PagerView
         ref={pagerRef}
-        style={{ flex: 1 }}
+        style={pagerStyle}
         initialPage={initialIndex}
         scrollEnabled={scrollEnabled}
         offscreenPageLimit={MONTH_VIEW_PAGER_RENDER_RADIUS}

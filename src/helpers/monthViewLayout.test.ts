@@ -7,6 +7,7 @@ import {
   monthViewCellChromeHeight,
   monthViewChromeHeight,
   monthViewChipRowHeight,
+  monthViewSheetSnapHeight,
   visibleChipCount,
 } from "./monthViewLayout";
 
@@ -49,6 +50,13 @@ const noTabBar = estimateMonthViewLayout({
   tabBarInset: 0,
 });
 assert.equal(noTabBar.pagerHeight - phone.pagerHeight, 80);
+
+assert.equal(monthViewSheetSnapHeight(0, 80, 400), 0);
+assert.equal(monthViewSheetSnapHeight(600, 80, 0), 0);
+assert.equal(
+  monthViewSheetSnapHeight(600, 80, 400),
+  Math.round(600 - 80 - 400 / 6),
+);
 
 const tiny = estimateMonthViewLayout({
   windowHeight: 200,

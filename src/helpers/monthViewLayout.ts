@@ -127,6 +127,17 @@ export function visibleChipCount(
   return visibleCount;
 }
 
+/** Sheet height under the pinned week row. Zero until host and pager exist. */
+export function monthViewSheetSnapHeight(
+  hostHeight: number,
+  chromeHeight: number,
+  pagerHeight: number,
+): number {
+  if (hostHeight <= 0 || pagerHeight <= 0) return 0;
+  const weekHeight = pagerHeight / MONTH_GRID_ROWS;
+  return Math.max(0, Math.round(hostHeight - chromeHeight - weekHeight));
+}
+
 /**
  * First-frame geometry from window size and tokens.
  * `onLayout` may refine host/chrome/pager later without unmounting the grid.
@@ -159,9 +170,10 @@ export function estimateMonthViewLayout({
   );
   const eventsAvailableHeight = eventsAvailableHeightForCell(cellHeight);
   const chipCapacity = chipCapacityForEventsHeight(eventsAvailableHeight);
-  const sheetSnapHeight = Math.max(
-    0,
-    Math.round(hostHeight - chromeHeight - weekHeight),
+  const sheetSnapHeight = monthViewSheetSnapHeight(
+    hostHeight,
+    chromeHeight,
+    pagerHeight,
   );
 
   return {
