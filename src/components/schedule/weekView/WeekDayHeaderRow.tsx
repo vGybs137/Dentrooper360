@@ -139,6 +139,7 @@ function WeekDayHeaderRowComponent({
       alignItems: "center" as const,
       width: "100%" as const,
       alignSelf: "stretch" as const,
+      flexGrow: 0,
       flexShrink: 0,
       zIndex: 1,
       paddingBottom: semantic.space.stack.compact,

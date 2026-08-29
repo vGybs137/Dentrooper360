@@ -285,7 +285,7 @@ export function Button({
         style={style as never}
         testID={testID}
       >
-        <View onLayout={handleLayout} style={{ flex: 1, minWidth: 0, minHeight: 0 }}>
+        <View onLayout={handleLayout} style={{ flexGrow: 1, flexShrink: 1, minWidth: 0, minHeight: 0 }}>
           {inner}
         </View>
       </GesturePressable>
