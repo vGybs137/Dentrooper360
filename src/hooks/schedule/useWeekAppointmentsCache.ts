@@ -5,13 +5,18 @@ import type { MonthDayEventPreview } from "@/types/schedule";
 import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import type AppointmentType from "@/database/models/AppointmentType";
+import { getScheduleAppointmentsPrefetch } from "@/helpers/prefetchScheduleAppointments";
+import {
+  buildAppointmentTypesMap,
+  buildWeekDayMap,
+  type AppointmentTypeLookup,
+  type MonthEventsByDay,
+  type WeekAppointmentsCache,
+} from "@/helpers/scheduleAppointmentPreview";
 import { useAuthUser } from "@/stores/authStore";
 import {
-  addDays,
   addWeeks,
-  clipEventToDay,
   parseDayKey,
-  toDayKey,
   toLocalDate,
   WEEK_DAYS,
   type DayKey,
@@ -23,9 +28,8 @@ type SubscriptionLike = { unsubscribe: () => void };
 
 /** Week-start day key (same ISO day string as {@link DayKey}). */
 export type WeekStartDayKey = DayKey;
-
-export type WeekEventsByDay = Record<DayKey, MonthDayEventPreview[]>;
-export type WeekAppointmentsCache = Record<WeekStartDayKey, WeekEventsByDay>;
+export type WeekEventsByDay = MonthEventsByDay;
+export type { WeekAppointmentsCache };
 
 export type UseWeekAppointmentsCacheOptions = {
   /** When true, new ensureWeeksLoaded calls are queued until idle. */
@@ -41,49 +45,21 @@ export type UseWeekAppointmentsCacheResult = {
   getEventsForWeek: (weekStartKey: WeekStartDayKey) => WeekEventsByDay;
 };
 
-function toPreview(
-  appointment: Appointment,
-  types: Map<string, { color: string | null; name: string }>,
-): MonthDayEventPreview {
-  const typeId = appointment.type.id;
-  const type = typeId ? types.get(typeId) : undefined;
-  return {
-    id: appointment.id,
-    title: appointment.subject?.trim() || "Appointment",
-    color: type?.color ?? null,
-    typeName: type?.name ? type.name : null,
-    startTime: appointment.startTime.getTime(),
-    endTime: appointment.endTime.getTime(),
-  };
-}
-
-function buildWeekDayMap(
-  appointments: Appointment[],
-  types: Map<string, { color: string | null; name: string }>,
-  weekStartKey: WeekStartDayKey,
-): WeekEventsByDay {
-  const sorted = [...appointments].sort(
-    (a, b) => a.startTime.getTime() - b.startTime.getTime(),
-  );
-  const weekStart = parseDayKey(weekStartKey);
-  const map: WeekEventsByDay = {};
-
-  for (const appointment of sorted) {
-    const preview = toPreview(appointment, types);
-    const startMs = appointment.startTime.getTime();
-    const endMs = appointment.endTime.getTime();
-
-    for (let offset = 0; offset < WEEK_DAYS; offset++) {
-      const dayKey = toDayKey(addDays(weekStart, offset));
-      if (!clipEventToDay(startMs, endMs, dayKey)) continue;
-
-      const bucket = map[dayKey] ?? (map[dayKey] = []);
-      if (bucket.some((event) => event.id === preview.id)) continue;
-      bucket.push(preview);
-    }
+function seedFromPrefetch(providerId: string | null) {
+  const snapshot = getScheduleAppointmentsPrefetch(providerId);
+  if (!snapshot) {
+    return {
+      cache: {} as WeekAppointmentsCache,
+      types: new Map() as AppointmentTypeLookup,
+      appointments: new Map<WeekStartDayKey, Appointment[]>(),
+    };
   }
 
-  return map;
+  return {
+    cache: snapshot.weekCache,
+    types: snapshot.types,
+    appointments: new Map(snapshot.appointmentsByWeek),
+  };
 }
 
 /**
@@ -94,13 +70,16 @@ export function useWeekAppointmentsCache({
   isDragging,
 }: UseWeekAppointmentsCacheOptions): UseWeekAppointmentsCacheResult {
   const providerId = useAuthUser()?.id ?? null;
-  const [cache, setCache] = useState<WeekAppointmentsCache>({});
-  const typesRef = useRef(
-    new Map<string, { color: string | null; name: string }>(),
+  const initialSeedRef = useRef<ReturnType<typeof seedFromPrefetch> | null>(
+    null,
   );
-  const appointmentsByWeekRef = useRef(
-    new Map<WeekStartDayKey, Appointment[]>(),
-  );
+  if (initialSeedRef.current === null) {
+    initialSeedRef.current = seedFromPrefetch(providerId);
+  }
+  const initialSeed = initialSeedRef.current;
+  const [cache, setCache] = useState<WeekAppointmentsCache>(initialSeed.cache);
+  const typesRef = useRef<AppointmentTypeLookup>(initialSeed.types);
+  const appointmentsByWeekRef = useRef(initialSeed.appointments);
   const subscriptionsRef = useRef(
     new Map<WeekStartDayKey, SubscriptionLike>(),
   );
@@ -232,14 +211,7 @@ export function useWeekAppointmentsCache({
       .observe()
       .subscribe({
         next: (types) => {
-          const next = new Map<string, { color: string | null; name: string }>();
-          for (const type of types) {
-            next.set(type.id, {
-              color: type.color || null,
-              name: type.nameEn?.trim() || "",
-            });
-          }
-          typesRef.current = next;
+          typesRef.current = buildAppointmentTypesMap(types);
           if (appointmentsByWeekRef.current.size > 0) {
             republishAllWeeks();
           }
@@ -263,16 +235,19 @@ export function useWeekAppointmentsCache({
     return clearTimer;
   }, [isDragging, flushPending]);
 
-  // Tear down observers and cache when the signed-in provider changes.
+  // Tear down observers when the signed-in provider changes; keep prefetch.
   useEffect(() => {
     clearTimer();
     for (const subscription of subscriptionsRef.current.values()) {
       subscription.unsubscribe();
     }
     subscriptionsRef.current.clear();
-    appointmentsByWeekRef.current.clear();
     pendingKeysRef.current.clear();
-    setCache({});
+
+    const nextSeed = seedFromPrefetch(providerId);
+    typesRef.current = nextSeed.types;
+    appointmentsByWeekRef.current = nextSeed.appointments;
+    setCache(nextSeed.cache);
 
     return () => {
       clearTimer();
@@ -280,7 +255,6 @@ export function useWeekAppointmentsCache({
         subscription.unsubscribe();
       }
       subscriptionsRef.current.clear();
-      appointmentsByWeekRef.current.clear();
       pendingKeysRef.current.clear();
     };
   }, [providerId]);

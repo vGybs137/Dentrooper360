@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { BrandedSplash } from "@/components/app/BrandLogo";
 import { Button, ThemedText, ThemedView } from "@/components/ui";
 import { hideNativeSplash } from "@/helpers/nativeSplash";
+import { prepareScheduleAppointments } from "@/helpers/prefetchScheduleAppointments";
 import { useStartupSessionCheck } from "@/hooks/useStartupSessionCheck";
 import { useStartupSync } from "@/hooks/useStartupSync";
 import {
@@ -37,55 +38,83 @@ export default function Index() {
   } = useStartupSync(isSessionValid);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const enterSchedule = async (offline: boolean) => {
+      setOfflineMode(offline);
+      await prepareScheduleAppointments();
+      if (cancelled) return;
+      void hideNativeSplash();
+      router.replace("/(tabs)/schedule" as Href);
+    };
+
     if (!hasHydrated || !syncStatusHydrated) {
-      return;
+      return () => {
+        cancelled = true;
+      };
     }
 
     if (!customerId) {
       router.replace("/(auth)/onboarding" as Href);
-      return;
+      return () => {
+        cancelled = true;
+      };
     }
 
     if (!isAuthenticated) {
       router.replace("/(auth)/login?intro=1" as Href);
-      return;
+      return () => {
+        cancelled = true;
+      };
     }
 
     if (isValidatingSession) {
-      return;
+      return () => {
+        cancelled = true;
+      };
     }
 
     if (isSessionInvalid) {
       useAuthStore.getState().clearSession();
       router.replace("/(auth)/login?intro=1" as Href);
-      return;
+      return () => {
+        cancelled = true;
+      };
     }
 
     if (!isSessionValid) {
-      return;
+      return () => {
+        cancelled = true;
+      };
     }
 
     if (isSyncFailed) {
       if (canEnterOffline) {
-        setOfflineMode(true);
-        void hideNativeSplash();
-        router.replace("/(tabs)/schedule" as Href);
-        return;
+        void enterSchedule(true);
+        return () => {
+          cancelled = true;
+        };
       }
 
       void hideNativeSplash();
-      return;
+      return () => {
+        cancelled = true;
+      };
     }
 
     if (!hasSyncedThisVisit) {
-      return;
+      return () => {
+        cancelled = true;
+      };
     }
 
     if (isSyncComplete) {
-      setOfflineMode(false);
-      void hideNativeSplash();
-      router.replace("/(tabs)/schedule" as Href);
+      void enterSchedule(false);
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [
     canEnterOffline,
     customerId,
@@ -130,9 +159,12 @@ export default function Index() {
           <Button
             label="Continue offline"
             onPress={() => {
-              setOfflineMode(true);
-              void hideNativeSplash();
-              router.replace("/(tabs)/schedule" as Href);
+              void (async () => {
+                setOfflineMode(true);
+                await prepareScheduleAppointments();
+                void hideNativeSplash();
+                router.replace("/(tabs)/schedule" as Href);
+              })();
             }}
             tone="brand"
           />
