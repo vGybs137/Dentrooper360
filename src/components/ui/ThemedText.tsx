@@ -257,3 +257,4 @@ const ThemedTextInput = forwardRef<
     </View>
   );
 });
+

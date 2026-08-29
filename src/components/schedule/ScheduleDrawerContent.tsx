@@ -26,6 +26,13 @@ function ScheduleDrawerContentComponent(props: DrawerContentComponentProps) {
     (state) => state.clearOrClose,
   );
 
+  const drawerItemStyle = useMemo(
+    () => ({
+      borderRadius: semantic.radius.control,
+    }),
+    [],
+  );
+
   const headerStyle = useMemo(
     () => ({
       paddingHorizontal: semantic.space.inline.default,
@@ -67,6 +74,7 @@ function ScheduleDrawerContentComponent(props: DrawerContentComponentProps) {
           )}
           inactiveTintColor={native.foreground.muted}
           label={label}
+          style={drawerItemStyle}
           onPress={() => {
             clearOrCloseAddAppointment();
             setScheduleViewMode(mode);
