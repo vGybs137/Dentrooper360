@@ -2,15 +2,16 @@ import React, {
   forwardRef,
   memo,
   useImperativeHandle,
-  useMemo,
   useRef,
   type ComponentRef,
 } from "react";
 import { View } from "react-native";
 import PagerView from "react-native-pager-view";
+import Animated from "react-native-reanimated";
 import { semantic } from "@/tokens";
 
 import type { MonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
+import type { usePagerScrollHandler } from "@/hooks/schedule/usePagerScrollHandler";
 import { monthEventsSlice } from "@/helpers/scheduleEvents";
 import {
   addMonths,
@@ -25,6 +26,8 @@ import type { DayCellEventIndicators } from "./DayCell";
 
 import { MonthGrid } from "./MonthGrid";
 
+const AnimatedPagerView = Animated.createAnimatedComponent(PagerView);
+
 export type { MonthPagerHandle };
 
 export type MonthPagerProps = {
@@ -36,14 +39,11 @@ export type MonthPagerProps = {
   eventIndicators?: DayCellEventIndicators;
   scrollEnabled?: boolean;
   onDayPress?: DayPressHandler;
-  onPageScroll?: MonthPagerOnPageScroll;
+  pageScrollHandler: ReturnType<typeof usePagerScrollHandler>;
   onPageSelected: MonthPagerOnPageSelected;
   onPageScrollStateChanged?: MonthPagerOnPageScrollStateChanged;
 };
 
-type MonthPagerOnPageScroll = NonNullable<
-  React.ComponentProps<typeof PagerView>["onPageScroll"]
->;
 type MonthPagerOnPageSelected = NonNullable<
   React.ComponentProps<typeof PagerView>["onPageSelected"]
 >;
@@ -52,6 +52,77 @@ type MonthPagerOnPageScrollStateChanged = NonNullable<
 >;
 
 type PagerViewRef = ComponentRef<typeof PagerView>;
+
+type MonthPagerPageProps = {
+  index: number;
+  renderCenter: number;
+  yearMonth: YearMonth;
+  weekStartsOn: WeekdayIndex;
+  appointmentsCache: MonthAppointmentsCache;
+  eventIndicators: DayCellEventIndicators;
+  onDayPress?: DayPressHandler;
+};
+
+function shouldRenderPage(index: number, renderCenter: number): boolean {
+  return Math.abs(index - renderCenter) <= MONTH_VIEW_PAGER_RENDER_RADIUS;
+}
+
+function MonthPagerPage({
+  index,
+  renderCenter,
+  yearMonth,
+  weekStartsOn,
+  appointmentsCache,
+  eventIndicators,
+  onDayPress,
+}: MonthPagerPageProps) {
+  const shouldRender = shouldRenderPage(index, renderCenter);
+  const monthKey = toMonthKey(yearMonth);
+
+  return (
+    <View collapsable={false} className="flex-1">
+      {shouldRender ? (
+        <MonthGrid
+          yearMonth={yearMonth}
+          weekStartsOn={weekStartsOn}
+          eventsByDay={monthEventsSlice(appointmentsCache, monthKey)}
+          prevMonthEventsByDay={monthEventsSlice(
+            appointmentsCache,
+            toMonthKey(addMonths(yearMonth, -1)),
+          )}
+          nextMonthEventsByDay={monthEventsSlice(
+            appointmentsCache,
+            toMonthKey(addMonths(yearMonth, 1)),
+          )}
+          eventIndicators={eventIndicators}
+          onDayPress={onDayPress}
+        />
+      ) : (
+        <View className="flex-1" />
+      )}
+    </View>
+  );
+}
+
+function monthPagerPagePropsEqual(
+  prev: MonthPagerPageProps,
+  next: MonthPagerPageProps,
+): boolean {
+  const prevVisible = shouldRenderPage(prev.index, prev.renderCenter);
+  const nextVisible = shouldRenderPage(next.index, next.renderCenter);
+  if (prevVisible !== nextVisible) return false;
+  if (!nextVisible) return true;
+
+  return (
+    prev.yearMonth === next.yearMonth &&
+    prev.weekStartsOn === next.weekStartsOn &&
+    prev.eventIndicators === next.eventIndicators &&
+    prev.onDayPress === next.onDayPress &&
+    prev.appointmentsCache === next.appointmentsCache
+  );
+}
+
+const MemoMonthPagerPage = memo(MonthPagerPage, monthPagerPagePropsEqual);
 
 /**
  * Horizontal snapped month pages.
@@ -70,7 +141,7 @@ const MonthPagerInner = forwardRef<MonthPagerHandle, MonthPagerProps>(
       eventIndicators = "chips",
       scrollEnabled = true,
       onDayPress,
-      onPageScroll,
+      pageScrollHandler,
       onPageSelected,
       onPageScrollStateChanged,
     },
@@ -92,64 +163,31 @@ const MonthPagerInner = forwardRef<MonthPagerHandle, MonthPagerProps>(
       [],
     );
 
-    const pages = useMemo(
-      () =>
-        months.map((yearMonth, index) => {
-          const shouldRender =
-            Math.abs(index - pageIndex) <= MONTH_VIEW_PAGER_RENDER_RADIUS;
-          const monthKey = toMonthKey(yearMonth);
-          return (
-            <View
-              key={monthKey}
-              collapsable={false}
-              className="flex-1"
-            >
-              {shouldRender ? (
-                <MonthGrid
-                  yearMonth={yearMonth}
-                  weekStartsOn={weekStartsOn}
-                  eventsByDay={monthEventsSlice(appointmentsCache, monthKey)}
-                  prevMonthEventsByDay={monthEventsSlice(
-                    appointmentsCache,
-                    toMonthKey(addMonths(yearMonth, -1)),
-                  )}
-                  nextMonthEventsByDay={monthEventsSlice(
-                    appointmentsCache,
-                    toMonthKey(addMonths(yearMonth, 1)),
-                  )}
-                  eventIndicators={eventIndicators}
-                  onDayPress={onDayPress}
-                />
-              ) : (
-                <View className="flex-1" />
-              )}
-            </View>
-          );
-        }),
-      [
-        appointmentsCache,
-        eventIndicators,
-        months,
-        onDayPress,
-        pageIndex,
-        weekStartsOn,
-      ],
-    );
-
     return (
-      <PagerView
+      <AnimatedPagerView
         ref={pagerRef}
         style={{ flex: 1 }}
         initialPage={initialIndex}
         scrollEnabled={scrollEnabled}
         offscreenPageLimit={MONTH_VIEW_PAGER_RENDER_RADIUS}
         pageMargin={pageMargin}
-        onPageScroll={onPageScroll}
+        onPageScroll={pageScrollHandler}
         onPageSelected={onPageSelected}
         onPageScrollStateChanged={onPageScrollStateChanged}
       >
-        {pages}
-      </PagerView>
+        {months.map((yearMonth, index) => (
+          <MemoMonthPagerPage
+            key={toMonthKey(yearMonth)}
+            index={index}
+            renderCenter={pageIndex}
+            yearMonth={yearMonth}
+            weekStartsOn={weekStartsOn}
+            appointmentsCache={appointmentsCache}
+            eventIndicators={eventIndicators}
+            onDayPress={onDayPress}
+          />
+        ))}
+      </AnimatedPagerView>
     );
   },
 );

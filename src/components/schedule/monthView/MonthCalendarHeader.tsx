@@ -13,4 +13,17 @@ function MonthCalendarHeaderComponent({
   return <ScheduleCalendarHeader title={formatYearMonthShort(yearMonth)} />;
 }
 
-export const MonthCalendarHeader = memo(MonthCalendarHeaderComponent);
+function monthCalendarHeaderEqual(
+  prev: MonthCalendarHeaderProps,
+  next: MonthCalendarHeaderProps,
+): boolean {
+  return (
+    prev.yearMonth.year === next.yearMonth.year &&
+    prev.yearMonth.month === next.yearMonth.month
+  );
+}
+
+export const MonthCalendarHeader = memo(
+  MonthCalendarHeaderComponent,
+  monthCalendarHeaderEqual,
+);

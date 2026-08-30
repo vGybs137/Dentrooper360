@@ -44,10 +44,11 @@ export function useMonthCalendarSession({
     months,
     initialIndex,
     pageIndex,
+    mountPageIndex,
     visibleMonth,
     headerMonth: pagerHeaderMonth,
     isDragging: isMonthDragging,
-    onPageScroll,
+    pageScrollHandler,
     onPageSelected,
     onPageScrollStateChanged,
     setPageIndex: setMonthPageIndex,
@@ -101,8 +102,8 @@ export function useMonthCalendarSession({
   selectedDayKeyRef.current = selectedDayKey;
   const weekPageIndexRef = useRef(weekPageIndex);
   weekPageIndexRef.current = weekPageIndex;
-  const monthPageIndexRef = useRef(pageIndex);
-  monthPageIndexRef.current = pageIndex;
+  const monthPageIndexRef = useRef(mountPageIndex);
+  monthPageIndexRef.current = mountPageIndex;
   const sheetOpenRef = useRef(sheetOpen);
   sheetOpenRef.current = sheetOpen;
 
@@ -258,7 +259,7 @@ export function useMonthCalendarSession({
     pageIndex,
     visibleMonth,
     headerMonth,
-    onPageScroll,
+    pageScrollHandler,
     onPageSelected,
     onPageScrollStateChanged,
     weeks,

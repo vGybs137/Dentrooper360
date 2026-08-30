@@ -67,7 +67,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
                     eventIndicators={session.monthEventIndicators}
                     scrollEnabled={!session.sheetOpen}
                     onDayPress={session.handleDayPress}
-                    onPageScroll={session.onPageScroll}
+                    pageScrollHandler={session.pageScrollHandler}
                     onPageSelected={session.onPageSelected}
                     onPageScrollStateChanged={session.onPageScrollStateChanged}
                   />

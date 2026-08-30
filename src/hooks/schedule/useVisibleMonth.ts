@@ -1,10 +1,16 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useDeferredValue,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { NativeSyntheticEvent } from "react-native";
 import type {
   PageScrollStateChangedNativeEventData,
-  PagerViewOnPageScrollEventData,
   PagerViewOnPageSelectedEventData,
 } from "react-native-pager-view";
+import { runOnJS, useSharedValue } from "react-native-reanimated";
 
 import {
   addMonths,
@@ -12,13 +18,18 @@ import {
   type YearMonth,
 } from "@/utils/calendar";
 
+import { usePagerScrollHandler } from "@/hooks/schedule/usePagerScrollHandler";
+
 /** Months before/after the center month in the pager window. */
 export const MONTH_PAGER_RADIUS = 120;
 
-/** Past this page offset a drag is treated as committed to the neighbor. */
-const PAGE_COMMIT_OFFSET = 0.5;
-
-type PageScrollState = "idle" | "dragging" | "settling";
+/** Rounded pager progress → month window index. */
+export function pageIndexFromScrollProgress(
+  position: number,
+  offset: number,
+): number {
+  return Math.round(position + offset);
+}
 
 export function buildMonthWindow(
   center: YearMonth,
@@ -31,36 +42,19 @@ export function buildMonthWindow(
   return months;
 }
 
-/** Page index a drag has crossed the halfway mark for. */
-export function committedPageIndex(position: number, offset: number): number {
-  return offset >= PAGE_COMMIT_OFFSET ? position + 1 : position;
-}
-
-/**
- * Destination page from scroll direction (same idea as jumping the header on
- * out-of-month tap: set header to the target as soon as direction is known).
- */
-export function headerIndexFromScrollDirection(
-  prevProgress: number,
-  progress: number,
-): number | null {
-  const delta = progress - prevProgress;
-  if (delta > 1e-4) return Math.ceil(progress - 1e-6);
-  if (delta < -1e-4) return Math.floor(progress + 1e-6);
-  return null;
-}
-
 export type UseVisibleMonthResult = {
   months: YearMonth[];
   initialIndex: number;
+  /** Deferred center for grid mounting — lags during fast swipes. */
   pageIndex: number;
+  /** Immediate center for pager refs / programmatic sync. */
+  mountPageIndex: number;
   visibleMonth: YearMonth;
-  /** Month label — driven by headerPageIndex, not settled pageIndex. */
+  /** Month label — follows scroll progress, with optional tap-ahead override. */
   headerMonth: YearMonth;
   isDragging: boolean;
-  onPageScroll: (
-    event: NativeSyntheticEvent<PagerViewOnPageScrollEventData>,
-  ) => void;
+  /** UI-thread scroll handler — pass to Animated PagerView. */
+  pageScrollHandler: ReturnType<typeof usePagerScrollHandler>;
   onPageSelected: (
     event: NativeSyntheticEvent<PagerViewOnPageSelectedEventData>,
   ) => void;
@@ -70,17 +64,14 @@ export type UseVisibleMonthResult = {
   setPageIndex: (index: number) => void;
   /**
    * Jump the header label without remounting pager grids.
-   * Used for out-of-month taps; scroll uses the same path via direction commits.
+   * Used for out-of-month taps while the pager animates to the target page.
    */
   setHeaderPageIndex: (index: number) => void;
 };
 
 /**
- * Tracks the settled pager page for grids, and a separate header month that
- * jumps to the destination as soon as swipe direction (or a tap target) is known.
- * pageIndex also tracks scroll progress while dragging/settling so fast flings
- * keep neighbor MonthGrids mounted (render radius 1).
- * Month window is frozen around the center month from first mount.
+ * Header index updates eagerly from scroll progress; grid mount index is
+ * deferred so rebuilding 240+ pager pages cannot block the month title.
  */
 export function useVisibleMonth(
   centerMonth?: YearMonth,
@@ -94,71 +85,96 @@ export function useVisibleMonth(
   );
 
   const initialIndex = MONTH_PAGER_RADIUS;
-  const [pageIndex, setPageIndexState] = useState(initialIndex);
   const [headerPageIndex, setHeaderPageIndexState] = useState(initialIndex);
+  const [mountPageIndex, setMountPageIndexState] = useState(initialIndex);
+  const deferredMountPageIndex = useDeferredValue(mountPageIndex);
+  const [headerOverrideIndex, setHeaderOverrideIndex] = useState<number | null>(
+    null,
+  );
   const [isDragging, setIsDragging] = useState(false);
 
-  const pageIndexRef = useRef(initialIndex);
   const headerPageIndexRef = useRef(initialIndex);
-  const scrollStateRef = useRef<PageScrollState>("idle");
-  const lastScrollRef = useRef({ position: initialIndex, offset: 0 });
+  const mountPageIndexRef = useRef(initialIndex);
+  const headerOverrideIndexRef = useRef<number | null>(null);
+  const lastScrollEventIdRef = useRef(0);
+  const scrollStateRef = useRef<"idle" | "dragging" | "settling">("idle");
+  const scrollEventId = useSharedValue(0);
 
-  const visibleMonth = months[pageIndex] ?? center;
-  const headerMonth = months[headerPageIndex] ?? center;
+  const headerPageIndexEffective = headerOverrideIndex ?? headerPageIndex;
+  const headerMonth = months[headerPageIndexEffective] ?? center;
+  const visibleMonth = months[headerPageIndex] ?? center;
 
-  const setHeaderPageIndex = useCallback((next: number) => {
-    if (headerPageIndexRef.current === next) return;
-    headerPageIndexRef.current = next;
-    setHeaderPageIndexState(next);
-  }, []);
-
-  /** Mount nearby grids from scroll position without touching the header. */
-  const setRenderPageIndex = useCallback((next: number) => {
-    if (pageIndexRef.current === next) return;
-    pageIndexRef.current = next;
-    setPageIndexState(next);
+  const clearHeaderOverride = useCallback(() => {
+    headerOverrideIndexRef.current = null;
+    setHeaderOverrideIndex(null);
   }, []);
 
   const setPageIndex = useCallback(
     (next: number) => {
-      setRenderPageIndex(next);
-      setHeaderPageIndex(next);
+      clearHeaderOverride();
+      scrollEventId.value += 1;
+      lastScrollEventIdRef.current = scrollEventId.value;
+      headerPageIndexRef.current = next;
+      mountPageIndexRef.current = next;
+      setHeaderPageIndexState(next);
+      setMountPageIndexState(next);
     },
-    [setHeaderPageIndex, setRenderPageIndex],
+    [clearHeaderOverride, scrollEventId],
   );
 
-  const onPageScroll = useCallback(
-    (event: NativeSyntheticEvent<PagerViewOnPageScrollEventData>) => {
-      const { position, offset } = event.nativeEvent;
-      const prev = lastScrollRef.current;
-      const prevProgress = prev.position + prev.offset;
-      const progress = position + offset;
-      lastScrollRef.current = { position, offset };
-
-      // Keep render window under the finger during fast multi-page flings.
-      setRenderPageIndex(Math.round(progress));
-
-      const state = scrollStateRef.current;
-      if (state === "dragging") {
-        setHeaderPageIndex(committedPageIndex(position, offset));
-        return;
+  const applyHeaderFromScroll = useCallback(
+    (position: number, offset: number) => {
+      const index = pageIndexFromScrollProgress(position, offset);
+      if (headerPageIndexRef.current !== index) {
+        headerPageIndexRef.current = index;
+        setHeaderPageIndexState(index);
       }
 
-      // Settling / programmatic setPage: jump header to destination from direction.
-      // Large progress jumps (quick fling) snap header to the rounded page.
-      if (Math.abs(progress - prevProgress) > 0.45) {
-        setHeaderPageIndex(Math.round(progress));
-        return;
+      const override = headerOverrideIndexRef.current;
+      if (override != null && index === override) {
+        clearHeaderOverride();
       }
-
-      const directed = headerIndexFromScrollDirection(prevProgress, progress);
-      if (directed != null) {
-        setHeaderPageIndex(directed);
-        return;
-      }
-      setHeaderPageIndex(committedPageIndex(position, offset));
     },
-    [setHeaderPageIndex, setRenderPageIndex],
+    [clearHeaderOverride],
+  );
+
+  const applyMountFromScroll = useCallback((position: number, offset: number) => {
+    const index = pageIndexFromScrollProgress(position, offset);
+    if (mountPageIndexRef.current !== index) {
+      mountPageIndexRef.current = index;
+      setMountPageIndexState(index);
+    }
+  }, []);
+
+  const setHeaderPageIndex = useCallback((next: number) => {
+    headerOverrideIndexRef.current = next;
+    setHeaderOverrideIndex(next);
+  }, []);
+
+  const syncScrollProgress = useCallback(
+    (position: number, offset: number, eventId: number) => {
+      if (scrollStateRef.current === "idle") return;
+      if (eventId <= lastScrollEventIdRef.current) return;
+      lastScrollEventIdRef.current = eventId;
+      applyHeaderFromScroll(position, offset);
+      applyMountFromScroll(position, offset);
+    },
+    [applyHeaderFromScroll, applyMountFromScroll],
+  );
+
+  const pageScrollHandler = usePagerScrollHandler(
+    {
+      onPageScroll: (event) => {
+        "worklet";
+        scrollEventId.value += 1;
+        runOnJS(syncScrollProgress)(
+          event.position,
+          event.offset,
+          scrollEventId.value,
+        );
+      },
+    },
+    [scrollEventId, syncScrollProgress],
   );
 
   const onPageSelected = useCallback(
@@ -171,38 +187,29 @@ export function useVisibleMonth(
   const onPageScrollStateChanged = useCallback(
     (event: NativeSyntheticEvent<PageScrollStateChangedNativeEventData>) => {
       const nextState = event.nativeEvent.pageScrollState;
-      const prevState = scrollStateRef.current;
       scrollStateRef.current = nextState;
       setIsDragging(nextState !== "idle");
 
-      if (nextState === "settling" && prevState !== "settling") {
-        const { position, offset } = lastScrollRef.current;
-        const progress = position + offset;
-        const from = pageIndexRef.current;
-        setRenderPageIndex(Math.round(progress));
+      if (nextState === "dragging") {
+        clearHeaderOverride();
+      }
 
-        if (Math.abs(progress - from) > 0.45) {
-          setHeaderPageIndex(Math.round(progress));
-        } else if (progress > from + 1e-4) {
-          setHeaderPageIndex(Math.ceil(progress - 1e-6));
-        } else if (progress < from - 1e-4) {
-          setHeaderPageIndex(Math.floor(progress + 1e-6));
-        } else if (prevState === "dragging") {
-          setHeaderPageIndex(committedPageIndex(position, offset));
-        }
+      if (nextState === "idle") {
+        clearHeaderOverride();
       }
     },
-    [setHeaderPageIndex, setRenderPageIndex],
+    [clearHeaderOverride],
   );
 
   return {
     months,
     initialIndex,
-    pageIndex,
+    pageIndex: deferredMountPageIndex,
+    mountPageIndex,
     visibleMonth,
     headerMonth,
     isDragging,
-    onPageScroll,
+    pageScrollHandler,
     onPageSelected,
     onPageScrollStateChanged,
     setPageIndex,
