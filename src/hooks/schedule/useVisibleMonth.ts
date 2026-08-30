@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useDeferredValue,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type { NativeSyntheticEvent } from "react-native";
 import type {
   PageScrollStateChangedNativeEventData,
@@ -45,10 +39,8 @@ export function buildMonthWindow(
 export type UseVisibleMonthResult = {
   months: YearMonth[];
   initialIndex: number;
-  /** Deferred center for grid mounting — lags during fast swipes. */
+  /** Center page for grid mounting and pager sync. */
   pageIndex: number;
-  /** Immediate center for pager refs / programmatic sync. */
-  mountPageIndex: number;
   visibleMonth: YearMonth;
   /** Month label — follows scroll progress, with optional tap-ahead override. */
   headerMonth: YearMonth;
@@ -70,8 +62,8 @@ export type UseVisibleMonthResult = {
 };
 
 /**
- * Header index updates eagerly from scroll progress; grid mount index is
- * deferred so rebuilding 240+ pager pages cannot block the month title.
+ * Header index updates eagerly from scroll progress; grid mount index follows
+ * immediately so the visible page always has a MonthGrid (see MonthPager memo).
  */
 export function useVisibleMonth(
   centerMonth?: YearMonth,
@@ -87,7 +79,6 @@ export function useVisibleMonth(
   const initialIndex = MONTH_PAGER_RADIUS;
   const [headerPageIndex, setHeaderPageIndexState] = useState(initialIndex);
   const [mountPageIndex, setMountPageIndexState] = useState(initialIndex);
-  const deferredMountPageIndex = useDeferredValue(mountPageIndex);
   const [headerOverrideIndex, setHeaderOverrideIndex] = useState<number | null>(
     null,
   );
@@ -153,8 +144,18 @@ export function useVisibleMonth(
 
   const syncScrollProgress = useCallback(
     (position: number, offset: number, eventId: number) => {
-      if (scrollStateRef.current === "idle") return;
       if (eventId <= lastScrollEventIdRef.current) return;
+
+      const index = pageIndexFromScrollProgress(position, offset);
+      const pagerInMotion =
+        scrollStateRef.current !== "idle" ||
+        offset !== 0 ||
+        index !== mountPageIndexRef.current;
+
+      // Drop stale callbacks after settle; still accept the first frames of a
+      // new swipe before pageScrollState reaches "dragging".
+      if (!pagerInMotion) return;
+
       lastScrollEventIdRef.current = eventId;
       applyHeaderFromScroll(position, offset);
       applyMountFromScroll(position, offset);
@@ -204,8 +205,7 @@ export function useVisibleMonth(
   return {
     months,
     initialIndex,
-    pageIndex: deferredMountPageIndex,
-    mountPageIndex,
+    pageIndex: mountPageIndex,
     visibleMonth,
     headerMonth,
     isDragging,
