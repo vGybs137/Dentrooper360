@@ -1,7 +1,8 @@
 import { type Href, useRouter } from "expo-router";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { prepareScheduleAppointments } from "@/helpers/prefetchScheduleAppointments";
 import { useLoginMutation } from "@/hooks/useLoginMutation";
 import { useStartupSync } from "@/hooks/useStartupSync";
 import { useCustomerId } from "@/stores";
@@ -46,6 +47,11 @@ export function useLoginForm() {
         ? "Unable to sign in. Check your credentials and try again."
         : undefined;
 
+  useEffect(() => {
+    if (!isAppReady) return;
+    void prepareScheduleAppointments();
+  }, [isAppReady]);
+
   return {
     customerId,
     form,
@@ -73,7 +79,10 @@ export function useLoginForm() {
       void retrySync();
     },
     continueToApp: () => {
-      router.replace("/(tabs)/schedule" as Href);
+      void (async () => {
+        await prepareScheduleAppointments();
+        router.replace("/(tabs)/schedule" as Href);
+      })();
     },
     goToQrScanner: () => {
       router.replace("/(auth)/qr-scanner" as Href);

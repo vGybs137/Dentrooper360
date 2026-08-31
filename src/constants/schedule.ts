@@ -15,6 +15,15 @@ export const MONTH_VIEW_CELL_GAP = semantic.space.stack.compact;
 /** Day-of-month badge size (token: space 24). */
 export const MONTH_VIEW_DAY_NUMBER_SIZE = primitives.space[24];
 
+/** Collapsed Quick Add pill height (token: control). */
+export const MONTH_QUICK_ADD_COLLAPSED_HEIGHT = 40;
+
+/** Expanded Quick Add pill height while focused. */
+export const MONTH_QUICK_ADD_EXPANDED_HEIGHT = 56;
+
+/** Chip title / overflow line height inside a day cell. */
+export const MONTH_VIEW_CHIP_LINE_HEIGHT = 11;
+
 /** Compact in-cell event rail width (token: border strong). */
 export const MONTH_VIEW_EVENT_CHIP_RAIL_WIDTH = semantic.borderWidth.strong;
 

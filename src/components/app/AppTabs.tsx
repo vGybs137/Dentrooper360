@@ -25,7 +25,11 @@ export default function AppTabs() {
       tintColor={native.brand.default}
     >
       {APP_TABS.map((tab) => (
-        <NativeTabs.Trigger key={tab.name} name={tab.name}>
+        <NativeTabs.Trigger
+          key={tab.name}
+          name={tab.name}
+          disableAutomaticContentInsets={tab.name === "schedule"}
+        >
           <NativeTabs.Trigger.Label>{tab.label}</NativeTabs.Trigger.Label>
           <NativeTabs.Trigger.Icon md={tab.md} sf={tab.sf} />
         </NativeTabs.Trigger>

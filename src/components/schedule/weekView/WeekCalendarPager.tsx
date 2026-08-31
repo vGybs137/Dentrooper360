@@ -1,6 +1,7 @@
 import { memo, useCallback, useMemo } from "react";
 import { View, type LayoutChangeEvent } from "react-native";
 import PagerView from "react-native-pager-view";
+import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
 import { WEEK_VIEW_PAGER_RENDER_RADIUS } from "@/constants/schedule";
@@ -60,7 +61,7 @@ const WeekPage = memo(function WeekPage({
   resetAxisLock,
 }: WeekPageProps) {
   return (
-    <View collapsable={false} style={{ flex: 1 }}>
+    <View collapsable={false} style={{ flex: 1, flexDirection: "column" }}>
       {/*
         Header stays outside any gesture wrapper so width/layout stay stable
         and day presses are not delayed by a competing pan recognizer.
@@ -105,7 +106,12 @@ function WeekCalendarPagerComponent({
   onDayHeaderLayout,
   sheetOpen = false,
 }: WeekCalendarPagerProps) {
+  const native = useNativeColors();
   const pageMargin = semantic.space.stack.compact;
+  const pagerStyle = useMemo(
+    () => ({ flex: 1, backgroundColor: native.surface.default }),
+    [native],
+  );
   const {
     pagerScrollEnabled,
     gridTouchHandlers,
@@ -171,7 +177,7 @@ function WeekCalendarPagerComponent({
 
   return (
     <PagerView
-      style={{ flex: 1 }}
+      style={pagerStyle}
       initialPage={initialIndex}
       scrollEnabled={sheetOpen ? true : pagerScrollEnabled}
       offscreenPageLimit={WEEK_VIEW_PAGER_RENDER_RADIUS}

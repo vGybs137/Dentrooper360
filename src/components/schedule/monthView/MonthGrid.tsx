@@ -1,25 +1,26 @@
-import { memo, useCallback, useMemo, useState } from "react";
-import { View, type LayoutChangeEvent } from "react-native";
+import { memo, useMemo } from "react";
+import { View } from "react-native";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
+import { MONTH_VIEW_CELL_GAP } from "@/constants/schedule";
+import {
+  EMPTY_MONTH_EVENTS,
+  eventsForDayWithNeighbors,
+} from "@/helpers/scheduleEvents";
+import { useMonthViewLayout } from "@/hooks/schedule/useMonthViewLayout";
 import type { MonthEventsByDay } from "@/hooks/schedule/useMonthAppointmentsCache";
+import type { DayPressHandler } from "@/types/schedule";
 import {
   addMonths,
   buildMonthGrid,
   MONTH_GRID_COLS,
-  MONTH_GRID_ROWS,
   toMonthKey,
   type WeekdayIndex,
   type YearMonth,
 } from "@/utils/calendar";
 
 import { DayCell, type DayCellEventIndicators } from "./DayCell";
-import {
-  EMPTY_MONTH_EVENTS,
-  eventsForDayWithNeighbors,
-} from "@/helpers/scheduleEvents";
-import type { DayPressHandler } from "@/types/schedule";
 
 export type MonthGridProps = {
   yearMonth: YearMonth;
@@ -43,7 +44,7 @@ function MonthGridComponent({
   onDayPress,
 }: MonthGridProps) {
   const native = useNativeColors();
-  const [{ width, height }, setSize] = useState({ width: 0, height: 0 });
+  const { eventsAvailableHeight } = useMonthViewLayout();
 
   const monthKey = toMonthKey(yearMonth);
   const prevMonthKey = toMonthKey(addMonths(yearMonth, -1));
@@ -62,79 +63,52 @@ function MonthGridComponent({
     return next;
   }, [grid.cells]);
 
-  const baseCellWidth = width > 0 ? Math.floor(width / MONTH_GRID_COLS) : 0;
-  const baseCellHeight = height > 0 ? Math.floor(height / MONTH_GRID_ROWS) : 0;
-  const widthRemainder =
-    width > 0 ? width - baseCellWidth * MONTH_GRID_COLS : 0;
-  const heightRemainder =
-    height > 0 ? height - baseCellHeight * MONTH_GRID_ROWS : 0;
-  const ready = baseCellWidth > 0 && baseCellHeight > 0;
-
   const rootStyle = useMemo(
     () => ({
       borderRadius: semantic.radius.card,
       backgroundColor: native.surface.default,
+      gap: MONTH_VIEW_CELL_GAP,
     }),
     [native],
   );
 
-  const onLayout = useCallback((event: LayoutChangeEvent) => {
-    const { width: nextWidth, height: nextHeight } = event.nativeEvent.layout;
-    setSize((prev) =>
-      prev.width === nextWidth && prev.height === nextHeight
-        ? prev
-        : { width: nextWidth, height: nextHeight },
-    );
-  }, []);
+  const rowStyle = useMemo(
+    () => ({
+      flex: 1,
+      flexDirection: "row" as const,
+      minHeight: 0,
+      gap: MONTH_VIEW_CELL_GAP,
+    }),
+    [],
+  );
 
   return (
     <View
       className="w-full flex-1 self-stretch overflow-hidden"
       style={rootStyle}
-      onLayout={onLayout}
     >
-      {ready
-        ? rows.map((row, rowIndex) => {
-            const rowHeight =
-              baseCellHeight + (rowIndex < heightRemainder ? 1 : 0);
-            return (
-              <View
-                key={row[0]?.dayKey ?? `row-${rowIndex}`}
-                style={{
-                  flexDirection: "row",
-                  width,
-                  height: rowHeight,
-                }}
-              >
-                {row.map((cell, columnIndex) => {
-                  const cellWidth =
-                    baseCellWidth + (columnIndex < widthRemainder ? 1 : 0);
-                  return (
-                    <DayCell
-                      key={cell.dayKey}
-                      cell={cell}
-                      width={cellWidth}
-                      height={rowHeight}
-                      columnIndex={columnIndex}
-                      rowIndex={rowIndex}
-                      events={eventsForDayWithNeighbors(
-                        cell.dayKey,
-                        monthKey,
-                        eventsByDay,
-                        prevMonthKey,
-                        prevMonthEventsByDay,
-                        nextMonthKey,
-                        nextMonthEventsByDay,
-                      )}
-                      eventIndicators={eventIndicators}
-                      onDayPress={onDayPress}
-                    />
-                  );
-                })}
-              </View>
-            );
-          })
-        : null}
+      {rows.map((row, rowIndex) => (
+        <View key={row[0]?.dayKey ?? `row-${rowIndex}`} style={rowStyle}>
+          {row.map((cell) => (
+            <DayCell
+              key={cell.dayKey}
+              cell={cell}
+              events={eventsForDayWithNeighbors(
+                cell.dayKey,
+                monthKey,
+                eventsByDay,
+                prevMonthKey,
+                prevMonthEventsByDay,
+                nextMonthKey,
+                nextMonthEventsByDay,
+              )}
+              eventsAvailableHeight={eventsAvailableHeight}
+              eventIndicators={eventIndicators}
+              onDayPress={onDayPress}
+            />
+          ))}
+        </View>
+      ))}
     </View>
   );
 }

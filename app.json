@@ -27,7 +27,11 @@
       },
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "adjustResize",
-      "package": "com.gabielchabab.Dentrooper360"
+      "package": "com.gabielchabab.Dentrooper360",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
@@ -71,19 +75,17 @@
           }
         }
       ],
-      "expo-secure-store",
-      [
-        "@sentry/react-native/expo",
-        {
-          "url": "https://sentry.io/",
-          "project": "dentrooper-mobile",
-          "organization": "sol-t"
-        }
-      ]
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2976a068-3e4d-4fa9-bb0f-852f8dbb818a"
+      }
     }
   }
 }

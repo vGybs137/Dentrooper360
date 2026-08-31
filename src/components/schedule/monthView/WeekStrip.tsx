@@ -1,24 +1,25 @@
-import { memo, useCallback, useMemo, useState } from "react";
-import { View, type LayoutChangeEvent } from "react-native";
+import { memo, useMemo } from "react";
+import { View } from "react-native";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
+import { MONTH_VIEW_CELL_GAP } from "@/constants/schedule";
+import {
+  EMPTY_MONTH_EVENTS,
+  eventsForDayWithNeighbors,
+} from "@/helpers/scheduleEvents";
+import { useMonthViewLayout } from "@/hooks/schedule/useMonthViewLayout";
 import type { MonthEventsByDay } from "@/hooks/schedule/useMonthAppointmentsCache";
+import type { DayPressHandler } from "@/types/schedule";
 import {
   addMonths,
   buildWeekCells,
   focusMonthForWeek,
-  MONTH_GRID_COLS,
   toMonthKey,
   type DayKey,
 } from "@/utils/calendar";
 
 import { DayCell, type DayCellEventIndicators } from "./DayCell";
-import {
-  EMPTY_MONTH_EVENTS,
-  eventsForDayWithNeighbors,
-} from "@/helpers/scheduleEvents";
-import type { DayPressHandler } from "@/types/schedule";
 
 export type WeekStripProps = {
   weekStartKey: DayKey;
@@ -41,7 +42,7 @@ function WeekStripComponent({
   onDayPress,
 }: WeekStripProps) {
   const native = useNativeColors();
-  const [{ width, height }, setSize] = useState({ width: 0, height: 0 });
+  const { eventsAvailableHeight } = useMonthViewLayout();
 
   const focusMonth = useMemo(
     () => focusMonthForWeek(weekStartKey),
@@ -57,11 +58,6 @@ function WeekStripComponent({
     [focusMonth, weekStartKey],
   );
 
-  const baseCellWidth = width > 0 ? Math.floor(width / MONTH_GRID_COLS) : 0;
-  const widthRemainder =
-    width > 0 ? width - baseCellWidth * MONTH_GRID_COLS : 0;
-  const ready = baseCellWidth > 0 && height > 0;
-
   const rootStyle = useMemo(
     () => ({
       borderRadius: semantic.radius.card,
@@ -70,50 +66,41 @@ function WeekStripComponent({
     [native],
   );
 
-  const onLayout = useCallback((event: LayoutChangeEvent) => {
-    const { width: nextWidth, height: nextHeight } = event.nativeEvent.layout;
-    setSize((prev) =>
-      prev.width === nextWidth && prev.height === nextHeight
-        ? prev
-        : { width: nextWidth, height: nextHeight },
-    );
-  }, []);
+  const rowStyle = useMemo(
+    () => ({
+      flex: 1,
+      flexDirection: "row" as const,
+      minHeight: 0,
+      gap: MONTH_VIEW_CELL_GAP,
+    }),
+    [],
+  );
 
   return (
     <View
       className="w-full flex-1 self-stretch overflow-hidden"
       style={rootStyle}
-      onLayout={onLayout}
     >
-      {ready ? (
-        <View style={{ flexDirection: "row", width, height }}>
-          {cells.map((cell, columnIndex) => {
-            const cellWidth =
-              baseCellWidth + (columnIndex < widthRemainder ? 1 : 0);
-            return (
-              <DayCell
-                key={cell.dayKey}
-                cell={cell}
-                width={cellWidth}
-                height={height}
-                columnIndex={columnIndex}
-                rowIndex={0}
-                events={eventsForDayWithNeighbors(
-                  cell.dayKey,
-                  monthKey,
-                  eventsByDay,
-                  prevMonthKey,
-                  prevMonthEventsByDay,
-                  nextMonthKey,
-                  nextMonthEventsByDay,
-                )}
-                eventIndicators={eventIndicators}
-                onDayPress={onDayPress}
-              />
-            );
-          })}
-        </View>
-      ) : null}
+      <View style={rowStyle}>
+        {cells.map((cell) => (
+          <DayCell
+            key={cell.dayKey}
+            cell={cell}
+            events={eventsForDayWithNeighbors(
+              cell.dayKey,
+              monthKey,
+              eventsByDay,
+              prevMonthKey,
+              prevMonthEventsByDay,
+              nextMonthKey,
+              nextMonthEventsByDay,
+            )}
+            eventsAvailableHeight={eventsAvailableHeight}
+            eventIndicators={eventIndicators}
+            onDayPress={onDayPress}
+          />
+        ))}
+      </View>
     </View>
   );
 }

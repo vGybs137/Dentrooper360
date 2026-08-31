@@ -5,6 +5,14 @@ import type { MonthDayEventPreview } from "@/types/schedule";
 import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import type AppointmentType from "@/database/models/AppointmentType";
+import { getScheduleAppointmentsPrefetch } from "@/helpers/prefetchScheduleAppointments";
+import {
+  buildAppointmentTypesMap,
+  buildMonthDayMap,
+  type AppointmentTypeLookup,
+  type MonthAppointmentsCache,
+  type MonthEventsByDay,
+} from "@/helpers/scheduleAppointmentPreview";
 import {
   EMPTY_DAY_EVENTS,
   EMPTY_MONTH_EVENTS,
@@ -12,9 +20,9 @@ import {
 import { useAuthUser } from "@/stores/authStore";
 import {
   addMonths,
+  parseMonthKey,
   startOfMonthDate,
   startOfNextMonthDate,
-  toDayKey,
   toMonthKey,
   type DayKey,
   type MonthKey,
@@ -32,8 +40,7 @@ const SOFT_CACHE_RADIUS = 6;
 
 type SubscriptionLike = { unsubscribe: () => void };
 
-export type MonthEventsByDay = Record<DayKey, MonthDayEventPreview[]>;
-export type MonthAppointmentsCache = Record<MonthKey, MonthEventsByDay>;
+export type { MonthAppointmentsCache, MonthEventsByDay };
 
 export type UseMonthAppointmentsCacheOptions = {
   /** When true, new ensureMonthsLoaded calls are queued until idle. */
@@ -54,37 +61,28 @@ function monthKeyFromYearMonth(yearMonth: YearMonth): MonthKey {
   return toMonthKey(yearMonth);
 }
 
-function toPreview(
-  appointment: Appointment,
-  types: Map<string, { color: string | null; name: string }>,
-): MonthDayEventPreview {
-  const typeId = appointment.type.id;
-  const type = typeId ? types.get(typeId) : undefined;
+function seedFromPrefetch(providerId: string | null) {
+  const snapshot = getScheduleAppointmentsPrefetch(providerId);
+  if (!snapshot) {
+    return {
+      cache: {} as MonthAppointmentsCache,
+      types: new Map() as AppointmentTypeLookup,
+      appointments: new Map<MonthKey, Appointment[]>(),
+    };
+  }
+
   return {
-    id: appointment.id,
-    title: appointment.subject?.trim() || "Appointment",
-    color: type?.color ?? null,
-    typeName: type?.name ? type.name : null,
-    startTime: appointment.startTime.getTime(),
-    endTime: appointment.endTime.getTime(),
+    cache: snapshot.monthCache,
+    types: snapshot.types,
+    appointments: new Map(snapshot.appointmentsByMonth),
   };
 }
 
-function buildDayMap(
-  appointments: Appointment[],
-  types: Map<string, { color: string | null; name: string }>,
-): MonthEventsByDay {
-  const sorted = [...appointments].sort(
-    (a, b) => a.startTime.getTime() - b.startTime.getTime(),
-  );
-  const map: MonthEventsByDay = {};
-
-  for (const appointment of sorted) {
-    const dayKey = toDayKey(appointment.startTime);
-    const bucket = map[dayKey] ?? (map[dayKey] = []);
-    bucket.push(toPreview(appointment, types));
+function monthByKeyFromCache(cache: MonthAppointmentsCache) {
+  const map = new Map<MonthKey, YearMonth>();
+  for (const monthKey of Object.keys(cache) as MonthKey[]) {
+    map.set(monthKey, parseMonthKey(monthKey));
   }
-
   return map;
 }
 
@@ -97,14 +95,19 @@ export function useMonthAppointmentsCache({
   isDragging,
 }: UseMonthAppointmentsCacheOptions): UseMonthAppointmentsCacheResult {
   const providerId = useAuthUser()?.id ?? null;
-  const [cache, setCache] = useState<MonthAppointmentsCache>({});
-  const typesRef = useRef(
-    new Map<string, { color: string | null; name: string }>(),
+  const initialSeedRef = useRef<ReturnType<typeof seedFromPrefetch> | null>(
+    null,
   );
-  const appointmentsByMonthRef = useRef(new Map<MonthKey, Appointment[]>());
+  if (initialSeedRef.current === null) {
+    initialSeedRef.current = seedFromPrefetch(providerId);
+  }
+  const initialSeed = initialSeedRef.current;
+  const [cache, setCache] = useState<MonthAppointmentsCache>(initialSeed.cache);
+  const typesRef = useRef<AppointmentTypeLookup>(initialSeed.types);
+  const appointmentsByMonthRef = useRef(initialSeed.appointments);
   const subscriptionsRef = useRef(new Map<MonthKey, SubscriptionLike>());
   const pendingKeysRef = useRef(new Set<MonthKey>());
-  const monthByKeyRef = useRef(new Map<MonthKey, YearMonth>());
+  const monthByKeyRef = useRef(monthByKeyFromCache(initialSeed.cache));
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearTimer = () => {
@@ -117,7 +120,7 @@ export function useMonthAppointmentsCache({
   const publishMonth = useCallback(
     (monthKey: MonthKey, appointments: Appointment[]) => {
       appointmentsByMonthRef.current.set(monthKey, appointments);
-      const dayMap = buildDayMap(appointments, typesRef.current);
+      const dayMap = buildMonthDayMap(appointments, typesRef.current);
       setCache((prev) => ({ ...prev, [monthKey]: dayMap }));
     },
     [],
@@ -128,12 +131,12 @@ export function useMonthAppointmentsCache({
       const next: MonthAppointmentsCache = {};
       for (const monthKey of Object.keys(prev) as MonthKey[]) {
         const appointments = appointmentsByMonthRef.current.get(monthKey) ?? [];
-        next[monthKey] = buildDayMap(appointments, typesRef.current);
+        next[monthKey] = buildMonthDayMap(appointments, typesRef.current);
       }
       // Also include months that have appointments but somehow missing from prev.
       for (const [monthKey, appointments] of appointmentsByMonthRef.current) {
         if (!next[monthKey]) {
-          next[monthKey] = buildDayMap(appointments, typesRef.current);
+          next[monthKey] = buildMonthDayMap(appointments, typesRef.current);
         }
       }
       return next;
@@ -291,14 +294,7 @@ export function useMonthAppointmentsCache({
       .observe()
       .subscribe({
         next: (types) => {
-          const next = new Map<string, { color: string | null; name: string }>();
-          for (const type of types) {
-            next.set(type.id, {
-              color: type.color || null,
-              name: type.nameEn?.trim() || "",
-            });
-          }
-          typesRef.current = next;
+          typesRef.current = buildAppointmentTypesMap(types);
           if (appointmentsByMonthRef.current.size > 0) {
             republishAllMonths();
           }
@@ -322,16 +318,20 @@ export function useMonthAppointmentsCache({
     return clearTimer;
   }, [isDragging, flushPending]);
 
-  // Tear down observers and cache when the signed-in provider changes.
+  // Tear down observers when the signed-in provider changes; keep prefetch.
   useEffect(() => {
     clearTimer();
     for (const subscription of subscriptionsRef.current.values()) {
       subscription.unsubscribe();
     }
     subscriptionsRef.current.clear();
-    appointmentsByMonthRef.current.clear();
     pendingKeysRef.current.clear();
-    setCache({});
+
+    const nextSeed = seedFromPrefetch(providerId);
+    typesRef.current = nextSeed.types;
+    appointmentsByMonthRef.current = nextSeed.appointments;
+    monthByKeyRef.current = monthByKeyFromCache(nextSeed.cache);
+    setCache(nextSeed.cache);
 
     return () => {
       clearTimer();
@@ -339,9 +339,7 @@ export function useMonthAppointmentsCache({
         subscription.unsubscribe();
       }
       subscriptionsRef.current.clear();
-      appointmentsByMonthRef.current.clear();
       pendingKeysRef.current.clear();
-      monthByKeyRef.current.clear();
     };
   }, [providerId]);
 

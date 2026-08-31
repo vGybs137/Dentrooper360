@@ -273,6 +273,9 @@ export function AppointmentSearchScreen() {
       if (!hasActiveFilters) {
         savedScrollOffset.current = 0;
         scrollY.value = 0;
+        requestAnimationFrame(() => {
+          flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
+        });
       }
       return;
     }
