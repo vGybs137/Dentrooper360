@@ -1,7 +1,7 @@
 import { Image, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
-import { checkCircleIcon, personIcon, starIcon } from "@/constants";
+import { checkCircleIcon, starIcon } from "@/constants";
 import {
   formatPatientBalance,
   formatPatientNextVisit,
@@ -34,7 +34,24 @@ function MetricColumn({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PatientAvatar({ profilePhoto }: { profilePhoto: string | null }) {
+function initialsFromName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return "?";
+  }
+  if (parts.length === 1) {
+    return parts[0]!.slice(0, 2).toUpperCase();
+  }
+  return `${parts[0]![0] ?? ""}${parts[parts.length - 1]![0] ?? ""}`.toUpperCase();
+}
+
+function PatientAvatar({
+  displayName,
+  profilePhoto,
+}: {
+  displayName: string;
+  profilePhoto: string | null;
+}) {
   if (profilePhoto) {
     return (
       <Image
@@ -49,7 +66,14 @@ function PatientAvatar({ profilePhoto }: { profilePhoto: string | null }) {
   }
 
   return (
-    <ThemedIcon dimension={AVATAR_SIZE} name={personIcon} tone="muted" />
+    <ThemedView
+      className="items-center justify-center rounded-full bg-brand-subtle"
+      style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
+    >
+      <ThemedText className="text-[11px] font-semibold" tone="brand" variant="label">
+        {initialsFromName(displayName)}
+      </ThemedText>
+    </ThemedView>
   );
 }
 
@@ -102,11 +126,14 @@ export function PatientCard({
             minHeight: selectable ? 72 : AVATAR_SIZE,
           }}
         >
-          <PatientAvatar profilePhoto={patient.profilePhoto} />
+          <PatientAvatar
+            displayName={patient.displayName}
+            profilePhoto={patient.profilePhoto}
+          />
           {selectable ? <SelectionIndicator selected={selected} /> : null}
         </View>
 
-        <View className="h-[90%] self-center border-l border-border-subtle" />
+        <View className="mx-3 h-[90%] w-0.5 self-center bg-border-subtle" />
 
         <View className="flex-1">
           <View className="min-w-0 flex-1 justify-center px-gap">

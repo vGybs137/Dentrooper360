@@ -13,6 +13,7 @@ export type PatientCardData = {
   balance: number | null;
   currency: string | null;
   profilePhoto: string | null;
+  fileDate: Date | null;
   nextVisit: string | null;
 };
 
@@ -69,6 +70,7 @@ export function mapPatientToCardData(
     balance: patient.balance,
     currency: patient.currency,
     profilePhoto: patient.profilePhoto,
+    fileDate: patient.fileDate,
     nextVisit,
   };
 }

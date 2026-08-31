@@ -9,7 +9,8 @@ import {
   mapPatientToCardData,
   type PatientCardData,
 } from "@/helpers/patientDisplay";
-import { useAuthUser } from "@/stores/authStore";
+
+export type PatientSort = "name" | "fileDate";
 
 function matchesPatientSearch(
   patient: PatientCardData,
@@ -44,31 +45,55 @@ function buildNextVisitByPatient(
   return nextByPatient;
 }
 
+function comparePatients(a: PatientCardData, b: PatientCardData): number {
+  const aTime = a.fileDate?.getTime() ?? Number.NEGATIVE_INFINITY;
+  const bTime = b.fileDate?.getTime() ?? Number.NEGATIVE_INFINITY;
+
+  if (aTime !== bTime) {
+    return bTime - aTime;
+  }
+
+  return a.displayName.localeCompare(b.displayName);
+}
+
+function sortPatients(
+  patients: PatientCardData[],
+  sortBy: PatientSort,
+): PatientCardData[] {
+  if (sortBy === "fileDate") {
+    return [...patients].sort(comparePatients);
+  }
+
+  return [...patients].sort((a, b) => a.displayName.localeCompare(b.displayName));
+}
+
 function mapPatientsWithNextVisit(
   records: Patient[],
   nextByPatient: Map<string, Date>,
+  sortBy: PatientSort,
 ): PatientCardData[] {
-  return records
-    .map((patient) =>
+  return sortPatients(
+    records.map((patient) =>
       mapPatientToCardData(
         patient,
         formatNextVisitLabel(nextByPatient.get(patient.id) ?? null),
       ),
-    )
-    .sort((a, b) => a.displayName.localeCompare(b.displayName));
+    ),
+    sortBy,
+  );
 }
 
 type UseActivePatientsOptions = {
   /** When false, skip Watermelon observe (e.g. sheet closed). */
   enabled?: boolean;
+  sortBy?: PatientSort;
 };
 
-/** Active patients from WatermelonDB, sorted by display name, optionally filtered. */
+/** Active patients from WatermelonDB, optionally filtered and sorted. */
 export function useActivePatients(
   search = "",
-  { enabled = true }: UseActivePatientsOptions = {},
+  { enabled = true, sortBy = "name" }: UseActivePatientsOptions = {},
 ) {
-  const providerId = useAuthUser()?.id ?? null;
   const [patients, setPatients] = useState<PatientCardData[]>([]);
   const [isLoading, setIsLoading] = useState(enabled);
   const [error, setError] = useState<Error | null>(null);
@@ -76,13 +101,6 @@ export function useActivePatients(
   useEffect(() => {
     if (!enabled) {
       setIsLoading(false);
-      return;
-    }
-
-    if (!providerId) {
-      setPatients([]);
-      setIsLoading(false);
-      setError(null);
       return;
     }
 
@@ -98,7 +116,7 @@ export function useActivePatients(
         return;
       }
 
-      setPatients(mapPatientsWithNextVisit(patientRecords, nextByPatient));
+      setPatients(mapPatientsWithNextVisit(patientRecords, nextByPatient, sortBy));
       setIsLoading(false);
       setError(null);
     };
@@ -109,10 +127,7 @@ export function useActivePatients(
 
     const appointmentsQuery = database
       .get<Appointment>("appointments")
-      .query(
-        Q.where("provider_id", providerId),
-        Q.where("start_time", Q.gte(Date.now())),
-      );
+      .query(Q.where("start_time", Q.gte(Date.now())));
 
     const patientsSub = patientsQuery.observe().subscribe({
       next: (records) => {
@@ -142,7 +157,7 @@ export function useActivePatients(
       patientsSub.unsubscribe();
       appointmentsSub.unsubscribe();
     };
-  }, [enabled, providerId]);
+  }, [enabled, sortBy]);
 
   const filteredPatients = useMemo(
     () => patients.filter((patient) => matchesPatientSearch(patient, search)),
