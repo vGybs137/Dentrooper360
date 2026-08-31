@@ -1,64 +1,122 @@
-import { type Href, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
-import { ActivityIndicator, FlatList, View } from "react-native";
+import { useRouter, type Href } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, useWindowDimensions, View } from "react-native";
+import Animated, {
+  runOnJS,
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PatientCard } from "@/components/patients/PatientCard";
-import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
+import { SearchBar } from "@/components/search";
+import { AppointmentSearchBackButton } from "@/components/schedule/appointmentSearch/AppointmentSearchBackButton";
+import { ThemedText, ThemedView } from "@/components/ui";
 import type { PatientCardData } from "@/helpers/patientDisplay";
+import { getSearchBarReservedHeight } from "@/helpers/searchBarLayout";
 import { useActivePatients } from "@/hooks/useActivePatients";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
-const CHEVRON_LEFT_ICON = {
-  ios: "chevron.left",
-  android: "chevron_left",
-  web: "chevron_left",
-} as const;
-
-function PatientSearchEmpty({
+function SearchListEmptyContent({
   error,
+  hasQuery,
   isLoading,
-  search,
+  query,
 }: {
   error: Error | null;
+  hasQuery: boolean;
   isLoading: boolean;
-  search: string;
+  query: string;
 }) {
   const native = useNativeColors();
 
-  if (isLoading) {
-    return (
-      <View className="items-center py-6">
-        <ActivityIndicator color={native.brand.default} />
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <ThemedText align="center" tone="alert" variant="body">
-        Unable to load patients.
-      </ThemedText>
-    );
-  }
-
   return (
-    <ThemedText align="center" tone="muted" variant="body">
-      {search.trim().length > 0
-        ? "No patients match your search."
-        : "Search by patient name."}
-    </ThemedText>
+    <View>
+      {isLoading ? (
+        <View className="items-center pt-stack-default">
+          <ActivityIndicator color={native.brand.default} />
+        </View>
+      ) : null}
+
+      {error ? (
+        <View className="px-page pt-stack-default">
+          <ThemedText align="center" tone="alert" variant="body">
+            Unable to search patients.
+          </ThemedText>
+        </View>
+      ) : null}
+
+      {!isLoading && !error && hasQuery ? (
+        <View className="px-page pt-stack-default">
+          <ThemedText align="center" tone="muted" variant="body">
+            {query.trim().length > 0
+              ? `No patients match "${query.trim()}".`
+              : "No patients match your search."}
+          </ThemedText>
+        </View>
+      ) : null}
+    </View>
   );
 }
 
+const searchListHeaderComponent = (
+  titleTopPadding: number,
+  titleBottomPadding: number,
+  chevronRowHeight: number,
+) => (
+  <View>
+    <View
+      style={{
+        paddingTop: titleTopPadding,
+        paddingBottom: titleBottomPadding,
+      }}
+    >
+      <ThemedText align="center" variant="display">
+        Search
+      </ThemedText>
+    </View>
+    <View style={{ height: chevronRowHeight }} />
+  </View>
+);
+
 export function PatientSearchScreen() {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [search, setSearch] = useState("");
-  const { patients, isLoading, error } = useActivePatients(search, {
+  const { height: windowHeight } = useWindowDimensions();
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+  const hasQuery = query.trim().length > 0;
+  const { patients, isLoading, error } = useActivePatients(query, {
     sortBy: "fileDate",
+    enabled: hasQuery,
   });
+  const visiblePatients = hasQuery ? patients : [];
+  const searchKey = query.trim();
+  const scrollY = useSharedValue(0);
+  const savedScrollOffset = useRef(0);
+  const previousSearchKeyRef = useRef(searchKey);
+  const flatListRef = useRef<Animated.FlatList<PatientCardData>>(null);
+
+  const persistScrollOffset = useCallback((offset: number) => {
+    savedScrollOffset.current = offset;
+  }, []);
+
+  const searchBarReservedHeight = useMemo(
+    () => getSearchBarReservedHeight(insets.bottom),
+    [insets.bottom],
+  );
+
+  const titleTopPadding = semantic.space.section * 2;
+  const titleBottomPadding = semantic.space.section;
+  const displayLineHeight = semantic.type.display.lineHeight;
+  const chevronRowHeight = semantic.size.touch;
+  const pinnedChevronTop = 0;
+  const initialChevronTop =
+    pinnedChevronTop + titleTopPadding + displayLineHeight + titleBottomPadding;
+  const collapseScrollDistance = initialChevronTop - pinnedChevronTop;
+
+  const listViewportHeight =
+    windowHeight - insets.top - searchBarReservedHeight;
 
   const goBack = useCallback(() => {
     if (router.canGoBack()) {
@@ -69,6 +127,39 @@ export function PatientSearchScreen() {
     router.replace("/(tabs)/patients" as Href);
   }, [router]);
 
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+      runOnJS(persistScrollOffset)(event.contentOffset.y);
+    },
+  });
+
+  useEffect(() => {
+    const searchChanged = previousSearchKeyRef.current !== searchKey;
+    previousSearchKeyRef.current = searchKey;
+
+    if (searchChanged) {
+      if (!hasQuery) {
+        savedScrollOffset.current = 0;
+        scrollY.value = 0;
+        requestAnimationFrame(() => {
+          flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
+        });
+      }
+      return;
+    }
+
+    const offset = savedScrollOffset.current;
+    if (offset <= 0) {
+      return;
+    }
+
+    scrollY.value = offset;
+    requestAnimationFrame(() => {
+      flatListRef.current?.scrollToOffset({ offset, animated: false });
+    });
+  }, [visiblePatients, isLoading, error, searchKey, hasQuery, scrollY]);
+
   const handlePatientPress = useCallback(
     (patient: PatientCardData) => {
       router.push(`/patients/${patient.id}` as Href);
@@ -78,79 +169,94 @@ export function PatientSearchScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: PatientCardData }) => (
-      <PatientCard onPress={() => handlePatientPress(item)} patient={item} />
+      <View className="px-page pb-stack-compact">
+        <PatientCard
+          onPress={() => handlePatientPress(item)}
+          patient={item}
+          searchQuery={query}
+        />
+      </View>
     ),
-    [handlePatientPress],
+    [handlePatientPress, query],
   );
 
   const keyExtractor = useCallback((item: PatientCardData) => item.id, []);
 
+  const listHeaderComponent = useMemo(
+    () =>
+      searchListHeaderComponent(
+        titleTopPadding,
+        titleBottomPadding,
+        chevronRowHeight,
+      ),
+    [chevronRowHeight, titleBottomPadding, titleTopPadding],
+  );
+
+  const listEmptyComponent = useMemo(
+    () => (
+      <SearchListEmptyContent
+        error={error}
+        hasQuery={hasQuery}
+        isLoading={isLoading}
+        query={query}
+      />
+    ),
+    [error, hasQuery, isLoading, query],
+  );
+
+  const contentContainerStyle = useMemo(
+    () => ({
+      paddingBottom: semantic.space.page,
+      minHeight: listViewportHeight + collapseScrollDistance,
+    }),
+    [collapseScrollDistance, listViewportHeight],
+  );
+
   return (
     <ThemedView
-      edges={["left", "right"]}
-      inset="compact"
-      keyboardAvoiding
+      edges={["top", "left", "right"]}
+      inset="none"
+      overlay={
+        <AppointmentSearchBackButton
+          collapseScrollDistance={collapseScrollDistance}
+          initialTop={initialChevronTop}
+          onClearTimeWindow={() => undefined}
+          onClearType={() => undefined}
+          onPress={goBack}
+          pinnedTop={pinnedChevronTop}
+          safeAreaLeft={insets.left}
+          safeAreaRight={insets.right}
+          safeAreaTop={insets.top}
+          scrollY={scrollY}
+          selectedTypes={[]}
+          timeWindowLabel={null}
+        />
+      }
       padBottom={false}
       scroll={false}
       variant="screen"
-      style={{ paddingTop: insets.top }}
     >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          paddingBottom: semantic.space.stack.compact,
-        }}
-      >
-        <Button
-          accessibilityLabel="Back to patients"
-          hitSlop={8}
-          onPress={goBack}
-          size="none"
-          style={{
-            width: semantic.size.touch,
-            height: semantic.size.touch,
-            alignItems: "flex-start",
-            justifyContent: "center",
-          }}
-          tone="neutral"
-          variant="ghost"
-        >
-          <ThemedIcon name={CHEVRON_LEFT_ICON} />
-        </Button>
-        <ThemedText
-          as="input"
-          autoCapitalize="none"
-          autoCorrect={false}
-          autoFocus
-          containerClassName="flex-1 min-w-0"
-          fieldVariant="bare"
-          onChangeText={setSearch}
-          placeholder="Search patients..."
-          returnKeyType="search"
-          value={search}
-        />
-      </View>
-
-      <FlatList
-        contentContainerStyle={{
-          gap: semantic.space.gap.compact,
-          flexGrow: patients.length === 0 ? 1 : undefined,
-          paddingBottom: semantic.space.page + insets.bottom,
-        }}
-        data={patients}
+      <Animated.FlatList
+        ref={flatListRef}
+        contentContainerStyle={contentContainerStyle}
+        data={visiblePatients}
         keyboardShouldPersistTaps="handled"
         keyExtractor={keyExtractor}
-        ListEmptyComponent={
-          <PatientSearchEmpty
-            error={error}
-            isLoading={isLoading}
-            search={search}
-          />
-        }
+        ListEmptyComponent={listEmptyComponent}
+        ListHeaderComponent={listHeaderComponent}
+        onScroll={scrollHandler}
         renderItem={renderItem}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         style={{ flex: 1 }}
+      />
+
+      <SearchBar
+        accessibilityLabel="Search patients"
+        autoFocus
+        onChangeText={setQuery}
+        placeholder="Search patients..."
+        value={query}
       />
     </ThemedView>
   );

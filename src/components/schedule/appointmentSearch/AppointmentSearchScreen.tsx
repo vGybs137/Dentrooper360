@@ -10,11 +10,8 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
+import { SearchBar } from "@/components/search";
 import { AppointmentSearchBackButton } from "@/components/schedule/appointmentSearch/AppointmentSearchBackButton";
-import {
-  AppointmentSearchBar,
-  getAppointmentSearchBarReservedHeight,
-} from "@/components/schedule/appointmentSearch/AppointmentSearchBar";
 import { AppointmentSearchDayGroup } from "@/components/schedule/appointmentSearch/AppointmentSearchDayGroup";
 import { AppointmentSearchFiltersCard } from "@/components/schedule/appointmentSearch/AppointmentSearchFiltersCard";
 import { ThemedText, ThemedView } from "@/components/ui";
@@ -24,6 +21,7 @@ import {
   type AppointmentSearchTimeWindow,
 } from "@/constants/appointmentSearch";
 import { useAppointmentSearch } from "@/hooks/useAppointmentSearch";
+import { getSearchBarReservedHeight } from "@/helpers/searchBarLayout";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 import type { MonthDayEventPreview } from "@/types/schedule";
@@ -233,7 +231,7 @@ export function AppointmentSearchScreen() {
       : appointmentSearchTimeWindowLabel(timeWindow);
 
   const searchBarReservedHeight = useMemo(
-    () => getAppointmentSearchBarReservedHeight(insets.bottom),
+    () => getSearchBarReservedHeight(insets.bottom),
     [insets.bottom],
   );
 
@@ -439,7 +437,13 @@ export function AppointmentSearchScreen() {
           style={{ flex: 1 }}
         />
 
-        <AppointmentSearchBar autoFocus onChangeText={setQuery} value={query} />
+        <SearchBar
+          accessibilityLabel="Search appointments"
+          autoFocus
+          onChangeText={setQuery}
+          placeholder="Search by subject..."
+          value={query}
+        />
     </ThemedView>
   );
 }

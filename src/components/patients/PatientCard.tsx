@@ -1,4 +1,5 @@
-import { Image, View, type StyleProp, type ViewStyle } from "react-native";
+import { useMemo } from "react";
+import { Image, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { PatientCardActionMenu } from "@/components/patients/PatientCardActionMenu";
 import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
@@ -8,6 +9,7 @@ import {
   formatPatientNextVisit,
   type PatientCardData,
 } from "@/helpers/patientDisplay";
+import { splitTextBySearchQuery } from "@/helpers/searchHighlight";
 import { useNativeColors } from "@/theme";
 import { cn } from "@/utils/cn";
 
@@ -19,6 +21,7 @@ type PatientCardProps = {
   selectable?: boolean;
   selected?: boolean;
   onPress?: () => void;
+  searchQuery?: string;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -101,11 +104,58 @@ function SelectionIndicator({ selected }: { selected: boolean }) {
   );
 }
 
+function PatientDisplayName({
+  displayName,
+  searchQuery,
+}: {
+  displayName: string;
+  searchQuery?: string;
+}) {
+  const parts = useMemo(
+    () => splitTextBySearchQuery(displayName, searchQuery ?? ""),
+    [displayName, searchQuery],
+  );
+  const hasHighlight = Boolean(searchQuery?.trim());
+
+  if (!hasHighlight) {
+    return (
+      <ThemedText
+        className="min-w-0 flex-1 shrink font-semibold"
+        numberOfLines={1}
+        variant="body"
+      >
+        {displayName}
+      </ThemedText>
+    );
+  }
+
+  return (
+    <Text
+      className="min-w-0 flex-1 shrink text-body font-semibold text-foreground-default"
+      numberOfLines={1}
+    >
+      {parts.map((part, index) => (
+        <Text
+          key={`${part.value}-${index}`}
+          className={
+            part.highlighted
+              ? "font-semibold text-brand-default"
+              : "text-foreground-default"
+          }
+        >
+          {part.value}
+        </Text>
+      ))}
+    </Text>
+  );
+}
+
 export function PatientCard({
   patient,
   selectable = false,
   selected = false,
   onPress,
+  searchQuery,
   style,
 }: PatientCardProps) {
   const native = useNativeColors();
@@ -143,13 +193,10 @@ export function PatientCard({
         <View className="flex-1 gap-inset-compact">
           <View className="min-w-0 flex-1 justify-center px-gap">
             <View className="flex-row items-center gap-1.5">
-              <ThemedText
-                className="min-w-0 flex-1 shrink font-semibold"
-                numberOfLines={1}
-                variant="body"
-              >
-                {patient.displayName}
-              </ThemedText>
+              <PatientDisplayName
+                displayName={patient.displayName}
+                searchQuery={searchQuery}
+              />
               {patient.isVip ? (
                 <ThemedIcon dimension={14} name={starIcon} tone="brand" />
               ) : null}
