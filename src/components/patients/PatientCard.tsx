@@ -1,5 +1,6 @@
 import { Image, View, type StyleProp, type ViewStyle } from "react-native";
 
+import { PatientCardActionMenu } from "@/components/patients/PatientCardActionMenu";
 import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
 import { checkCircleIcon, starIcon } from "@/constants";
 import {
@@ -70,7 +71,11 @@ function PatientAvatar({
       className="items-center justify-center rounded-full bg-brand-subtle"
       style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
     >
-      <ThemedText className="text-[11px] font-semibold" tone="brand" variant="label">
+      <ThemedText
+        className="text-[11px] font-semibold"
+        tone="brand"
+        variant="label"
+      >
         {initialsFromName(displayName)}
       </ThemedText>
     </ThemedView>
@@ -117,7 +122,7 @@ export function PatientCard({
       style={style}
       variant="card"
     >
-      <View className="flex-row items-stretch">
+      <View className="flex-row items-start">
         <View
           className="items-center"
           style={{
@@ -135,11 +140,11 @@ export function PatientCard({
 
         <View className="mx-3 h-[90%] w-0.5 self-center bg-border-subtle" />
 
-        <View className="flex-1">
+        <View className="flex-1 gap-inset-compact">
           <View className="min-w-0 flex-1 justify-center px-gap">
-            <View className="flex-row flex-wrap items-center gap-1.5">
+            <View className="flex-row items-center gap-1.5">
               <ThemedText
-                className="shrink font-semibold"
+                className="min-w-0 flex-1 shrink font-semibold"
                 numberOfLines={1}
                 variant="body"
               >
@@ -148,6 +153,7 @@ export function PatientCard({
               {patient.isVip ? (
                 <ThemedIcon dimension={14} name={starIcon} tone="brand" />
               ) : null}
+              {!selectable ? <PatientCardActionMenu patient={patient} /> : null}
             </View>
           </View>
 

@@ -35,7 +35,7 @@ export function formatPatientBalance(
   }
 
   const prefix = currency ?? "$";
-  return `${prefix}${Math.abs(balance).toFixed(2)}`;
+  return `${prefix} ${Math.abs(balance).toFixed(2)}`;
 }
 
 export function formatPatientNextVisit(

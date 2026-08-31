@@ -1,26 +1,21 @@
 import { type Href, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { ActivityIndicator, FlatList, View } from "react-native";
 
 import { PatientCard } from "@/components/patients/PatientCard";
+import { PatientsListHeader } from "@/components/patients/PatientsListHeader";
 import { ThemedText, ThemedView } from "@/components/ui";
 import type { PatientCardData } from "@/helpers/patientDisplay";
 import { useActivePatients } from "@/hooks/useActivePatients";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
-function PatientSearchDivider() {
-  return <View className="h-px w-full bg-border-subtle" />;
-}
-
 function PatientsListEmpty({
   error,
   isLoading,
-  search,
 }: {
   error: Error | null;
   isLoading: boolean;
-  search: string;
 }) {
   const native = useNativeColors();
 
@@ -42,19 +37,20 @@ function PatientsListEmpty({
 
   return (
     <ThemedText align="center" tone="muted" variant="body">
-      {search.trim().length > 0
-        ? "No patients match your search."
-        : "No active patients yet."}
+      No active patients yet.
     </ThemedText>
   );
 }
 
 export function PatientsListScreen() {
   const router = useRouter();
-  const [search, setSearch] = useState("");
-  const { patients, isLoading, error } = useActivePatients(search, {
+  const { patients, isLoading, error } = useActivePatients("", {
     sortBy: "fileDate",
   });
+
+  const openSearch = useCallback(() => {
+    router.push("/patients/search" as Href);
+  }, [router]);
 
   const handlePatientPress = useCallback(
     (patient: PatientCardData) => {
@@ -73,25 +69,12 @@ export function PatientsListScreen() {
   const keyExtractor = useCallback((item: PatientCardData) => item.id, []);
 
   const listEmptyComponent = (
-    <PatientsListEmpty error={error} isLoading={isLoading} search={search} />
+    <PatientsListEmpty error={error} isLoading={isLoading} />
   );
 
   return (
-    <ThemedView className="flex-1" scroll={false} space="default" variant="stack">
-      <View className="w-full">
-        <ThemedText
-          as="input"
-          autoCapitalize="none"
-          autoCorrect={false}
-          containerClassName="w-full"
-          fieldVariant="bare"
-          onChangeText={setSearch}
-          placeholder="Search patients..."
-          returnKeyType="search"
-          value={search}
-        />
-        <PatientSearchDivider />
-      </View>
+    <ThemedView className="flex-1" scroll={false} variant="stack">
+      <PatientsListHeader openSearch={openSearch} />
 
       <FlatList
         contentContainerStyle={{

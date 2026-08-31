@@ -1,17 +1,21 @@
+export { ActionMenu } from "./ActionMenu";
 export { BottomSheet } from "./BottomSheet";
 export { Button } from "./Button";
 export { ColorSwatch } from "./ColorSwatch";
 export { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 export { Dropdown } from "./Dropdown";
 export { ThemedIcon } from "./ThemedIcon";
+export { SearchToggle } from "./SearchToggle";
 export { ThemedText } from "./ThemedText";
 export { ThemedView } from "./ThemedView";
 
+export type { ActionMenuItem, ActionMenuProps } from "./ActionMenu";
 export type { BottomSheetProps } from "./BottomSheet";
 export type { ButtonProps } from "./Button";
 export type { DeleteConfirmationDialogProps } from "./DeleteConfirmationDialog";
 export type { DropdownOption, DropdownProps } from "./Dropdown";
 export type { ThemedIconProps } from "./ThemedIcon";
+export type { SearchToggleProps } from "./SearchToggle";
 export type {
   ThemedTextDisplayProps,
   ThemedTextInputProps,

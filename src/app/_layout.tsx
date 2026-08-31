@@ -36,6 +36,7 @@ function RootLayout() {
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="appointments/search" />
               <Stack.Screen name="appointments/[id]" />
+              <Stack.Screen name="patients/search" />
               <Stack.Screen name="patients/[id]" />
               <Stack.Screen name="recalls/[id]" />
             </Stack>

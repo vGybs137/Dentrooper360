@@ -106,6 +106,18 @@ export const calendarIcon = {
   web: "calendar_month",
 } as const;
 
+export const editIcon = {
+  ios: "pencil",
+  android: "edit",
+  web: "edit",
+} as const;
+
+export const deleteIcon = {
+  ios: "trash",
+  android: "delete",
+  web: "delete",
+} as const;
+
 export const weekStartIcon = {
   ios: "calendar.badge.clock",
   android: "date_range",
@@ -128,4 +140,10 @@ export const logoutIcon = {
   ios: "rectangle.portrait.and.arrow.right",
   android: "logout",
   web: "logout",
+} as const;
+
+export const ellipsisIcon = {
+  ios: "ellipsis",
+  android: "more_vert",
+  web: "more_vert",
 } as const;

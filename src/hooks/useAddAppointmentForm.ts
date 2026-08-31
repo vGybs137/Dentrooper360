@@ -60,6 +60,9 @@ export function useAddAppointmentForm() {
     (state) => state.editingAppointmentId,
   );
   const editDraft = useAddAppointmentStore((state) => state.editDraft);
+  const createPatientDraft = useAddAppointmentStore(
+    (state) => state.createPatientDraft,
+  );
   const storeGoNext = useAddAppointmentStore((state) => state.goNext);
   const storeGoBack = useAddAppointmentStore((state) => state.goBack);
   const requestClose = useAddAppointmentStore((state) => state.requestClose);
@@ -114,6 +117,21 @@ export function useAddAppointmentForm() {
       return;
     }
 
+    if (createPatientDraft) {
+      setSelectedPatientCache(createPatientDraft);
+      form.reset({
+        patientId: createPatientDraft.id,
+        subject: buildAppointmentSubjectFromPatient(createPatientDraft),
+        typeId: "",
+        locationId:
+          useSchedulePreferencesStore.getState().defaultLocationId ?? "",
+        startTime: slot.start,
+        endTime: slot.end,
+        description: "",
+      });
+      return;
+    }
+
     setSelectedPatientCache(null);
     form.reset({
       patientId: null,
@@ -126,6 +144,7 @@ export function useAddAppointmentForm() {
       description: "",
     });
   }, [
+    createPatientDraft,
     editDraft,
     editingAppointmentId,
     form,
