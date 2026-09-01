@@ -10,6 +10,8 @@ export {
 } from "./auth";
 export {
   appearanceIcon,
+  addressIcon,
+  ageIcon,
   checkCircleIcon,
   chevronDisclosureIcon,
   chevronDownIcon,
@@ -19,14 +21,18 @@ export {
   deleteIcon,
   editIcon,
   ellipsisIcon,
+  emailIcon,
+  genderIcon,
   lockIcon,
   locationIcon,
   logoutIcon,
   notesIcon,
   personAddIcon,
   personIcon,
+  phoneIcon,
   pendingChangesIcon,
   qrCodeIcon,
+  referralIcon,
   searchIcon,
   starIcon,
   syncIcon,
@@ -34,6 +40,12 @@ export {
   weekStartIcon,
   wifiIcon,
 } from "./icons";
+export {
+  DEFAULT_PATIENT_COUNTRY_CODE,
+  DEFAULT_PATIENT_GENDER,
+  PATIENT_GENDER_OPTIONS,
+} from "./patientForm";
+export type { PatientGenderValue } from "./patientForm";
 export {
   MONTH_VIEW_CELL_GAP,
   MONTH_VIEW_CHIP_FADE_END,

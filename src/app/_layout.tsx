@@ -10,6 +10,7 @@ import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AddAppointmentSheet } from "@/components/schedule/addAppointment";
+import { AddPatientSheet } from "@/components/patients/addPatient";
 import { keepNativeSplashVisible } from "@/helpers/nativeSplash";
 import { useConnectivitySync } from "@/hooks/useConnectivitySync";
 import { usePeriodicSync } from "@/hooks/usePeriodicSync";
@@ -41,6 +42,7 @@ function RootLayout() {
               <Stack.Screen name="recalls/[id]" />
             </Stack>
             <AddAppointmentSheet />
+            <AddPatientSheet />
           </BottomSheetModalProvider>
         </QueryProvider>
       </BlurTargetView>

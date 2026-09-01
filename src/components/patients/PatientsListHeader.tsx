@@ -1,16 +1,19 @@
 import { memo, useMemo } from "react";
 import { View } from "react-native";
 
-import { SearchToggle, ThemedText } from "@/components/ui";
+import { Button, SearchToggle, ThemedIcon, ThemedText } from "@/components/ui";
+import { personAddIcon } from "@/constants";
 import { semantic } from "@/tokens";
 
 export type PatientsListHeaderProps = {
   openSearch: () => void;
+  openAddPatient: () => void;
   title?: string;
 };
 
 function PatientsListHeaderComponent({
   openSearch,
+  openAddPatient,
   title = "Patients",
 }: PatientsListHeaderProps) {
   const rootStyle = useMemo(
@@ -29,10 +32,22 @@ function PatientsListHeaderComponent({
         {title}
       </ThemedText>
       <View style={{ flex: 1, minWidth: 0 }} />
-      <SearchToggle
-        accessibilityLabel="Search patients"
-        openSearch={openSearch}
-      />
+      <View className="flex-row items-center gap-1">
+        <Button
+          accessibilityLabel="Add patient"
+          hitSlop={8}
+          onPress={openAddPatient}
+          size="sm"
+          tone="neutral"
+          variant="ghost"
+        >
+          <ThemedIcon dimension={22} name={personAddIcon} tone="muted" />
+        </Button>
+        <SearchToggle
+          accessibilityLabel="Search patients"
+          openSearch={openSearch}
+        />
+      </View>
     </View>
   );
 }

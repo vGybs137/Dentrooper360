@@ -1,32 +1,35 @@
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { View } from "react-native";
 
+import { PatientFormInlineSelect } from "@/components/patients/addPatient/PatientFormInlineSelect";
+import { usePatientFormFieldFocusHandlers } from "@/components/patients/addPatient/PatientFormInlineSelect";
 import {
+  InlineSelectColorLeading,
+  InlineSelectSymbolLeading,
   ThemedIcon,
   ThemedText,
   ThemedView,
   type DropdownOption,
 } from "@/components/ui";
 import { locationIcon, notesIcon } from "@/constants";
+import { buildAppointmentSubjectFromPatient } from "@/helpers/appointmentSubject";
 import type { AddAppointmentFormState } from "@/hooks/useAddAppointmentForm";
 import { cn } from "@/utils/cn";
-
 import {
   AppointmentDateTimeField,
   type AppointmentDateTimeExpanded,
 } from "./AppointmentDateTimeField";
-import {
-  AppointmentInlineSelect,
-  InlineSelectColorLeading,
-  InlineSelectSymbolLeading,
-} from "./AppointmentInlineSelect";
 
 type ExpandedField = AppointmentDateTimeExpanded | "type" | "location" | null;
 
 type AddAppointmentDetailsStepProps = {
   formState: AddAppointmentFormState;
+  onInputFocus?: () => void;
+  onInputBlur?: () => void;
+  /** @deprecated Use `onInputFocus`. */
   onNotesFocus?: () => void;
+  /** @deprecated Use `onInputBlur`. */
   onNotesBlur?: () => void;
 };
 
@@ -36,9 +39,13 @@ function FormDivider({ className }: { className?: string }) {
 
 function AddAppointmentDetailsStepComponent({
   formState,
+  onInputFocus,
+  onInputBlur,
   onNotesFocus,
   onNotesBlur,
 }: AddAppointmentDetailsStepProps) {
+  const handleInputFocus = onInputFocus ?? onNotesFocus;
+  const handleInputBlur = onInputBlur ?? onNotesBlur;
   const [expandedField, setExpandedField] = useState<ExpandedField>(null);
   const {
     control,
@@ -54,6 +61,25 @@ function AddAppointmentDetailsStepComponent({
   const endTime = useWatch({ control, name: "endTime" });
   const typeId = useWatch({ control, name: "typeId" });
   const locationId = useWatch({ control, name: "locationId" });
+
+  const patientSubject = useMemo(
+    () =>
+      selectedPatient
+        ? buildAppointmentSubjectFromPatient(selectedPatient)
+        : null,
+    [selectedPatient],
+  );
+
+  useEffect(() => {
+    if (!patientSubject) {
+      return;
+    }
+
+    setValue("subject", patientSubject, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }, [patientSubject, setValue]);
 
   const typeOptions: DropdownOption[] = useMemo(
     () => [
@@ -90,21 +116,39 @@ function AddAppointmentDetailsStepComponent({
       ? expandedField
       : null;
 
+  const collapsePanels = useCallback(() => {
+    setExpandedField(null);
+  }, []);
+
+  const subjectFocus = usePatientFormFieldFocusHandlers({
+    onBlur: handleInputBlur,
+    onFocus: collapsePanels,
+    onFocusWithoutMeasure: handleInputFocus,
+  });
+
+  const notesFocus = usePatientFormFieldFocusHandlers({
+    onBlur: handleInputBlur,
+    onFocus: collapsePanels,
+    onFocusWithoutMeasure: handleInputFocus,
+  });
+
   return (
     <ThemedView space="default" variant="stack">
-      <ThemedText
-        as="input"
-        bottomSheetInput
-        editable={!selectedPatient}
-        fieldVariant="bare"
-        name="subject"
-        placeholder={
-          selectedPatient
-            ? "Patient name and phone"
-            : "Appointment subject"
-        }
-        rules={{ required: !selectedPatient }}
-      />
+      <View ref={subjectFocus.fieldRef} collapsable={false}>
+        <ThemedText
+          as="input"
+          bottomSheetInput
+          className="w-full px-inline"
+          editable={!selectedPatient}
+          fieldVariant="bare"
+          name="subject"
+          onBlur={subjectFocus.handleBlur}
+          onFocus={subjectFocus.handleFocus}
+          placeholder="Appointment subject"
+          rules={{ required: !selectedPatient }}
+          value={patientSubject ?? undefined}
+        />
+      </View>
 
       <FormDivider className="mt-2" />
 
@@ -120,14 +164,17 @@ function AddAppointmentDetailsStepComponent({
 
       <FormDivider />
 
-      <AppointmentInlineSelect
+      <PatientFormInlineSelect
         leading={<InlineSelectColorLeading color={typeColor} />}
+        onBeforeSearchFocus={collapsePanels}
         onChange={(value) =>
           setValue("typeId", value, {
             shouldDirty: true,
             shouldValidate: true,
           })
         }
+        onSearchBlur={handleInputBlur}
+        onSearchFocus={handleInputFocus}
         onToggle={() => togglePanel("type")}
         options={typeOptions}
         placeholder="Select type"
@@ -137,14 +184,17 @@ function AddAppointmentDetailsStepComponent({
 
       <FormDivider />
 
-      <AppointmentInlineSelect
+      <PatientFormInlineSelect
         leading={<InlineSelectSymbolLeading name={locationIcon} />}
+        onBeforeSearchFocus={collapsePanels}
         onChange={(value) =>
           setValue("locationId", value, {
             shouldDirty: true,
             shouldValidate: true,
           })
         }
+        onSearchBlur={handleInputBlur}
+        onSearchFocus={handleInputFocus}
         onToggle={() => togglePanel("location")}
         options={locationOptions}
         placeholder="Select location"
@@ -154,28 +204,25 @@ function AddAppointmentDetailsStepComponent({
 
       <FormDivider />
 
-          <View className="w-full flex-row items-start gap-3">
-            <View className="mt-stack-compact size-5 items-center justify-center">
-              <ThemedIcon dimension={20} name={notesIcon} tone="muted" />
-            </View>
-            <View className="min-w-0 flex-1">
-              <ThemedText
-                as="input"
-                bottomSheetInput
-                className="min-h-[96px] w-full px-inline"
-                fieldVariant="bare"
-                multiline
-                name="description"
-                numberOfLines={4}
-                onBlur={onNotesBlur}
-                onFocus={() => {
-                  setExpandedField(null);
-                  onNotesFocus?.();
-                }}
-                placeholder="Add notes"
-              />
-            </View>
-          </View>
+      <View className="w-full flex-row items-start gap-3">
+        <View className="mt-stack-compact size-5 items-center justify-center">
+          <ThemedIcon dimension={20} name={notesIcon} tone="muted" />
+        </View>
+        <View className="min-w-0 flex-1" ref={notesFocus.fieldRef} collapsable={false}>
+          <ThemedText
+            as="input"
+            bottomSheetInput
+            className="min-h-[96px] w-full px-inline"
+            fieldVariant="bare"
+            multiline
+            name="description"
+            numberOfLines={4}
+            onBlur={notesFocus.handleBlur}
+            onFocus={notesFocus.handleFocus}
+            placeholder="Add notes"
+          />
+        </View>
+      </View>
     </ThemedView>
   );
 }

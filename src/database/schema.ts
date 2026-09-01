@@ -1,7 +1,7 @@
 import { appSchema, tableSchema } from "@nozbe/watermelondb";
 
 export default appSchema({
-  version: 2,
+  version: 3,
   tables: [
     tableSchema({
       name: "appointment_types",
@@ -46,6 +46,12 @@ export default appSchema({
         { name: "is_active", type: "boolean", isIndexed: true },
         { name: "profile_photo", type: "string", isOptional: true },
         { name: "file_date", type: "number", isOptional: true, isIndexed: true },
+        {
+          name: "referral_patient_id",
+          type: "string",
+          isOptional: true,
+          isIndexed: true,
+        },
       ],
     }),
     tableSchema({

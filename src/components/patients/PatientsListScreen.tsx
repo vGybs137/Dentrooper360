@@ -7,6 +7,7 @@ import { PatientsListHeader } from "@/components/patients/PatientsListHeader";
 import { ThemedText, ThemedView } from "@/components/ui";
 import type { PatientCardData } from "@/helpers/patientDisplay";
 import { useActivePatients } from "@/hooks/useActivePatients";
+import { useAddPatientStore } from "@/stores";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
@@ -44,6 +45,7 @@ function PatientsListEmpty({
 
 export function PatientsListScreen() {
   const router = useRouter();
+  const openAddPatient = useAddPatientStore((state) => state.open);
   const { patients, isLoading, error } = useActivePatients("", {
     sortBy: "fileDate",
   });
@@ -51,6 +53,10 @@ export function PatientsListScreen() {
   const openSearch = useCallback(() => {
     router.push("/patients/search" as Href);
   }, [router]);
+
+  const handleOpenAddPatient = useCallback(() => {
+    openAddPatient();
+  }, [openAddPatient]);
 
   const handlePatientPress = useCallback(
     (patient: PatientCardData) => {
@@ -74,7 +80,10 @@ export function PatientsListScreen() {
 
   return (
     <ThemedView className="flex-1" scroll={false} variant="stack">
-      <PatientsListHeader openSearch={openSearch} />
+      <PatientsListHeader
+        openAddPatient={handleOpenAddPatient}
+        openSearch={openSearch}
+      />
 
       <FlatList
         contentContainerStyle={{

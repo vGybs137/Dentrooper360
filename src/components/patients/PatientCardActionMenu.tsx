@@ -10,7 +10,7 @@ import database from "@/database";
 import type Patient from "@/database/models/Patient";
 import type { PatientCardData } from "@/helpers/patientDisplay";
 import { requestSync } from "@/helpers/requestSync";
-import { useAddAppointmentStore } from "@/stores";
+import { useAddAppointmentStore, useAddPatientStore } from "@/stores";
 
 type PatientCardActionMenuProps = {
   patient: PatientCardData;
@@ -20,12 +20,13 @@ export function PatientCardActionMenu({ patient }: PatientCardActionMenuProps) {
   const openWithPatient = useAddAppointmentStore(
     (state) => state.openWithPatient,
   );
+  const openForEdit = useAddPatientStore((state) => state.openForEdit);
   const [deleteVisible, setDeleteVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleEdit = useCallback(() => {
-    // Add patient modal — planned for a later phase.
-  }, []);
+    openForEdit(patient.id);
+  }, [openForEdit, patient.id]);
 
   const handleAddAppointment = useCallback(() => {
     openWithPatient(patient);
