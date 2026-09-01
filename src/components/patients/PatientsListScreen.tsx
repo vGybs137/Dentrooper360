@@ -4,10 +4,11 @@ import { ActivityIndicator, FlatList, View } from "react-native";
 
 import { PatientCard } from "@/components/patients/PatientCard";
 import { PatientsListHeader } from "@/components/patients/PatientsListHeader";
+import { PatientsListKpis } from "@/components/patients/PatientsListKpis";
 import { ThemedText, ThemedView } from "@/components/ui";
 import type { PatientCardData } from "@/helpers/patientDisplay";
 import { useActivePatients } from "@/hooks/useActivePatients";
-import { useAddPatientStore } from "@/stores";
+import { useAddPatientStore, useAuthUser } from "@/stores";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
@@ -45,8 +46,9 @@ function PatientsListEmpty({
 
 export function PatientsListScreen() {
   const router = useRouter();
+  const user = useAuthUser();
   const openAddPatient = useAddPatientStore((state) => state.open);
-  const { patients, isLoading, error } = useActivePatients("", {
+  const { patients, kpis, isLoading, error } = useActivePatients("", {
     sortBy: "fileDate",
   });
 
@@ -80,10 +82,16 @@ export function PatientsListScreen() {
 
   return (
     <ThemedView className="flex-1" scroll={false} variant="stack">
-      <PatientsListHeader
-        openAddPatient={handleOpenAddPatient}
-        openSearch={openSearch}
-      />
+      <View className="z-10 gap-stack-compact bg-surface-default">
+        <PatientsListHeader
+          openAddPatient={handleOpenAddPatient}
+          openSearch={openSearch}
+        />
+        <PatientsListKpis
+          currencySymbol={user?.currencySymbol ?? null}
+          kpis={kpis}
+        />
+      </View>
 
       <FlatList
         contentContainerStyle={{

@@ -37,11 +37,17 @@ function PatientsListHeaderComponent({
           accessibilityLabel="Add patient"
           hitSlop={8}
           onPress={openAddPatient}
+          style={{
+            width: semantic.size.touch,
+            height: semantic.size.touch,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
           size="sm"
           tone="neutral"
           variant="ghost"
         >
-          <ThemedIcon dimension={22} name={personAddIcon} tone="muted" />
+          <ThemedIcon dimension={22} name={personAddIcon} />
         </Button>
         <SearchToggle
           accessibilityLabel="Search patients"

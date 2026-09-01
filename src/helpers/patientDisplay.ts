@@ -8,6 +8,7 @@ import { useSchedulePreferencesStore } from "@/stores/schedulePreferencesStore";
 export type PatientCardData = {
   id: string;
   displayName: string;
+  countryCode: string | null;
   phoneNumber: string | null;
   isVip: boolean;
   balance: number | null;
@@ -24,6 +25,57 @@ export function formatPatientName(
     .map((part) => part?.trim())
     .filter(Boolean)
     .join(" ");
+}
+
+export function formatPatientPhone(
+  countryCode: string | null | undefined,
+  phoneNumber: string | null | undefined,
+): string | null {
+  const parts = [countryCode?.trim(), phoneNumber?.trim()].filter(Boolean);
+  return parts.length > 0 ? parts.join(" ") : null;
+}
+
+function phoneDigits(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
+type PatientSearchFields = Pick<
+  PatientCardData,
+  "displayName" | "countryCode" | "phoneNumber"
+>;
+
+/** Match patient display name or phone (formatted or digits-only). */
+export function patientMatchesSearch(
+  patient: PatientSearchFields,
+  search: string,
+): boolean {
+  const query = search.trim();
+  if (!query) {
+    return true;
+  }
+
+  const lowerQuery = query.toLowerCase();
+  if (patient.displayName.toLowerCase().includes(lowerQuery)) {
+    return true;
+  }
+
+  const formattedPhone = formatPatientPhone(
+    patient.countryCode,
+    patient.phoneNumber,
+  );
+  if (formattedPhone?.toLowerCase().includes(lowerQuery)) {
+    return true;
+  }
+
+  const queryDigits = phoneDigits(query);
+  if (queryDigits.length === 0) {
+    return false;
+  }
+
+  const patientDigits = phoneDigits(
+    [patient.countryCode, patient.phoneNumber].filter(Boolean).join(""),
+  );
+  return patientDigits.includes(queryDigits);
 }
 
 export function formatPatientBalance(
@@ -65,6 +117,7 @@ export function mapPatientToCardData(
   return {
     id: patient.id,
     displayName: formatPatientName(patient) || "Unnamed patient",
+    countryCode: patient.countryCode?.trim() || null,
     phoneNumber: patient.phoneNumber?.trim() || null,
     isVip: patient.isVip,
     balance: patient.balance,

@@ -7,22 +7,16 @@ import type Patient from "@/database/models/Patient";
 import {
   formatNextVisitLabel,
   mapPatientToCardData,
+  patientMatchesSearch,
   type PatientCardData,
 } from "@/helpers/patientDisplay";
+import {
+  computePatientListKpis,
+  EMPTY_PATIENT_LIST_KPIS,
+  type PatientListKpis,
+} from "@/helpers/patientKpis";
 
 export type PatientSort = "name" | "fileDate";
-
-function matchesPatientSearch(
-  patient: PatientCardData,
-  search: string,
-): boolean {
-  const query = search.trim().toLowerCase();
-  if (!query) {
-    return true;
-  }
-
-  return patient.displayName.toLowerCase().includes(query);
-}
 
 /** Earliest upcoming start time per patient id. */
 function buildNextVisitByPatient(
@@ -95,12 +89,14 @@ export function useActivePatients(
   { enabled = true, sortBy = "name" }: UseActivePatientsOptions = {},
 ) {
   const [patients, setPatients] = useState<PatientCardData[]>([]);
+  const [kpis, setKpis] = useState<PatientListKpis>(EMPTY_PATIENT_LIST_KPIS);
   const [isLoading, setIsLoading] = useState(enabled);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (!enabled) {
       setIsLoading(false);
+      setKpis(EMPTY_PATIENT_LIST_KPIS);
       return;
     }
 
@@ -108,6 +104,7 @@ export function useActivePatients(
 
     let patientRecords: Patient[] = [];
     let nextByPatient = new Map<string, Date>();
+    let upcomingAppointmentCount = 0;
     let patientsReady = false;
     let appointmentsReady = false;
 
@@ -117,6 +114,9 @@ export function useActivePatients(
       }
 
       setPatients(mapPatientsWithNextVisit(patientRecords, nextByPatient, sortBy));
+      setKpis(
+        computePatientListKpis(patientRecords, upcomingAppointmentCount),
+      );
       setIsLoading(false);
       setError(null);
     };
@@ -144,6 +144,7 @@ export function useActivePatients(
     const appointmentsSub = appointmentsQuery.observe().subscribe({
       next: (records) => {
         nextByPatient = buildNextVisitByPatient(records);
+        upcomingAppointmentCount = records.length;
         appointmentsReady = true;
         publish();
       },
@@ -160,13 +161,14 @@ export function useActivePatients(
   }, [enabled, sortBy]);
 
   const filteredPatients = useMemo(
-    () => patients.filter((patient) => matchesPatientSearch(patient, search)),
+    () => patients.filter((patient) => patientMatchesSearch(patient, search)),
     [patients, search],
   );
 
   return {
     patients: filteredPatients,
     allPatients: patients,
+    kpis,
     isLoading,
     error,
   };

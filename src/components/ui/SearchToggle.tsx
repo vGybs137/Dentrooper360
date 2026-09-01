@@ -23,7 +23,7 @@ function SearchToggleComponent({
       style={{
         width: semantic.size.touch,
         height: semantic.size.touch,
-        alignItems: "flex-end",
+        alignItems: "center",
         justifyContent: "center",
       }}
       tone="neutral"

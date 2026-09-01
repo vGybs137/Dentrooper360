@@ -10,6 +10,7 @@ import {
   type PatientCardData,
 } from "@/helpers/patientDisplay";
 import { splitTextBySearchQuery } from "@/helpers/searchHighlight";
+import { useAuthUser } from "@/stores";
 import { useNativeColors } from "@/theme";
 import { cn } from "@/utils/cn";
 
@@ -159,6 +160,7 @@ export function PatientCard({
   style,
 }: PatientCardProps) {
   const native = useNativeColors();
+  const user = useAuthUser();
   const isSelected = selectable && selected;
 
   const content = (
@@ -211,7 +213,10 @@ export function PatientCard({
             />
             <MetricColumn
               label="Balance"
-              value={formatPatientBalance(patient.balance, patient.currency)}
+              value={formatPatientBalance(
+                patient.balance,
+                user?.currencySymbol ?? patient.currency,
+              )}
             />
           </View>
         </View>

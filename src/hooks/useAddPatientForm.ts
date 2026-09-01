@@ -256,16 +256,12 @@ export function useAddPatientForm() {
     );
   }, [fatherName, firstName, lastName]);
 
-  const draftPhoneNumber = useMemo(() => {
-    const parts = [countryCode?.trim(), phoneNumber?.trim()].filter(Boolean);
-    return parts.length > 0 ? parts.join(" ") : null;
-  }, [countryCode, phoneNumber]);
-
   const syntheticSelectedPatient: AppointmentPatientOption | null = useMemo(
     () => ({
       id: editingPatientId ?? "draft",
       displayName: draftDisplayName,
-      phoneNumber: draftPhoneNumber,
+      countryCode: countryCode?.trim() || null,
+      phoneNumber: phoneNumber?.trim() || null,
       isVip: false,
       balance: null,
       currency: null,
@@ -273,7 +269,7 @@ export function useAddPatientForm() {
       fileDate: null,
       nextVisit: null,
     }),
-    [draftDisplayName, draftPhoneNumber, editingPatientId],
+    [countryCode, draftDisplayName, editingPatientId, phoneNumber],
   );
 
   const canGoNext = hasRequiredEssentials({
