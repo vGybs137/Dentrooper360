@@ -14,8 +14,8 @@ import {
   ageIcon,
   emailIcon,
   personIcon,
+  personsIcon,
   phoneIcon,
-  referralIcon,
 } from "@/constants";
 import { PATIENT_GENDER_OPTIONS } from "@/constants/patientForm";
 import type { AddPatientFormState } from "@/hooks/useAddPatientForm";
@@ -177,7 +177,7 @@ function AddPatientEssentialsStepComponent({
 
       <FormDivider />
 
-      <PatientFormFieldRow icon={referralIcon}>
+      <PatientFormFieldRow icon={personsIcon}>
         <PatientFormInlineSelect
           onBeforeSearchFocus={collapsePanels}
           onChange={(value) =>

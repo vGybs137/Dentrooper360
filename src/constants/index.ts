@@ -1,5 +1,16 @@
 export { API_BASE_URL, API_TIMEOUT_MS } from "./api";
 export {
+  APPOINTMENT_SEARCH_TIME_WINDOWS,
+  appointmentSearchTimeWindowLabel,
+  DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW,
+  resolveAppointmentSearchTimeRange,
+} from "./appointmentSearch";
+export type {
+  AppointmentSearchTimeRange,
+  AppointmentSearchTimeWindow,
+  AppointmentSearchTimeWindowOption,
+} from "./appointmentSearch";
+export {
   AUTH_LOGIN_PATH,
   AUTH_LOGOUT_PATH,
   AUTH_ME_PATH,
@@ -9,30 +20,31 @@ export {
   PRODUCT_ID,
 } from "./auth";
 export {
-  appearanceIcon,
   addressIcon,
   ageIcon,
+  appearanceIcon,
+  balanceIcon,
+  calendarIcon,
   checkCircleIcon,
   chevronDisclosureIcon,
   chevronDownIcon,
   chevronUpIcon,
-  calendarIcon,
   clockIcon,
   deleteIcon,
   editIcon,
   ellipsisIcon,
   emailIcon,
   genderIcon,
-  lockIcon,
   locationIcon,
+  lockIcon,
   logoutIcon,
   notesIcon,
+  pendingChangesIcon,
   personAddIcon,
   personIcon,
+  personsIcon,
   phoneIcon,
-  pendingChangesIcon,
   qrCodeIcon,
-  referralIcon,
   searchIcon,
   starIcon,
   syncIcon,
@@ -64,17 +76,6 @@ export {
   MONTH_VIEW_SHEET_SWAP_PROGRESS,
   MONTH_VIEW_UNTYPED_OPACITY,
 } from "./schedule";
-export {
-  APPOINTMENT_SEARCH_TIME_WINDOWS,
-  DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW,
-  appointmentSearchTimeWindowLabel,
-  resolveAppointmentSearchTimeRange,
-} from "./appointmentSearch";
-export type {
-  AppointmentSearchTimeRange,
-  AppointmentSearchTimeWindow,
-  AppointmentSearchTimeWindowOption,
-} from "./appointmentSearch";
 export {
   AUTH_STORE_KEY,
   SCHEDULE_PREFERENCES_STORE_KEY,

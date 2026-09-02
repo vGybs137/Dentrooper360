@@ -172,7 +172,7 @@ export const ageIcon = {
   web: "pin",
 } as const;
 
-export const referralIcon = {
+export const personsIcon = {
   ios: "person.2.fill",
   android: "group",
   web: "group",
@@ -182,4 +182,10 @@ export const genderIcon = {
   ios: "person.crop.circle.fill",
   android: "wc",
   web: "wc",
+} as const;
+
+export const balanceIcon = {
+  ios: "dollarsign.circle.fill",
+  android: "payments",
+  web: "payments",
 } as const;

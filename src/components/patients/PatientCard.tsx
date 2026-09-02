@@ -9,9 +9,13 @@ import {
   formatPatientNextVisit,
   type PatientCardData,
 } from "@/helpers/patientDisplay";
+import {
+  initialsFromPatientName,
+  patientInitialsColorsFromName,
+} from "@/helpers/patientInitials";
 import { splitTextBySearchQuery } from "@/helpers/searchHighlight";
 import { useAuthUser } from "@/stores";
-import { useNativeColors } from "@/theme";
+import { useNativeColors, useResolvedTheme } from "@/theme";
 import { cn } from "@/utils/cn";
 
 const AVATAR_SIZE = 30;
@@ -39,17 +43,6 @@ function MetricColumn({ label, value }: { label: string; value: string }) {
   );
 }
 
-function initialsFromName(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) {
-    return "?";
-  }
-  if (parts.length === 1) {
-    return parts[0]!.slice(0, 2).toUpperCase();
-  }
-  return `${parts[0]![0] ?? ""}${parts[parts.length - 1]![0] ?? ""}`.toUpperCase();
-}
-
 function PatientAvatar({
   displayName,
   profilePhoto,
@@ -57,6 +50,19 @@ function PatientAvatar({
   displayName: string;
   profilePhoto: string | null;
 }) {
+  const resolvedTheme = useResolvedTheme();
+  const initials = useMemo(
+    () => initialsFromPatientName(displayName),
+    [displayName],
+  );
+  const initialsColors = useMemo(
+    () =>
+      patientInitialsColorsFromName(displayName, {
+        isDark: resolvedTheme === "dark",
+      }),
+    [displayName, resolvedTheme],
+  );
+
   if (profilePhoto) {
     return (
       <Image
@@ -71,18 +77,21 @@ function PatientAvatar({
   }
 
   return (
-    <ThemedView
-      className="items-center justify-center rounded-full bg-brand-subtle"
-      style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
+    <View
+      className="items-center justify-center rounded-full"
+      style={{
+        width: AVATAR_SIZE,
+        height: AVATAR_SIZE,
+        backgroundColor: initialsColors.background,
+      }}
     >
-      <ThemedText
+      <Text
         className="text-[11px] font-semibold"
-        tone="brand"
-        variant="label"
+        style={{ color: initialsColors.foreground }}
       >
-        {initialsFromName(displayName)}
-      </ThemedText>
-    </ThemedView>
+        {initials}
+      </Text>
+    </View>
   );
 }
 
