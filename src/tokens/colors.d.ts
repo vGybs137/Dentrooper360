@@ -15,6 +15,7 @@ export type ThemePalette = {
   accent: Record<AccentTone, string>;
   success: Record<StatusTone, string>;
   alert: Record<StatusTone, string>;
+  warning: Record<StatusTone, string>;
   calendar: Record<CalendarTone, string>;
 };
 

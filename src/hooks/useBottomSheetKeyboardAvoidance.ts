@@ -68,6 +68,9 @@ export function useBottomSheetKeyboardAvoidance(
     });
     const hideSub = Keyboard.addListener(hideEvent, () => {
       setKeyboardInset(0);
+      inputFocusedRef.current = false;
+      setInputFocused(false);
+      scrollTargetYRef.current = null;
     });
 
     return () => {
@@ -91,10 +94,16 @@ export function useBottomSheetKeyboardAvoidance(
     };
   }, [inputFocused, keyboardInset, scrollFocusedIntoView]);
 
+  const handleScrollBeginDrag = useCallback(() => {
+    Keyboard.dismiss();
+    handleInputBlur();
+  }, [handleInputBlur]);
+
   return {
     inputFocused,
     keyboardInset,
     handleInputFocus,
     handleInputBlur,
+    handleScrollBeginDrag,
   };
 }

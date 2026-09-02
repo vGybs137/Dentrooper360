@@ -22,7 +22,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FormProvider } from "react-hook-form";
 
@@ -174,6 +174,8 @@ export function AddAppointmentSheet() {
     });
     const hideSub = Keyboard.addListener(hideEvent, () => {
       setNotesKeyboardInset(0);
+      notesFocusedRef.current = false;
+      setNotesFocused(false);
     });
 
     return () => {
@@ -181,6 +183,11 @@ export function AddAppointmentSheet() {
       hideSub.remove();
     };
   }, [notesFocused]);
+
+  const handleScrollBeginDrag = useCallback(() => {
+    Keyboard.dismiss();
+    handleNotesBlur();
+  }, [handleNotesBlur]);
 
   const scrollNotesIntoView = useCallback(() => {
     requestAnimationFrame(() => {
@@ -332,9 +339,6 @@ export function AddAppointmentSheet() {
   const entering = hasStepTransitioned
     ? FadeIn.duration(slideDuration).easing(AUTH_SLIDE_EASING)
     : undefined;
-  const exiting = hasStepTransitioned
-    ? FadeOut.duration(slideDuration).easing(AUTH_SLIDE_EASING)
-    : undefined;
 
   return (
     <BottomSheetModal
@@ -342,6 +346,7 @@ export function AddAppointmentSheet() {
       android_keyboardInputMode="adjustResize"
       backdropComponent={renderBackdrop}
       backgroundStyle={backgroundStyle}
+      enableContentPanningGesture={false}
       enableDynamicSizing={false}
       enablePanDownToClose
       footerComponent={renderFooter}
@@ -360,8 +365,10 @@ export function AddAppointmentSheet() {
       <BottomSheetScrollView
         ref={scrollRef}
         contentContainerStyle={contentPadding}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="always"
+        nestedScrollEnabled
+        onScrollBeginDrag={handleScrollBeginDrag}
       >
         <FormProvider {...formState.form}>
           <View
@@ -392,7 +399,7 @@ export function AddAppointmentSheet() {
             </Button>
           </View>
 
-          <Animated.View key={step} entering={entering} exiting={exiting}>
+          <Animated.View key={step} entering={entering}>
             {step === "patient" ? (
               <AddAppointmentPatientStep formState={formState} />
             ) : (

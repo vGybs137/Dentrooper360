@@ -10,6 +10,18 @@ export const checkCircleIcon = {
   web: "check_circle",
 } as const;
 
+export const warningIcon = {
+  ios: "exclamationmark.triangle.fill",
+  android: "warning",
+  web: "warning",
+} as const;
+
+export const infoIcon = {
+  ios: "info.circle.fill",
+  android: "info",
+  web: "info",
+} as const;
+
 export const personIcon = {
   ios: "person.crop.circle",
   android: "account_circle",

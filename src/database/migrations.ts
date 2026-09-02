@@ -32,5 +32,14 @@ export default schemaMigrations({
         }),
       ],
     },
+    {
+      toVersion: 4,
+      steps: [
+        addColumns({
+          table: "patients",
+          columns: [{ name: "referral_source", type: "string", isOptional: true }],
+        }),
+      ],
+    },
   ],
 });

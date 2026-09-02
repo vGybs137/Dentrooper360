@@ -11,12 +11,14 @@ export const PATIENT_FORM_INPUT_CLASS = "w-full px-inline";
 export const PATIENT_FORM_MULTILINE_INPUT_CLASS = "min-h-[72px] w-full px-inline";
 
 type PatientFormInputProps = Omit<ThemedTextInputProps, "as"> & {
+  hideInlineError?: boolean;
   onInputFocus?: () => void;
   onInputBlur?: () => void;
 };
 
 export function PatientFormInput({
   multiline,
+  hideInlineError,
   onInputFocus,
   onInputBlur,
   onFocus,
@@ -35,6 +37,7 @@ export function PatientFormInput({
         bottomSheetInput
         containerClassName={cn("min-h-0 w-full gap-0", containerClassName)}
         fieldVariant="bare"
+        hideInlineError={hideInlineError}
         className={cn(
           multiline ? PATIENT_FORM_MULTILINE_INPUT_CLASS : PATIENT_FORM_INPUT_CLASS,
           className,

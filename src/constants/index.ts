@@ -35,6 +35,7 @@ export {
   ellipsisIcon,
   emailIcon,
   genderIcon,
+  infoIcon,
   locationIcon,
   lockIcon,
   logoutIcon,
@@ -49,12 +50,13 @@ export {
   starIcon,
   syncIcon,
   visibilityIcon,
+  warningIcon,
   weekStartIcon,
   wifiIcon,
 } from "./icons";
 export {
   DEFAULT_PATIENT_COUNTRY_CODE,
-  DEFAULT_PATIENT_GENDER,
+  PATIENT_FORM_VALIDATION_MESSAGES,
   PATIENT_GENDER_OPTIONS,
 } from "./patientForm";
 export type { PatientGenderValue } from "./patientForm";

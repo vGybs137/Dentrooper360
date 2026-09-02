@@ -34,6 +34,7 @@ export default class Patient extends Model {
   @field("profile_photo") profilePhoto!: string | null;
   @date("file_date") fileDate!: Date | null;
   @field("referral_patient_id") referralPatientId!: string | null;
+  @text("referral_source") referralSource!: string | null;
 
   @children("appointments") appointments!: Query<Appointment>;
   @children("services") services!: Query<Service>;

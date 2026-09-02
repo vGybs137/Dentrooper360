@@ -31,6 +31,10 @@
   --alert-subtle: rgba(239, 68, 68, 0.12);
   --alert-strong: #dc2626;
   --alert-text: #ffffff;
+  --warning-default: #ca8a04;
+  --warning-subtle: rgba(202, 138, 4, 0.12);
+  --warning-strong: #a16207;
+  --warning-text: #ffffff;
   --calendar-default: #f8f9fb;
   --calendar-muted: #f9fafc;
   --calendar-quickAdd: #fbfcfe;
@@ -67,6 +71,10 @@
     --alert-subtle: rgba(239, 68, 68, 0.18);
     --alert-strong: #dc2626;
     --alert-text: #ffffff;
+    --warning-default: #fbbf24;
+    --warning-subtle: rgba(251, 191, 36, 0.18);
+    --warning-strong: #f59e0b;
+    --warning-text: #0b0f10;
     --calendar-default: #141414;
     --calendar-muted: #0d0d0d;
     --calendar-quickAdd: #3f3f3f;

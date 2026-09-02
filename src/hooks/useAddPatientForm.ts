@@ -10,7 +10,6 @@ import { useForm, useWatch } from "react-hook-form";
 
 import {
   DEFAULT_PATIENT_COUNTRY_CODE,
-  DEFAULT_PATIENT_GENDER,
 } from "@/constants/patientForm";
 import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
@@ -24,6 +23,7 @@ import {
   parseAgeInput,
 } from "@/helpers/patientAge";
 import { formatPatientName } from "@/helpers/patientDisplay";
+import { findDuplicatePatient } from "@/helpers/patientDuplicate";
 import { requestSync } from "@/helpers/requestSync";
 import {
   useAddPatientEditingId,
@@ -42,7 +42,6 @@ import {
   useAppointmentFormOptions,
   type AppointmentPatientOption,
 } from "./useAppointmentFormOptions";
-import { useActivePatients } from "./useActivePatients";
 
 export type AddPatientFields = {
   firstName: string;
@@ -54,7 +53,8 @@ export type AddPatientFields = {
   phoneNumber: string;
   emailAddress: string;
   address: string;
-  referralPatientId: string;
+  referralSource: string;
+  isVip: boolean;
   addAppointment: boolean;
   subject: string;
   typeId: string;
@@ -75,12 +75,13 @@ function buildDefaultValues(): AddPatientFields {
     fatherName: "",
     lastName: "",
     age: "",
-    gender: DEFAULT_PATIENT_GENDER,
+    gender: "",
     countryCode: DEFAULT_PATIENT_COUNTRY_CODE,
     phoneNumber: "",
     emailAddress: "",
     address: "",
-    referralPatientId: "",
+    referralSource: "",
+    isVip: false,
     addAppointment: false,
     subject: "",
     typeId: "",
@@ -105,6 +106,13 @@ function hasRequiredEssentials(data: Pick<
   );
 }
 
+const ESSENTIALS_FIELDS = [
+  "firstName",
+  "lastName",
+  "countryCode",
+  "phoneNumber",
+] as const satisfies readonly (keyof AddPatientFields)[];
+
 export function useAddPatientForm() {
   const user = useAuthUser();
   const isPresented = useAddPatientIsPresented();
@@ -118,6 +126,9 @@ export function useAddPatientForm() {
   const [isLoadingPatient, setIsLoadingPatient] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [duplicatePatient, setDuplicatePatient] = useState<Patient | null>(null);
+  const [essentialsValidationAttempted, setEssentialsValidationAttempted] =
+    useState(false);
 
   const form = useForm<AddPatientFields>({
     defaultValues: buildDefaultValues(),
@@ -130,6 +141,7 @@ export function useAddPatientForm() {
   const lastName = useWatch({ control, name: "lastName" });
   const countryCode = useWatch({ control, name: "countryCode" });
   const phoneNumber = useWatch({ control, name: "phoneNumber" });
+  const isVip = useWatch({ control, name: "isVip" });
   const addAppointment = useWatch({ control, name: "addAppointment" });
   const locationId = useWatch({ control, name: "locationId" });
   const startTime = useWatch({ control, name: "startTime" });
@@ -141,21 +153,45 @@ export function useAddPatientForm() {
     loadPatients: false,
   });
 
-  const { allPatients: referralPatients } = useActivePatients("", {
-    enabled: isPresented && step === "essentials",
-    sortBy: "name",
-  });
+  useEffect(() => {
+    if (!isPresented || isEditing) {
+      setDuplicatePatient(null);
+      return;
+    }
 
-  const referralPatientOptions = useMemo(
-    () =>
-      referralPatients
-        .filter((patient) => patient.id !== editingPatientId)
-        .map((patient) => ({
-          value: patient.id,
-          label: patient.displayName,
-        })),
-    [editingPatientId, referralPatients],
-  );
+    const identity = {
+      firstName: firstName ?? "",
+      fatherName: fatherName ?? "",
+      lastName: lastName ?? "",
+      countryCode: countryCode ?? "",
+      phoneNumber: phoneNumber ?? "",
+    };
+
+    if (!hasRequiredEssentials(identity)) {
+      setDuplicatePatient(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    void findDuplicatePatient(identity).then((match) => {
+      if (!cancelled) {
+        setDuplicatePatient(match);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    countryCode,
+    fatherName,
+    firstName,
+    isEditing,
+    isPresented,
+    lastName,
+    phoneNumber,
+  ]);
 
   useEffect(() => {
     if (!isPresented) {
@@ -164,6 +200,8 @@ export function useAddPatientForm() {
     }
 
     setSubmitError(null);
+    setEssentialsValidationAttempted(false);
+    setDuplicatePatient(null);
 
     if (!editingPatientId) {
       form.reset(buildDefaultValues());
@@ -188,12 +226,13 @@ export function useAddPatientForm() {
           fatherName: record.fatherName?.trim() ?? "",
           lastName: record.lastName?.trim() ?? "",
           age: formatAgeInput(record.birthDate),
-          gender: record.gender?.trim() || DEFAULT_PATIENT_GENDER,
+          gender: record.gender?.trim() ?? "",
           countryCode: record.countryCode?.trim() || DEFAULT_PATIENT_COUNTRY_CODE,
           phoneNumber: record.phoneNumber?.trim() ?? "",
           emailAddress: record.emailAddress?.trim() ?? "",
           address: record.address?.trim() ?? "",
-          referralPatientId: record.referralPatientId ?? "",
+          referralSource: record.referralSource?.trim() ?? "",
+          isVip: record.isVip,
           addAppointment: false,
           subject: formatPatientName(record) || "",
           typeId: "",
@@ -262,22 +301,31 @@ export function useAddPatientForm() {
       displayName: draftDisplayName,
       countryCode: countryCode?.trim() || null,
       phoneNumber: phoneNumber?.trim() || null,
-      isVip: false,
+      isVip: isVip ?? false,
       balance: null,
       currency: null,
       profilePhoto: null,
       fileDate: null,
       nextVisit: null,
     }),
-    [countryCode, draftDisplayName, editingPatientId, phoneNumber],
+    [countryCode, draftDisplayName, editingPatientId, isVip, phoneNumber],
   );
 
-  const canGoNext = hasRequiredEssentials({
-    firstName: firstName ?? "",
-    lastName: lastName ?? "",
-    countryCode: countryCode ?? "",
-    phoneNumber: phoneNumber ?? "",
-  });
+  const duplicatePatientName = useMemo(() => {
+    if (!duplicatePatient) {
+      return null;
+    }
+    return formatPatientName(duplicatePatient);
+  }, [duplicatePatient]);
+
+  const canGoNext =
+    hasRequiredEssentials({
+      firstName: firstName ?? "",
+      lastName: lastName ?? "",
+      countryCode: countryCode ?? "",
+      phoneNumber: phoneNumber ?? "",
+    }) &&
+    (isEditing || !duplicatePatient);
 
   const canSubmit =
     !isSubmitting &&
@@ -286,15 +334,53 @@ export function useAddPatientForm() {
         Boolean((subject ?? "").trim()) &&
         dayjs(endTime).isAfter(dayjs(startTime))));
 
-  const goNext = useCallback(() => {
-    if (!canGoNext) {
-      setSubmitError("First name, last name, zip, and phone are required.");
+  const validateEssentials = useCallback(async () => {
+    setEssentialsValidationAttempted(true);
+
+    const fieldsValid = await form.trigger([...ESSENTIALS_FIELDS]);
+    if (!fieldsValid) {
+      return false;
+    }
+
+    if (isEditing) {
+      return true;
+    }
+
+    const match = await findDuplicatePatient({
+      firstName: firstName ?? "",
+      fatherName: fatherName ?? "",
+      lastName: lastName ?? "",
+      countryCode: countryCode ?? "",
+      phoneNumber: phoneNumber ?? "",
+    });
+
+    if (match) {
+      setDuplicatePatient(match);
+      return false;
+    }
+
+    setDuplicatePatient(null);
+    return true;
+  }, [
+    countryCode,
+    fatherName,
+    firstName,
+    form,
+    isEditing,
+    lastName,
+    phoneNumber,
+  ]);
+
+  const goNext = useCallback(async () => {
+    const valid = await validateEssentials();
+    if (!valid) {
+      setSubmitError(null);
       return;
     }
 
     setSubmitError(null);
     storeGoNext();
-  }, [canGoNext, storeGoNext]);
+  }, [storeGoNext, validateEssentials]);
 
   const goBack = useCallback(() => {
     setSubmitError(null);
@@ -379,7 +465,9 @@ export function useAddPatientForm() {
     }
 
     if (!hasRequiredEssentials(data)) {
-      setSubmitError("First name, last name, zip, and phone are required.");
+      setEssentialsValidationAttempted(true);
+      await form.trigger([...ESSENTIALS_FIELDS]);
+      setSubmitError(null);
       return;
     }
 
@@ -394,6 +482,25 @@ export function useAddPatientForm() {
     if (data.addAppointment && !data.locationId) {
       setSubmitError("Select a location for the appointment.");
       return;
+    }
+
+    if (!isEditing) {
+      const match = await findDuplicatePatient(
+        {
+          firstName: data.firstName,
+          fatherName: data.fatherName,
+          lastName: data.lastName,
+          countryCode: data.countryCode,
+          phoneNumber: data.phoneNumber,
+        },
+        editingPatientId,
+      );
+
+      if (match) {
+        setDuplicatePatient(match);
+        setEssentialsValidationAttempted(true);
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -421,7 +528,13 @@ export function useAddPatientForm() {
             entry.phoneNumber = data.phoneNumber.trim();
             entry.emailAddress = data.emailAddress.trim() || null;
             entry.address = data.address.trim() || null;
-            entry.referralPatientId = data.referralPatientId || null;
+            entry.referralSource = data.referralSource.trim() || null;
+            entry.isVip = data.isVip;
+            if (data.isVip && !record.isVip) {
+              entry.vipStatusDate = new Date();
+            } else if (!data.isVip) {
+              entry.vipStatusDate = null;
+            }
           });
         } else {
           const created = await database
@@ -437,10 +550,11 @@ export function useAddPatientForm() {
               record.phoneNumber = data.phoneNumber.trim();
               record.emailAddress = data.emailAddress.trim() || null;
               record.address = data.address.trim() || null;
-              record.referralPatientId = data.referralPatientId || null;
+              record.referralSource = data.referralSource.trim() || null;
               record.fileDate = new Date();
               record.isActive = true;
-              record.isVip = false;
+              record.isVip = data.isVip;
+              record.vipStatusDate = data.isVip ? new Date() : null;
               record.balance = 0;
             });
           patientId = created.id;
@@ -483,7 +597,9 @@ export function useAddPatientForm() {
     step,
     isEditing,
     isLoadingPatient,
-    referralPatientOptions,
+    duplicatePatient,
+    duplicatePatientName,
+    essentialsValidationAttempted,
     appointmentFormState,
     canGoNext,
     canSubmit,

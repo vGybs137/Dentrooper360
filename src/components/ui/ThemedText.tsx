@@ -79,6 +79,7 @@ export type ThemedTextInputProps = Omit<TextInputProps, "style"> & {
   label?: string;
   hint?: string;
   error?: string;
+  hideInlineError?: boolean;
   leading?: ReactNode;
   trailing?: ReactNode;
   bottomSheetInput?: boolean;
@@ -150,6 +151,7 @@ function ControlledThemedTextInput({
   name,
   rules,
   error,
+  hideInlineError,
   onBlur,
   onChangeText,
   value,
@@ -166,6 +168,7 @@ function ControlledThemedTextInput({
     <ThemedTextInput
       {...props}
       error={error ?? fieldState.error?.message}
+      hideInlineError={hideInlineError}
       onBlur={(event) => {
         field.onBlur();
         onBlur?.(event);
@@ -193,6 +196,7 @@ const ThemedTextInput = forwardRef<
     label,
     hint,
     error,
+    hideInlineError = false,
     leading,
     trailing,
     bottomSheetInput = false,
@@ -207,6 +211,7 @@ const ThemedTextInput = forwardRef<
 ) {
   const nativeColors = useNativeColors();
   const isBare = fieldVariant === "bare";
+  const hasError = Boolean(error);
   const Input = bottomSheetInput ? BottomSheetTextInput : TextInput;
 
   return (
@@ -223,7 +228,7 @@ const ThemedTextInput = forwardRef<
                 fieldVariant === "soft"
                   ? "bg-surface-sunken"
                   : "bg-surface-raised",
-                error ? "border-alert" : "border-border",
+                hasError ? "border-alert" : "border-border",
               ),
         )}
         style={style}
@@ -245,7 +250,7 @@ const ThemedTextInput = forwardRef<
         />
         {trailing}
       </View>
-      {error ? (
+      {hasError && !hideInlineError ? (
         <ThemedText tone="alert" variant="label">
           {error}
         </ThemedText>

@@ -14,7 +14,7 @@ export { SearchToggle } from "./SearchToggle";
 export { ThemedText } from "./ThemedText";
 export { ThemedView } from "./ThemedView";
 
-export type { ActionMenuItem, ActionMenuProps } from "./ActionMenu";
+export type { ActionMenuAlign, ActionMenuItem, ActionMenuProps } from "./ActionMenu";
 export type { BottomSheetProps } from "./BottomSheet";
 export type { ButtonProps } from "./Button";
 export type { DeleteConfirmationDialogProps } from "./DeleteConfirmationDialog";

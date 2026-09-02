@@ -18,6 +18,23 @@ import {
 
 export type PatientSort = "name" | "fileDate";
 
+/** Columns that should refresh the patients list when changed. */
+const PATIENT_LIST_COLUMNS = [
+  "first_name",
+  "father_name",
+  "last_name",
+  "country_code",
+  "phone_number",
+  "is_vip",
+  "balance",
+  "currency",
+  "profile_photo",
+  "file_date",
+  "is_active",
+] as const;
+
+const UPCOMING_APPOINTMENT_COLUMNS = ["patient_id", "start_time"] as const;
+
 /** Earliest upcoming start time per patient id. */
 function buildNextVisitByPatient(
   appointments: Appointment[],
@@ -129,7 +146,9 @@ export function useActivePatients(
       .get<Appointment>("appointments")
       .query(Q.where("start_time", Q.gte(Date.now())));
 
-    const patientsSub = patientsQuery.observe().subscribe({
+    const patientsSub = patientsQuery
+      .observeWithColumns([...PATIENT_LIST_COLUMNS])
+      .subscribe({
       next: (records) => {
         patientRecords = records;
         patientsReady = true;
@@ -141,7 +160,9 @@ export function useActivePatients(
       },
     });
 
-    const appointmentsSub = appointmentsQuery.observe().subscribe({
+    const appointmentsSub = appointmentsQuery
+      .observeWithColumns([...UPCOMING_APPOINTMENT_COLUMNS])
+      .subscribe({
       next: (records) => {
         nextByPatient = buildNextVisitByPatient(records);
         upcomingAppointmentCount = records.length;

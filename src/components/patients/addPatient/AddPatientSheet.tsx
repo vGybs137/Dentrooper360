@@ -23,7 +23,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FormProvider } from "react-hook-form";
 
@@ -65,13 +65,20 @@ export function AddPatientSheet() {
   const hasStepTransitionedRef = useRef(false);
   const [pendingStepChange, setPendingStepChange] =
     useState<StepDirection | null>(null);
+  const [panelCollapseKey, setPanelCollapseKey] = useState(0);
 
   const {
     inputFocused,
     keyboardInset,
     handleInputFocus,
     handleInputBlur,
+    handleScrollBeginDrag,
   } = useBottomSheetKeyboardAvoidance(scrollRef);
+
+  const onScrollBeginDrag = useCallback(() => {
+    handleScrollBeginDrag();
+    setPanelCollapseKey((current) => current + 1);
+  }, [handleScrollBeginDrag]);
 
   const isPresented = useAddPatientIsPresented();
   const presentKey = useAddPatientPresentKey();
@@ -81,7 +88,6 @@ export function AddPatientSheet() {
   const formState = useAddPatientForm();
   const {
     step,
-    canGoNext,
     canSubmit,
     isSubmitting,
     submitError,
@@ -226,7 +232,7 @@ export function AddPatientSheet() {
               className="min-w-[120px]"
               disabled={
                 step === "essentials"
-                  ? !canGoNext || isLoadingPatient
+                  ? isLoadingPatient
                   : !canSubmit || isSubmitting
               }
               label={
@@ -249,7 +255,6 @@ export function AddPatientSheet() {
       </BottomSheetFooter>
     ),
     [
-      canGoNext,
       canSubmit,
       handleBack,
       handleNext,
@@ -297,9 +302,6 @@ export function AddPatientSheet() {
   const entering = hasStepTransitioned
     ? FadeIn.duration(slideDuration).easing(AUTH_SLIDE_EASING)
     : undefined;
-  const exiting = hasStepTransitioned
-    ? FadeOut.duration(slideDuration).easing(AUTH_SLIDE_EASING)
-    : undefined;
 
   return (
     <BottomSheetModal
@@ -307,6 +309,7 @@ export function AddPatientSheet() {
       android_keyboardInputMode="adjustResize"
       backdropComponent={renderBackdrop}
       backgroundStyle={backgroundStyle}
+      enableContentPanningGesture={false}
       enableDynamicSizing={false}
       enablePanDownToClose
       footerComponent={renderFooter}
@@ -319,8 +322,10 @@ export function AddPatientSheet() {
       <BottomSheetScrollView
         ref={scrollRef}
         contentContainerStyle={contentPadding}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="always"
+        nestedScrollEnabled
+        onScrollBeginDrag={onScrollBeginDrag}
       >
         <FormProvider {...formState.form}>
           <View ref={contentRef} collapsable={false}>
@@ -362,11 +367,12 @@ export function AddPatientSheet() {
                 onInputBlur={handleInputBlur}
                 onInputFocus={handleInputFocus}
               >
-                <Animated.View key={step} entering={entering} exiting={exiting}>
+                <Animated.View key={step} entering={entering}>
                   {step === "essentials" ? (
                     <AddPatientEssentialsStep
                       formState={formState}
                       onInputBlur={handleInputBlur}
+                      panelCollapseKey={panelCollapseKey}
                     />
                   ) : (
                     <AddPatientAppointmentStep
