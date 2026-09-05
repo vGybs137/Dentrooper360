@@ -505,7 +505,6 @@ export function useAddPatientForm() {
 
     setIsSubmitting(true);
     setSubmitError(null);
-    requestClose();
 
     const parsedAge = parseAgeInput(data.age);
     const birthDate = parsedAge == null ? null : birthDateFromAge(parsedAge);
@@ -513,6 +512,8 @@ export function useAddPatientForm() {
     try {
       let patientId = editingPatientId;
 
+      // Persist before dismissing so the details screen observes the new values
+      // while it is still visible underneath the sheet.
       await database.write(async () => {
         if (editingPatientId) {
           const record = await database
@@ -580,6 +581,7 @@ export function useAddPatientForm() {
       });
 
       requestSync();
+      requestClose();
     } catch (error) {
       Alert.alert(
         isEditing ? "Unable to update patient" : "Unable to add patient",

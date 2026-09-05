@@ -4,7 +4,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedIcon, ThemedText } from "@/components/ui";
 import { starIcon } from "@/constants";
-import type Patient from "@/database/models/Patient";
 import {
   formatPatientName,
   formatPatientPhone,
@@ -13,13 +12,14 @@ import {
   initialsFromPatientName,
   patientInitialsColorsFromName,
 } from "@/helpers/patientInitials";
+import type { PatientDetailsData } from "@/hooks/usePatientDetails";
 import { useResolvedTheme } from "@/theme";
 import { semantic } from "@/tokens";
 
 const AVATAR_SIZE = 80;
 
 type PatientDetailsHeroProps = {
-  patient: Patient;
+  patient: PatientDetailsData;
 };
 
 function HeroAvatar({

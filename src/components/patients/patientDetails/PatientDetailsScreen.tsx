@@ -24,7 +24,10 @@ import {
   findNextPatientVisit,
   usePatientAppointments,
 } from "@/hooks/usePatientAppointments";
-import { usePatientDetails } from "@/hooks/usePatientDetails";
+import {
+  usePatientDetails,
+  type PatientDetailsData,
+} from "@/hooks/usePatientDetails";
 import { usePatientPayments } from "@/hooks/usePatientPayments";
 import { usePatientServices } from "@/hooks/usePatientServices";
 import { useAddPatientStore, useAuthUser } from "@/stores";
@@ -73,7 +76,7 @@ function displayOrEmpty(
 }
 
 function buildInformationFields(
-  patient: Patient,
+  patient: PatientDetailsData,
   currencySymbol: string | null | undefined,
 ): PatientOverviewField[] {
   const phone = displayOrEmpty(
@@ -108,7 +111,7 @@ function buildInformationFields(
 }
 
 function buildTimelineFields(
-  patient: Patient,
+  patient: PatientDetailsData,
   nextAppointment: Date | null,
 ): PatientOverviewField[] {
   const birthDate = formatOverviewDate(patient.birthDate);
@@ -210,7 +213,10 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
     void (async () => {
       try {
         await database.write(async () => {
-          await patient.update((entry) => {
+          const record = await database
+            .get<Patient>("patients")
+            .find(patient.id);
+          await record.update((entry) => {
             entry.isActive = false;
           });
         });
