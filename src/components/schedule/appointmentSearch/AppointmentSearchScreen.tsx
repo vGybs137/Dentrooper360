@@ -14,6 +14,7 @@ import { SearchBar } from "@/components/search";
 import { AppointmentSearchBackButton } from "@/components/schedule/appointmentSearch/AppointmentSearchBackButton";
 import { AppointmentSearchDayGroup } from "@/components/schedule/appointmentSearch/AppointmentSearchDayGroup";
 import { AppointmentSearchFiltersCard } from "@/components/schedule/appointmentSearch/AppointmentSearchFiltersCard";
+import { AppointmentSearchResultItem } from "@/components/schedule/appointmentSearch/AppointmentSearchResultItem";
 import { ThemedText, ThemedView } from "@/components/ui";
 import {
   appointmentSearchTimeWindowLabel,
@@ -346,7 +347,13 @@ export function AppointmentSearchScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: SearchDayGroup }) => (
-      <AppointmentSearchDayGroup dayKey={item.dayKey} events={item.events} query={query} />
+      <AppointmentSearchDayGroup
+        dayKey={item.dayKey}
+        items={item.events}
+        renderItem={(event) => (
+          <AppointmentSearchResultItem event={event} query={query} />
+        )}
+      />
     ),
     [query],
   );

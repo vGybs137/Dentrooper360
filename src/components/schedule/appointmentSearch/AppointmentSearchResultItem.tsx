@@ -7,9 +7,9 @@ import { Button } from "@/components/ui";
 import { MONTH_VIEW_EVENT_LIST_RAIL_WIDTH } from "@/constants/schedule";
 import { formatTimeRange } from "@/helpers/timeFormat";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
+import { useNativeColors } from "@/theme";
 import { primitives } from "@/tokens";
 import type { MonthDayEventPreview } from "@/types/schedule";
-import { cn } from "@/utils/cn";
 
 export type AppointmentSearchResultItemProps = {
   event: MonthDayEventPreview;
@@ -61,9 +61,11 @@ function AppointmentSearchResultItemComponent({
   event,
   query = "",
 }: AppointmentSearchResultItemProps) {
+  const native = useNativeColors();
   const hourFormat = useHourFormat();
   const router = useRouter();
   const timeRange = formatTimeRange(event.startTime, event.endTime, hourFormat);
+  const railColor = event.color ?? native.border.strong;
   const subjectParts = useMemo(
     () => splitSubjectByQuery(event.title, query),
     [event.title, query],
@@ -72,7 +74,7 @@ function AppointmentSearchResultItemComponent({
   return (
     <Button
       accessibilityLabel={`${event.title}${event.typeName ? ` - ${event.typeName}` : ""}, ${timeRange}`}
-      className="flex-row items-stretch gap-stack-compact overflow-hidden py-stack-compact"
+      className="flex-row items-stretch gap-stack-compact overflow-hidden py-stack pl-inline"
       onPress={() => router.push(`/appointments/${event.id}` as Href)}
       ripple={false}
       size="none"
@@ -80,11 +82,10 @@ function AppointmentSearchResultItemComponent({
       variant="ghost"
     >
       <View
-        className={cn(!event.color && "bg-border-strong")}
         style={{
           width: MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
           borderRadius: primitives.radius.xs,
-          backgroundColor: event.color ?? undefined,
+          backgroundColor: railColor,
         }}
       />
       <View className="min-w-0 flex-1 justify-center">

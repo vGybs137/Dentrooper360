@@ -1,16 +1,20 @@
 import dayjs from "dayjs";
-import { memo, useMemo } from "react";
+import { memo, useMemo, type ReactNode } from "react";
 import { View } from "react-native";
 
-import { AppointmentSearchResultItem } from "@/components/schedule/appointmentSearch/AppointmentSearchResultItem";
 import { ThemedText, ThemedView } from "@/components/ui";
-import type { MonthDayEventPreview } from "@/types/schedule";
-import { parseDayKey, sameDay, toLocalDate, todayCalendarDate, type DayKey } from "@/utils/calendar";
+import {
+  parseDayKey,
+  sameDay,
+  toLocalDate,
+  todayCalendarDate,
+  type DayKey,
+} from "@/utils/calendar";
 
-export type AppointmentSearchDayGroupProps = {
+export type AppointmentSearchDayGroupProps<T extends { id: string }> = {
   dayKey: DayKey;
-  events: MonthDayEventPreview[];
-  query?: string;
+  items: readonly T[];
+  renderItem: (item: T) => ReactNode;
 };
 
 /** e.g. "Mon, Jan 15, 2024" */
@@ -18,11 +22,11 @@ export function formatSearchDayLabel(dayKey: DayKey): string {
   return dayjs(toLocalDate(parseDayKey(dayKey))).format("ddd, MMM DD, YYYY");
 }
 
-function AppointmentSearchDayGroupComponent({
+function AppointmentSearchDayGroupComponent<T extends { id: string }>({
   dayKey,
-  events,
-  query = "",
-}: AppointmentSearchDayGroupProps) {
+  items,
+  renderItem,
+}: AppointmentSearchDayGroupProps<T>) {
   const dayLabel = useMemo(() => formatSearchDayLabel(dayKey), [dayKey]);
   const isToday = useMemo(
     () => sameDay(parseDayKey(dayKey), todayCalendarDate()),
@@ -44,14 +48,14 @@ function AppointmentSearchDayGroupComponent({
         </ThemedText>
       </View>
       <ThemedView inset="none" surface="sunken" variant="card">
-        {events.map((event, index) => (
-          <View key={event.id}>
+        {items.map((item, index) => (
+          <View key={item.id}>
             {index > 0 ? (
               <View className="py-stack-default">
                 <View className="h-px bg-border-subtle" />
               </View>
             ) : null}
-            <AppointmentSearchResultItem event={event} query={query} />
+            {renderItem(item)}
           </View>
         ))}
       </ThemedView>
@@ -61,4 +65,6 @@ function AppointmentSearchDayGroupComponent({
 
 export const AppointmentSearchDayGroup = memo(
   AppointmentSearchDayGroupComponent,
-);
+) as <T extends { id: string }>(
+  props: AppointmentSearchDayGroupProps<T>,
+) => ReactNode;

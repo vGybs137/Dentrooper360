@@ -107,8 +107,9 @@ function MenuArrowRight({ surfaceColor }: { surfaceColor: string }) {
 }
 
 function clampArrowLeft(arrowLeft: number, menuWidth: number): number {
-  const minArrow = ARROW_EDGE_INSET;
-  const maxArrow = menuWidth - ARROW_EDGE_INSET - ARROW_WIDTH;
+  /** Keep arrow on-panel but allow near-edge alignment with left-side triggers. */
+  const minArrow = 4;
+  const maxArrow = Math.max(minArrow, menuWidth - ARROW_WIDTH - 4);
   return Math.min(Math.max(arrowLeft, minArrow), maxArrow);
 }
 
@@ -138,13 +139,16 @@ function computeMenuPlacement(
     };
   }
 
-  const menuWidth = Math.max(triggerWidth, MENU_MIN_WIDTH);
-  const arrowLeft =
+  const menuWidth = Math.min(
+    MENU_MAX_WIDTH,
+    Math.max(triggerWidth, MENU_MIN_WIDTH),
+  );
+  const preferredArrowLeft =
     align === "end"
       ? menuWidth - ARROW_EDGE_INSET - ARROW_WIDTH
       : ARROW_EDGE_INSET;
 
-  let x = triggerCenterX - arrowLeft - ARROW_WIDTH / 2;
+  let x = triggerCenterX - preferredArrowLeft - ARROW_WIDTH / 2;
   const maxX = windowWidth - SCREEN_EDGE_INSET - menuWidth;
   x = Math.min(Math.max(x, SCREEN_EDGE_INSET), maxX);
 
