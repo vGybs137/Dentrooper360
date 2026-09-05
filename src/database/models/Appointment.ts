@@ -11,6 +11,7 @@ export default class Appointment extends Model {
     patients: { type: "belongs_to", key: "patient_id" },
     appointment_types: { type: "belongs_to", key: "type_id" },
     locations: { type: "belongs_to", key: "location_id" },
+    recalls: { type: "has_many", foreignKey: "appointment_id" },
   } as const;
 
   @field("provider_id") providerId!: string;

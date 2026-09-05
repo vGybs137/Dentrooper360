@@ -6,11 +6,13 @@ import { semantic } from "@/tokens";
 
 export type PaymentsListHeaderProps = {
   openSearch: () => void;
+  searchAccessibilityLabel?: string;
   title?: string;
 };
 
 function PaymentsListHeaderComponent({
   openSearch,
+  searchAccessibilityLabel = "Search payments",
   title = "Payments",
 }: PaymentsListHeaderProps) {
   const rootStyle = useMemo(
@@ -30,7 +32,7 @@ function PaymentsListHeaderComponent({
       </ThemedText>
       <View style={{ flex: 1, minWidth: 0 }} />
       <SearchToggle
-        accessibilityLabel="Search payments"
+        accessibilityLabel={searchAccessibilityLabel}
         openSearch={openSearch}
       />
     </View>

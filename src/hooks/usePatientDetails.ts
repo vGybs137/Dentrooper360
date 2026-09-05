@@ -18,7 +18,6 @@ export type PatientDetailsData = {
   balance: number;
   currency: string | null;
   isVip: boolean;
-  vipStatusDate: Date | null;
   referralSource: string | null;
   profilePhoto: string | null;
   fileDate: Date | null;
@@ -40,7 +39,6 @@ function snapshotPatient(record: Patient): PatientDetailsData {
     balance: record.balance,
     currency: record.currency,
     isVip: record.isVip,
-    vipStatusDate: record.vipStatusDate,
     referralSource: record.referralSource,
     profilePhoto: record.profilePhoto,
     fileDate: record.fileDate,

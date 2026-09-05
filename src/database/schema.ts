@@ -1,7 +1,7 @@
 import { appSchema, tableSchema } from "@nozbe/watermelondb";
 
 export default appSchema({
-  version: 5,
+  version: 6,
   tables: [
     tableSchema({
       name: "appointment_types",
@@ -24,7 +24,6 @@ export default appSchema({
       name: "patients",
       columns: [
         { name: "is_vip", type: "boolean" },
-        { name: "vip_status_date", type: "number", isOptional: true },
         { name: "balance", type: "number" },
         { name: "gender", type: "string", isOptional: true },
         { name: "blood_type", type: "string", isOptional: true },
@@ -111,6 +110,12 @@ export default appSchema({
       columns: [
         { name: "provider_id", type: "string", isIndexed: true },
         { name: "patient_id", type: "string", isIndexed: true },
+        {
+          name: "appointment_id",
+          type: "string",
+          isOptional: true,
+          isIndexed: true,
+        },
         { name: "service_code", type: "string", isOptional: true },
         { name: "service_name_en", type: "string" },
         { name: "service_name_ar", type: "string", isOptional: true },
