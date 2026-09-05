@@ -1,11 +1,12 @@
 import dayjs from "dayjs";
 import { useRouter, type Href } from "expo-router";
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Alert,
   Image,
   ScrollView,
+  Text,
   View,
 } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
@@ -23,19 +24,23 @@ import {
   ThemedView,
   type ThemedIconProps,
 } from "@/components/ui";
-import { clockIcon, locationIcon, notesIcon, personIcon } from "@/constants";
+import { clockIcon, locationIcon, notesIcon } from "@/constants";
 import database from "@/database";
 import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
 import {
   formatPatientName,
   mapPatientToCardData,
 } from "@/helpers/patientDisplay";
+import {
+  initialsFromPatientName,
+  patientInitialsColorsFromName,
+} from "@/helpers/patientInitials";
 import { requestSync } from "@/helpers/requestSync";
 import { dayjsTimePattern } from "@/helpers/timeFormat";
 import { useAppointmentDetails } from "@/hooks/useAppointmentDetails";
 import { useAddAppointmentStore } from "@/stores";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
-import { useNativeColors } from "@/theme";
+import { useNativeColors, useResolvedTheme } from "@/theme";
 import { semantic } from "@/tokens";
 import { cn } from "@/utils/cn";
 
@@ -76,6 +81,59 @@ function FormDivider({ className }: { className?: string }) {
   return <View className={cn("h-px w-full bg-border-subtle", className)} />;
 }
 
+function PatientAvatar({
+  displayName,
+  profilePhoto,
+}: {
+  displayName: string;
+  profilePhoto: string | null;
+}) {
+  const resolvedTheme = useResolvedTheme();
+  const initials = useMemo(
+    () => initialsFromPatientName(displayName),
+    [displayName],
+  );
+  const initialsColors = useMemo(
+    () =>
+      patientInitialsColorsFromName(displayName, {
+        isDark: resolvedTheme === "dark",
+      }),
+    [displayName, resolvedTheme],
+  );
+
+  if (profilePhoto) {
+    return (
+      <Image
+        accessibilityIgnoresInvertColors
+        source={{ uri: profilePhoto }}
+        style={{
+          width: AVATAR_SIZE,
+          height: AVATAR_SIZE,
+          borderRadius: AVATAR_SIZE / 2,
+        }}
+      />
+    );
+  }
+
+  return (
+    <View
+      className="items-center justify-center rounded-full"
+      style={{
+        width: AVATAR_SIZE,
+        height: AVATAR_SIZE,
+        backgroundColor: initialsColors.background,
+      }}
+    >
+      <Text
+        className="text-xl font-semibold"
+        style={{ color: initialsColors.foreground }}
+      >
+        {initials}
+      </Text>
+    </View>
+  );
+}
+
 function PatientHero({
   displayName,
   hasPatient,
@@ -88,6 +146,7 @@ function PatientHero({
   onPress?: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const chevronSize = 35;
 
   const content = (
     <View
@@ -97,46 +156,28 @@ function PatientHero({
         borderBottomRightRadius: semantic.radius.dialog,
         paddingTop: insets.top + semantic.space.section,
         paddingBottom: semantic.space.section,
+        paddingHorizontal: semantic.space.inline.default,
       }}
     >
       {hasPatient ? (
-        profilePhoto ? (
-          <Image
-            accessibilityIgnoresInvertColors
-            source={{ uri: profilePhoto }}
-            style={{
-              width: AVATAR_SIZE,
-              height: AVATAR_SIZE,
-              borderRadius: AVATAR_SIZE / 2,
-            }}
-          />
-        ) : (
-          <ThemedIcon
-            dimension={AVATAR_SIZE}
-            name={personIcon}
-            tone="muted"
-          />
-        )
+        <PatientAvatar displayName={displayName} profilePhoto={profilePhoto} />
       ) : null}
 
-      <View
-        className="w-full flex-row items-center"
-        style={{
-          paddingHorizontal: semantic.space.inline.default,
-          gap: semantic.space.gap.compact,
-        }}
-      >
-          <ThemedText
-            align="center"
-            className="min-w-0 flex-1 font-semibold"
-            numberOfLines={2}
-            variant="title"
-          >
+      <View className="w-full flex-row items-center">
+        {onPress ? <View style={{ width: chevronSize }} /> : null}
+
+        <ThemedText
+          align="center"
+          className="min-w-0 flex-1 font-semibold"
+          numberOfLines={2}
+          variant="title"
+        >
           {displayName}
         </ThemedText>
+
         {onPress ? (
           <ThemedIcon
-            dimension={35}
+            dimension={chevronSize}
             name={CHEVRON_RIGHT_ICON}
             tone="muted"
           />
