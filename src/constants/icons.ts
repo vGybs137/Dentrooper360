@@ -118,6 +118,12 @@ export const calendarIcon = {
   web: "calendar_month",
 } as const;
 
+export const addAppointmentIcon = {
+  ios: "calendar.badge.plus",
+  android: "calendar_add_on",
+  web: "calendar_add_on",
+} as const;
+
 export const editIcon = {
   ios: "pencil",
   android: "edit",
@@ -164,6 +170,12 @@ export const phoneIcon = {
   ios: "phone.fill",
   android: "phone",
   web: "phone",
+} as const;
+
+export const messageIcon = {
+  ios: "message.fill",
+  android: "chat",
+  web: "chat",
 } as const;
 
 export const emailIcon = {

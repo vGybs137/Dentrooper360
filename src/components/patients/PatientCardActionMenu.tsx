@@ -5,7 +5,7 @@ import {
   DeleteConfirmationDialog,
   ThemedIcon,
 } from "@/components/ui";
-import { calendarIcon, deleteIcon, editIcon, ellipsisIcon } from "@/constants";
+import { addAppointmentIcon, deleteIcon, editIcon, ellipsisIcon } from "@/constants";
 import database from "@/database";
 import type Patient from "@/database/models/Patient";
 import type { PatientCardData } from "@/helpers/patientDisplay";
@@ -80,7 +80,7 @@ export function PatientCardActionMenu({ patient }: PatientCardActionMenuProps) {
       {
         key: "add-appointment",
         label: "Add appointment",
-        icon: <ThemedIcon dimension={20} name={calendarIcon} tone="muted" />,
+        icon: <ThemedIcon dimension={20} name={addAppointmentIcon} tone="muted" />,
         onPress: handleAddAppointment,
       },
       {
