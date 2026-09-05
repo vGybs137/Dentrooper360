@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import { Image, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { PatientCardActionMenu } from "@/components/patients/PatientCardActionMenu";
-import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
-import { checkCircleIcon, starIcon } from "@/constants";
+import { Button, ThemedIcon, ThemedText, ThemedView, type ThemedIconProps } from "@/components/ui";
+import { balanceIcon, calendarIcon, checkCircleIcon, starIcon } from "@/constants";
 import {
   formatPatientBalance,
   formatPatientNextVisit,
@@ -30,12 +30,23 @@ type PatientCardProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-function MetricColumn({ label, value }: { label: string; value: string }) {
+function MetricColumn({
+  icon,
+  label,
+  value,
+}: {
+  icon: NonNullable<ThemedIconProps["name"]>;
+  label: string;
+  value: string;
+}) {
   return (
     <View className="min-w-[72px] gap-0.5">
-      <ThemedText className="text-xs" tone="muted" variant="label">
-        {label}
-      </ThemedText>
+      <View className="flex-row items-center gap-1">
+        <ThemedIcon dimension={14} name={icon} tone="muted" />
+        <ThemedText className="text-xs" tone="muted" variant="label">
+          {label}
+        </ThemedText>
+      </View>
       <ThemedText className="font-normal" numberOfLines={1} variant="label">
         {value}
       </ThemedText>
@@ -217,10 +228,12 @@ export function PatientCard({
 
           <View className="flex-1 flex-row justify-between py-0.5 pl-gap">
             <MetricColumn
+              icon={calendarIcon}
               label="Next visit"
               value={formatPatientNextVisit(patient.nextVisit)}
             />
             <MetricColumn
+              icon={balanceIcon}
               label="Balance"
               value={formatPatientBalance(
                 patient.balance,

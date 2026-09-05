@@ -1,18 +1,21 @@
 import dayjs from "dayjs";
 import { useRouter, type Href } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, Modal, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
+import {
+  FeedbackOverlay,
+  type FeedbackOverlayProps,
+} from "@/components/app/FeedbackOverlay";
 import {
   Button,
   DeleteConfirmationDialog,
   ThemedText,
   ThemedView,
 } from "@/components/ui";
-import database from "@/database";
-import type Patient from "@/database/models/Patient";
 import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
+import { deletePatientAndRelated } from "@/helpers/deletePatient";
 import {
   formatNextVisitLabel,
   formatPatientBalance,
@@ -153,6 +156,8 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
   const [activeTab, setActiveTab] = useState<PatientDetailsTab>("overview");
   const [deleteVisible, setDeleteVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteFeedback, setDeleteFeedback] =
+    useState<FeedbackOverlayProps | null>(null);
 
   const nextAppointment = useMemo(
     () => findNextPatientVisit(appointments),
@@ -178,6 +183,11 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
 
     router.replace("/(tabs)/patients" as Href);
   }, [router]);
+
+  const dismissDeleteFeedback = useCallback(() => {
+    setDeleteFeedback(null);
+    setIsDeleting(false);
+  }, []);
 
   const handleEdit = useCallback(() => {
     if (!patient) {
@@ -209,29 +219,41 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
     }
 
     setIsDeleting(true);
+    setDeleteVisible(false);
+    setDeleteFeedback({
+      stage: "loading",
+      title: "Deleting...",
+      message: "Removing this patient and related records.",
+    });
 
     void (async () => {
       try {
-        await database.write(async () => {
-          const record = await database
-            .get<Patient>("patients")
-            .find(patient.id);
-          await record.update((entry) => {
-            entry.isActive = false;
-          });
-        });
+        await deletePatientAndRelated(patient.id);
         requestSync();
-        setDeleteVisible(false);
-        goBack();
+        setDeleteFeedback({
+          stage: "success",
+          title: "Patient deleted",
+          message: "The patient and related records were removed.",
+          continueLabel: "Done",
+          onContinue: () => {
+            setDeleteFeedback(null);
+            goBack();
+          },
+        });
       } catch (err) {
         setIsDeleting(false);
-        Alert.alert(
-          "Unable to delete",
-          err instanceof Error ? err.message : "Please try again.",
-        );
+        setDeleteFeedback({
+          stage: "error",
+          title: "Unable to delete",
+          message:
+            err instanceof Error ? err.message : "Please try again.",
+          retryLabel: "OK",
+          onRetry: dismissDeleteFeedback,
+          onDismiss: dismissDeleteFeedback,
+        });
       }
     })();
-  }, [goBack, isDeleting, patient]);
+  }, [dismissDeleteFeedback, goBack, isDeleting, patient]);
 
   const tabContent = useMemo(() => {
     switch (activeTab) {
@@ -351,6 +373,19 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
         title="Delete patient"
         visible={deleteVisible}
       />
+
+      {deleteFeedback ? (
+        <Modal
+          animationType="fade"
+          statusBarTranslucent
+          transparent
+          visible
+        >
+          <View className="flex-1">
+            <FeedbackOverlay {...deleteFeedback} />
+          </View>
+        </Modal>
+      ) : null}
     </ThemedView>
   );
 }

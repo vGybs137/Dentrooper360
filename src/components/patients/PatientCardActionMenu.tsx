@@ -1,14 +1,18 @@
 import { useCallback, useMemo, useState } from "react";
+import { Modal, View } from "react-native";
 
+import {
+  FeedbackOverlay,
+  type FeedbackOverlayProps,
+} from "@/components/app/FeedbackOverlay";
 import {
   ActionMenu,
   DeleteConfirmationDialog,
   ThemedIcon,
 } from "@/components/ui";
 import { addAppointmentIcon, deleteIcon, editIcon, ellipsisIcon } from "@/constants";
-import database from "@/database";
-import type Patient from "@/database/models/Patient";
 import type { PatientCardData } from "@/helpers/patientDisplay";
+import { deletePatientAndRelated } from "@/helpers/deletePatient";
 import { requestSync } from "@/helpers/requestSync";
 import { useAddAppointmentStore, useAddPatientStore } from "@/stores";
 
@@ -23,6 +27,8 @@ export function PatientCardActionMenu({ patient }: PatientCardActionMenuProps) {
   const openForEdit = useAddPatientStore((state) => state.openForEdit);
   const [deleteVisible, setDeleteVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteFeedback, setDeleteFeedback] =
+    useState<FeedbackOverlayProps | null>(null);
 
   const handleEdit = useCallback(() => {
     openForEdit(patient.id);
@@ -44,30 +50,49 @@ export function PatientCardActionMenu({ patient }: PatientCardActionMenuProps) {
     setDeleteVisible(false);
   }, [isDeleting]);
 
+  const dismissDeleteFeedback = useCallback(() => {
+    setDeleteFeedback(null);
+    setIsDeleting(false);
+  }, []);
+
   const handleConfirmDelete = useCallback(() => {
     if (isDeleting) {
       return;
     }
 
     setIsDeleting(true);
+    setDeleteVisible(false);
+    setDeleteFeedback({
+      stage: "loading",
+      title: "Deleting...",
+      message: "Removing this patient and related records.",
+    });
 
     void (async () => {
       try {
-        await database.write(async () => {
-          const record = await database
-            .get<Patient>("patients")
-            .find(patient.id);
-          await record.update((entry) => {
-            entry.isActive = false;
-          });
-        });
+        await deletePatientAndRelated(patient.id);
         requestSync();
-        setDeleteVisible(false);
-      } catch {
+        setDeleteFeedback({
+          stage: "success",
+          title: "Patient deleted",
+          message: "The patient and related records were removed.",
+          continueLabel: "Done",
+          onContinue: dismissDeleteFeedback,
+        });
+      } catch (err) {
         setIsDeleting(false);
+        setDeleteFeedback({
+          stage: "error",
+          title: "Unable to delete",
+          message:
+            err instanceof Error ? err.message : "Please try again.",
+          retryLabel: "OK",
+          onRetry: dismissDeleteFeedback,
+          onDismiss: dismissDeleteFeedback,
+        });
       }
     })();
-  }, [isDeleting, patient.id]);
+  }, [dismissDeleteFeedback, isDeleting, patient.id]);
 
   const items = useMemo(
     () => [
@@ -116,6 +141,19 @@ export function PatientCardActionMenu({ patient }: PatientCardActionMenuProps) {
         title="Delete patient"
         visible={deleteVisible}
       />
+
+      {deleteFeedback ? (
+        <Modal
+          animationType="fade"
+          statusBarTranslucent
+          transparent
+          visible
+        >
+          <View className="flex-1">
+            <FeedbackOverlay {...deleteFeedback} />
+          </View>
+        </Modal>
+      ) : null}
     </>
   );
 }
