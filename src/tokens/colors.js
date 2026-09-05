@@ -43,6 +43,12 @@ const lightPalette = {
     strong: "#dc2626",
     text: "#ffffff",
   },
+  warning: {
+    DEFAULT: "#ca8a04",
+    subtle: "rgba(202, 138, 4, 0.12)",
+    strong: "#a16207",
+    text: "#ffffff",
+  },
   calendar: {
     default: "#f8f9fb",
     muted: "#f9fafc",
@@ -92,6 +98,12 @@ const darkPalette = {
     subtle: "rgba(239, 68, 68, 0.18)",
     strong: "#dc2626",
     text: "#ffffff",
+  },
+  warning: {
+    DEFAULT: "#fbbf24",
+    subtle: "rgba(251, 191, 36, 0.18)",
+    strong: "#f59e0b",
+    text: "#0b0f10",
   },
   calendar: {
     default: "#141414",

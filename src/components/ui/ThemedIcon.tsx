@@ -10,7 +10,8 @@ type IconTone =
   | "brand"
   | "accent"
   | "success"
-  | "alert";
+  | "alert"
+  | "warning";
 
 type IconSize = "sm" | "md" | "lg";
 
@@ -42,6 +43,8 @@ function tintForTone(palette: ThemePalette, tone: IconTone) {
       return palette.success.DEFAULT;
     case "alert":
       return palette.alert.DEFAULT;
+    case "warning":
+      return palette.warning.DEFAULT;
     default:
       return palette.foreground.default;
   }

@@ -45,3 +45,5 @@ example
 /android
 
 .env.local
+
+.cursor/

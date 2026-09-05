@@ -1,13 +1,21 @@
-import { Image, View, type StyleProp, type ViewStyle } from "react-native";
+import { useMemo } from "react";
+import { Image, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
-import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
-import { checkCircleIcon, personIcon, starIcon } from "@/constants";
+import { PatientCardActionMenu } from "@/components/patients/PatientCardActionMenu";
+import { Button, ThemedIcon, ThemedText, ThemedView, type ThemedIconProps } from "@/components/ui";
+import { balanceIcon, calendarIcon, checkCircleIcon, starIcon } from "@/constants";
 import {
   formatPatientBalance,
   formatPatientNextVisit,
   type PatientCardData,
 } from "@/helpers/patientDisplay";
-import { useNativeColors } from "@/theme";
+import {
+  initialsFromPatientName,
+  patientInitialsColorsFromName,
+} from "@/helpers/patientInitials";
+import { splitTextBySearchQuery } from "@/helpers/searchHighlight";
+import { useAuthUser } from "@/stores";
+import { useNativeColors, useResolvedTheme } from "@/theme";
 import { cn } from "@/utils/cn";
 
 const AVATAR_SIZE = 30;
@@ -18,15 +26,27 @@ type PatientCardProps = {
   selectable?: boolean;
   selected?: boolean;
   onPress?: () => void;
+  searchQuery?: string;
   style?: StyleProp<ViewStyle>;
 };
 
-function MetricColumn({ label, value }: { label: string; value: string }) {
+function MetricColumn({
+  icon,
+  label,
+  value,
+}: {
+  icon: NonNullable<ThemedIconProps["name"]>;
+  label: string;
+  value: string;
+}) {
   return (
     <View className="min-w-[72px] gap-0.5">
-      <ThemedText className="text-xs" tone="muted" variant="label">
-        {label}
-      </ThemedText>
+      <View className="flex-row items-center gap-1">
+        <ThemedIcon dimension={14} name={icon} tone="muted" />
+        <ThemedText className="text-xs" tone="muted" variant="label">
+          {label}
+        </ThemedText>
+      </View>
       <ThemedText className="font-normal" numberOfLines={1} variant="label">
         {value}
       </ThemedText>
@@ -34,7 +54,26 @@ function MetricColumn({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PatientAvatar({ profilePhoto }: { profilePhoto: string | null }) {
+function PatientAvatar({
+  displayName,
+  profilePhoto,
+}: {
+  displayName: string;
+  profilePhoto: string | null;
+}) {
+  const resolvedTheme = useResolvedTheme();
+  const initials = useMemo(
+    () => initialsFromPatientName(displayName),
+    [displayName],
+  );
+  const initialsColors = useMemo(
+    () =>
+      patientInitialsColorsFromName(displayName, {
+        isDark: resolvedTheme === "dark",
+      }),
+    [displayName, resolvedTheme],
+  );
+
   if (profilePhoto) {
     return (
       <Image
@@ -49,7 +88,21 @@ function PatientAvatar({ profilePhoto }: { profilePhoto: string | null }) {
   }
 
   return (
-    <ThemedIcon dimension={AVATAR_SIZE} name={personIcon} tone="muted" />
+    <View
+      className="items-center justify-center rounded-full"
+      style={{
+        width: AVATAR_SIZE,
+        height: AVATAR_SIZE,
+        backgroundColor: initialsColors.background,
+      }}
+    >
+      <Text
+        className="text-[11px] font-semibold"
+        style={{ color: initialsColors.foreground }}
+      >
+        {initials}
+      </Text>
+    </View>
   );
 }
 
@@ -72,14 +125,62 @@ function SelectionIndicator({ selected }: { selected: boolean }) {
   );
 }
 
+function PatientDisplayName({
+  displayName,
+  searchQuery,
+}: {
+  displayName: string;
+  searchQuery?: string;
+}) {
+  const parts = useMemo(
+    () => splitTextBySearchQuery(displayName, searchQuery ?? ""),
+    [displayName, searchQuery],
+  );
+  const hasHighlight = Boolean(searchQuery?.trim());
+
+  if (!hasHighlight) {
+    return (
+      <ThemedText
+        className="min-w-0 flex-1 shrink font-semibold"
+        numberOfLines={1}
+        variant="body"
+      >
+        {displayName}
+      </ThemedText>
+    );
+  }
+
+  return (
+    <Text
+      className="min-w-0 flex-1 shrink text-body font-semibold text-foreground-default"
+      numberOfLines={1}
+    >
+      {parts.map((part, index) => (
+        <Text
+          key={`${part.value}-${index}`}
+          className={
+            part.highlighted
+              ? "font-semibold text-brand-default"
+              : "text-foreground-default"
+          }
+        >
+          {part.value}
+        </Text>
+      ))}
+    </Text>
+  );
+}
+
 export function PatientCard({
   patient,
   selectable = false,
   selected = false,
   onPress,
+  searchQuery,
   style,
 }: PatientCardProps) {
   const native = useNativeColors();
+  const user = useAuthUser();
   const isSelected = selectable && selected;
 
   const content = (
@@ -93,7 +194,7 @@ export function PatientCard({
       style={style}
       variant="card"
     >
-      <View className="flex-row items-stretch">
+      <View className="flex-row items-start">
         <View
           className="items-center"
           style={{
@@ -102,36 +203,42 @@ export function PatientCard({
             minHeight: selectable ? 72 : AVATAR_SIZE,
           }}
         >
-          <PatientAvatar profilePhoto={patient.profilePhoto} />
+          <PatientAvatar
+            displayName={patient.displayName}
+            profilePhoto={patient.profilePhoto}
+          />
           {selectable ? <SelectionIndicator selected={selected} /> : null}
         </View>
 
-        <View className="h-[90%] self-center border-l border-border-subtle" />
+        <View className="mx-3 h-[90%] w-0.5 self-center bg-border-subtle" />
 
-        <View className="flex-1">
+        <View className="flex-1 gap-inset-compact">
           <View className="min-w-0 flex-1 justify-center px-gap">
-            <View className="flex-row flex-wrap items-center gap-1.5">
-              <ThemedText
-                className="shrink font-semibold"
-                numberOfLines={1}
-                variant="body"
-              >
-                {patient.displayName}
-              </ThemedText>
+            <View className="flex-row items-center gap-1.5">
+              <PatientDisplayName
+                displayName={patient.displayName}
+                searchQuery={searchQuery}
+              />
               {patient.isVip ? (
                 <ThemedIcon dimension={14} name={starIcon} tone="brand" />
               ) : null}
+              {!selectable ? <PatientCardActionMenu patient={patient} /> : null}
             </View>
           </View>
 
           <View className="flex-1 flex-row justify-between py-0.5 pl-gap">
             <MetricColumn
+              icon={calendarIcon}
               label="Next visit"
               value={formatPatientNextVisit(patient.nextVisit)}
             />
             <MetricColumn
+              icon={balanceIcon}
               label="Balance"
-              value={formatPatientBalance(patient.balance, patient.currency)}
+              value={formatPatientBalance(
+                patient.balance,
+                user?.currencySymbol ?? patient.currency,
+              )}
             />
           </View>
         </View>

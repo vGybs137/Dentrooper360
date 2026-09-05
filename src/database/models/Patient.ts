@@ -32,6 +32,8 @@ export default class Patient extends Model {
   @field("email_address") emailAddress!: string | null;
   @field("is_active") isActive!: boolean;
   @field("profile_photo") profilePhoto!: string | null;
+  @date("file_date") fileDate!: Date | null;
+  @text("referral_source") referralSource!: string | null;
 
   @children("appointments") appointments!: Query<Appointment>;
   @children("services") services!: Query<Service>;

@@ -8,6 +8,7 @@ import { dayjsTimePattern } from "@/helpers/timeFormat";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
 import { cn } from "@/utils/cn";
 
+import { AppointmentDayFreeHoursInfo } from "./AppointmentDayFreeHoursInfo";
 import { AppointmentInlineCalendar } from "./AppointmentInlineCalendar";
 import { AppointmentInlineTimePicker } from "./AppointmentInlineTimePicker";
 
@@ -74,46 +75,56 @@ export function AppointmentDateTimeField({
   };
 
   return (
-    <View className="gap-gap-compact">
-      <View className="items-start gap-2">
-        <View className="flex-row items-center gap-3">
-          <ThemedIcon dimension={20} name={clockIcon} tone="muted" />
+    <View className="w-full gap-gap-compact">
+      <View className="w-full flex-row items-center gap-2">
+        <View className="min-w-0 flex-1 items-start gap-2">
+          <View className="flex-row items-center gap-3">
+            <ThemedIcon dimension={20} name={clockIcon} tone="muted" />
 
-          <SelectionPill
-            accessibilityLabel="Change appointment date"
-            active={expanded === "calendar"}
-            onPress={() => toggle("calendar")}
-          >
-            <ThemedText variant="body">{dateLabel}</ThemedText>
-          </SelectionPill>
+            <SelectionPill
+              accessibilityLabel="Change appointment date"
+              active={expanded === "calendar"}
+              onPress={() => toggle("calendar")}
+            >
+              <ThemedText variant="body">{dateLabel}</ThemedText>
+            </SelectionPill>
+          </View>
+
+          <View className="ml-8 flex-row items-center gap-2">
+            <SelectionPill
+              accessibilityLabel="Change start time"
+              active={expanded === "start"}
+              onPress={() => toggle("start")}
+            >
+              <ThemedText variant="body">{startLabel}</ThemedText>
+            </SelectionPill>
+
+            <ThemedIcon
+              dimension={14}
+              name={{
+                ios: "arrow.right",
+                android: "arrow_forward",
+                web: "arrow_forward",
+              }}
+              tone="muted"
+            />
+
+            <SelectionPill
+              accessibilityLabel="Change end time"
+              active={expanded === "end"}
+              onPress={() => toggle("end")}
+            >
+              <ThemedText variant="body">{endLabel}</ThemedText>
+            </SelectionPill>
+          </View>
         </View>
 
-        <View className="ml-8 flex-row items-center gap-2">
-          <SelectionPill
-            accessibilityLabel="Change start time"
-            active={expanded === "start"}
-            onPress={() => toggle("start")}
-          >
-            <ThemedText variant="body">{startLabel}</ThemedText>
-          </SelectionPill>
-
-          <ThemedIcon
-            dimension={14}
-            name={{
-              ios: "arrow.right",
-              android: "arrow_forward",
-              web: "arrow_forward",
-            }}
-            tone="muted"
+        <View className="shrink-0">
+          <AppointmentDayFreeHoursInfo
+            date={startTime}
+            endTime={endTime}
+            startTime={startTime}
           />
-
-          <SelectionPill
-            accessibilityLabel="Change end time"
-            active={expanded === "end"}
-            onPress={() => toggle("end")}
-          >
-            <ThemedText variant="body">{endLabel}</ThemedText>
-          </SelectionPill>
         </View>
       </View>
 

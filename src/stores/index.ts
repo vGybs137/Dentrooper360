@@ -67,6 +67,14 @@ export type {
   EditAppointmentDraft,
 } from "./addAppointmentStore";
 export {
+  useAddPatientEditingId,
+  useAddPatientIsPresented,
+  useAddPatientPresentKey,
+  useAddPatientStep,
+  useAddPatientStore,
+} from "./addPatientStore";
+export type { AddPatientStep } from "./addPatientStore";
+export {
   canEnterOffline,
   clearSyncStatus,
   hydrateSyncStatusStore,

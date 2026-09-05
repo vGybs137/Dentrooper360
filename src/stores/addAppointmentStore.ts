@@ -32,9 +32,12 @@ type AddAppointmentStoreState = {
   /** When set, the sheet edits this appointment instead of creating one. */
   editingAppointmentId: string | null;
   editDraft: EditAppointmentDraft | null;
+  /** When set, the sheet creates an appointment for this patient. */
+  createPatientDraft: PatientCardData | null;
   selectSlot: (start: Date) => void;
   open: () => void;
   openForEdit: (draft: EditAppointmentDraft) => void;
+  openWithPatient: (patient: PatientCardData) => void;
   requestClose: () => void;
   finishClose: () => void;
   goNext: () => void;
@@ -54,12 +57,17 @@ function buildSlot(start: Date): AppointmentSlot {
   };
 }
 
+function defaultAppointmentStart(): Date {
+  return dayjs().add(1, "hour").startOf("hour").toDate();
+}
+
 const CLOSED_STATE = {
   isPresented: false,
   slot: null,
   step: "patient" as const,
   editingAppointmentId: null,
   editDraft: null,
+  createPatientDraft: null,
 };
 
 export const useAddAppointmentStore = create<AddAppointmentStoreState>(
@@ -69,12 +77,14 @@ export const useAddAppointmentStore = create<AddAppointmentStoreState>(
     isPresented: false,
     editingAppointmentId: null,
     editDraft: null,
+    createPatientDraft: null,
 
     selectSlot: (start) => {
       set({
         slot: buildSlot(start),
         editingAppointmentId: null,
         editDraft: null,
+        createPatientDraft: null,
       });
     },
 
@@ -89,6 +99,7 @@ export const useAddAppointmentStore = create<AddAppointmentStoreState>(
         step: "patient",
         editingAppointmentId: null,
         editDraft: null,
+        createPatientDraft: null,
       });
     },
 
@@ -99,6 +110,18 @@ export const useAddAppointmentStore = create<AddAppointmentStoreState>(
         editDraft: draft,
         isPresented: true,
         step: "details",
+        createPatientDraft: null,
+      });
+    },
+
+    openWithPatient: (patient) => {
+      set({
+        slot: buildSlot(defaultAppointmentStart()),
+        createPatientDraft: patient,
+        isPresented: true,
+        step: "details",
+        editingAppointmentId: null,
+        editDraft: null,
       });
     },
 

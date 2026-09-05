@@ -1,7 +1,10 @@
 /** Shared appointment subject (persisted) and list display title helpers. */
 
+import { formatPatientPhone } from "@/helpers/patientDisplay";
+
 export type AppointmentSubjectPatient = {
   displayName: string;
+  countryCode?: string | null;
   phoneNumber?: string | null;
 };
 
@@ -12,7 +15,8 @@ export type AppointmentSubjectPatient = {
 export function buildAppointmentSubjectFromPatient(
   patient: AppointmentSubjectPatient,
 ): string {
-  return [patient.displayName.trim(), patient.phoneNumber?.trim()]
+  const phone = formatPatientPhone(patient.countryCode, patient.phoneNumber);
+  return [patient.displayName.trim(), phone]
     .filter(Boolean)
     .join(" ");
 }

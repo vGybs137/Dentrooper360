@@ -1,9 +1,7 @@
 import { memo, useCallback } from "react";
 import { useRouter, type Href } from "expo-router";
 
-import { Button, ThemedIcon } from "@/components/ui";
-import { searchIcon } from "@/constants";
-import { semantic } from "@/tokens";
+import { SearchToggle } from "@/components/ui/SearchToggle";
 
 function ScheduleSearchToggleComponent() {
   const router = useRouter();
@@ -13,22 +11,10 @@ function ScheduleSearchToggleComponent() {
   }, [router]);
 
   return (
-    <Button
+    <SearchToggle
       accessibilityLabel="Search appointments"
-      hitSlop={8}
-      onPress={openSearch}
-      size="none"
-      style={{
-        width: semantic.size.touch,
-        height: semantic.size.touch,
-        alignItems: "flex-end",
-        justifyContent: "center",
-      }}
-      tone="neutral"
-      variant="ghost"
-    >
-      <ThemedIcon name={searchIcon} />
-    </Button>
+      openSearch={openSearch}
+    />
   );
 }
 

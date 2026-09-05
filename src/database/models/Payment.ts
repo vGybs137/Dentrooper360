@@ -14,11 +14,8 @@ export default class Payment extends Model {
   @field("type") type!: string;
   @field("method") method!: string;
   @field("currency") currency!: string;
-  @field("status") status!: string;
   @field("amount") amount!: number;
   @date("date") date!: Date;
-  @date("posted_date") postedDate!: Date | null;
   @text("description") description!: string | null;
-  @field("is_posted") isPosted!: boolean;
   @field("is_active") isActive!: boolean;
 }
