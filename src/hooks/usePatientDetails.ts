@@ -46,6 +46,8 @@ function snapshotPatient(record: Patient): PatientDetailsData {
   };
 }
 
+export { snapshotPatient };
+
 export type UsePatientDetailsResult = {
   patient: PatientDetailsData | null;
   isLoading: boolean;

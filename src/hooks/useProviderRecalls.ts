@@ -40,6 +40,8 @@ export type ProviderRecallItem = {
   countryCode: string | null;
   phoneNumber: string | null;
   appointmentId: string | null;
+  /** Linked appointment start; used for "Done N days ago". */
+  appointmentStartTime: Date | null;
   serviceCode: string | null;
   serviceName: string;
   interval: number;
@@ -61,6 +63,7 @@ async function mapRecall(record: Recall): Promise<ProviderRecallItem> {
   let patientName = "Unknown patient";
   let countryCode: string | null = null;
   let phoneNumber: string | null = null;
+  let appointmentStartTime: Date | null = null;
 
   try {
     const patient = await record.patient.fetch();
@@ -73,13 +76,24 @@ async function mapRecall(record: Recall): Promise<ProviderRecallItem> {
     patientId = rawPatientId ?? "";
   }
 
+  const appointmentId = record.appointmentId?.trim() || null;
+  if (appointmentId) {
+    try {
+      const appointment = await record.appointment.fetch();
+      appointmentStartTime = appointment.startTime ?? null;
+    } catch {
+      appointmentStartTime = null;
+    }
+  }
+
   return {
     id: record.id,
     patientId,
     patientName,
     countryCode,
     phoneNumber,
-    appointmentId: record.appointmentId?.trim() || null,
+    appointmentId,
+    appointmentStartTime,
     serviceCode: record.serviceCode,
     serviceName: record.serviceNameEn?.trim() || "Service",
     interval: record.interval,

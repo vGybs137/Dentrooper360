@@ -44,49 +44,81 @@ const PILL_BY_BUCKET: Record<
   later: { accent: "#94A3B8", textTone: "muted" },
 };
 
-/** Whole calendar days from today to due date (negative when overdue). */
-function daysUntilDue(dueDate: Date): number | null {
-  if (!dueDate || Number.isNaN(dueDate.getTime())) {
+/** Whole calendar days from today to a date (negative when in the past). */
+function daysFromToday(date: Date): number | null {
+  if (!date || Number.isNaN(date.getTime())) {
     return null;
   }
 
-  return dayjs(dueDate).startOf("day").diff(dayjs().startOf("day"), "day");
+  return dayjs(date).startOf("day").diff(dayjs().startOf("day"), "day");
 }
 
-function formatDueInPill(dueDate: Date, isDone: boolean): string {
-  const days = daysUntilDue(dueDate);
-
-  if (isDone) {
-    if (days == null) {
-      return "Done";
-    }
-
-    if (days < 0) {
-      const ago = Math.abs(days);
-      return ago === 1 ? "Done 1 day ago" : `Done ${ago} days ago`;
-    }
-
-    if (days === 0) {
-      return "Done today";
-    }
-
-    return "Done";
+function formatRelativeDayLabel(
+  days: number,
+  pastSingular: string,
+  pastPlural: (n: number) => string,
+  todayLabel: string,
+  futureSingular: string,
+  futurePlural: (n: number) => string,
+): string {
+  if (days < 0) {
+    const ago = Math.abs(days);
+    return ago === 1 ? pastSingular : pastPlural(ago);
   }
 
+  if (days === 0) {
+    return todayLabel;
+  }
+
+  return days === 1 ? futureSingular : futurePlural(days);
+}
+
+function formatDueInPill(
+  dueDate: Date,
+  isDone: boolean,
+  appointmentStartTime: Date | null,
+): string {
+  if (isCompletedRecall(isDone, appointmentStartTime, dueDate)) {
+    const doneDays = daysFromToday(appointmentStartTime ?? dueDate);
+    if (doneDays != null) {
+      return formatRelativeDayLabel(
+        doneDays,
+        "Done 1 day ago",
+        (n) => `Done ${n} days ago`,
+        "Done today",
+        "Due in 1 day",
+        (n) => `Due in ${n} days`,
+      );
+    }
+  }
+
+  const days = daysFromToday(dueDate);
   if (days == null) {
     return "—";
   }
 
-  if (days < 0) {
-    const ago = Math.abs(days);
-    return ago === 1 ? "Due 1 day ago" : `Due ${ago} days ago`;
+  return formatRelativeDayLabel(
+    days,
+    "Due 1 day ago",
+    (n) => `Due ${n} days ago`,
+    "Due today",
+    "Due in 1 day",
+    (n) => `Due in ${n} days`,
+  );
+}
+
+/** Appointment linked and its day is today or earlier. */
+function isCompletedRecall(
+  hasAppointment: boolean,
+  appointmentStartTime: Date | null,
+  dueDate: Date,
+): boolean {
+  if (!hasAppointment) {
+    return false;
   }
 
-  if (days === 0) {
-    return "Due today";
-  }
-
-  return days === 1 ? "Due in 1 day" : `Due in ${days} days`;
+  const doneDays = daysFromToday(appointmentStartTime ?? dueDate);
+  return doneDays != null && doneDays <= 0;
 }
 
 function HighlightedText({
@@ -148,20 +180,23 @@ function HighlightedText({
 }
 
 function DueInPill({
+  appointmentStartTime,
   bucket,
   dueDate,
   isDone,
 }: {
+  appointmentStartTime: Date | null;
   bucket: RecallDueBucket | null;
   dueDate: Date;
   isDone: boolean;
 }) {
-  const theme = isDone
+  const showDone = isCompletedRecall(isDone, appointmentStartTime, dueDate);
+  const theme = showDone
     ? DONE_PILL
     : bucket
       ? PILL_BY_BUCKET[bucket]
       : PILL_BY_BUCKET.later;
-  const label = formatDueInPill(dueDate, isDone);
+  const label = formatDueInPill(dueDate, isDone, appointmentStartTime);
 
   return (
     <View
@@ -191,17 +226,26 @@ function RecallListItemComponent({
     [weekStartsOn],
   );
   const isDone = hasRecallAppointment(item.appointmentId);
+  const showDone = isCompletedRecall(
+    isDone,
+    item.appointmentStartTime,
+    item.dueDate,
+  );
   const bucket = classifyRecallDueDate(
     item.dueDate,
     bounds,
     item.appointmentId,
   );
-  const railColor = isDone
+  const railColor = showDone
     ? DONE_PILL.accent
     : bucket
       ? RAIL_BY_BUCKET[bucket]
       : native.border.strong;
-  const duePillLabel = formatDueInPill(item.dueDate, isDone);
+  const duePillLabel = formatDueInPill(
+    item.dueDate,
+    isDone,
+    item.appointmentStartTime,
+  );
   const phone =
     formatPatientPhone(item.countryCode, item.phoneNumber) ?? "No phone";
 
@@ -255,6 +299,7 @@ function RecallListItemComponent({
           </View>
 
           <DueInPill
+            appointmentStartTime={item.appointmentStartTime}
             bucket={bucket}
             dueDate={item.dueDate}
             isDone={isDone}
