@@ -1,25 +1,36 @@
 import { useEffect, useMemo, useState } from "react";
 import { Q } from "@nozbe/watermelondb";
 
-import {
-  WEEK_VIEW_DEFAULT_END_HOUR,
-  WEEK_VIEW_DEFAULT_START_HOUR,
-} from "@/constants/schedule";
 import database from "@/database";
 import type ProviderWorkingHours from "@/database/models/ProviderWorkingHours";
 import {
-  normalizeScheduleHourRange,
-  parseScheduleHour,
+  buildHoursByWeekday,
+  hoursForDayKey as resolveHoursForDayKey,
+  hoursForWeekday as resolveHoursForWeekday,
+  scheduleHoursEnvelope,
+  type ScheduleHourRange,
 } from "@/helpers/scheduleHours";
 import { useAuthUser } from "@/stores/authStore";
+import type { DayKey, WeekdayIndex } from "@/utils/calendar";
 
-export type UserScheduleHours = {
+export type UserScheduleHours = ScheduleHourRange;
+
+export type UseUserScheduleHoursResult = {
+  /** Per-weekday ranges from `provider_working_hours` (0 = Sunday). */
+  hoursByWeekday: Partial<Record<WeekdayIndex, ScheduleHourRange>>;
+  /** True when the provider has at least one working-hours row. */
+  hasConfiguredHours: boolean;
+  /** Union window across open weekdays (week gutter / shared Y-axis). */
+  envelope: ScheduleHourRange;
+  /** Convenience: same as `envelope` for callers that still expect a single range. */
   startHour: number;
   endHour: number;
+  hoursForWeekday: (weekday: WeekdayIndex) => ScheduleHourRange | null;
+  hoursForDayKey: (dayKey: DayKey) => ScheduleHourRange | null;
 };
 
-/** Earliest start / latest end from synced provider_working_hours, with schedule defaults as fallback. */
-export function useUserScheduleHours(): UserScheduleHours {
+/** Working hours from synced `provider_working_hours`, keyed by weekday. */
+export function useUserScheduleHours(): UseUserScheduleHoursResult {
   const user = useAuthUser();
   const [rows, setRows] = useState<ProviderWorkingHours[]>([]);
 
@@ -38,27 +49,20 @@ export function useUserScheduleHours(): UserScheduleHours {
   }, [user?.id]);
 
   return useMemo(() => {
-    if (rows.length === 0) {
-      return normalizeScheduleHourRange(
-        WEEK_VIEW_DEFAULT_START_HOUR,
-        WEEK_VIEW_DEFAULT_END_HOUR,
-      );
-    }
+    const hoursByWeekday = buildHoursByWeekday(rows);
+    const hasConfiguredHours = Object.keys(hoursByWeekday).length > 0;
+    const envelope = scheduleHoursEnvelope(hoursByWeekday);
 
-    let startHour = Number.POSITIVE_INFINITY;
-    let endHour = Number.NEGATIVE_INFINITY;
-
-    for (const row of rows) {
-      startHour = Math.min(
-        startHour,
-        parseScheduleHour(row.startHour, WEEK_VIEW_DEFAULT_START_HOUR),
-      );
-      endHour = Math.max(
-        endHour,
-        parseScheduleHour(row.endHour, WEEK_VIEW_DEFAULT_END_HOUR),
-      );
-    }
-
-    return normalizeScheduleHourRange(startHour, endHour);
+    return {
+      hoursByWeekday,
+      hasConfiguredHours,
+      envelope,
+      startHour: envelope.startHour,
+      endHour: envelope.endHour,
+      hoursForWeekday: (weekday: WeekdayIndex) =>
+        resolveHoursForWeekday(hoursByWeekday, weekday, hasConfiguredHours),
+      hoursForDayKey: (dayKey: DayKey) =>
+        resolveHoursForDayKey(hoursByWeekday, dayKey, hasConfiguredHours),
+    };
   }, [rows]);
 }

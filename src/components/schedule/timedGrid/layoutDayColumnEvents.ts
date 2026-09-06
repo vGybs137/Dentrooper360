@@ -46,6 +46,8 @@ export function layoutDayColumnEvents(
   pxPerMinute: number,
   hourGap: number,
   gridEdgeInset: number = WEEK_VIEW_GRID_EDGE_INSET,
+  /** Y-axis anchor; defaults to `startHour`. Use envelope start in week view. */
+  gridStartHour: number = startHour,
 ): DayColumnPixelLayout {
   const previews = new Map<string, MonthDayEventPreview>();
   const timedInputs = [];
@@ -91,7 +93,7 @@ export function layoutDayColumnEvents(
         gridEdgeInset +
         minutesToYInWorkingWindow(
           item.startMinutes,
-          startHour,
+          gridStartHour,
           pxPerMinute,
           hourGap,
         ),
@@ -114,7 +116,7 @@ export function layoutDayColumnEvents(
         gridEdgeInset +
         minutesToYInWorkingWindow(
           overflow.startMinutes,
-          startHour,
+          gridStartHour,
           pxPerMinute,
           hourGap,
         ),

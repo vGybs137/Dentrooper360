@@ -1,12 +1,19 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { View, type NativeSyntheticEvent } from "react-native";
 import type { PagerViewOnPageSelectedEventData } from "react-native-pager-view";
 
 import { WEEK_VIEW_GUTTER_WIDTH } from "@/constants/schedule";
 import { useWeekAppointmentsCache } from "@/hooks/schedule/useWeekAppointmentsCache";
 import { useVisibleDay } from "@/hooks/schedule/useVisibleDay";
-import { selectCalendarDay, useCalendarSelectionStore } from "@/stores/calendarSelectionStore";
-import { weekStartDayKey, type WeekdayIndex } from "@/utils/calendar";
+import {
+  selectCalendarDay,
+  useCalendarSelectionStore,
+} from "@/stores/calendarSelectionStore";
+import {
+  coerceDayViewDayKey,
+  weekStartDayKey,
+  type WeekdayIndex,
+} from "@/utils/calendar";
 
 import { DayCalendarHeader } from "./DayCalendarHeader";
 import { DayCalendarPager } from "./DayCalendarPager";
@@ -15,9 +22,22 @@ export type DayCalendarProps = {
   weekStartsOn?: WeekdayIndex;
 };
 
-/** Day view shell — header and horizontally paged timed grids. */
+/** Day view shell — header and horizontally paged timed grids (Sundays skipped). */
 export function DayCalendar({ weekStartsOn = 0 }: DayCalendarProps) {
-  const selectedDayKey = useCalendarSelectionStore((state) => state.selectedDayKey);
+  const selectedDayKey = useCalendarSelectionStore(
+    (state) => state.selectedDayKey,
+  );
+  const dayViewDayKey = useMemo(
+    () => coerceDayViewDayKey(selectedDayKey),
+    [selectedDayKey],
+  );
+
+  useEffect(() => {
+    if (selectedDayKey !== dayViewDayKey) {
+      selectCalendarDay(dayViewDayKey);
+    }
+  }, [dayViewDayKey, selectedDayKey]);
+
   const {
     days,
     initialIndex,
@@ -26,7 +46,7 @@ export function DayCalendar({ weekStartsOn = 0 }: DayCalendarProps) {
     isDragging,
     onPageSelected,
     onPageScrollStateChanged,
-  } = useVisibleDay(selectedDayKey);
+  } = useVisibleDay(dayViewDayKey);
 
   const { ensureVisibleWindow, getEventsForDay } = useWeekAppointmentsCache({
     isDragging,
@@ -41,7 +61,7 @@ export function DayCalendar({ weekStartsOn = 0 }: DayCalendarProps) {
       onPageSelected(event);
       const nextDayKey = days[event.nativeEvent.position];
       if (nextDayKey) {
-        selectCalendarDay(nextDayKey);
+        selectCalendarDay(coerceDayViewDayKey(nextDayKey));
       }
     },
     [days, onPageSelected],

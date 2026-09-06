@@ -51,7 +51,11 @@ function MonthQuickAddFieldComponent({
 }: MonthQuickAddFieldProps) {
   const native = useNativeColors();
   const user = useAuthUser();
-  const { startHour, endHour } = useUserScheduleHours();
+  const { hoursForDayKey } = useUserScheduleHours();
+  const dayHours = useMemo(
+    () => hoursForDayKey(dayKey),
+    [dayKey, hoursForDayKey],
+  );
   const reservedRef = useRef<RNView>(null);
   const verticalPadRef = useRef(0);
   const submittingRef = useRef(false);
@@ -134,13 +138,21 @@ function MonthQuickAddFieldComponent({
     Keyboard.dismiss();
 
     try {
+      if (!dayHours) {
+        Alert.alert(
+          "Unable to add appointment",
+          "No working hours are configured for this day.",
+        );
+        return;
+      }
+
       const created = await createMonthQuickAddAppointment({
         text: trimmed,
         dayKey,
         events,
         providerId: user.id,
-        startHour,
-        endHour,
+        startHour: dayHours.startHour,
+        endHour: dayHours.endHour,
       });
       if (created) {
         setText("");
@@ -149,7 +161,7 @@ function MonthQuickAddFieldComponent({
       submittingRef.current = false;
       setIsSubmitting(false);
     }
-  }, [dayKey, endHour, events, startHour, text, user?.id]);
+  }, [dayHours, dayKey, events, text, user?.id]);
 
   const reservedStyle = useMemo(
     () => ({

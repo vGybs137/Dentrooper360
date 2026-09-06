@@ -2,8 +2,6 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import type { ScrollView as ScrollViewType } from "react-native-gesture-handler";
-import { useNativeColors } from "@/theme";
-import { semantic } from "@/tokens";
 
 import {
   buildHalfHourLineTops,
@@ -23,8 +21,11 @@ import {
   WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT,
   WEEK_VIEW_SCROLL_PADDING_MINUTES,
 } from "@/constants/schedule";
+import { withOpacity } from "@/helpers/color";
 import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
 import type { WeekEventsByDay } from "@/hooks/schedule/useWeekAppointmentsCache";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 import {
   addDays,
   gridHeightForHourRange,
@@ -80,7 +81,8 @@ function WeekTimeGridComponent({
   onVerticalScrollEnd,
 }: WeekTimeGridProps) {
   const native = useNativeColors();
-  const { startHour, endHour } = useUserScheduleHours();
+  const { envelope, hoursForDayKey } = useUserScheduleHours();
+  const { startHour: gridStartHour, endHour: gridEndHour } = envelope;
   const scrollRef = useRef<ScrollViewType>(null);
   const hasScrolledRef = useRef(false);
   const todayColumnIndex = useMemo(
@@ -90,68 +92,107 @@ function WeekTimeGridComponent({
   const [nowMinutes, setNowMinutes] = useState(() =>
     localMinutesFromMidnight(new Date()),
   );
+
+  const todayDayKey = useMemo(() => {
+    if (todayColumnIndex < 0) {
+      return null;
+    }
+    return toDayKey(addDays(parseDayKey(weekStartKey), todayColumnIndex));
+  }, [todayColumnIndex, weekStartKey]);
+
+  const todayHours = useMemo(
+    () => (todayDayKey ? hoursForDayKey(todayDayKey) : null),
+    [hoursForDayKey, todayDayKey],
+  );
+
   const showTodayNowIndicator =
     showNowIndicator &&
     todayColumnIndex >= 0 &&
-    isMinuteInWorkingWindow(nowMinutes, startHour, endHour);
+    todayHours != null &&
+    isMinuteInWorkingWindow(
+      nowMinutes,
+      todayHours.startHour,
+      todayHours.endHour,
+    );
 
   const pxPerMinute = hourHeight / MINUTES_PER_HOUR;
   const gridHeight = useMemo(
-    () => gridHeightForHourRange(startHour, endHour, pxPerMinute, hourGap),
-    [endHour, hourGap, pxPerMinute, startHour],
+    () =>
+      gridHeightForHourRange(
+        gridStartHour,
+        gridEndHour,
+        pxPerMinute,
+        hourGap,
+      ),
+    [gridEndHour, gridStartHour, hourGap, pxPerMinute],
   );
   const contentHeight = gridHeight + WEEK_VIEW_GRID_EDGE_INSET * 2;
+  const closedShade = withOpacity(native.foreground.muted, 0.08);
 
   const eventsByColumn = useMemo(() => {
     const weekStart = parseDayKey(weekStartKey);
 
     return Array.from({ length: WEEK_DAYS }, (_, columnIndex) => {
       const dayKey = toDayKey(addDays(weekStart, columnIndex));
+      const dayHours = hoursForDayKey(dayKey);
+      if (!dayHours) {
+        return { events: [], overflows: [] };
+      }
+
       return layoutDayColumnEvents(
         eventsByDay[dayKey] ?? [],
         dayKey,
-        startHour,
-        endHour,
+        dayHours.startHour,
+        dayHours.endHour,
         pxPerMinute,
         hourGap,
+        WEEK_VIEW_GRID_EDGE_INSET,
+        gridStartHour,
       );
     });
-  }, [endHour, eventsByDay, hourGap, pxPerMinute, startHour, weekStartKey]);
+  }, [
+    eventsByDay,
+    gridStartHour,
+    hourGap,
+    hoursForDayKey,
+    pxPerMinute,
+    weekStartKey,
+  ]);
 
   const hourLines = useMemo(
     () =>
       buildHourLineTops(
-        startHour,
-        endHour,
+        gridStartHour,
+        gridEndHour,
         pxPerMinute,
         hourGap,
         WEEK_VIEW_GRID_EDGE_INSET,
       ),
-    [endHour, hourGap, pxPerMinute, startHour],
+    [gridEndHour, gridStartHour, hourGap, pxPerMinute],
   );
 
   const halfHourLines = useMemo(
     () =>
       buildHalfHourLineTops(
-        startHour,
-        endHour,
+        gridStartHour,
+        gridEndHour,
         pxPerMinute,
         hourGap,
         WEEK_VIEW_GRID_EDGE_INSET,
       ),
-    [endHour, hourGap, pxPerMinute, startHour],
+    [gridEndHour, gridStartHour, hourGap, pxPerMinute],
   );
 
   const nowLineY = useMemo(
     () =>
       nowLineYForMinutes(
         nowMinutes,
-        startHour,
+        gridStartHour,
         pxPerMinute,
         hourGap,
         WEEK_VIEW_GRID_EDGE_INSET,
       ),
-    [hourGap, nowMinutes, pxPerMinute, startHour],
+    [gridStartHour, hourGap, nowMinutes, pxPerMinute],
   );
 
   const scrollToInitial = useCallback(() => {
@@ -159,10 +200,15 @@ function WeekTimeGridComponent({
 
     const anchorMinutes = showTodayNowIndicator
       ? nowMinutes
-      : startHour * MINUTES_PER_HOUR;
+      : gridStartHour * MINUTES_PER_HOUR;
     const anchorY =
       WEEK_VIEW_GRID_EDGE_INSET +
-      minutesToYInWorkingWindow(anchorMinutes, startHour, pxPerMinute, hourGap);
+      minutesToYInWorkingWindow(
+        anchorMinutes,
+        gridStartHour,
+        pxPerMinute,
+        hourGap,
+      );
     const paddingY = minutesToY(
       WEEK_VIEW_SCROLL_PADDING_MINUTES,
       pxPerMinute,
@@ -173,12 +219,12 @@ function WeekTimeGridComponent({
       animated: false,
     });
   }, [
+    gridStartHour,
     hourGap,
     nowMinutes,
     pxPerMinute,
     scrollToNowOnMount,
     showTodayNowIndicator,
-    startHour,
   ]);
 
   useEffect(() => {
@@ -188,6 +234,10 @@ function WeekTimeGridComponent({
     const id = setInterval(tick, 60_000);
     return () => clearInterval(id);
   }, [showTodayNowIndicator]);
+
+  useEffect(() => {
+    hasScrolledRef.current = false;
+  }, [weekStartKey, gridStartHour, gridEndHour]);
 
   const gridBorderColor = native.border.strong;
   const gridBorderWidth = semantic.borderWidth.strong;
@@ -228,8 +278,8 @@ function WeekTimeGridComponent({
           hourHeight={hourHeight}
           hourGap={hourGap}
           contentInsetTop={WEEK_VIEW_GRID_EDGE_INSET}
-          startHour={startHour}
-          endHour={endHour}
+          startHour={gridStartHour}
+          endHour={gridEndHour}
         />
 
         <View style={{ flex: 1, position: "relative" }}>
@@ -295,22 +345,36 @@ function WeekTimeGridComponent({
             {Array.from({ length: WEEK_DAYS }, (_, columnIndex) => {
               const weekStart = parseDayKey(weekStartKey);
               const dayKey = toDayKey(addDays(weekStart, columnIndex));
+              const dayHours = hoursForDayKey(dayKey);
 
               return (
                 <View
                   key={`day-col-${columnIndex}`}
                   style={{ flex: 1, position: "relative" }}
                 >
-                  <TimedGridSlotLayer
-                    contentHeight={contentHeight}
-                    dayKey={dayKey}
-                    endHour={endHour}
-                    gridEdgeInset={WEEK_VIEW_GRID_EDGE_INSET}
-                    hourGap={hourGap}
-                    pxPerMinute={pxPerMinute}
-                    startHour={startHour}
-                    variant="week"
-                  />
+                  {dayHours ? (
+                    <TimedGridSlotLayer
+                      contentHeight={contentHeight}
+                      dayKey={dayKey}
+                      endHour={dayHours.endHour}
+                      gridEdgeInset={WEEK_VIEW_GRID_EDGE_INSET}
+                      gridEndHour={gridEndHour}
+                      gridStartHour={gridStartHour}
+                      hourGap={hourGap}
+                      pxPerMinute={pxPerMinute}
+                      startHour={dayHours.startHour}
+                      variant="week"
+                    />
+                  ) : (
+                    <View
+                      pointerEvents="none"
+                      style={{
+                        ...{ position: "absolute", left: 0, right: 0, top: 0 },
+                        height: contentHeight,
+                        backgroundColor: closedShade,
+                      }}
+                    />
+                  )}
                   {eventsByColumn[columnIndex]?.events.map((block) => (
                     <WeekEventBlock
                       key={block.event.id}
@@ -321,16 +385,18 @@ function WeekTimeGridComponent({
                       width={block.width}
                     />
                   ))}
-                  {eventsByColumn[columnIndex]?.overflows.map((overflow, index) => (
-                    <TimedGridOverflowChip
-                      key={`overflow-${columnIndex}-${index}`}
-                      count={overflow.count}
-                      top={overflow.top}
-                      height={overflow.height}
-                      left={overflow.left}
-                      width={overflow.width}
-                    />
-                  ))}
+                  {eventsByColumn[columnIndex]?.overflows.map(
+                    (overflow, index) => (
+                      <TimedGridOverflowChip
+                        key={`overflow-${columnIndex}-${index}`}
+                        count={overflow.count}
+                        top={overflow.top}
+                        height={overflow.height}
+                        left={overflow.left}
+                        width={overflow.width}
+                      />
+                    ),
+                  )}
                 </View>
               );
             })}
