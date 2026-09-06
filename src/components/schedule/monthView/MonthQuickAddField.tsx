@@ -1,7 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Alert,
   Keyboard,
+  Modal,
   Platform,
   View,
   type View as RNView,
@@ -16,6 +16,10 @@ import Animated, {
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
+import {
+  FeedbackOverlay,
+  type FeedbackOverlayProps,
+} from "@/components/app/FeedbackOverlay";
 import { Button, ThemedIcon, ThemedText } from "@/components/ui";
 import {
   MONTH_QUICK_ADD_COLLAPSED_HEIGHT,
@@ -51,7 +55,7 @@ function MonthQuickAddFieldComponent({
 }: MonthQuickAddFieldProps) {
   const native = useNativeColors();
   const user = useAuthUser();
-  const { hoursForDayKey } = useUserScheduleHours();
+  const { hoursForDayKey, envelope } = useUserScheduleHours();
   const dayHours = useMemo(
     () => hoursForDayKey(dayKey),
     [dayKey, hoursForDayKey],
@@ -62,9 +66,28 @@ function MonthQuickAddFieldComponent({
   const [text, setText] = useState("");
   const [focused, setFocused] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<FeedbackOverlayProps | null>(null);
   const focusProgress = useSharedValue(0);
   /** How far to lift the pill so it sits on the keyboard (not full keyboard height). */
   const liftSV = useSharedValue(0);
+
+  const dismissFeedback = useCallback(() => {
+    setFeedback(null);
+  }, []);
+
+  const showErrorFeedback = useCallback(
+    (title: string, message: string) => {
+      setFeedback({
+        stage: "error",
+        title,
+        message,
+        retryLabel: "Dismiss",
+        onRetry: dismissFeedback,
+        onDismiss: dismissFeedback,
+      });
+    },
+    [dismissFeedback],
+  );
 
   // Equal inset above/below the pill. Do not use safe-area bottom — NativeTabs
   // already sit under this screen, so insets.bottom would leave a large empty gap.
@@ -126,7 +149,7 @@ function MonthQuickAddFieldComponent({
     if (!trimmed || submittingRef.current) return;
 
     if (!user?.id) {
-      Alert.alert(
+      showErrorFeedback(
         "Unable to add appointment",
         "You must be signed in to create an appointment.",
       );
@@ -138,30 +161,37 @@ function MonthQuickAddFieldComponent({
     Keyboard.dismiss();
 
     try {
-      if (!dayHours) {
-        Alert.alert(
-          "Unable to add appointment",
-          "No working hours are configured for this day.",
-        );
-        return;
-      }
-
-      const created = await createMonthQuickAddAppointment({
+      const result = await createMonthQuickAddAppointment({
         text: trimmed,
         dayKey,
         events,
         providerId: user.id,
-        startHour: dayHours.startHour,
-        endHour: dayHours.endHour,
+        parseStartHour: dayHours?.startHour ?? envelope.startHour,
+        parseEndHour: dayHours?.endHour ?? envelope.endHour,
+        hoursForDayKey,
       });
-      if (created) {
+      if (result.ok) {
         setText("");
+        return;
       }
+
+      showErrorFeedback(result.title, result.message);
     } finally {
       submittingRef.current = false;
       setIsSubmitting(false);
     }
-  }, [dayHours, dayKey, events, text, user?.id]);
+  }, [
+    dayHours?.endHour,
+    dayHours?.startHour,
+    dayKey,
+    envelope.endHour,
+    envelope.startHour,
+    events,
+    hoursForDayKey,
+    showErrorFeedback,
+    text,
+    user?.id,
+  ]);
 
   const reservedStyle = useMemo(
     () => ({
@@ -239,53 +269,63 @@ function MonthQuickAddFieldComponent({
   );
 
   return (
-    <View ref={reservedRef} pointerEvents="box-none" style={reservedStyle}>
-      <Animated.View style={[slotStyle, pillAnimatedStyle]}>
-        <View style={pillStaticStyle}>
-          <ThemedText
-            as="input"
-            accessibilityLabel="Quick add appointment"
-            blurOnSubmit
-            className="py-0"
-            containerClassName="min-h-0 flex-1 gap-0"
-            editable={!isSubmitting}
-            fieldVariant="bare"
-            onBlur={() => setFocused(false)}
-            onChangeText={setText}
-            onFocus={() => setFocused(true)}
-            onSubmitEditing={() => {
-              void handleSubmit();
-            }}
-            placeholder={placeholder}
-            returnKeyType="done"
-            style={inputChromeStyle}
-            value={text}
-          />
-          <Button
-            accessibilityLabel="Add appointment"
-            accessibilityState={{ disabled: !canSubmit }}
-            disabled={!canSubmit}
-            hitSlop={8}
-            onPress={() => {
-              void handleSubmit();
-            }}
-            size="none"
-            style={plusHitStyle}
-            tone="neutral"
-            variant="ghost"
-          >
-            <ThemedIcon
-              dimension={22}
-              name={{
-                ios: "plus",
-                android: "add",
-                web: "add",
+    <>
+      <View ref={reservedRef} pointerEvents="box-none" style={reservedStyle}>
+        <Animated.View style={[slotStyle, pillAnimatedStyle]}>
+          <View style={pillStaticStyle}>
+            <ThemedText
+              as="input"
+              accessibilityLabel="Quick add appointment"
+              blurOnSubmit
+              className="py-0"
+              containerClassName="min-h-0 flex-1 gap-0"
+              editable={!isSubmitting}
+              fieldVariant="bare"
+              onBlur={() => setFocused(false)}
+              onChangeText={setText}
+              onFocus={() => setFocused(true)}
+              onSubmitEditing={() => {
+                void handleSubmit();
               }}
+              placeholder={placeholder}
+              returnKeyType="done"
+              style={inputChromeStyle}
+              value={text}
             />
-          </Button>
-        </View>
-      </Animated.View>
-    </View>
+            <Button
+              accessibilityLabel="Add appointment"
+              accessibilityState={{ disabled: !canSubmit }}
+              disabled={!canSubmit}
+              hitSlop={8}
+              onPress={() => {
+                void handleSubmit();
+              }}
+              size="none"
+              style={plusHitStyle}
+              tone="neutral"
+              variant="ghost"
+            >
+              <ThemedIcon
+                dimension={22}
+                name={{
+                  ios: "plus",
+                  android: "add",
+                  web: "add",
+                }}
+              />
+            </Button>
+          </View>
+        </Animated.View>
+      </View>
+
+      {feedback ? (
+        <Modal animationType="fade" statusBarTranslucent transparent visible>
+          <View className="flex-1">
+            <FeedbackOverlay {...feedback} />
+          </View>
+        </Modal>
+      ) : null}
+    </>
   );
 }
 
