@@ -73,16 +73,24 @@ function OverviewSectionCard({ title, fields }: OverviewSectionCardProps) {
 type PatientOverviewTabProps = {
   information: readonly PatientOverviewField[];
   timeline: readonly PatientOverviewField[];
+  informationTitle?: string;
+  timelineTitle?: string;
 };
 
 export function PatientOverviewTab({
   information,
   timeline,
+  informationTitle = "Patient Information",
+  timelineTitle = "Patient Timeline",
 }: PatientOverviewTabProps) {
   return (
     <View className="gap-stack px-page">
-      <OverviewSectionCard fields={information} title="Patient Information" />
-      <OverviewSectionCard fields={timeline} title="Patient Timeline" />
+      {information.length > 0 ? (
+        <OverviewSectionCard fields={information} title={informationTitle} />
+      ) : null}
+      {timeline.length > 0 ? (
+        <OverviewSectionCard fields={timeline} title={timelineTitle} />
+      ) : null}
     </View>
   );
 }

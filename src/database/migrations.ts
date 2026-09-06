@@ -56,5 +56,22 @@ export default schemaMigrations({
         unsafeExecuteSql("ALTER TABLE payments DROP COLUMN is_posted;"),
       ],
     },
+    {
+      toVersion: 6,
+      steps: [
+        unsafeExecuteSql("ALTER TABLE patients DROP COLUMN vip_status_date;"),
+        addColumns({
+          table: "recalls",
+          columns: [
+            {
+              name: "appointment_id",
+              type: "string",
+              isOptional: true,
+              isIndexed: true,
+            },
+          ],
+        }),
+      ],
+    },
   ],
 });

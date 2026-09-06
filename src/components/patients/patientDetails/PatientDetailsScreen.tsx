@@ -131,12 +131,6 @@ function buildTimelineFields(
       value: nextVisitLabel ?? "None scheduled",
       empty: !nextVisitLabel,
     },
-    {
-      label: "VIP status date",
-      ...(patient.isVip
-        ? formatOverviewDate(patient.vipStatusDate)
-        : { value: "Not a VIP", empty: true }),
-    },
   ];
 }
 

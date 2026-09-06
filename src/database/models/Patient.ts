@@ -17,7 +17,6 @@ export default class Patient extends Model {
 
   @field("currency") currency!: string | null;
   @field("is_vip") isVip!: boolean;
-  @date("vip_status_date") vipStatusDate!: Date | null;
   @field("balance") balance!: number;
   @field("gender") gender!: string | null;
   @field("blood_type") bloodType!: string | null;

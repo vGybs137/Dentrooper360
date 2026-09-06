@@ -40,6 +40,7 @@ function RootLayout() {
               <Stack.Screen name="patients/search" />
               <Stack.Screen name="patients/[id]" />
               <Stack.Screen name="payments/search" />
+              <Stack.Screen name="recalls/search" />
               <Stack.Screen name="recalls/[id]" />
             </Stack>
             <AddAppointmentSheet />

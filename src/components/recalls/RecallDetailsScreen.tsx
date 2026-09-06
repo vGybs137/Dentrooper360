@@ -1,0 +1,321 @@
+import dayjs from "dayjs";
+import { useRouter, type Href } from "expo-router";
+import { useCallback, useMemo } from "react";
+import { ActivityIndicator, ScrollView, View } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
+
+import type { PatientOverviewField } from "@/components/patients/patientDetails/PatientOverviewTab";
+import { PatientOverviewTab } from "@/components/patients/patientDetails/PatientOverviewTab";
+import { RecallDetailsActionBar } from "@/components/recalls/RecallDetailsActionBar";
+import { RecallDetailsHero } from "@/components/recalls/RecallDetailsHero";
+import { Button, ThemedText, ThemedView } from "@/components/ui";
+import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
+import { openPatientWhatsApp } from "@/helpers/patientContact";
+import { formatPatientPhone } from "@/helpers/patientDisplay";
+import { hasRecallAppointment } from "@/helpers/recallKpis";
+import type { PatientDetailsData } from "@/hooks/usePatientDetails";
+import {
+  toAppointmentPatientDraft,
+  useRecallDetails,
+  type RecallDetailsData,
+} from "@/hooks/useRecallDetails";
+import { useAddAppointmentStore } from "@/stores";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
+
+export type RecallDetailsScreenProps = {
+  recallId: string | undefined;
+};
+
+function formatOverviewDate(value: Date | null | undefined): {
+  value: string;
+  empty: boolean;
+} {
+  if (!value || Number.isNaN(value.getTime())) {
+    return { value: "Not set", empty: true };
+  }
+
+  return { value: dayjs(value).format("D MMM, YYYY"), empty: false };
+}
+
+function displayOrEmpty(
+  value: string | null | undefined,
+  emptyLabel: string,
+): { value: string; empty: boolean } {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return { value: emptyLabel, empty: true };
+  }
+
+  return { value: trimmed, empty: false };
+}
+
+function formatIntervalDays(value: number): string {
+  if (!Number.isFinite(value)) {
+    return "—";
+  }
+
+  if (value === 1) {
+    return "1 day";
+  }
+
+  return `${value} days`;
+}
+
+function recallStatusLabel(recall: RecallDetailsData): string {
+  if (hasRecallAppointment(recall.appointmentId)) {
+    const start = recall.appointmentStartTime;
+    if (start && !Number.isNaN(start.getTime())) {
+      const days = dayjs(start)
+        .startOf("day")
+        .diff(dayjs().startOf("day"), "day");
+      if (days <= 0) {
+        return "Done";
+      }
+    }
+    return "Scheduled";
+  }
+
+  const due = recall.dueDate;
+  if (!due || Number.isNaN(due.getTime())) {
+    return "—";
+  }
+
+  if (dayjs(due).isBefore(dayjs().startOf("day"))) {
+    return "Overdue";
+  }
+
+  if (dayjs(due).isSame(dayjs(), "day")) {
+    return "Due today";
+  }
+
+  return "Upcoming";
+}
+
+function buildRecallInformationFields(
+  recall: RecallDetailsData,
+): PatientOverviewField[] {
+  const note = displayOrEmpty(recall.note, "No note");
+  const serviceCode = displayOrEmpty(recall.serviceCode, "No code");
+
+  return [
+    { label: "Service", value: recall.serviceName },
+    { label: "Service code", ...serviceCode },
+    { label: "Status", value: recallStatusLabel(recall) },
+    { label: "Note", ...note },
+  ];
+}
+
+function buildRecallTimelineFields(
+  recall: RecallDetailsData,
+): PatientOverviewField[] {
+  const dueDate = formatOverviewDate(recall.dueDate);
+  const recallDate = formatOverviewDate(recall.date);
+  const appointmentDate = formatOverviewDate(recall.appointmentStartTime);
+  const appointmentStatus = displayOrEmpty(
+    recall.appointmentStatus,
+    "No appointment",
+  );
+
+  return [
+    { label: "Due date", ...dueDate },
+    { label: "Recall date", ...recallDate },
+    {
+      label: "Interval",
+      value: formatIntervalDays(recall.interval),
+    },
+    {
+      label: "Reminder",
+      value: formatIntervalDays(recall.reminderInterval),
+    },
+    {
+      label: "Appointment",
+      value: hasRecallAppointment(recall.appointmentId)
+        ? appointmentDate.value
+        : "Not linked",
+      empty: !hasRecallAppointment(recall.appointmentId) || appointmentDate.empty,
+    },
+    {
+      label: "Appt status",
+      ...appointmentStatus,
+      empty:
+        !hasRecallAppointment(recall.appointmentId) || appointmentStatus.empty,
+    },
+  ];
+}
+
+function buildPatientContactFields(
+  patient: PatientDetailsData,
+): PatientOverviewField[] {
+  const phone = displayOrEmpty(
+    formatPatientPhone(patient.countryCode, patient.phoneNumber),
+    "No phone",
+  );
+  const email = displayOrEmpty(patient.emailAddress, "No email");
+  const address = displayOrEmpty(patient.address, "No address");
+
+  return [
+    { label: "Phone", ...phone },
+    { label: "Email", ...email },
+    { label: "Address", ...address },
+    {
+      label: "VIP status",
+      value: patient.isVip ? "VIP" : "Normal",
+    },
+  ];
+}
+
+export function RecallDetailsScreen({ recallId }: RecallDetailsScreenProps) {
+  const native = useNativeColors();
+  const router = useRouter();
+  const slideDuration = getAuthSlideDuration();
+  const openWithPatient = useAddAppointmentStore(
+    (state) => state.openWithPatient,
+  );
+  const { recall, patient, isLoading, error } = useRecallDetails(recallId);
+
+  const recallInformation = useMemo(
+    () => (recall ? buildRecallInformationFields(recall) : []),
+    [recall],
+  );
+
+  const recallTimeline = useMemo(
+    () => (recall ? buildRecallTimelineFields(recall) : []),
+    [recall],
+  );
+
+  const patientContact = useMemo(
+    () => (patient ? buildPatientContactFields(patient) : []),
+    [patient],
+  );
+
+  const goBack = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace("/(tabs)/recalls" as Href);
+  }, [router]);
+
+  const handleViewPatient = useCallback(() => {
+    if (!patient?.id) {
+      return;
+    }
+
+    router.push(`/patients/${patient.id}` as Href);
+  }, [patient, router]);
+
+  const handleAppointment = useCallback(() => {
+    if (!recall || !patient) {
+      return;
+    }
+
+    if (hasRecallAppointment(recall.appointmentId)) {
+      router.push(`/appointments/${recall.appointmentId}` as Href);
+      return;
+    }
+
+    openWithPatient(toAppointmentPatientDraft(patient));
+  }, [openWithPatient, patient, recall, router]);
+
+  const handleMessage = useCallback(() => {
+    if (!patient) {
+      return;
+    }
+
+    void openPatientWhatsApp(patient.countryCode, patient.phoneNumber);
+  }, [patient]);
+
+  if (isLoading) {
+    return (
+      <ThemedView
+        contentClassName="items-center justify-center"
+        inset="none"
+        padBottom={false}
+        scroll={false}
+        variant="screen"
+      >
+        <ActivityIndicator color={native.brand.default} />
+      </ThemedView>
+    );
+  }
+
+  if (error || !recall || !recall.isActive || !patient) {
+    return (
+      <ThemedView
+        contentClassName="items-center justify-center px-page"
+        inset="none"
+        padBottom={false}
+        scroll={false}
+        variant="screen"
+      >
+        <ThemedView align="center" space="default" variant="stack">
+          <ThemedText align="center" tone="muted">
+            {error
+              ? "Unable to load this recall."
+              : "This recall could not be found."}
+          </ThemedText>
+          <Button
+            label="Back to recalls"
+            onPress={goBack}
+            tone="neutral"
+            variant="outline"
+          />
+        </ThemedView>
+      </ThemedView>
+    );
+  }
+
+  return (
+    <ThemedView
+      edges={["bottom", "left", "right"]}
+      inset="none"
+      padBottom={false}
+      scroll={false}
+      variant="screen"
+    >
+      <RecallDetailsHero
+        hasAppointment={hasRecallAppointment(recall.appointmentId)}
+        onAppointment={handleAppointment}
+        onMessage={handleMessage}
+        onViewPatient={handleViewPatient}
+        patient={patient}
+      />
+
+      <View
+        className="min-h-0 flex-1 pt-stack"
+        style={{
+          paddingBottom: semantic.space.stack.compact,
+        }}
+      >
+        <Animated.View
+          className="min-h-0 flex-1"
+          entering={FadeIn.duration(slideDuration).easing(AUTH_SLIDE_EASING)}
+        >
+          <ScrollView
+            contentContainerStyle={{
+              gap: semantic.space.gap.default,
+              paddingBottom: semantic.space.page,
+            }}
+            showsVerticalScrollIndicator={false}
+          >
+            <PatientOverviewTab
+              information={recallInformation}
+              informationTitle="Recall Information"
+              timeline={recallTimeline}
+              timelineTitle="Recall Timeline"
+            />
+            <PatientOverviewTab
+              information={patientContact}
+              informationTitle="Patient Information"
+              timeline={[]}
+            />
+          </ScrollView>
+        </Animated.View>
+      </View>
+
+      <RecallDetailsActionBar onBack={goBack} />
+    </ThemedView>
+  );
+}

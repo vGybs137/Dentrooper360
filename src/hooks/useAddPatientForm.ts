@@ -531,11 +531,6 @@ export function useAddPatientForm() {
             entry.address = data.address.trim() || null;
             entry.referralSource = data.referralSource.trim() || null;
             entry.isVip = data.isVip;
-            if (data.isVip && !record.isVip) {
-              entry.vipStatusDate = new Date();
-            } else if (!data.isVip) {
-              entry.vipStatusDate = null;
-            }
           });
         } else {
           const created = await database
@@ -555,7 +550,6 @@ export function useAddPatientForm() {
               record.fileDate = new Date();
               record.isActive = true;
               record.isVip = data.isVip;
-              record.vipStatusDate = data.isVip ? new Date() : null;
               record.balance = 0;
             });
           patientId = created.id;
