@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import { memo, useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 
+import { FormSectionErrorTrigger } from "@/components/patients/addPatient/FormSectionErrorTrigger";
 import { ActionMenu, ThemedIcon } from "@/components/ui";
 import { infoIcon } from "@/constants";
 import { useDayFreeHours } from "@/hooks/useDayFreeHours";
@@ -11,36 +12,49 @@ type AppointmentDayFreeHoursInfoProps = {
   date: Date;
   startTime: Date;
   endTime: Date;
+  /** After a failed submit, replace free-hours with the outside-hours error. */
+  showOutsideHoursError?: boolean;
 };
+
+const OUTSIDE_HOURS_ERROR =
+  "This time is outside your working hours for this day.";
 
 function AppointmentDayFreeHoursInfoComponent({
   date,
   startTime,
   endTime,
+  showOutsideHoursError = false,
 }: AppointmentDayFreeHoursInfoProps) {
   const editingAppointmentId = useAddAppointmentStore(
     (state) => state.editingAppointmentId,
   );
-  const { labels, overlapsSelection } = useDayFreeHours(date, {
-    excludeAppointmentId: editingAppointmentId,
-    selectionStart: startTime,
-    selectionEnd: endTime,
-  });
+  const { labels, overlapsSelection } = useDayFreeHours(
+    date,
+    {
+      excludeAppointmentId: editingAppointmentId,
+      selectionStart: startTime,
+      selectionEnd: endTime,
+    },
+  );
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
+    if (showOutsideHoursError) {
+      return;
+    }
+
     if (overlapsSelection) {
       setMenuOpen(true);
     }
-  }, [overlapsSelection, endTime, startTime]);
+  }, [overlapsSelection, endTime, showOutsideHoursError, startTime]);
 
-  const title = useMemo(
-    () =>
-      overlapsSelection
-        ? "Overlapping appointments"
-        : `Free hours · ${dayjs(date).format("D MMM, YYYY")}`,
-    [date, overlapsSelection],
-  );
+  const title = useMemo(() => {
+    if (overlapsSelection) {
+      return "Overlapping appointments";
+    }
+
+    return `Free hours · ${dayjs(date).format("D MMM, YYYY")}`;
+  }, [date, overlapsSelection]);
 
   const items = useMemo(
     () =>
@@ -52,6 +66,16 @@ function AppointmentDayFreeHoursInfoComponent({
       })),
     [labels],
   );
+
+  if (showOutsideHoursError) {
+    return (
+      <FormSectionErrorTrigger
+        accessibilityLabel="Show working hours error"
+        errors={[OUTSIDE_HOURS_ERROR]}
+        title="Working hours"
+      />
+    );
+  }
 
   return (
     <ActionMenu

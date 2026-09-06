@@ -6,6 +6,7 @@ import type Appointment from "@/database/models/Appointment";
 import {
   computeDayFreeIntervals,
   formatDayFreeHourLabels,
+  selectionOutsideWorkingHours,
   selectionOverlapsBusyIntervals,
   type DayBusyInterval,
 } from "@/helpers/dayFreeHours";
@@ -129,10 +130,24 @@ export function useDayFreeHours(
     );
   }, [events, selectionEnd, selectionStart]);
 
+  const outsideWorkingHours = useMemo(() => {
+    if (!selectionStart || !selectionEnd) {
+      return false;
+    }
+
+    return selectionOutsideWorkingHours(
+      selectionStart.getTime(),
+      selectionEnd.getTime(),
+      dayStartMs,
+      dayHours,
+    );
+  }, [dayHours, dayStartMs, selectionEnd, selectionStart]);
+
   return {
     labels,
     isLoading,
     freeIntervals,
     overlapsSelection,
+    outsideWorkingHours,
   };
 }

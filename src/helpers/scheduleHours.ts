@@ -162,3 +162,22 @@ export function hoursForDayKey(
     hasConfiguredHours,
   );
 }
+
+/** Weekday indexes (0 = Sunday) with no working hours when hours are configured. */
+export function closedWeekdayIndexes(
+  hoursByWeekday: Partial<Record<WeekdayIndex, ScheduleHourRange>>,
+  hasConfiguredHours: boolean,
+): WeekdayIndex[] {
+  if (!hasConfiguredHours) {
+    return [];
+  }
+
+  const closed: WeekdayIndex[] = [];
+  for (let day = 0; day <= 6; day += 1) {
+    const weekday = day as WeekdayIndex;
+    if (hoursForWeekday(hoursByWeekday, weekday, true) == null) {
+      closed.push(weekday);
+    }
+  }
+  return closed;
+}

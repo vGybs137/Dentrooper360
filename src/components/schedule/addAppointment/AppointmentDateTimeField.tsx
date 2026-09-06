@@ -22,6 +22,7 @@ type AppointmentDateTimeFieldProps = {
   onChangeEnd: (time: Date) => void;
   expanded: AppointmentDateTimeExpanded;
   onExpandedChange: (expanded: AppointmentDateTimeExpanded) => void;
+  showOutsideHoursError?: boolean;
 };
 
 function SelectionPill({
@@ -63,6 +64,7 @@ export function AppointmentDateTimeField({
   onChangeEnd,
   expanded,
   onExpandedChange,
+  showOutsideHoursError = false,
 }: AppointmentDateTimeFieldProps) {
   const hourFormat = useHourFormat();
   const timePattern = dayjsTimePattern(hourFormat);
@@ -123,6 +125,7 @@ export function AppointmentDateTimeField({
           <AppointmentDayFreeHoursInfo
             date={startTime}
             endTime={endTime}
+            showOutsideHoursError={showOutsideHoursError}
             startTime={startTime}
           />
         </View>

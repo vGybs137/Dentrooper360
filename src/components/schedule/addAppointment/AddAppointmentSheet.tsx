@@ -71,7 +71,6 @@ export function AddAppointmentSheet() {
   const formState = useAddAppointmentForm();
   const {
     step,
-    canSubmit,
     isSubmitting,
     submitError,
     isEditing,
@@ -270,9 +269,7 @@ export function AddAppointmentSheet() {
             <Button
               bottomSheet
               className="min-w-[120px]"
-              disabled={
-                step === "patient" ? false : !canSubmit || isSubmitting
-              }
+              disabled={isSubmitting}
               label={
                 step === "patient"
                   ? "Next"
@@ -293,7 +290,6 @@ export function AddAppointmentSheet() {
       </BottomSheetFooter>
     ),
     [
-      canSubmit,
       handleBack,
       handleNext,
       handleSubmit,
