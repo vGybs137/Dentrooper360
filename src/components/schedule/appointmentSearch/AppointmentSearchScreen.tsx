@@ -196,6 +196,8 @@ export function AppointmentSearchScreen() {
   const flatListRef = useRef<Animated.FlatList<SearchDayGroup>>(null);
 
   const dayGroups = useMemo(() => groupResultsByDay(results), [results]);
+  const dayGroupsRef = useRef(dayGroups);
+  dayGroupsRef.current = dayGroups;
   const dayGroupKeys = useMemo(
     () => dayGroups.map((group) => group.dayKey).join("|"),
     [dayGroups],
@@ -297,12 +299,19 @@ export function AppointmentSearchScreen() {
 
     const todayKey = toDayKey(todayCalendarDate());
     const index = findClosestDayGroupIndex(dayGroups, todayKey);
-    if (index < 0) {
+    if (index < 0 || index >= dayGroups.length) {
       return;
     }
 
+    let frame: number | null = null;
     const timer = setTimeout(() => {
-      requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        // Results may have cleared between schedule and fire.
+        if (index >= dayGroupsRef.current.length) {
+          return;
+        }
+
         flatListRef.current?.scrollToIndex({
           index,
           animated: true,
@@ -312,7 +321,12 @@ export function AppointmentSearchScreen() {
       });
     }, 120);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      if (frame != null) {
+        cancelAnimationFrame(frame);
+      }
+    };
     // dayGroups is read when dayGroupKeys / searchKey change (same render).
     // eslint-disable-next-line react-hooks/exhaustive-deps -- avoid re-anchoring on live result refreshes
   }, [
@@ -329,11 +343,26 @@ export function AppointmentSearchScreen() {
       highestMeasuredFrameIndex: number;
       averageItemLength: number;
     }) => {
+      if (
+        info.index < 0 ||
+        dayGroupsRef.current.length === 0 ||
+        info.index >= dayGroupsRef.current.length
+      ) {
+        return;
+      }
+
       flatListRef.current?.scrollToOffset({
         offset: Math.max(0, info.averageItemLength * info.index),
         animated: false,
       });
       requestAnimationFrame(() => {
+        if (
+          info.index < 0 ||
+          info.index >= dayGroupsRef.current.length
+        ) {
+          return;
+        }
+
         flatListRef.current?.scrollToIndex({
           index: info.index,
           animated: true,
