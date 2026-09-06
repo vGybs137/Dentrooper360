@@ -4,6 +4,4 @@ export type AuthUser = {
   email: string | null;
   currencySymbol: string | null;
   color: number | null;
-  startingHour: string;
-  endingHour: string;
 };

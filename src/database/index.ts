@@ -8,6 +8,7 @@ import {
   Location,
   Patient,
   Payment,
+  ProviderWorkingHours,
   Recall,
   Service,
 } from "./models";
@@ -33,6 +34,7 @@ const database = new Database({
   modelClasses: [
     AppointmentType,
     Location,
+    ProviderWorkingHours,
     Patient,
     Appointment,
     Service,

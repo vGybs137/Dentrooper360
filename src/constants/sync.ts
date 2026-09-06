@@ -11,6 +11,7 @@ export const SYNC_AFTER_WRITE_DEBOUNCE_MS = 2500;
 export const SYNC_TABLE_NAMES = [
   "appointment_types",
   "locations",
+  "provider_working_hours",
   "patients",
   "appointments",
   "services",

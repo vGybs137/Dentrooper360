@@ -1,7 +1,7 @@
 import { appSchema, tableSchema } from "@nozbe/watermelondb";
 
 export default appSchema({
-  version: 6,
+  version: 7,
   tables: [
     tableSchema({
       name: "appointment_types",
@@ -18,6 +18,15 @@ export default appSchema({
         { name: "name_en", type: "string" },
         { name: "name_ar", type: "string", isOptional: true },
         { name: "name_fr", type: "string", isOptional: true },
+      ],
+    }),
+    tableSchema({
+      name: "provider_working_hours",
+      columns: [
+        { name: "provider_id", type: "string", isIndexed: true },
+        { name: "day_of_week", type: "number", isIndexed: true },
+        { name: "start_hour", type: "string" },
+        { name: "end_hour", type: "string" },
       ],
     }),
     tableSchema({
