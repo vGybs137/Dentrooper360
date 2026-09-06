@@ -42,6 +42,8 @@ export type CreateMonthQuickAddArgs = {
   parseEndHour: number;
   /** Resolve working hours for the targeted day (null = closed). */
   hoursForDayKey: (dayKey: DayKey) => ScheduleHourRange | null;
+  /** When set (e.g. from suggestion picker), wins over parser patient match. */
+  patientId?: string | null;
 };
 
 export type CreateMonthQuickAddResult =
@@ -156,6 +158,7 @@ export async function createMonthQuickAddAppointment({
   parseStartHour,
   parseEndHour,
   hoursForDayKey,
+  patientId: forcedPatientId = null,
 }: CreateMonthQuickAddArgs): Promise<CreateMonthQuickAddResult> {
   const trimmed = text.trim();
   if (!trimmed) {
@@ -223,13 +226,14 @@ export async function createMonthQuickAddAppointment({
 
   const locationId = parsed.locationId ?? fallbackLocationId;
   const subject = parsed.subject.trim() || trimmed;
+  const patientId = forcedPatientId || parsed.patientId;
 
   try {
     await database.write(async () => {
       await database.get<Appointment>("appointments").create((record) => {
         record._raw.id = generateGuid();
         record.providerId = providerId;
-        record.patientId = parsed.patientId;
+        record.patientId = patientId;
         record.typeId = parsed.typeId;
         record.locationId = locationId;
         record.subject = subject;
