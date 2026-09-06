@@ -11,6 +11,12 @@ import {
 
 export type RecallDueBucket = "overdue" | "dueToday" | "dueThisWeek" | "later";
 
+export type RecallDueInput = {
+  dueDate: Date;
+  /** Linked appointment id; overdue only when missing after the due date. */
+  appointmentId?: string | null;
+};
+
 export type RecallListKpis = {
   overdue: number;
   dueToday: number;
@@ -49,9 +55,20 @@ export function getRecallDueBounds(
   return { todayStart, tomorrowStart, weekEndExclusive };
 }
 
+export function hasRecallAppointment(
+  appointmentId: string | null | undefined,
+): boolean {
+  return Boolean(appointmentId?.trim());
+}
+
+/**
+ * Overdue = due date has passed and the recall has no linked appointment.
+ * Past-due recalls with an appointment are treated as handled (`later`).
+ */
 export function classifyRecallDueDate(
   dueDate: Date | null | undefined,
   bounds: RecallDueBounds,
+  appointmentId?: string | null,
 ): RecallDueBucket | null {
   if (!dueDate || Number.isNaN(dueDate.getTime())) {
     return null;
@@ -59,7 +76,7 @@ export function classifyRecallDueDate(
 
   const due = dayjs(dueDate);
   if (due.isBefore(bounds.todayStart)) {
-    return "overdue";
+    return hasRecallAppointment(appointmentId) ? "later" : "overdue";
   }
   if (due.isBefore(bounds.tomorrowStart)) {
     return "dueToday";
@@ -71,7 +88,7 @@ export function classifyRecallDueDate(
 }
 
 export function computeRecallListKpis(
-  recalls: { dueDate: Date }[],
+  recalls: RecallDueInput[],
   referenceDate: Dayjs = dayjs(),
   weekStartsOn: WeekdayIndex = 1,
 ): RecallListKpis {
@@ -81,7 +98,11 @@ export function computeRecallListKpis(
   let dueThisWeek = 0;
 
   for (const recall of recalls) {
-    const bucket = classifyRecallDueDate(recall.dueDate, bounds);
+    const bucket = classifyRecallDueDate(
+      recall.dueDate,
+      bounds,
+      recall.appointmentId,
+    );
     if (bucket === "overdue") {
       overdue += 1;
     } else if (bucket === "dueToday") {
@@ -105,8 +126,8 @@ export function computeRecallListKpis(
 
 /** Sort by urgency: overdue → due today → this week → later, then by due date. */
 export function compareRecallsByUrgency(
-  a: { dueDate: Date },
-  b: { dueDate: Date },
+  a: RecallDueInput,
+  b: RecallDueInput,
   bounds: RecallDueBounds,
 ): number {
   const bucketOrder: Record<RecallDueBucket, number> = {
@@ -116,8 +137,10 @@ export function compareRecallsByUrgency(
     later: 3,
   };
 
-  const aBucket = classifyRecallDueDate(a.dueDate, bounds) ?? "later";
-  const bBucket = classifyRecallDueDate(b.dueDate, bounds) ?? "later";
+  const aBucket =
+    classifyRecallDueDate(a.dueDate, bounds, a.appointmentId) ?? "later";
+  const bBucket =
+    classifyRecallDueDate(b.dueDate, bounds, b.appointmentId) ?? "later";
 
   if (aBucket !== bBucket) {
     return bucketOrder[aBucket] - bucketOrder[bBucket];

@@ -20,6 +20,7 @@ import { useWeekStartsOn } from "@/stores/schedulePreferencesStore";
 
 const RECALL_COLUMNS = [
   "patient_id",
+  "appointment_id",
   "service_code",
   "service_name_en",
   "service_name_ar",
@@ -38,6 +39,7 @@ export type ProviderRecallItem = {
   patientName: string;
   countryCode: string | null;
   phoneNumber: string | null;
+  appointmentId: string | null;
   serviceCode: string | null;
   serviceName: string;
   interval: number;
@@ -77,6 +79,7 @@ async function mapRecall(record: Recall): Promise<ProviderRecallItem> {
     patientName,
     countryCode,
     phoneNumber,
+    appointmentId: record.appointmentId?.trim() || null,
     serviceCode: record.serviceCode,
     serviceName: record.serviceNameEn?.trim() || "Service",
     interval: record.interval,

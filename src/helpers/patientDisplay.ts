@@ -31,7 +31,15 @@ export function formatPatientPhone(
   countryCode: string | null | undefined,
   phoneNumber: string | null | undefined,
 ): string | null {
-  const parts = [countryCode?.trim(), phoneNumber?.trim()].filter(Boolean);
+  const rawCode = countryCode?.trim() || "";
+  const formattedCode = rawCode
+    ? rawCode.startsWith("+")
+      ? rawCode
+      : `+${rawCode}`
+    : "";
+  const parts = [formattedCode || null, phoneNumber?.trim() || null].filter(
+    Boolean,
+  );
   return parts.length > 0 ? parts.join(" ") : null;
 }
 
