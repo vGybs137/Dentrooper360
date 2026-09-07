@@ -202,8 +202,6 @@ export function useAddAppointmentForm() {
   });
 
   const canSubmit = !isSubmitting;
-  const showOutsideHoursError =
-    detailsValidationAttempted && outsideWorkingHours;
 
   const selectPatient = useCallback(
     (id: string | null, patient?: AppointmentPatientOption | null) => {
@@ -416,7 +414,6 @@ export function useAddAppointmentForm() {
     submitError,
     detailsValidationAttempted,
     outsideWorkingHours,
-    showOutsideHoursError,
     goNext,
     goBack,
     selectPatient,

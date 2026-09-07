@@ -65,7 +65,6 @@ function AddAppointmentDetailsStepComponent({
     setStartTime,
     setEndTime,
     detailsValidationAttempted,
-    showOutsideHoursError,
   } = formState;
 
   const startTime = useWatch({ control, name: "startTime" });
@@ -194,7 +193,6 @@ function AddAppointmentDetailsStepComponent({
         onChangeEnd={setEndTime}
         onChangeStart={setStartTime}
         onExpandedChange={(next) => setExpandedField(next)}
-        showOutsideHoursError={showOutsideHoursError}
         startTime={startTime}
       />
 
