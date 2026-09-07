@@ -1,8 +1,9 @@
+import { useCallback, useEffect, useState } from "react";
 import { Modal, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { semantic } from "@/tokens";
 
+import { BottomSheet } from "./BottomSheet";
 import { Button } from "./Button";
 import { ThemedText } from "./ThemedText";
 import { ThemedView } from "./ThemedView";
@@ -38,21 +39,42 @@ export function DeleteConfirmationDialog({
   confirmingLabel = "Deleting...",
   confirming = false,
 }: DeleteConfirmationDialogProps) {
-  const insets = useSafeAreaInsets();
+  const [mounted, setMounted] = useState(visible);
+
+  useEffect(() => {
+    if (visible) {
+      setMounted(true);
+    }
+  }, [visible]);
+
+  const handleExitComplete = useCallback(() => {
+    setMounted(false);
+  }, []);
+
+  const handleDismiss = useCallback(() => {
+    if (confirming) {
+      return;
+    }
+    onCancel();
+  }, [confirming, onCancel]);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <Modal
-      animationType="fade"
-      onRequestClose={onCancel}
+      animationType="none"
+      onRequestClose={handleDismiss}
       statusBarTranslucent
       transparent
-      visible={visible}
+      visible={mounted}
     >
       <View className="flex-1 justify-end">
         <Button
           accessibilityLabel="Dismiss confirmation"
           className="absolute inset-0 rounded-none"
-          onPress={confirming ? undefined : onCancel}
+          onPress={handleDismiss}
           ripple={false}
           size="none"
           style={{
@@ -62,16 +84,12 @@ export function DeleteConfirmationDialog({
           variant="ghost"
         />
 
-        <ThemedView
-          className="mx-inline px-inline-comfortable py-section"
-          inset="none"
-          radius="dialog"
+        <BottomSheet
+          animated
+          onExitComplete={handleExitComplete}
           space="default"
-          style={{
-            marginBottom:
-              semantic.space.stack.compact + Math.max(insets.bottom, 0),
-          }}
-          variant="card"
+          variant="stack"
+          visible={visible}
         >
           <ThemedText
             align="center"
@@ -86,12 +104,17 @@ export function DeleteConfirmationDialog({
             {message}
           </ThemedText>
 
-          <ThemedView className="flex-row" space="default" variant="stack" direction="row">
+          <ThemedView
+            className="flex-row"
+            direction="row"
+            space="default"
+            variant="stack"
+          >
             <Button
               className="min-w-0 flex-1"
               disabled={confirming}
               label={cancelLabel}
-              onPress={onCancel}
+              onPress={handleDismiss}
               tone="brand"
               variant="soft"
             />
@@ -104,7 +127,7 @@ export function DeleteConfirmationDialog({
               variant="solid"
             />
           </ThemedView>
-        </ThemedView>
+        </BottomSheet>
       </View>
     </Modal>
   );
