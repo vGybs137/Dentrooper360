@@ -75,6 +75,7 @@ function AddAppointmentPatientStepComponent({
               key={patient.id}
               onPress={() => handlePatientPress(patient)}
               patient={patient}
+              searchQuery={patientSearch}
               selectable
               selected={patient.id === patientId}
             />

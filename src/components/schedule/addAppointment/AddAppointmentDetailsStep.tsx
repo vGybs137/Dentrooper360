@@ -200,7 +200,6 @@ function AddAppointmentDetailsStepComponent({
 
       <PatientFormInlineSelect
         leading={<InlineSelectColorLeading color={typeColor} />}
-        onBeforeSearchFocus={collapsePanels}
         onChange={(value) =>
           setValue("typeId", value, {
             shouldDirty: true,
@@ -218,7 +217,6 @@ function AddAppointmentDetailsStepComponent({
 
       <PatientFormInlineSelect
         leading={<InlineSelectSymbolLeading name={locationIcon} />}
-        onBeforeSearchFocus={collapsePanels}
         onChange={(value) =>
           setValue("locationId", value, {
             shouldDirty: true,
