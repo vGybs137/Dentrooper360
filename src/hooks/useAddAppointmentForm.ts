@@ -15,6 +15,7 @@ import { combineDateAndTime } from "@/helpers/appointmentDate";
 import { buildAppointmentSubjectFromPatient } from "@/helpers/appointmentSubject";
 import { generateGuid } from "@/helpers/guid";
 import { requestSync } from "@/helpers/requestSync";
+import { useDayFreeHours } from "@/hooks/useDayFreeHours";
 import {
   ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
   resolveDefaultLocationId,
@@ -72,6 +73,8 @@ export function useAddAppointmentForm() {
   const deferredPatientSearch = useDeferredValue(patientSearch);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [detailsValidationAttempted, setDetailsValidationAttempted] =
+    useState(false);
   const [selectedPatientCache, setSelectedPatientCache] =
     useState<AppointmentPatientOption | null>(null);
 
@@ -100,6 +103,7 @@ export function useAddAppointmentForm() {
 
     setPatientSearch("");
     setSubmitError(null);
+    setDetailsValidationAttempted(false);
 
     if (editDraft && editingAppointmentId) {
       setSelectedPatientCache(editDraft.patient);
@@ -190,11 +194,14 @@ export function useAddAppointmentForm() {
     );
   }, [options.allPatients, patientId, selectedPatientCache]);
 
-  const canSubmit =
-    Boolean(locationId) &&
-    Boolean(patientId || (subject ?? "").trim()) &&
-    dayjs(endTime).isAfter(dayjs(startTime)) &&
-    !isSubmitting;
+  const { outsideWorkingHours } = useDayFreeHours(startTime, {
+    enabled: isPresented && Boolean(startTime?.getTime()),
+    excludeAppointmentId: editingAppointmentId,
+    selectionStart: startTime,
+    selectionEnd: endTime,
+  });
+
+  const canSubmit = !isSubmitting;
 
   const selectPatient = useCallback(
     (id: string | null, patient?: AppointmentPatientOption | null) => {
@@ -287,78 +294,111 @@ export function useAddAppointmentForm() {
     [form],
   );
 
-  const submit = form.handleSubmit(async (data) => {
+  const submit = useCallback(async () => {
     if (isSubmitting) {
       return;
     }
 
-    if (!user?.id) {
-      setSubmitError(
-        isEditing
-          ? "You must be signed in to update this appointment."
-          : "You must be signed in to create an appointment.",
-      );
-      return;
-    }
-
-    if (!dayjs(data.endTime).isAfter(dayjs(data.startTime))) {
-      setSubmitError("End time must be after start time.");
-      return;
-    }
-
-    const nextSubject = selectedPatient
-      ? buildAppointmentSubjectFromPatient(selectedPatient)
-      : data.subject.trim() || "Appointment";
-
-    setIsSubmitting(true);
+    // Mark validation attempted before RHF runs so section errors show even when
+    // required fields fail and the success callback never fires.
+    setDetailsValidationAttempted(true);
     setSubmitError(null);
-    requestClose();
 
-    try {
-      await database.write(async () => {
-        if (editingAppointmentId) {
-          const appointment = await database
-            .get<Appointment>("appointments")
-            .find(editingAppointmentId);
-          if (appointment.providerId !== user.id) {
-            throw new Error("You can only edit your own appointments.");
+    await form.handleSubmit(async (data) => {
+      if (!user?.id) {
+        setSubmitError(
+          isEditing
+            ? "You must be signed in to update this appointment."
+            : "You must be signed in to create an appointment.",
+        );
+        return;
+      }
+
+      if (!dayjs(data.endTime).isAfter(dayjs(data.startTime))) {
+        setSubmitError("End time must be after start time.");
+        return;
+      }
+
+      const hasSubject =
+        Boolean(selectedPatient) || data.subject.trim().length > 0;
+      if (!hasSubject) {
+        await form.trigger("subject");
+        return;
+      }
+
+      if (outsideWorkingHours) {
+        return;
+      }
+
+      if (!data.locationId) {
+        setSubmitError("Select a location.");
+        return;
+      }
+
+      const nextSubject = selectedPatient
+        ? buildAppointmentSubjectFromPatient(selectedPatient)
+        : data.subject.trim() || "Appointment";
+
+      setIsSubmitting(true);
+      setSubmitError(null);
+      requestClose();
+
+      try {
+        await database.write(async () => {
+          if (editingAppointmentId) {
+            const appointment = await database
+              .get<Appointment>("appointments")
+              .find(editingAppointmentId);
+            if (appointment.providerId !== user.id) {
+              throw new Error("You can only edit your own appointments.");
+            }
+            await appointment.update((record) => {
+              record.patientId = data.patientId || null;
+              record.typeId = data.typeId || null;
+              record.locationId = data.locationId;
+              record.subject = nextSubject;
+              record.description = data.description.trim() || null;
+              record.startTime = data.startTime;
+              record.endTime = data.endTime;
+            });
+            return;
           }
-          await appointment.update((record) => {
+
+          await database.get<Appointment>("appointments").create((record) => {
+            record._raw.id = generateGuid();
+            record.providerId = user.id;
             record.patientId = data.patientId || null;
             record.typeId = data.typeId || null;
             record.locationId = data.locationId;
             record.subject = nextSubject;
+            record.status = "New";
             record.description = data.description.trim() || null;
             record.startTime = data.startTime;
             record.endTime = data.endTime;
           });
-          return;
-        }
-
-        await database.get<Appointment>("appointments").create((record) => {
-          record._raw.id = generateGuid();
-          record.providerId = user.id;
-          record.patientId = data.patientId || null;
-          record.typeId = data.typeId || null;
-          record.locationId = data.locationId;
-          record.subject = nextSubject;
-          record.status = "New";
-          record.description = data.description.trim() || null;
-          record.startTime = data.startTime;
-          record.endTime = data.endTime;
         });
-      });
-      requestSync();
-    } catch (error) {
-      Alert.alert(
-        isEditing ? "Unable to update appointment" : "Unable to add appointment",
-        error instanceof Error ? error.message : "Please try again.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  });
-
+        requestSync();
+      } catch (error) {
+        Alert.alert(
+          isEditing
+            ? "Unable to update appointment"
+            : "Unable to add appointment",
+          error instanceof Error ? error.message : "Please try again.",
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
+    })();
+  }, [
+    editingAppointmentId,
+    form,
+    isEditing,
+    isSubmitting,
+    outsideWorkingHours,
+    requestClose,
+    selectedPatient,
+    user?.id,
+  ]);
   return {
     form,
     control: form.control,
@@ -372,6 +412,8 @@ export function useAddAppointmentForm() {
     canSubmit,
     isSubmitting,
     submitError,
+    detailsValidationAttempted,
+    outsideWorkingHours,
     goNext,
     goBack,
     selectPatient,

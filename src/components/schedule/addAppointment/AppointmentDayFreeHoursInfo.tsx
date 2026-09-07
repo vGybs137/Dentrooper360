@@ -13,6 +13,9 @@ type AppointmentDayFreeHoursInfoProps = {
   endTime: Date;
 };
 
+const OUTSIDE_HOURS_TITLE = "Outside working hours";
+const OVERLAP_TITLE = "Overlapping appointments";
+
 function AppointmentDayFreeHoursInfoComponent({
   date,
   startTime,
@@ -21,55 +24,78 @@ function AppointmentDayFreeHoursInfoComponent({
   const editingAppointmentId = useAddAppointmentStore(
     (state) => state.editingAppointmentId,
   );
-  const { labels, overlapsSelection } = useDayFreeHours(date, {
-    excludeAppointmentId: editingAppointmentId,
-    selectionStart: startTime,
-    selectionEnd: endTime,
-  });
+  const { labels, overlapsSelection, outsideWorkingHours } = useDayFreeHours(
+    date,
+    {
+      excludeAppointmentId: editingAppointmentId,
+      selectionStart: startTime,
+      selectionEnd: endTime,
+    },
+  );
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (overlapsSelection) {
+    if (outsideWorkingHours || overlapsSelection) {
       setMenuOpen(true);
     }
-  }, [overlapsSelection, endTime, startTime]);
+  }, [outsideWorkingHours, overlapsSelection, endTime, startTime]);
 
-  const title = useMemo(
-    () =>
-      overlapsSelection
-        ? "Overlapping appointments"
-        : `Free hours · ${dayjs(date).format("D MMM, YYYY")}`,
-    [date, overlapsSelection],
-  );
+  const title = useMemo(() => {
+    if (outsideWorkingHours) {
+      return OUTSIDE_HOURS_TITLE;
+    }
+
+    if (overlapsSelection) {
+      return OVERLAP_TITLE;
+    }
+
+    return `Free hours · ${dayjs(date).format("D MMM, YYYY")}`;
+  }, [date, overlapsSelection, outsideWorkingHours]);
+
+  const titleTone = outsideWorkingHours
+    ? "alert"
+    : overlapsSelection
+      ? "warning"
+      : "muted";
+
+  const iconTone = outsideWorkingHours
+    ? "alert"
+    : overlapsSelection
+      ? "warning"
+      : "brand";
 
   const items = useMemo(
     () =>
       labels.map((label, index) => ({
         key: String(index),
         label,
-        tone: "default" as const,
+        tone: (outsideWorkingHours ? "alert" : "default") as
+          | "alert"
+          | "default",
         onPress: () => {},
       })),
-    [labels],
+    [labels, outsideWorkingHours],
   );
 
   return (
     <ActionMenu
-      accessibilityLabel="Show free hours for this day"
+      accessibilityLabel={
+        outsideWorkingHours
+          ? "Show working hours warning"
+          : overlapsSelection
+            ? "Show overlapping appointments warning"
+            : "Show free hours for this day"
+      }
       align="left"
       itemVariant="message"
       items={items}
       onOpenChange={setMenuOpen}
       open={menuOpen}
       title={title}
-      titleTone={overlapsSelection ? "warning" : "muted"}
+      titleTone={titleTone}
       trigger={
         <View className="size-5 items-center justify-center">
-          <ThemedIcon
-            dimension={20}
-            name={infoIcon}
-            tone={overlapsSelection ? "warning" : "brand"}
-          />
+          <ThemedIcon dimension={20} name={infoIcon} tone={iconTone} />
         </View>
       }
     />

@@ -13,8 +13,6 @@ export type WireAuthUser = {
   email: string | null;
   currency_symbol: string | null;
   color: number | null;
-  starting_hour: string;
-  ending_hour: string;
 };
 
 export type WireAuthSession = {
@@ -37,8 +35,6 @@ export function mapAuthUser(user: WireAuthUser): AuthUser {
     email: user.email ?? null,
     currencySymbol: user.currency_symbol ?? null,
     color: user.color,
-    startingHour: user.starting_hour,
-    endingHour: user.ending_hour,
   };
 }
 

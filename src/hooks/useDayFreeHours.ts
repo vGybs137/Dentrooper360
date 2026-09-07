@@ -6,6 +6,7 @@ import type Appointment from "@/database/models/Appointment";
 import {
   computeDayFreeIntervals,
   formatDayFreeHourLabels,
+  selectionOutsideWorkingHours,
   selectionOverlapsBusyIntervals,
   type DayBusyInterval,
 } from "@/helpers/dayFreeHours";
@@ -32,11 +33,15 @@ export function useDayFreeHours(
 ) {
   const user = useAuthUser();
   const hourFormat = useHourFormat();
-  const { startHour, endHour } = useUserScheduleHours();
+  const { hoursForDayKey } = useUserScheduleHours();
   const [events, setEvents] = useState<DayBusyInterval[]>([]);
   const [isLoading, setIsLoading] = useState(enabled);
 
   const dayKey = useMemo(() => toDayKey(date), [date]);
+  const dayHours = useMemo(
+    () => hoursForDayKey(dayKey),
+    [dayKey, hoursForDayKey],
+  );
   const dayStartMs = useMemo(
     () => toLocalDate(parseDayKey(dayKey)).getTime(),
     [dayKey],
@@ -84,14 +89,26 @@ export function useDayFreeHours(
     };
   }, [dayEndMs, dayStartMs, enabled, excludeAppointmentId, providerId]);
 
-  const freeIntervals = useMemo(
-    () => computeDayFreeIntervals(events, startHour, endHour, dayStartMs),
-    [dayStartMs, endHour, events, startHour],
-  );
+  const freeIntervals = useMemo(() => {
+    if (!dayHours) {
+      return [];
+    }
+
+    return computeDayFreeIntervals(
+      events,
+      dayHours.startHour,
+      dayHours.endHour,
+      dayStartMs,
+    );
+  }, [dayHours, dayStartMs, events]);
 
   const labels = useMemo(() => {
     if (isLoading) {
       return ["Loading free hours..."];
+    }
+
+    if (!dayHours) {
+      return ["No working hours for this day."];
     }
 
     if (freeIntervals.length === 0) {
@@ -99,7 +116,7 @@ export function useDayFreeHours(
     }
 
     return formatDayFreeHourLabels(freeIntervals, dayStartMs, hourFormat);
-  }, [freeIntervals, hourFormat, isLoading, dayStartMs]);
+  }, [dayHours, freeIntervals, hourFormat, isLoading, dayStartMs]);
 
   const overlapsSelection = useMemo(() => {
     if (!selectionStart || !selectionEnd) {
@@ -113,10 +130,24 @@ export function useDayFreeHours(
     );
   }, [events, selectionEnd, selectionStart]);
 
+  const outsideWorkingHours = useMemo(() => {
+    if (!selectionStart || !selectionEnd) {
+      return false;
+    }
+
+    return selectionOutsideWorkingHours(
+      selectionStart.getTime(),
+      selectionEnd.getTime(),
+      dayStartMs,
+      dayHours,
+    );
+  }, [dayHours, dayStartMs, selectionEnd, selectionStart]);
+
   return {
     labels,
     isLoading,
     freeIntervals,
     overlapsSelection,
+    outsideWorkingHours,
   };
 }

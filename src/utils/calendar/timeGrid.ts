@@ -111,6 +111,46 @@ export function gridHeightForHourRange(
   return minutesSpanToHeight(startMinutes, endMinutes, pxPerMinute, hourGap);
 }
 
+/** Inclusive hour-row count for a working window (`endHour` included). */
+export function hourRowCount(startHour: number, endHour: number): number {
+  const start = Math.max(0, Math.min(startHour, 23));
+  const end = Math.max(start, Math.min(endHour, 23));
+  return end - start + 1;
+}
+
+/**
+ * Hour row height so the working-hours grid fills `viewportHeight` with optional
+ * scroll room. Never shrinks below `minHourHeight` (long days keep scrolling).
+ */
+export function hourHeightToFillViewport({
+  startHour,
+  endHour,
+  viewportHeight,
+  hourGap = 0,
+  gridEdgeInset = 0,
+  minHourHeight,
+  scrollExtra = 0,
+}: {
+  startHour: number;
+  endHour: number;
+  viewportHeight: number;
+  hourGap?: number;
+  gridEdgeInset?: number;
+  minHourHeight: number;
+  scrollExtra?: number;
+}): number {
+  const rows = hourRowCount(startHour, endHour);
+  if (rows <= 0 || viewportHeight <= 0) {
+    return minHourHeight;
+  }
+
+  const targetContentHeight = viewportHeight + Math.max(0, scrollExtra);
+  const availableForRows = targetContentHeight - gridEdgeInset * 2;
+  // contentHeight = rows * (hourHeight + hourGap) + 2 * inset
+  const computed = availableForRows / rows - hourGap;
+  return Math.max(minHourHeight, computed);
+}
+
 /** Maps absolute local minutes into a working-hours grid anchored at `startHour`. */
 export function minutesToYInWorkingWindow(
   minutesFromMidnight: number,

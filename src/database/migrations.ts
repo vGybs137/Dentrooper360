@@ -1,5 +1,6 @@
 import {
   addColumns,
+  createTable,
   schemaMigrations,
   unsafeExecuteSql,
 } from "@nozbe/watermelondb/Schema/migrations";
@@ -69,6 +70,20 @@ export default schemaMigrations({
               isOptional: true,
               isIndexed: true,
             },
+          ],
+        }),
+      ],
+    },
+    {
+      toVersion: 7,
+      steps: [
+        createTable({
+          name: "provider_working_hours",
+          columns: [
+            { name: "provider_id", type: "string", isIndexed: true },
+            { name: "day_of_week", type: "number", isIndexed: true },
+            { name: "start_hour", type: "string" },
+            { name: "end_hour", type: "string" },
           ],
         }),
       ],

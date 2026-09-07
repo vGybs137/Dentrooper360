@@ -1,9 +1,11 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Platform, View } from "react-native";
+import {
+  Platform,
+  View,
+  type LayoutChangeEvent,
+} from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import type { ScrollView as ScrollViewType } from "react-native-gesture-handler";
-import { useNativeColors } from "@/theme";
-import { semantic } from "@/tokens";
 
 import {
   buildHalfHourLineTops,
@@ -17,7 +19,9 @@ import {
 } from "@/components/schedule/timedGrid";
 import { TimeGutter } from "@/components/schedule/weekView/TimeGutter";
 import { WeekEventBlock } from "@/components/schedule/weekView/WeekEventBlock";
+import { ThemedText } from "@/components/ui";
 import {
+  DAY_VIEW_FILL_SCROLL_EXTRA,
   WEEK_VIEW_GUTTER_WIDTH,
   WEEK_VIEW_GRID_EDGE_INSET,
   WEEK_VIEW_HOUR_GAP,
@@ -27,8 +31,11 @@ import {
 } from "@/constants/schedule";
 import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
 import type { MonthDayEventPreview } from "@/types/schedule";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 import {
   gridHeightForHourRange,
+  hourHeightToFillViewport,
   isMinuteInWorkingWindow,
   MINUTES_PER_HOUR,
   minutesToY,
@@ -69,9 +76,16 @@ function DayTimeGridComponent({
   onVerticalScrollEnd,
 }: DayTimeGridProps) {
   const native = useNativeColors();
-  const { startHour, endHour } = useUserScheduleHours();
+  const { hoursForDayKey } = useUserScheduleHours();
+  const dayHours = useMemo(
+    () => hoursForDayKey(dayKey),
+    [dayKey, hoursForDayKey],
+  );
+  const startHour = dayHours?.startHour ?? 0;
+  const endHour = dayHours?.endHour ?? 0;
   const scrollRef = useRef<ScrollViewType>(null);
   const hasScrolledRef = useRef(false);
+  const [viewportHeight, setViewportHeight] = useState(0);
   const isToday = useMemo(() => isTodayDayKey(dayKey), [dayKey]);
   const [nowMinutes, setNowMinutes] = useState(() =>
     localMinutesFromMidnight(new Date()),
@@ -79,50 +93,81 @@ function DayTimeGridComponent({
   const showTodayNowIndicator =
     showNowIndicator &&
     isToday &&
+    dayHours != null &&
     isMinuteInWorkingWindow(nowMinutes, startHour, endHour);
 
-  const pxPerMinute = hourHeight / MINUTES_PER_HOUR;
+  const resolvedHourHeight = useMemo(() => {
+    if (!dayHours || viewportHeight <= 0) {
+      return hourHeight;
+    }
+
+    return hourHeightToFillViewport({
+      startHour,
+      endHour,
+      viewportHeight,
+      hourGap,
+      gridEdgeInset: WEEK_VIEW_GRID_EDGE_INSET,
+      minHourHeight: hourHeight,
+      scrollExtra: DAY_VIEW_FILL_SCROLL_EXTRA,
+    });
+  }, [dayHours, endHour, hourGap, hourHeight, startHour, viewportHeight]);
+
+  const pxPerMinute = resolvedHourHeight / MINUTES_PER_HOUR;
   const gridHeight = useMemo(
-    () => gridHeightForHourRange(startHour, endHour, pxPerMinute, hourGap),
-    [endHour, hourGap, pxPerMinute, startHour],
+    () =>
+      dayHours
+        ? gridHeightForHourRange(
+            startHour,
+            endHour,
+            pxPerMinute,
+            hourGap,
+          )
+        : 0,
+    [dayHours, endHour, hourGap, pxPerMinute, startHour],
   );
   const contentHeight = gridHeight + WEEK_VIEW_GRID_EDGE_INSET * 2;
 
   const dayColumnLayout = useMemo(
     () =>
-      layoutDayColumnEvents(
-        events,
-        dayKey,
-        startHour,
-        endHour,
-        pxPerMinute,
-        hourGap,
-      ),
-    [dayKey, endHour, events, hourGap, pxPerMinute, startHour],
+      dayHours
+        ? layoutDayColumnEvents(
+            events,
+            dayKey,
+            startHour,
+            endHour,
+            pxPerMinute,
+            hourGap,
+          )
+        : { events: [], overflows: [] },
+    [dayHours, dayKey, endHour, events, hourGap, pxPerMinute, startHour],
   );
 
   const hourLines = useMemo(
     () =>
-      buildHourLineTops(
-        startHour,
-        endHour,
-        pxPerMinute,
-        hourGap,
-        WEEK_VIEW_GRID_EDGE_INSET,
-      ),
-    [endHour, hourGap, pxPerMinute, startHour],
+      dayHours
+        ? buildHourLineTops(
+            startHour,
+            endHour,
+            pxPerMinute,
+            hourGap,
+            WEEK_VIEW_GRID_EDGE_INSET,
+          )
+        : [],
+    [dayHours, endHour, hourGap, pxPerMinute, startHour],
   );
 
   const halfHourLines = useMemo(
     () =>
-      buildHalfHourLineTops(
-        startHour,
-        endHour,
-        pxPerMinute,
-        hourGap,
-        WEEK_VIEW_GRID_EDGE_INSET,
-      ),
-    [endHour, hourGap, pxPerMinute, startHour],
+      dayHours
+        ? buildHalfHourLineTops(
+            startHour,
+            endHour,
+            pxPerMinute,
+            hourGap,
+            WEEK_VIEW_GRID_EDGE_INSET,
+          )
+        : [],
+    [dayHours, endHour, hourGap, pxPerMinute, startHour],
   );
 
   const nowLineY = useMemo(
@@ -138,7 +183,7 @@ function DayTimeGridComponent({
   );
 
   const scrollToInitial = useCallback(() => {
-    if (!scrollToNowOnMount) return;
+    if (!scrollToNowOnMount || !dayHours) return;
 
     const anchorMinutes = showTodayNowIndicator
       ? nowMinutes
@@ -156,6 +201,7 @@ function DayTimeGridComponent({
       animated: false,
     });
   }, [
+    dayHours,
     hourGap,
     nowMinutes,
     pxPerMinute,
@@ -172,11 +218,20 @@ function DayTimeGridComponent({
     return () => clearInterval(id);
   }, [showTodayNowIndicator]);
 
+  useEffect(() => {
+    hasScrolledRef.current = false;
+  }, [dayKey, startHour, endHour, resolvedHourHeight]);
+
   const gridBorderColor = native.border.strong;
   const gridBorderWidth = semantic.borderWidth.strong;
   const halfHourBorderColor = native.border.subtle;
   const halfHourBorderWidth = semantic.borderWidth.subtle;
   const nowIndicatorColor = native.brand.default;
+
+  const handleViewportLayout = useCallback((event: LayoutChangeEvent) => {
+    const nextHeight = event.nativeEvent.layout.height;
+    setViewportHeight((prev) => (prev === nextHeight ? prev : nextHeight));
+  }, []);
 
   const onContentSizeChange = useCallback(() => {
     if (hasScrolledRef.current) return;
@@ -192,117 +247,129 @@ function DayTimeGridComponent({
     onVerticalScrollEnd?.();
   }, [onVerticalScrollEnd]);
 
+  if (!dayHours) {
+    return (
+      <View className="flex-1 items-center justify-center px-page">
+        <ThemedText align="center" tone="muted" variant="body">
+          No working hours for this day.
+        </ThemedText>
+      </View>
+    );
+  }
+
   return (
-    <ScrollView
-      ref={scrollRef}
-      className="flex-1"
-      contentContainerStyle={{ flexGrow: 1 }}
-      showsVerticalScrollIndicator={false}
-      nestedScrollEnabled={Platform.OS === "android"}
-      directionalLockEnabled={Platform.OS === "ios"}
-      onContentSizeChange={onContentSizeChange}
-      onScrollBeginDrag={handleScrollBeginDrag}
-      onScrollEndDrag={handleScrollEnd}
-      onMomentumScrollEnd={handleScrollEnd}
-    >
-      <View style={{ flexDirection: "row", height: contentHeight }}>
-        <TimeGutter
-          width={gutterWidth}
-          hourHeight={hourHeight}
-          hourGap={hourGap}
-          contentInsetTop={WEEK_VIEW_GRID_EDGE_INSET}
-          startHour={startHour}
-          endHour={endHour}
-        />
+    <View className="flex-1" onLayout={handleViewportLayout}>
+      <ScrollView
+        ref={scrollRef}
+        className="flex-1"
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={Platform.OS === "android"}
+        directionalLockEnabled={Platform.OS === "ios"}
+        onContentSizeChange={onContentSizeChange}
+        onScrollBeginDrag={handleScrollBeginDrag}
+        onScrollEndDrag={handleScrollEnd}
+        onMomentumScrollEnd={handleScrollEnd}
+      >
+        <View style={{ flexDirection: "row", height: contentHeight }}>
+          <TimeGutter
+            width={gutterWidth}
+            hourHeight={resolvedHourHeight}
+            hourGap={hourGap}
+            contentInsetTop={WEEK_VIEW_GRID_EDGE_INSET}
+            startHour={startHour}
+            endHour={endHour}
+          />
 
-        <View className="flex-1" style={{ position: "relative" }}>
-          {halfHourLines.map((top, index) => (
-            <View
-              key={`half-hour-line-${index}`}
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                top,
-                borderTopWidth: halfHourBorderWidth,
-                borderTopColor: halfHourBorderColor,
-                borderStyle: "dashed",
-              }}
-            />
-          ))}
+          <View className="flex-1" style={{ position: "relative" }}>
+            {halfHourLines.map((top, index) => (
+              <View
+                key={`half-hour-line-${index}`}
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  top,
+                  borderTopWidth: halfHourBorderWidth,
+                  borderTopColor: halfHourBorderColor,
+                  borderStyle: "dashed",
+                }}
+              />
+            ))}
 
-          {hourLines.map((top, index) => (
-            <View
-              key={`hour-line-${index}`}
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                top,
-                height: gridBorderWidth,
-                backgroundColor: gridBorderColor,
-              }}
-            />
-          ))}
+            {hourLines.map((top, index) => (
+              <View
+                key={`hour-line-${index}`}
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  top,
+                  height: gridBorderWidth,
+                  backgroundColor: gridBorderColor,
+                }}
+              />
+            ))}
 
-          {showTodayNowIndicator ? (
+            {showTodayNowIndicator ? (
+              <View
+                pointerEvents="none"
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  top: nowLineY - WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT / 2,
+                  height: WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT,
+                  zIndex: 1,
+                }}
+              >
+                <TimedGridNowIndicator color={nowIndicatorColor} />
+              </View>
+            ) : null}
+
             <View
-              pointerEvents="none"
               style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                top: nowLineY - WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT / 2,
-                height: WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT,
-                zIndex: 1,
+                flex: 1,
+                position: "relative",
+                height: contentHeight,
               }}
             >
-              <TimedGridNowIndicator color={nowIndicatorColor} />
-            </View>
-          ) : null}
-
-          <View
-            style={{
-              flex: 1,
-              position: "relative",
-              height: contentHeight,
-            }}
-          >
-            <TimedGridSlotLayer
-              contentHeight={contentHeight}
-              dayKey={dayKey}
-              endHour={endHour}
-              gridEdgeInset={WEEK_VIEW_GRID_EDGE_INSET}
-              hourGap={hourGap}
-              pxPerMinute={pxPerMinute}
-              startHour={startHour}
-              variant="day"
-            />
-            {dayColumnLayout.events.map((block) => (
-              <WeekEventBlock
-                key={block.event.id}
-                event={block.event}
-                top={block.top}
-                height={block.height}
-                left={block.left}
-                width={block.width}
+              <TimedGridSlotLayer
+                contentHeight={contentHeight}
+                dayKey={dayKey}
+                endHour={endHour}
+                gridEdgeInset={WEEK_VIEW_GRID_EDGE_INSET}
+                hourGap={hourGap}
+                pxPerMinute={pxPerMinute}
+                startHour={startHour}
                 variant="day"
               />
-            ))}
-            {dayColumnLayout.overflows.map((overflow, index) => (
-              <TimedGridOverflowChip
-                key={`overflow-${index}`}
-                count={overflow.count}
-                top={overflow.top}
-                height={overflow.height}
-                left={overflow.left}
-                width={overflow.width}
-              />
-            ))}
+              {dayColumnLayout.events.map((block) => (
+                <WeekEventBlock
+                  key={block.event.id}
+                  event={block.event}
+                  top={block.top}
+                  height={block.height}
+                  left={block.left}
+                  width={block.width}
+                  variant="day"
+                />
+              ))}
+              {dayColumnLayout.overflows.map((overflow, index) => (
+                <TimedGridOverflowChip
+                  key={`overflow-${index}`}
+                  count={overflow.count}
+                  top={overflow.top}
+                  height={overflow.height}
+                  left={overflow.left}
+                  width={overflow.width}
+                />
+              ))}
+            </View>
           </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 

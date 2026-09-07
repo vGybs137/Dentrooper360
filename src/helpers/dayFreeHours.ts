@@ -148,3 +148,36 @@ export function selectionOverlapsBusyIntervals(
       interval.startTime < selectionEndMs,
   );
 }
+
+/**
+ * True when the selection is not fully inside the day's working window,
+ * or the day has no working hours.
+ */
+export function selectionOutsideWorkingHours(
+  selectionStartMs: number,
+  selectionEndMs: number,
+  dayStartMs: number,
+  dayHours: { startHour: number; endHour: number } | null,
+): boolean {
+  if (selectionEndMs <= selectionStartMs) {
+    return false;
+  }
+
+  if (!dayHours) {
+    return true;
+  }
+
+  const { startMinutes, endMinutes } = workingWindowMinutes(
+    dayHours.startHour,
+    dayHours.endHour,
+  );
+  const selectionStartMinutes = minutesFromDayStart(
+    selectionStartMs,
+    dayStartMs,
+  );
+  const selectionEndMinutes = minutesFromDayStart(selectionEndMs, dayStartMs);
+
+  return (
+    selectionStartMinutes < startMinutes || selectionEndMinutes > endMinutes
+  );
+}

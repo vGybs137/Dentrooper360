@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW,
   resolveAppointmentSearchTimeRange,
+  type AppointmentSearchCustomRange,
   type AppointmentSearchTimeWindow,
 } from "@/constants/appointmentSearch";
 import database from "@/database";
@@ -55,6 +56,7 @@ export function useAppointmentSearch(
   query: string,
   selectedTypeIds: readonly string[] = [],
   timeWindow: AppointmentSearchTimeWindow = DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW,
+  customRange: AppointmentSearchCustomRange | null = null,
 ): UseAppointmentSearchResult {
   const providerId = useAuthUser()?.id ?? null;
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -65,8 +67,8 @@ export function useAppointmentSearch(
   const [error, setError] = useState<Error | null>(null);
 
   const timeRange = useMemo(
-    () => resolveAppointmentSearchTimeRange(timeWindow),
-    [timeWindow],
+    () => resolveAppointmentSearchTimeRange(timeWindow, new Date(), customRange),
+    [customRange, timeWindow],
   );
   const rangeStartMs = timeRange?.startMs ?? null;
   const rangeEndMs = timeRange?.endMs ?? null;

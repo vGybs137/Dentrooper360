@@ -58,6 +58,12 @@ export const MONTH_VIEW_SHEET_SNAP_INSTANT = { duration: 0 } as const;
 /** Timed grid row height in the week view (px). */
 export const WEEK_VIEW_HOUR_HEIGHT = 60;
 
+/**
+ * Extra scrollable space beyond the viewport when stretching short day grids
+ * so the last hour isn’t flush with the bottom edge.
+ */
+export const DAY_VIEW_FILL_SCROLL_EXTRA = 72;
+
 /** Gap inserted between each hour row in the week view (px). */
 export const WEEK_VIEW_HOUR_GAP = 1;
 

@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 import Animated from "react-native-reanimated";
 
 import {
@@ -10,6 +10,7 @@ import {
   type DropdownOption,
   type ThemedIconProps,
 } from "@/components/ui";
+import { splitTextBySearchQuery } from "@/helpers/searchHighlight";
 import { useInlineCollapse } from "@/hooks/useInlineCollapse";
 import { semantic } from "@/tokens";
 import { cn } from "@/utils/cn";
@@ -97,6 +98,61 @@ export type InlineSelectProps = {
 
 function InlineSelectDivider() {
   return <View className="h-px w-full bg-border-subtle" />;
+}
+
+function InlineSelectOptionLabel({
+  isSelected,
+  label,
+  searchQuery,
+}: {
+  isSelected: boolean;
+  label: string;
+  searchQuery: string;
+}) {
+  const parts = useMemo(
+    () => splitTextBySearchQuery(label, searchQuery),
+    [label, searchQuery],
+  );
+  const hasHighlight = Boolean(searchQuery.trim());
+  const baseToneClass = isSelected
+    ? "text-brand-default"
+    : "text-foreground-default";
+
+  if (!hasHighlight) {
+    return (
+      <ThemedText
+        className={cn("flex-1", isSelected && "font-semibold")}
+        tone={isSelected ? "brand" : "default"}
+        variant="body"
+      >
+        {label}
+      </ThemedText>
+    );
+  }
+
+  return (
+    <Text
+      className={cn(
+        "flex-1 text-body",
+        baseToneClass,
+        isSelected && "font-semibold",
+      )}
+      numberOfLines={1}
+    >
+      {parts.map((part, index) => (
+        <Text
+          key={`${part.value}-${index}`}
+          className={
+            part.highlighted
+              ? "font-semibold text-brand-default"
+              : baseToneClass
+          }
+        >
+          {part.value}
+        </Text>
+      ))}
+    </Text>
+  );
 }
 
 const OPTION_ROW_HEIGHT = 48;
@@ -274,16 +330,11 @@ export function InlineSelect({
                         {option.color ? (
                           <ColorSwatch color={option.color} />
                         ) : null}
-                        <ThemedText
-                          className={cn(
-                            "flex-1",
-                            isSelected && "font-semibold",
-                          )}
-                          tone={isSelected ? "brand" : "default"}
-                          variant="body"
-                        >
-                          {option.label}
-                        </ThemedText>
+                        <InlineSelectOptionLabel
+                          isSelected={isSelected}
+                          label={option.label}
+                          searchQuery={searchQuery}
+                        />
                       </Button>
                     );
                   })

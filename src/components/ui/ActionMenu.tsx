@@ -27,7 +27,7 @@ export type ActionMenuProps = {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   title?: string;
-  titleTone?: "muted" | "warning";
+  titleTone?: "muted" | "warning" | "alert";
   trigger: ReactNode | ((state: { open: boolean }) => ReactNode);
 };
 
@@ -246,9 +246,15 @@ export function ActionMenu({
           style={
             titleTone === "warning"
               ? { color: native.warning.DEFAULT }
-              : undefined
+              : titleTone === "alert"
+                ? { color: native.alert.DEFAULT }
+                : undefined
           }
-          tone={titleTone === "warning" ? "default" : "muted"}
+          tone={
+            titleTone === "warning" || titleTone === "alert"
+              ? "default"
+              : "muted"
+          }
           variant="label"
         >
           {title}

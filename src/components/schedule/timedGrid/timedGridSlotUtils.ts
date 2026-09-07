@@ -52,16 +52,17 @@ export function snapMinutesToGrid(
 export function minutesFromGridY(
   y: number,
   gridEdgeInset: number,
-  startHour: number,
-  endHour: number,
+  gridStartHour: number,
+  windowStartHour: number,
+  windowEndHour: number,
   pxPerMinute: number,
   hourGap: number,
 ): number {
   const rawMinutes = yToMinutesInWorkingWindow(
     Math.max(0, y - gridEdgeInset),
-    startHour,
+    gridStartHour,
     pxPerMinute,
     hourGap,
   );
-  return snapMinutesToGrid(rawMinutes, startHour, endHour);
+  return snapMinutesToGrid(rawMinutes, windowStartHour, windowEndHour);
 }

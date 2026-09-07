@@ -7,7 +7,8 @@ import type {
 
 import { useCalendarSelectionStore } from "@/stores/calendarSelectionStore";
 import {
-  buildDayWindow,
+  buildDayViewWindow,
+  coerceDayViewDayKey,
   DAY_PAGER_RADIUS,
   toDayKey,
   todayCalendarDate,
@@ -31,17 +32,22 @@ export type UseVisibleDayResult = {
 
 /**
  * Tracks the settled day pager page.
- * Day window is frozen around the center day from first mount.
+ * Day window skips Sundays and is frozen around the center day from first mount.
  */
 export function useVisibleDay(centerDayKey?: DayKey): UseVisibleDayResult {
   const centerRef = useRef(
-    centerDayKey ??
-      useCalendarSelectionStore.getState().selectedDayKey ??
-      toDayKey(todayCalendarDate()),
+    coerceDayViewDayKey(
+      centerDayKey ??
+        useCalendarSelectionStore.getState().selectedDayKey ??
+        toDayKey(todayCalendarDate()),
+    ),
   );
   const center = centerRef.current;
 
-  const days = useMemo(() => buildDayWindow(center, DAY_PAGER_RADIUS), [center]);
+  const days = useMemo(
+    () => buildDayViewWindow(center, DAY_PAGER_RADIUS),
+    [center],
+  );
 
   const initialIndex = DAY_PAGER_RADIUS;
   const [pageIndex, setPageIndex] = useState(initialIndex);

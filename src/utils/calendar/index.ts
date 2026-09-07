@@ -61,7 +61,13 @@ export {
   type BuildWeekCellsOptions,
 } from "./buildWeek";
 
-export { buildDayWindow, DAY_PAGER_RADIUS } from "./buildDay";
+export {
+  buildDayViewWindow,
+  buildDayWindow,
+  coerceDayViewDayKey,
+  DAY_PAGER_RADIUS,
+  isSundayDayKey,
+} from "./buildDay";
 
 export {
   buildHourLabels,
@@ -72,6 +78,8 @@ export {
   durationToHeight,
   gridHeightForDay,
   gridHeightForHourRange,
+  hourHeightToFillViewport,
+  hourRowCount,
   isMinuteInWorkingWindow,
   MINUTES_PER_DAY,
   MINUTES_PER_HOUR,

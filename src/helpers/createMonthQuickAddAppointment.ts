@@ -1,12 +1,12 @@
 import { Q } from "@nozbe/watermelondb";
 import dayjs from "dayjs";
-import { Alert } from "react-native";
 
 import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import type AppointmentType from "@/database/models/AppointmentType";
 import type Location from "@/database/models/Location";
 import type Patient from "@/database/models/Patient";
+import { selectionOutsideWorkingHours } from "@/helpers/dayFreeHours";
 import { generateGuid } from "@/helpers/guid";
 import {
   findFirstFreeSlotMinutes,
@@ -16,6 +16,7 @@ import {
 } from "@/helpers/parseQuickAddAppointment";
 import { formatPatientName } from "@/helpers/patientDisplay";
 import { requestSync } from "@/helpers/requestSync";
+import type { ScheduleHourRange } from "@/helpers/scheduleHours";
 import { ADD_APPOINTMENT_SLOT_DURATION_MINUTES } from "@/stores/addAppointmentStore";
 import { resolveDefaultLocationId } from "@/stores/schedulePreferencesStore";
 import type { MonthDayEventPreview } from "@/types/schedule";
@@ -26,14 +27,32 @@ import {
   type DayKey,
 } from "@/utils/calendar";
 
+const OUTSIDE_WORKING_DAY_MESSAGE =
+  "This day is outside your working days.";
+const OUTSIDE_WORKING_HOURS_MESSAGE =
+  "This time is outside your working hours for this day.";
+
 export type CreateMonthQuickAddArgs = {
   text: string;
   dayKey: DayKey;
   events: MonthDayEventPreview[];
   providerId: string;
-  startHour: number;
-  endHour: number;
+  /** Hours used to disambiguate bare times while parsing. */
+  parseStartHour: number;
+  parseEndHour: number;
+  /** Resolve working hours for the targeted day (null = closed). */
+  hoursForDayKey: (dayKey: DayKey) => ScheduleHourRange | null;
+  /** When set (e.g. from suggestion picker), wins over parser patient match. */
+  patientId?: string | null;
 };
+
+export type CreateMonthQuickAddResult =
+  | { ok: true }
+  | { ok: false; title: string; message: string };
+
+function failure(title: string, message: string): CreateMonthQuickAddResult {
+  return { ok: false, title, message };
+}
 
 function dateFromDayKeyAndMinutes(dayKey: DayKey, minutes: number): Date {
   const date = toLocalDate(parseDayKey(dayKey));
@@ -136,21 +155,24 @@ export async function createMonthQuickAddAppointment({
   dayKey,
   events,
   providerId,
-  startHour,
-  endHour,
-}: CreateMonthQuickAddArgs): Promise<boolean> {
+  parseStartHour,
+  parseEndHour,
+  hoursForDayKey,
+  patientId: forcedPatientId = null,
+}: CreateMonthQuickAddArgs): Promise<CreateMonthQuickAddResult> {
   const trimmed = text.trim();
-  if (!trimmed) return false;
+  if (!trimmed) {
+    return failure("Unable to add appointment", "Enter an appointment subject.");
+  }
 
   const { patients, types, locations, fallbackLocationId } =
     await loadLookups();
 
   if (!fallbackLocationId) {
-    Alert.alert(
+    return failure(
       "Unable to add appointment",
       "No locations are available. Add a location first.",
     );
-    return false;
   }
 
   const parsed = parseQuickAddAppointment({
@@ -158,12 +180,18 @@ export async function createMonthQuickAddAppointment({
     patients,
     types,
     locations,
-    startHour,
-    endHour,
+    startHour: parseStartHour,
+    endHour: parseEndHour,
+    referenceDayKey: dayKey,
   });
 
   const resolvedDayKey = parsed.preferredDayKey ?? dayKey;
   const dayStartMs = toLocalDate(parseDayKey(resolvedDayKey)).getTime();
+  const targetHours = hoursForDayKey(resolvedDayKey);
+
+  if (!targetHours) {
+    return failure("Unable to add appointment", OUTSIDE_WORKING_DAY_MESSAGE);
+  }
 
   const dayEvents =
     resolvedDayKey === dayKey
@@ -174,8 +202,8 @@ export async function createMonthQuickAddAppointment({
     parsed.preferredStartMinutes ??
     findFirstFreeSlotMinutes(
       dayEvents,
-      startHour,
-      endHour,
+      targetHours.startHour,
+      targetHours.endHour,
       ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
       dayStartMs,
     );
@@ -185,15 +213,27 @@ export async function createMonthQuickAddAppointment({
     .add(ADD_APPOINTMENT_SLOT_DURATION_MINUTES, "minute")
     .toDate();
 
+  if (
+    selectionOutsideWorkingHours(
+      startTime.getTime(),
+      endTime.getTime(),
+      dayStartMs,
+      targetHours,
+    )
+  ) {
+    return failure("Unable to add appointment", OUTSIDE_WORKING_HOURS_MESSAGE);
+  }
+
   const locationId = parsed.locationId ?? fallbackLocationId;
   const subject = parsed.subject.trim() || trimmed;
+  const patientId = forcedPatientId || parsed.patientId;
 
   try {
     await database.write(async () => {
       await database.get<Appointment>("appointments").create((record) => {
         record._raw.id = generateGuid();
         record.providerId = providerId;
-        record.patientId = parsed.patientId;
+        record.patientId = patientId;
         record.typeId = parsed.typeId;
         record.locationId = locationId;
         record.subject = subject;
@@ -204,12 +244,11 @@ export async function createMonthQuickAddAppointment({
       });
     });
     requestSync();
-    return true;
+    return { ok: true };
   } catch (error) {
-    Alert.alert(
+    return failure(
       "Unable to add appointment",
       error instanceof Error ? error.message : "Please try again.",
     );
-    return false;
   }
 }
