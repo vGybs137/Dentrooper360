@@ -1,12 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter, type Href } from "expo-router";
-import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Text, View } from "react-native";
 import Animated from "react-native-reanimated";
 
 import { logout } from "@/api";
 import { Button, DeleteConfirmationDialog, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
 import { chevronDownIcon, logoutIcon } from "@/constants";
+import {
+  initialsFromPatientName,
+  patientInitialsColorsFromName,
+} from "@/helpers/patientInitials";
 import { useAppointmentFormOptions } from "@/hooks/useAppointmentFormOptions";
 import { useInlineCollapse } from "@/hooks/useInlineCollapse";
 import { useSyncStatus } from "@/hooks/useSyncStatus";
@@ -15,26 +19,17 @@ import {
   useAuthUser,
   useSchedulePreferencesStore,
 } from "@/stores";
+import { useResolvedTheme } from "@/theme";
 import { semantic } from "@/tokens";
 import { ApiError } from "@/types/api";
 
 const OPTION_ROW_HEIGHT = 44;
 
-function initialsFromName(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) {
-    return "?";
-  }
-  if (parts.length === 1) {
-    return parts[0]!.slice(0, 2).toUpperCase();
-  }
-  return `${parts[0]![0] ?? ""}${parts[parts.length - 1]![0] ?? ""}`.toUpperCase();
-}
-
 export function SettingsProfileCard() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const user = useAuthUser();
+  const resolvedTheme = useResolvedTheme();
   const { hasUnsynced, isOffline } = useSyncStatus();
   const defaultLocationId = useSchedulePreferencesStore(
     (state) => state.defaultLocationId,
@@ -51,6 +46,17 @@ export function SettingsProfileCard() {
 
   const displayName = user?.fullName?.trim() || "Signed in";
   const displayEmail = user?.email?.trim() || null;
+  const initials = useMemo(
+    () => initialsFromPatientName(displayName),
+    [displayName],
+  );
+  const initialsColors = useMemo(
+    () =>
+      patientInitialsColorsFromName(displayName, {
+        isDark: resolvedTheme === "dark",
+      }),
+    [displayName, resolvedTheme],
+  );
   const locationOptions = locations.map((location) => ({
     value: location.id,
     label: location.name,
@@ -140,7 +146,12 @@ export function SettingsProfileCard() {
 
   return (
     <>
-      <ThemedView className="overflow-hidden" inset="none" variant="card">
+      <ThemedView
+        className="overflow-hidden"
+        inset="none"
+        surface="sunken"
+        variant="card"
+      >
       <View
         style={{
           flexDirection: "row",
@@ -151,15 +162,19 @@ export function SettingsProfileCard() {
         }}
       >
         <View
-          className="items-center justify-center rounded-pill bg-brand-subtle"
+          className="items-center justify-center rounded-pill"
           style={{
             width: semantic.size.touch,
             height: semantic.size.touch,
+            backgroundColor: initialsColors.background,
           }}
         >
-          <ThemedText className="font-semibold" tone="brand" variant="body">
-            {initialsFromName(displayName)}
-          </ThemedText>
+          <Text
+            className="text-body font-semibold"
+            style={{ color: initialsColors.foreground }}
+          >
+            {initials}
+          </Text>
         </View>
 
         <View style={{ flex: 1, minWidth: 0, gap: semantic.space.gap.compact }}>
@@ -169,7 +184,7 @@ export function SettingsProfileCard() {
           <ThemedText numberOfLines={1} tone="muted" variant="label">
             {logoutMutation.isPending
               ? "Signing out…"
-              : (displayEmail ?? "Clinic pairing stays on this device")}
+              : (displayEmail ?? "No Email")}
           </ThemedText>
         </View>
 

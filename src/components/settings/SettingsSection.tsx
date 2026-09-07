@@ -30,7 +30,12 @@ export function SettingsSection({
       >
         {label}
       </ThemedText>
-      <ThemedView className="overflow-hidden" inset="none" variant="card">
+      <ThemedView
+        className="overflow-hidden"
+        inset="none"
+        surface="sunken"
+        variant="card"
+      >
         {children}
       </ThemedView>
     </ThemedView>
