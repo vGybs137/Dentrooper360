@@ -1,14 +1,18 @@
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { View } from "react-native";
 
 import { Button, ColorSwatch, ThemedText, ThemedView } from "@/components/ui";
 import {
   APPOINTMENT_SEARCH_TIME_WINDOWS,
+  type AppointmentSearchCustomRange,
   type AppointmentSearchTimeWindow,
 } from "@/constants/appointmentSearch";
 import type { AppointmentSearchTypeOption } from "@/hooks/useAppointmentSearch";
 import { semantic } from "@/tokens";
 import { cn } from "@/utils/cn";
+import type { DayKey } from "@/utils/calendar";
+
+import { AppointmentSearchCustomRangeCalendar } from "./AppointmentSearchCustomRangeCalendar";
 
 export type AppointmentSearchFiltersCardProps = {
   types: AppointmentSearchTypeOption[];
@@ -16,6 +20,14 @@ export type AppointmentSearchFiltersCardProps = {
   onToggleType: (typeId: string) => void;
   timeWindow: AppointmentSearchTimeWindow;
   onSelectTimeWindow: (window: AppointmentSearchTimeWindow) => void;
+  customRange: AppointmentSearchCustomRange | null;
+  customPendingStartDayKey: DayKey | null;
+  customCalendarOpen: boolean;
+  onCustomDayPressResult: (result: {
+    pendingStartDayKey: DayKey | null;
+    range: AppointmentSearchCustomRange | null;
+    completed: boolean;
+  }) => void;
 };
 
 function AppointmentSearchFiltersCardComponent({
@@ -24,7 +36,25 @@ function AppointmentSearchFiltersCardComponent({
   onToggleType,
   timeWindow,
   onSelectTimeWindow,
+  customRange,
+  customPendingStartDayKey,
+  customCalendarOpen,
+  onCustomDayPressResult,
 }: AppointmentSearchFiltersCardProps) {
+  const customSelected = timeWindow === "custom";
+
+  const handleSelectTimeWindow = useCallback(
+    (optionId: Exclude<AppointmentSearchTimeWindow, "all">) => {
+      if (optionId === "custom") {
+        onSelectTimeWindow(customSelected ? "all" : "custom");
+        return;
+      }
+
+      onSelectTimeWindow(timeWindow === optionId ? "all" : optionId);
+    },
+    [customSelected, onSelectTimeWindow, timeWindow],
+  );
+
   return (
     <ThemedView className="px-page pt-stack-default" space="default" variant="stack">
       <ThemedView surface="sunken" variant="card">
@@ -41,9 +71,7 @@ function AppointmentSearchFiltersCardComponent({
                   "flex-row items-center gap-gap-compact rounded-pill border border-foreground-default px-inline py-stack-compact",
                   isSelected && "bg-brand-subtle",
                 )}
-                onPress={() =>
-                  onSelectTimeWindow(isSelected ? "all" : option.id)
-                }
+                onPress={() => handleSelectTimeWindow(option.id)}
                 ripple={false}
                 size="none"
                 tone="neutral"
@@ -53,6 +81,15 @@ function AppointmentSearchFiltersCardComponent({
               </Button>
             );
           })}
+        </View>
+
+        <View className={customCalendarOpen ? "pt-stack-default" : undefined}>
+          <AppointmentSearchCustomRangeCalendar
+            onDayPressResult={onCustomDayPressResult}
+            pendingStartDayKey={customPendingStartDayKey}
+            range={customRange}
+            visible={customCalendarOpen}
+          />
         </View>
       </ThemedView>
 

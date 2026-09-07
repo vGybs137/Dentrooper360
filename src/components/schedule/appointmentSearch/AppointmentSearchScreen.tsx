@@ -6,9 +6,7 @@ import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
 } from "react-native-reanimated";
-import {
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SearchBar } from "@/components/search";
 import { AppointmentSearchBackButton } from "@/components/schedule/appointmentSearch/AppointmentSearchBackButton";
@@ -19,6 +17,7 @@ import { ThemedText, ThemedView } from "@/components/ui";
 import {
   appointmentSearchTimeWindowLabel,
   DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW,
+  type AppointmentSearchCustomRange,
   type AppointmentSearchTimeWindow,
 } from "@/constants/appointmentSearch";
 import { useAppointmentSearch } from "@/hooks/useAppointmentSearch";
@@ -97,35 +96,17 @@ function SearchListEmptyContent({
   error,
   hasActiveFilters,
   isLoading,
-  onSelectTimeWindow,
-  onToggleType,
   query,
-  selectedTypeIds,
-  timeWindow,
-  typeOptions,
 }: {
   error: unknown;
   hasActiveFilters: boolean;
   isLoading: boolean;
-  onSelectTimeWindow: (window: AppointmentSearchTimeWindow) => void;
-  onToggleType: (typeId: string) => void;
   query: string;
-  selectedTypeIds: readonly string[];
-  timeWindow: AppointmentSearchTimeWindow;
-  typeOptions: ReturnType<typeof useAppointmentSearch>["typeOptions"];
 }) {
   const native = useNativeColors();
 
   return (
     <View>
-      <AppointmentSearchFiltersCard
-        onSelectTimeWindow={onSelectTimeWindow}
-        onToggleType={onToggleType}
-        selectedTypeIds={selectedTypeIds}
-        timeWindow={timeWindow}
-        types={typeOptions}
-      />
-
       {isLoading ? (
         <View className="items-center pt-stack-default">
           <ActivityIndicator color={native.brand.default} />
@@ -153,26 +134,6 @@ function SearchListEmptyContent({
   );
 }
 
-const searchListHeaderComponent = (
-  titleTopPadding: number,
-  titleBottomPadding: number,
-  chevronRowHeight: number,
-) => (
-  <View>
-    <View
-      style={{
-        paddingTop: titleTopPadding,
-        paddingBottom: titleBottomPadding,
-      }}
-    >
-      <ThemedText align="center" variant="display">
-        Search
-      </ThemedText>
-    </View>
-    <View style={{ height: chevronRowHeight }} />
-  </View>
-);
-
 export function AppointmentSearchScreen() {
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -182,14 +143,20 @@ export function AppointmentSearchScreen() {
   const [timeWindow, setTimeWindow] = useState<AppointmentSearchTimeWindow>(
     DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW,
   );
+  const [customRange, setCustomRange] =
+    useState<AppointmentSearchCustomRange | null>(null);
+  const [customPendingStartDayKey, setCustomPendingStartDayKey] =
+    useState<DayKey | null>(null);
+  const [customCalendarOpen, setCustomCalendarOpen] = useState(false);
   const { results, typeOptions, isLoading, error } = useAppointmentSearch(
     query,
     selectedTypeIds,
     timeWindow,
+    customRange,
   );
   const hasQuery = query.trim().length > 0;
   const hasActiveFilters = hasQuery || selectedTypeIds.length > 0;
-  const searchKey = `${query.trim()}\0${selectedTypeIds.slice().sort().join(",")}\0${timeWindow}`;
+  const searchKey = `${query.trim()}\0${selectedTypeIds.slice().sort().join(",")}\0${timeWindow}\0${customRange?.startDayKey ?? ""}\0${customRange?.endDayKey ?? ""}`;
   const scrollY = useSharedValue(0);
   const savedScrollOffset = useRef(0);
   const previousSearchKeyRef = useRef(searchKey);
@@ -219,8 +186,42 @@ export function AppointmentSearchScreen() {
     setSelectedTypeIds((current) => current.filter((id) => id !== typeId));
   }, []);
 
+  const handleSelectTimeWindow = useCallback(
+    (window: AppointmentSearchTimeWindow) => {
+      setTimeWindow(window);
+      if (window === "custom") {
+        setCustomCalendarOpen(true);
+        setCustomPendingStartDayKey(null);
+        return;
+      }
+
+      setCustomCalendarOpen(false);
+      setCustomPendingStartDayKey(null);
+      setCustomRange(null);
+    },
+    [],
+  );
+
+  const handleCustomDayPressResult = useCallback(
+    (result: {
+      pendingStartDayKey: DayKey | null;
+      range: AppointmentSearchCustomRange | null;
+      completed: boolean;
+    }) => {
+      setCustomPendingStartDayKey(result.pendingStartDayKey);
+      if (result.completed && result.range) {
+        setCustomRange(result.range);
+        setCustomCalendarOpen(false);
+      }
+    },
+    [],
+  );
+
   const clearTimeWindow = useCallback(() => {
     setTimeWindow(DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW);
+    setCustomRange(null);
+    setCustomPendingStartDayKey(null);
+    setCustomCalendarOpen(false);
   }, []);
 
   const selectedTypes = useMemo(
@@ -229,9 +230,10 @@ export function AppointmentSearchScreen() {
   );
 
   const timeWindowChipLabel =
-    timeWindow === DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW
+    timeWindow === DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW ||
+    (timeWindow === "custom" && customRange == null)
       ? null
-      : appointmentSearchTimeWindowLabel(timeWindow);
+      : appointmentSearchTimeWindowLabel(timeWindow, customRange);
 
   const searchBarReservedHeight = useMemo(
     () => getSearchBarReservedHeight(insets.bottom),
@@ -356,10 +358,7 @@ export function AppointmentSearchScreen() {
         animated: false,
       });
       requestAnimationFrame(() => {
-        if (
-          info.index < 0 ||
-          info.index >= dayGroupsRef.current.length
-        ) {
+        if (info.index < 0 || info.index >= dayGroupsRef.current.length) {
           return;
         }
 
@@ -390,13 +389,46 @@ export function AppointmentSearchScreen() {
   const keyExtractor = useCallback((item: SearchDayGroup) => item.dayKey, []);
 
   const listHeaderComponent = useMemo(
-    () =>
-      searchListHeaderComponent(
-        titleTopPadding,
-        titleBottomPadding,
-        chevronRowHeight,
-      ),
-    [chevronRowHeight, titleBottomPadding, titleTopPadding],
+    () => (
+      <View>
+        <View
+          style={{
+            paddingTop: titleTopPadding,
+            paddingBottom: titleBottomPadding,
+          }}
+        >
+          <ThemedText align="center" variant="display">
+            Search
+          </ThemedText>
+        </View>
+        <View style={{ height: chevronRowHeight }} />
+        <AppointmentSearchFiltersCard
+          customCalendarOpen={customCalendarOpen}
+          customPendingStartDayKey={customPendingStartDayKey}
+          customRange={customRange}
+          onCustomDayPressResult={handleCustomDayPressResult}
+          onSelectTimeWindow={handleSelectTimeWindow}
+          onToggleType={toggleTypeFilter}
+          selectedTypeIds={selectedTypeIds}
+          timeWindow={timeWindow}
+          types={typeOptions}
+        />
+      </View>
+    ),
+    [
+      chevronRowHeight,
+      customCalendarOpen,
+      customPendingStartDayKey,
+      customRange,
+      handleCustomDayPressResult,
+      handleSelectTimeWindow,
+      selectedTypeIds,
+      timeWindow,
+      titleBottomPadding,
+      titleTopPadding,
+      toggleTypeFilter,
+      typeOptions,
+    ],
   );
 
   const listEmptyComponent = useMemo(
@@ -405,24 +437,10 @@ export function AppointmentSearchScreen() {
         error={error}
         hasActiveFilters={hasActiveFilters}
         isLoading={isLoading}
-        onSelectTimeWindow={setTimeWindow}
-        onToggleType={toggleTypeFilter}
         query={query}
-        selectedTypeIds={selectedTypeIds}
-        timeWindow={timeWindow}
-        typeOptions={typeOptions}
       />
     ),
-    [
-      error,
-      hasActiveFilters,
-      isLoading,
-      query,
-      selectedTypeIds,
-      timeWindow,
-      toggleTypeFilter,
-      typeOptions,
-    ],
+    [error, hasActiveFilters, isLoading, query],
   );
 
   const contentContainerStyle = useMemo(
@@ -457,29 +475,29 @@ export function AppointmentSearchScreen() {
       scroll={false}
       variant="screen"
     >
-        <Animated.FlatList
-          ref={flatListRef}
-          contentContainerStyle={contentContainerStyle}
-          data={dayGroups}
-          keyboardShouldPersistTaps="handled"
-          keyExtractor={keyExtractor}
-          ListEmptyComponent={listEmptyComponent}
-          ListHeaderComponent={listHeaderComponent}
-          onScroll={scrollHandler}
-          onScrollToIndexFailed={handleScrollToIndexFailed}
-          renderItem={renderItem}
-          scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
-          style={{ flex: 1 }}
-        />
+      <Animated.FlatList
+        ref={flatListRef}
+        contentContainerStyle={contentContainerStyle}
+        data={dayGroups}
+        keyboardShouldPersistTaps="handled"
+        keyExtractor={keyExtractor}
+        ListEmptyComponent={listEmptyComponent}
+        ListHeaderComponent={listHeaderComponent}
+        onScroll={scrollHandler}
+        onScrollToIndexFailed={handleScrollToIndexFailed}
+        renderItem={renderItem}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        style={{ flex: 1 }}
+      />
 
-        <SearchBar
-          accessibilityLabel="Search appointments"
-          autoFocus
-          onChangeText={setQuery}
-          placeholder="Search by subject..."
-          value={query}
-        />
+      <SearchBar
+        accessibilityLabel="Search appointments"
+        autoFocus
+        onChangeText={setQuery}
+        placeholder="Search by subject..."
+        value={query}
+      />
     </ThemedView>
   );
 }

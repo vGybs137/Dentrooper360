@@ -1,11 +1,13 @@
 export { API_BASE_URL, API_TIMEOUT_MS } from "./api";
 export {
   APPOINTMENT_SEARCH_TIME_WINDOWS,
+  applyCustomRangeDayPress,
   appointmentSearchTimeWindowLabel,
   DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW,
   resolveAppointmentSearchTimeRange,
 } from "./appointmentSearch";
 export type {
+  AppointmentSearchCustomRange,
   AppointmentSearchTimeRange,
   AppointmentSearchTimeWindow,
   AppointmentSearchTimeWindowOption,
