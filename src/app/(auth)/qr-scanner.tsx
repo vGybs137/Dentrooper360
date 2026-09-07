@@ -1,6 +1,6 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { type Href, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import Animated from "react-native-reanimated";
 
@@ -51,11 +51,12 @@ export default function QrScannerScreen() {
     [],
   );
 
-  useEffect(() => {
-    if (cameraPermission === null) {
-      void requestCameraPermission();
+  const handleRequestCamera = useCallback(() => {
+    if (cameraPermission?.granted) {
+      return;
     }
-  }, [cameraPermission, requestCameraPermission]);
+    void requestCameraPermission();
+  }, [cameraPermission?.granted, requestCameraPermission]);
 
   type ValidatedQrPayload = {
     customerId: string;
@@ -224,7 +225,7 @@ export default function QrScannerScreen() {
       padBottom={false}
       pointerEvents="box-none"
       scroll={false}
-      surface="sunken"
+      surface="default"
       transparent={fromOnboarding}
       variant="screen"
     >
@@ -267,6 +268,7 @@ export default function QrScannerScreen() {
           }
           frameColor={frameColor}
           onCancel={cancelScan}
+          onRequestCamera={handleRequestCamera}
           scanInset={scanInset}
           scanLineStyle={scanLineStyle}
           status={status}

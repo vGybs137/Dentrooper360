@@ -9,11 +9,7 @@ import {
 } from "@/components/patients/addPatient/PatientFormField";
 import { PatientFormInlineSelect } from "@/components/patients/addPatient/PatientFormInlineSelect";
 import { PatientFormSection } from "@/components/patients/addPatient/PatientFormSection";
-import {
-  ThemedText,
-  ThemedView,
-  type DropdownOption,
-} from "@/components/ui";
+import { ThemedText, ThemedView, type DropdownOption } from "@/components/ui";
 import {
   addressIcon,
   ageIcon,

@@ -1,3 +1,5 @@
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
 import {
   memo,
   useCallback,
@@ -21,8 +23,6 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { useNativeColors } from "@/theme";
-import { semantic } from "@/tokens";
 
 import {
   FeedbackOverlay,
@@ -40,18 +40,15 @@ import {
   patientStillSelectedInText,
 } from "@/helpers/monthQuickAddPatientSuggestions";
 import type { PatientCardData } from "@/helpers/patientDisplay";
-import { useActivePatients } from "@/hooks/useActivePatients";
 import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
+import { useActivePatients } from "@/hooks/useActivePatients";
 import { useAuthUser } from "@/stores";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import type { DayKey } from "@/utils/calendar";
 
 import { MonthQuickAddPatientSuggestions } from "./MonthQuickAddPatientSuggestions";
 
-export {
-  MONTH_QUICK_ADD_COLLAPSED_HEIGHT,
-  MONTH_QUICK_ADD_EXPANDED_HEIGHT,
-};
+export { MONTH_QUICK_ADD_COLLAPSED_HEIGHT, MONTH_QUICK_ADD_EXPANDED_HEIGHT };
 
 const FOCUS_ANIMATION = {
   duration: 280,
@@ -109,8 +106,7 @@ function MonthQuickAddFieldComponent({
     () => matchedPatients.slice(0, MAX_SUGGESTIONS),
     [matchedPatients],
   );
-  const showSuggestions =
-    suggestionsEnabled && suggestionPatients.length > 0;
+  const showSuggestions = suggestionsEnabled && suggestionPatients.length > 0;
 
   const dismissFeedback = useCallback(() => {
     setFeedback(null);
@@ -164,7 +160,11 @@ function MonthQuickAddFieldComponent({
     (patient: PatientCardData) => {
       clearBlurTimeout();
       setText((current) =>
-        applyPatientNameToQuickAdd(current, suggestionQuery, patient.displayName),
+        applyPatientNameToQuickAdd(
+          current,
+          suggestionQuery,
+          patient.displayName,
+        ),
       );
       setSelectedPatient(patient);
       setFocused(true);
@@ -375,10 +375,7 @@ function MonthQuickAddFieldComponent({
   return (
     <>
       <View ref={reservedRef} pointerEvents="box-none" style={reservedStyle}>
-        <Animated.View
-          pointerEvents="box-none"
-          style={[slotStyle, liftStyle]}
-        >
+        <Animated.View pointerEvents="box-none" style={[slotStyle, liftStyle]}>
           {showSuggestions ? (
             <View pointerEvents="box-none" style={suggestionsStyle}>
               <MonthQuickAddPatientSuggestions

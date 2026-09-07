@@ -183,83 +183,81 @@ function ControlledThemedTextInput({
   );
 }
 
-const ThemedTextInput = forwardRef<
-  TextInput,
-  ThemedTextInputProps
->(function ThemedTextInput(
-  {
-    as: _as,
-    name: _name,
-    rules: _rules,
-    fieldVariant = "outline",
-    size = "md",
-    label,
-    hint,
-    error,
-    hideInlineError = false,
-    leading,
-    trailing,
-    bottomSheetInput = false,
-    className,
-    containerClassName,
-    style,
-    placeholderTextColor,
-    multiline,
-    ...props
-  },
-  ref,
-) {
-  const nativeColors = useNativeColors();
-  const isBare = fieldVariant === "bare";
-  const hasError = Boolean(error);
-  const Input = bottomSheetInput ? BottomSheetTextInput : TextInput;
+const ThemedTextInput = forwardRef<TextInput, ThemedTextInputProps>(
+  function ThemedTextInput(
+    {
+      as: _as,
+      name: _name,
+      rules: _rules,
+      fieldVariant = "outline",
+      size = "md",
+      label,
+      hint,
+      error,
+      hideInlineError = false,
+      leading,
+      trailing,
+      bottomSheetInput = false,
+      className,
+      containerClassName,
+      style,
+      placeholderTextColor,
+      multiline,
+      ...props
+    },
+    ref,
+  ) {
+    const nativeColors = useNativeColors();
+    const isBare = fieldVariant === "bare";
+    const hasError = Boolean(error);
+    const Input = bottomSheetInput ? BottomSheetTextInput : TextInput;
 
-  return (
-    <View className={cn("gap-gap-compact", containerClassName)}>
-      {label ? <ThemedText variant="label">{label}</ThemedText> : null}
-      <View
-        className={cn(
-          "flex-row items-center gap-gap-compact",
-          !isBare && SIZE_MIN_HEIGHT[size],
-          isBare
-            ? "rounded-none border-0 bg-transparent px-0"
-            : cn(
-                "rounded-control border-subtle px-inline",
-                fieldVariant === "soft"
-                  ? "bg-surface-sunken"
-                  : "bg-surface-raised",
-                hasError ? "border-alert" : "border-border",
-              ),
-        )}
-        style={style}
-      >
-        {leading}
-        <Input
-          {...props}
+    return (
+      <View className={cn("gap-gap-compact", containerClassName)}>
+        {label ? <ThemedText variant="label">{label}</ThemedText> : null}
+        <View
           className={cn(
-            "flex-1 py-stack-compact text-body text-foreground-default",
-            multiline && "w-full",
-            className,
+            "flex-row items-center gap-gap-compact",
+            !isBare && SIZE_MIN_HEIGHT[size],
+            isBare
+              ? "rounded-none border-0 bg-transparent px-0"
+              : cn(
+                  "rounded-control border-subtle px-inline",
+                  fieldVariant === "soft"
+                    ? "bg-surface-sunken"
+                    : "bg-surface-raised",
+                  hasError ? "border-alert" : "border-border",
+                ),
           )}
-          multiline={multiline}
-          placeholderTextColor={
-            placeholderTextColor ?? nativeColors.foreground.muted
-          }
-          ref={ref as never}
-          textAlignVertical={multiline ? "top" : props.textAlignVertical}
-        />
-        {trailing}
+          style={style}
+        >
+          {leading}
+          <Input
+            {...props}
+            className={cn(
+              "flex-1 py-stack-compact text-body text-foreground-default",
+              multiline && "w-full",
+              className,
+            )}
+            multiline={multiline}
+            placeholderTextColor={
+              placeholderTextColor ?? nativeColors.foreground.muted
+            }
+            ref={ref as never}
+            textAlignVertical={multiline ? "top" : props.textAlignVertical}
+          />
+          {trailing}
+        </View>
+        {hasError && !hideInlineError ? (
+          <ThemedText tone="alert" variant="label">
+            {error}
+          </ThemedText>
+        ) : hint ? (
+          <ThemedText tone="muted" variant="label">
+            {hint}
+          </ThemedText>
+        ) : null}
       </View>
-      {hasError && !hideInlineError ? (
-        <ThemedText tone="alert" variant="label">
-          {error}
-        </ThemedText>
-      ) : hint ? (
-        <ThemedText tone="muted" variant="label">
-          {hint}
-        </ThemedText>
-      ) : null}
-    </View>
-  );
-});
-
+    );
+  },
+);

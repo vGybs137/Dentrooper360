@@ -20,13 +20,8 @@ function AddAppointmentPatientStepComponent({
   formState,
 }: AddAppointmentPatientStepProps) {
   const native = useNativeColors();
-  const {
-    control,
-    options,
-    patientSearch,
-    setPatientSearch,
-    selectPatient,
-  } = formState;
+  const { control, options, patientSearch, setPatientSearch, selectPatient } =
+    formState;
 
   const patientId = useWatch({ control, name: "patientId" });
 

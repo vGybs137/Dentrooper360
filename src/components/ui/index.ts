@@ -9,22 +9,23 @@ export {
   InlineSelectColorLeading,
   InlineSelectSymbolLeading,
 } from "./InlineSelect";
-export { ThemedIcon } from "./ThemedIcon";
 export { SearchToggle } from "./SearchToggle";
+export { ThemedIcon } from "./ThemedIcon";
 export { ThemedText } from "./ThemedText";
 export { ThemedView } from "./ThemedView";
 
-export type { ActionMenuAlign, ActionMenuItem, ActionMenuProps } from "./ActionMenu";
+export type {
+  ActionMenuAlign,
+  ActionMenuItem,
+  ActionMenuProps,
+} from "./ActionMenu";
 export type { BottomSheetProps } from "./BottomSheet";
 export type { ButtonProps } from "./Button";
 export type { DeleteConfirmationDialogProps } from "./DeleteConfirmationDialog";
 export type { DropdownOption, DropdownProps } from "./Dropdown";
-export type {
-  InlineSelectOption,
-  InlineSelectProps,
-} from "./InlineSelect";
-export type { ThemedIconProps } from "./ThemedIcon";
+export type { InlineSelectOption, InlineSelectProps } from "./InlineSelect";
 export type { SearchToggleProps } from "./SearchToggle";
+export type { ThemedIconProps } from "./ThemedIcon";
 export type {
   ThemedTextDisplayProps,
   ThemedTextInputProps,

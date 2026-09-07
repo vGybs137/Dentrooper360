@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Text, View } from "react-native";
 import Animated from "react-native-reanimated";
 
@@ -229,10 +229,7 @@ export function InlineSelect({
   return (
     <View className="w-full">
       <View
-        className={cn(
-          "w-full flex-row items-center",
-          hasLeading && "gap-3",
-        )}
+        className={cn("w-full flex-row items-center", hasLeading && "gap-3")}
       >
         {hasLeading ? (
           <View className="size-5 shrink-0 items-center justify-center">
@@ -277,10 +274,7 @@ export function InlineSelect({
           style={containerStyle}
         >
           <View
-            className={cn(
-              "w-full flex-row items-start",
-              hasLeading && "gap-3",
-            )}
+            className={cn("w-full flex-row items-start", hasLeading && "gap-3")}
           >
             {hasLeading ? <View className="size-5 shrink-0" /> : null}
             <View className="min-w-0 flex-1">
@@ -317,7 +311,9 @@ export function InlineSelect({
                         className={cn(
                           "h-full w-full flex-row items-center gap-2",
                           isBare ? "px-0" : "px-inline",
-                          isSelected && !isBare && "rounded-pill bg-brand-subtle",
+                          isSelected &&
+                            !isBare &&
+                            "rounded-pill bg-brand-subtle",
                           isSelected && isBare && "bg-brand-subtle",
                         )}
                         onPress={() => selectOption(option.value)}

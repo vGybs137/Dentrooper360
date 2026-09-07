@@ -27,6 +27,7 @@ function ViewfinderCorner({
 
   return (
     <View
+      pointerEvents="none"
       style={{
         position: "absolute",
         top: isTop ? 0 : undefined,
@@ -57,6 +58,7 @@ type QrViewfinderProps = {
   scanLineStyle: StyleProp<AnimatedStyle<ViewStyle>>;
   cameraPreview?: ReactNode;
   onCancel: () => void;
+  onRequestCamera?: () => void;
 };
 
 export function QrViewfinder({
@@ -67,6 +69,7 @@ export function QrViewfinder({
   scanLineStyle,
   cameraPreview,
   onCancel,
+  onRequestCamera,
 }: QrViewfinderProps) {
   const cornerSize = semantic.size["icon-lg"];
   const cornerRadius = semantic.radius.overlay;
@@ -85,17 +88,26 @@ export function QrViewfinder({
         {status === "ready" ? (
           <>
             {cameraPreview ?? (
-              <View className="absolute inset-0 items-center justify-center">
+              <Button
+                accessibilityLabel="Enable camera"
+                className="absolute inset-0 items-center justify-center rounded-none"
+                onPress={onRequestCamera}
+                ripple={false}
+                size="none"
+                tone="neutral"
+                variant="ghost"
+              >
                 <ThemedIcon
                   dimension={iconSize}
                   name={qrCodeIcon}
                   tone="brand"
                 />
-              </View>
+              </Button>
             )}
             <Animated.View
               className="absolute h-0.5 bg-brand-default"
               style={[{ left: scanInset, right: scanInset }, scanLineStyle]}
+              pointerEvents="none"
             />
           </>
         ) : null}

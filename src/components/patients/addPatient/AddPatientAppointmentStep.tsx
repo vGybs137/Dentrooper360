@@ -1,6 +1,6 @@
 import { memo } from "react";
-import { Switch, View } from "react-native";
 import { useWatch } from "react-hook-form";
+import { Switch, View } from "react-native";
 
 import { AddAppointmentDetailsStep } from "@/components/schedule/addAppointment";
 import { ThemedText, ThemedView } from "@/components/ui";
@@ -31,7 +31,10 @@ function AddPatientAppointmentStepComponent({
     <ThemedView space="default" variant="stack">
       <PatientFormFieldRow align="center" icon={calendarIcon}>
         <View className="w-full flex-row items-center justify-between gap-inline px-inline">
-          <ThemedText tone={addAppointment ? "default" : "muted"} variant="body">
+          <ThemedText
+            tone={addAppointment ? "default" : "muted"}
+            variant="body"
+          >
             Add appointment
           </ThemedText>
           <Switch
@@ -68,4 +71,6 @@ function AddPatientAppointmentStepComponent({
   );
 }
 
-export const AddPatientAppointmentStep = memo(AddPatientAppointmentStepComponent);
+export const AddPatientAppointmentStep = memo(
+  AddPatientAppointmentStepComponent,
+);

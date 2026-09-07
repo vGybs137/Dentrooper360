@@ -2,8 +2,10 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useFormState, useWatch } from "react-hook-form";
 import { View } from "react-native";
 
-import { PatientFormInlineSelect } from "@/components/patients/addPatient/PatientFormInlineSelect";
-import { usePatientFormFieldFocusHandlers } from "@/components/patients/addPatient/PatientFormInlineSelect";
+import {
+  PatientFormInlineSelect,
+  usePatientFormFieldFocusHandlers,
+} from "@/components/patients/addPatient/PatientFormInlineSelect";
 import { PatientFormSection } from "@/components/patients/addPatient/PatientFormSection";
 import {
   InlineSelectColorLeading,
@@ -236,7 +238,11 @@ function AddAppointmentDetailsStepComponent({
         <View className="mt-stack-compact size-5 items-center justify-center">
           <ThemedIcon dimension={20} name={notesIcon} tone="muted" />
         </View>
-        <View className="min-w-0 flex-1" ref={notesFocus.fieldRef} collapsable={false}>
+        <View
+          className="min-w-0 flex-1"
+          ref={notesFocus.fieldRef}
+          collapsable={false}
+        >
           <ThemedText
             as="input"
             bottomSheetInput

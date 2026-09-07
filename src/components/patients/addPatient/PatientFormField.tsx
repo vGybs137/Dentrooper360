@@ -1,14 +1,19 @@
-import { useRef, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { View } from "react-native";
 
-import { ThemedIcon, ThemedText, type ThemedTextInputProps } from "@/components/ui";
 import type { ThemedIconProps } from "@/components/ui";
+import {
+  ThemedIcon,
+  ThemedText,
+  type ThemedTextInputProps,
+} from "@/components/ui";
 import { cn } from "@/utils/cn";
 
 import { usePatientFormFocusField } from "./PatientFormFocusContext";
 
 export const PATIENT_FORM_INPUT_CLASS = "w-full px-inline";
-export const PATIENT_FORM_MULTILINE_INPUT_CLASS = "min-h-[72px] w-full px-inline";
+export const PATIENT_FORM_MULTILINE_INPUT_CLASS =
+  "min-h-[72px] w-full px-inline";
 
 type PatientFormInputProps = Omit<ThemedTextInputProps, "as"> & {
   hideInlineError?: boolean;
@@ -27,8 +32,11 @@ export function PatientFormInput({
   containerClassName,
   ...props
 }: PatientFormInputProps) {
-  const { fieldRef, reportFocus, onInputBlur: contextBlur } =
-    usePatientFormFocusField();
+  const {
+    fieldRef,
+    reportFocus,
+    onInputBlur: contextBlur,
+  } = usePatientFormFocusField();
 
   return (
     <View ref={fieldRef} collapsable={false}>
@@ -39,7 +47,9 @@ export function PatientFormInput({
         fieldVariant="bare"
         hideInlineError={hideInlineError}
         className={cn(
-          multiline ? PATIENT_FORM_MULTILINE_INPUT_CLASS : PATIENT_FORM_INPUT_CLASS,
+          multiline
+            ? PATIENT_FORM_MULTILINE_INPUT_CLASS
+            : PATIENT_FORM_INPUT_CLASS,
           className,
         )}
         multiline={multiline}

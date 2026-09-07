@@ -90,7 +90,7 @@ export function BrandedSplash({ children }: { children?: ReactNode }) {
   const insets = useSafeAreaInsets();
 
   return (
-    <ThemedView surface="sunken" style={{ flex: 1 }}>
+    <ThemedView surface="default" style={{ flex: 1 }}>
       <View
         style={{
           flex: 1,

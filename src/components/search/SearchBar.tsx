@@ -1,11 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Keyboard,
-  Platform,
-  View,
-  type View as RNView,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Keyboard, Platform, View, type View as RNView } from "react-native";
 import Animated, {
   Easing,
   interpolate,
@@ -13,6 +7,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button, ThemedIcon, ThemedText } from "@/components/ui";
 import { searchIcon } from "@/constants";
@@ -186,11 +181,7 @@ function SearchBarComponent({
   return (
     <View ref={reservedRef} pointerEvents="box-none" style={reservedStyle}>
       <Animated.View
-        style={[
-          slotStyle,
-          { marginHorizontal: sideInset },
-          pillAnimatedStyle,
-        ]}
+        style={[slotStyle, { marginHorizontal: sideInset }, pillAnimatedStyle]}
       >
         <View style={pillStaticStyle}>
           <ThemedIcon

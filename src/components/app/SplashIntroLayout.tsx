@@ -19,7 +19,7 @@ export function SplashIntroLayout({
   children,
 }: SplashIntroLayoutProps) {
   return (
-    <ThemedView className="flex-1 overflow-hidden" surface="sunken">
+    <ThemedView className="flex-1 overflow-hidden" surface="default">
       <Animated.View
         className="absolute inset-0 items-center justify-center"
         style={intro.logoStyle}

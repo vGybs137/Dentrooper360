@@ -25,3 +25,7 @@ export async function getOrCreateDeviceId(): Promise<string> {
   return next;
 }
 
+export async function clearDeviceId(): Promise<void> {
+  await setItem(DEVICE_ID_KEY, null);
+}
+

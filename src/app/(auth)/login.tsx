@@ -72,7 +72,7 @@ export default function LoginScreen() {
       keyboardAvoiding
       padBottom={false}
       scroll={false}
-      surface="sunken"
+      surface="default"
       variant="screen"
     >
       <SplashFooter />
