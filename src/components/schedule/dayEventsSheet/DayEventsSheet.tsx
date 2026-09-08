@@ -19,8 +19,14 @@ import { useNativeColors } from "@/theme";
 import { primitives, semantic } from "@/tokens";
 
 import { DayHeaderLabel } from "@/components/schedule/DayHeaderLabel";
-import { ThemedText } from "@/components/ui";
-import type { DayKey } from "@/helpers/schedule/calendar";
+import { EmptyState } from "@/components/ui";
+import { calendarIcon } from "@/constants";
+import {
+  parseDayKey,
+  toLocalDate,
+  type DayKey,
+} from "@/helpers/schedule/calendar";
+import { useAddAppointmentStore } from "@/stores";
 
 import type {
   DayEventsSheetHandle,
@@ -66,6 +72,8 @@ const DayEventsSheetInner = forwardRef<
   ref,
 ) {
   const native = useNativeColors();
+  const selectSlot = useAddAppointmentStore((state) => state.selectSlot);
+  const openAddAppointment = useAddAppointmentStore((state) => state.open);
   const scrollOffsetSV = useSharedValue(0);
   const dismissDragSV = useSharedValue(false);
   const touchStartYSV = useSharedValue(0);
@@ -91,9 +99,10 @@ const DayEventsSheetInner = forwardRef<
 
   const listContentStyle = useMemo(
     () => ({
+      flexGrow: events.length === 0 ? 1 : undefined,
       paddingBottom: semantic.space.section,
     }),
-    [],
+    [events.length],
   );
 
   const rootStyle = useMemo(
@@ -141,15 +150,26 @@ const DayEventsSheetInner = forwardRef<
     [native],
   );
 
+  const handleAddAppointment = useCallback(() => {
+    const dayStart = toLocalDate(parseDayKey(dayKey));
+    dayStart.setHours(9, 0, 0, 0);
+    selectSlot(dayStart);
+    openAddAppointment();
+  }, [dayKey, openAddAppointment, selectSlot]);
+
   const ListEmpty = useMemo(
     () => (
-      <View className="px-page py-section">
-        <ThemedText align="center" tone="muted">
-          No appointments on this day.
-        </ThemedText>
-      </View>
+      <EmptyState
+        action={{
+          label: "Add appointment",
+          onPress: handleAddAppointment,
+        }}
+        className="py-stack"
+        icon={calendarIcon}
+        title="No appointments"
+      />
     ),
-    [],
+    [handleAddAppointment],
   );
 
   const ItemSeparator = useCallback(

@@ -7,7 +7,8 @@ import {
 } from "react-native";
 
 import { AppointmentSearchDayGroup } from "@/components/schedule/appointmentSearch/AppointmentSearchDayGroup";
-import { ThemedText } from "@/components/ui";
+import { EmptyState, ThemedText } from "@/components/ui";
+import { balanceIcon } from "@/constants";
 import { groupByDayKey } from "@/helpers/ui/dayGroups";
 import type { PatientPaymentItem } from "@/hooks/patients/usePatientPayments";
 import { useScrollToClosestDay } from "@/hooks/ui/useScrollToClosestDay";
@@ -75,11 +76,7 @@ export function PatientPaymentsTab({
   }
 
   if (payments.length === 0) {
-    return (
-      <ThemedText className="px-page py-stack" tone="muted" variant="body">
-        No payments for this patient yet.
-      </ThemedText>
-    );
+    return <EmptyState icon={balanceIcon} title="No payments" />;
   }
 
   return (

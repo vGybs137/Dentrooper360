@@ -4,6 +4,7 @@ import { useCallback, useMemo } from "react";
 import { EntityListScreen } from "@/components/list";
 import { RecallListItem } from "@/components/recalls/RecallListItem";
 import { RecallsListKpis } from "@/components/recalls/RecallsListKpis";
+import { clockIcon } from "@/constants";
 import {
   useProviderRecalls,
   type ProviderRecallItem,
@@ -41,7 +42,8 @@ export function RecallsListScreen() {
   return (
     <EntityListScreen
       data={recalls}
-      emptyMessage="No active recalls yet."
+      emptyIcon={clockIcon}
+      emptyTitle="No recalls"
       error={error}
       errorMessage="Unable to load recalls."
       isLoading={isLoading}

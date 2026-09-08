@@ -7,7 +7,8 @@ import type { PatientOverviewField } from "@/components/patients/patientDetails/
 import { PatientOverviewTab } from "@/components/patients/patientDetails/PatientOverviewTab";
 import { RecallDetailsActionBar } from "@/components/recalls/RecallDetailsActionBar";
 import { RecallDetailsHero } from "@/components/recalls/RecallDetailsHero";
-import { Button, ThemedText, ThemedView } from "@/components/ui";
+import { EmptyState, ThemedView } from "@/components/ui";
+import { clockIcon } from "@/constants";
 import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/auth/motion";
 import { displayOrEmpty, formatDisplayDate } from "@/helpers/ui/display";
 import { openPatientWhatsApp } from "@/helpers/patients/patientContact";
@@ -203,25 +204,22 @@ export function RecallDetailsScreen({ recallId }: RecallDetailsScreenProps) {
   if (error || !recall || !recall.isActive || !patient) {
     return (
       <ThemedView
-        contentClassName="items-center justify-center px-page"
+        contentClassName="items-center justify-center"
         inset="none"
         padBottom={false}
         scroll={false}
         variant="screen"
       >
-        <ThemedView align="center" space="default" variant="stack">
-          <ThemedText align="center" tone={error ? "alert" : "muted"}>
-            {error
+        <EmptyState
+          action={{ label: "Back to recalls", onPress: goBack }}
+          description={
+            error
               ? "Unable to load this recall."
-              : "This recall could not be found."}
-          </ThemedText>
-          <Button
-            label="Back to recalls"
-            onPress={goBack}
-            tone="neutral"
-            variant="outline"
-          />
-        </ThemedView>
+              : "This recall could not be found."
+          }
+          icon={clockIcon}
+          title="No recall"
+        />
       </ThemedView>
     );
   }

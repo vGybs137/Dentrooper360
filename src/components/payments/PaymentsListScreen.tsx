@@ -4,6 +4,7 @@ import { useCallback, useMemo } from "react";
 import { EntityListScreen } from "@/components/list";
 import { PaymentListItem } from "@/components/payments/PaymentListItem";
 import { PaymentsTrendChart } from "@/components/payments/PaymentsTrendChart";
+import { balanceIcon } from "@/constants";
 import {
   useProviderPayments,
   type ProviderPaymentItem,
@@ -43,7 +44,8 @@ export function PaymentsListScreen() {
   return (
     <EntityListScreen
       data={payments}
-      emptyMessage="No payments yet."
+      emptyIcon={balanceIcon}
+      emptyTitle="No payments"
       error={error}
       errorMessage="Unable to load payments."
       isLoading={isLoading}

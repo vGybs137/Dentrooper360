@@ -8,11 +8,11 @@ import {
   type FeedbackOverlayProps,
 } from "@/components/app/FeedbackOverlay";
 import {
-  Button,
   DeleteConfirmationDialog,
-  ThemedText,
+  EmptyState,
   ThemedView,
 } from "@/components/ui";
+import { personIcon } from "@/constants";
 import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/auth/motion";
 import { deletePatientAndRelated } from "@/helpers/patients/deletePatient";
 import { displayOrEmpty, formatDisplayDate } from "@/helpers/ui/display";
@@ -21,6 +21,7 @@ import {
   formatPatientBalance,
   formatPatientName,
   formatPatientPhone,
+  type PatientCardData,
 } from "@/helpers/patients/patientDisplay";
 import { requestSync } from "@/helpers/sync/requestSync";
 import {
@@ -33,7 +34,11 @@ import {
 } from "@/hooks/patients/usePatientDetails";
 import { usePatientPayments } from "@/hooks/patients/usePatientPayments";
 import { usePatientServices } from "@/hooks/patients/usePatientServices";
-import { useAddPatientStore, useAuthUser } from "@/stores";
+import {
+  useAddAppointmentStore,
+  useAddPatientStore,
+  useAuthUser,
+} from "@/stores";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
@@ -117,6 +122,9 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
   const user = useAuthUser();
   const slideDuration = getAuthSlideDuration();
   const openForEdit = useAddPatientStore((state) => state.openForEdit);
+  const openWithPatient = useAddAppointmentStore(
+    (state) => state.openWithPatient,
+  );
   const { patient, isLoading, error } = usePatientDetails(patientId);
   const {
     appointments,
@@ -163,6 +171,27 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
 
     router.replace("/(tabs)/patients" as Href);
   }, [router]);
+
+  const handleAddAppointment = useCallback(() => {
+    if (!patient) {
+      return;
+    }
+
+    const displayName = formatPatientName(patient) || "Unnamed patient";
+    const draft: PatientCardData = {
+      id: patient.id,
+      displayName,
+      countryCode: patient.countryCode?.trim() || null,
+      phoneNumber: patient.phoneNumber?.trim() || null,
+      isVip: patient.isVip,
+      balance: patient.balance,
+      currency: patient.currency,
+      profilePhoto: patient.profilePhoto,
+      fileDate: patient.fileDate,
+      nextVisit: null,
+    };
+    openWithPatient(draft);
+  }, [openWithPatient, patient]);
 
   const dismissDeleteFeedback = useCallback(() => {
     setDeleteFeedback(null);
@@ -258,6 +287,7 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
             appointments={appointments}
             error={appointmentsError}
             isLoading={appointmentsLoading}
+            onAddAppointment={handleAddAppointment}
           />
         );
       case "services":
@@ -284,6 +314,7 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
     appointments,
     appointmentsError,
     appointmentsLoading,
+    handleAddAppointment,
     informationFields,
     payments,
     paymentsError,
@@ -311,25 +342,22 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
   if (error || !patient || !patient.isActive) {
     return (
       <ThemedView
-        contentClassName="items-center justify-center px-page"
+        contentClassName="items-center justify-center"
         inset="none"
         padBottom={false}
         scroll={false}
         variant="screen"
       >
-        <ThemedView align="center" space="default" variant="stack">
-          <ThemedText align="center" tone={error ? "alert" : "muted"}>
-            {error
+        <EmptyState
+          action={{ label: "Back to patients", onPress: goBack }}
+          description={
+            error
               ? "Unable to load this patient."
-              : "This patient could not be found."}
-          </ThemedText>
-          <Button
-            label="Back to patients"
-            onPress={goBack}
-            tone="neutral"
-            variant="outline"
-          />
-        </ThemedView>
+              : "This patient could not be found."
+          }
+          icon={personIcon}
+          title="No patient"
+        />
       </ThemedView>
     );
   }

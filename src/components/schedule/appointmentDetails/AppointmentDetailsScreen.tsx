@@ -22,12 +22,14 @@ import {
   DetailsActionBar,
   DETAILS_ACTION_BAR_HEIGHT,
   DetailsSection,
+  EmptyState,
   ThemedIcon,
   ThemedText,
   ThemedView,
   type DetailsField,
 } from "@/components/ui";
 import {
+  calendarIcon,
   chevronLeftIcon,
   deleteIcon,
   editIcon,
@@ -350,25 +352,22 @@ export function AppointmentDetailsScreen({
   if (error || !details) {
     return (
       <ThemedView
-        contentClassName="items-center justify-center px-page"
+        contentClassName="items-center justify-center"
         inset="none"
         padBottom={false}
         scroll={false}
         variant="screen"
       >
-        <ThemedView align="center" space="default" variant="stack">
-          <ThemedText align="center" tone={error ? "alert" : "muted"}>
-            {error
+        <EmptyState
+          action={{ label: "Back to schedule", onPress: goBack }}
+          description={
+            error
               ? "Unable to load this appointment."
-              : "This appointment could not be found."}
-          </ThemedText>
-          <Button
-            label="Back to schedule"
-            onPress={goBack}
-            tone="neutral"
-            variant="outline"
-          />
-        </ThemedView>
+              : "This appointment could not be found."
+          }
+          icon={calendarIcon}
+          title="No appointment"
+        />
       </ThemedView>
     );
   }

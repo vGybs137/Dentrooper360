@@ -17,9 +17,11 @@ import {
 
 import { EntityListHeader } from "@/components/list/EntityListHeader";
 import {
+  EmptyState,
   ScrollToTopButton,
   ThemedText,
   ThemedView,
+  type EmptyStateAction,
   type ThemedIconProps,
 } from "@/components/ui";
 import { SCROLL_TO_TOP_THRESHOLD } from "@/constants";
@@ -27,12 +29,16 @@ import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
 function EntityListEmpty({
-  emptyMessage,
+  emptyAction,
+  emptyIcon,
+  emptyTitle,
   error,
   errorMessage,
   isLoading,
 }: {
-  emptyMessage: string;
+  emptyAction?: EmptyStateAction | null;
+  emptyIcon: NonNullable<ThemedIconProps["name"]>;
+  emptyTitle: string;
   error: Error | null;
   errorMessage: string;
   isLoading: boolean;
@@ -61,14 +67,11 @@ function EntityListEmpty({
   }
 
   return (
-    <ThemedText
-      align="center"
-      className="px-page py-stack"
-      tone="muted"
-      variant="body"
-    >
-      {emptyMessage}
-    </ThemedText>
+    <EmptyState
+      action={emptyAction}
+      icon={emptyIcon}
+      title={emptyTitle}
+    />
   );
 }
 
@@ -83,7 +86,9 @@ export type EntityListScreenProps<T> = {
   isLoading: boolean;
   error: Error | null;
   errorMessage: string;
-  emptyMessage: string;
+  emptyTitle: string;
+  emptyIcon: NonNullable<ThemedIconProps["name"]>;
+  emptyAction?: EmptyStateAction | null;
   keyExtractor: (item: T, index: number) => string;
   renderItem: ListRenderItem<T>;
   listHeader?: ReactNode;
@@ -94,7 +99,9 @@ export function EntityListScreen<T>({
   addAccessibilityLabel,
   addIcon,
   data,
-  emptyMessage,
+  emptyAction,
+  emptyIcon,
+  emptyTitle,
   error,
   errorMessage,
   isLoading,
@@ -124,13 +131,15 @@ export function EntityListScreen<T>({
   const listEmptyComponent = useMemo(
     () => (
       <EntityListEmpty
-        emptyMessage={emptyMessage}
+        emptyAction={emptyAction}
+        emptyIcon={emptyIcon}
+        emptyTitle={emptyTitle}
         error={error}
         errorMessage={errorMessage}
         isLoading={isLoading}
       />
     ),
-    [emptyMessage, error, errorMessage, isLoading],
+    [emptyAction, emptyIcon, emptyTitle, error, errorMessage, isLoading],
   );
 
   return (

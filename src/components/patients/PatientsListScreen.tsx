@@ -4,7 +4,7 @@ import { useCallback, useMemo } from "react";
 import { EntityListScreen } from "@/components/list";
 import { PatientCard } from "@/components/patients/PatientCard";
 import { PatientsListKpis } from "@/components/patients/PatientsListKpis";
-import { personAddIcon } from "@/constants";
+import { personAddIcon, personsIcon } from "@/constants";
 import type { PatientCardData } from "@/helpers/patients/patientDisplay";
 import { useActivePatients } from "@/hooks/patients/useActivePatients";
 import { useAddPatientStore, useAuthUser } from "@/stores";
@@ -53,7 +53,12 @@ export function PatientsListScreen() {
       addAccessibilityLabel="Add patient"
       addIcon={personAddIcon}
       data={patients}
-      emptyMessage="No active patients yet."
+      emptyAction={{
+        label: "Add patient",
+        onPress: handleOpenAddPatient,
+      }}
+      emptyIcon={personsIcon}
+      emptyTitle="No patients"
       error={error}
       errorMessage="Unable to load patients."
       isLoading={isLoading}

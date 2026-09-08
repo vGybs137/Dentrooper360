@@ -7,6 +7,7 @@ export { DetailsActionBar } from "./DetailsActionBar";
 export { DetailsHeroAvatar, DetailsHeroCta } from "./DetailsHero";
 export { DetailsSection } from "./DetailsSection";
 export { Dropdown } from "./Dropdown";
+export { EmptyState } from "./EmptyState";
 export { EventRail } from "./EventRail";
 export {
   InlineSelect,
@@ -44,6 +45,7 @@ export type {
   DetailsNote,
 } from "./DetailsSection";
 export type { DropdownOption, DropdownProps } from "./Dropdown";
+export type { EmptyStateAction, EmptyStateProps } from "./EmptyState";
 export type { EventRailProps } from "./EventRail";
 export type { InlineSelectOption, InlineSelectProps } from "./InlineSelect";
 export type { KpiCardProps, KpiTrend } from "./KpiCard";

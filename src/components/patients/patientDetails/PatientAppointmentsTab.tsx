@@ -8,7 +8,8 @@ import {
 
 import { AppointmentSearchDayGroup } from "@/components/schedule/appointmentSearch/AppointmentSearchDayGroup";
 import { AppointmentSearchResultItem } from "@/components/schedule/appointmentSearch/AppointmentSearchResultItem";
-import { ThemedText } from "@/components/ui";
+import { EmptyState, ThemedText } from "@/components/ui";
+import { calendarIcon } from "@/constants";
 import type { PatientAppointmentItem } from "@/hooks/patients/usePatientAppointments";
 import { useScrollToClosestDay } from "@/hooks/ui/useScrollToClosestDay";
 import { useNativeColors } from "@/theme";
@@ -20,6 +21,7 @@ type PatientAppointmentsTabProps = {
   appointments: readonly PatientAppointmentItem[];
   isLoading: boolean;
   error?: Error | null;
+  onAddAppointment?: () => void;
 };
 
 type PatientAppointmentDayGroup = {
@@ -65,6 +67,7 @@ export function PatientAppointmentsTab({
   appointments,
   isLoading,
   error = null,
+  onAddAppointment,
 }: PatientAppointmentsTabProps) {
   const native = useNativeColors();
   const listRef = useRef<FlatListType<PatientAppointmentDayGroup>>(null);
@@ -109,9 +112,15 @@ export function PatientAppointmentsTab({
 
   if (appointments.length === 0) {
     return (
-      <ThemedText className="px-page py-stack" tone="muted" variant="body">
-        No appointments for this patient yet.
-      </ThemedText>
+      <EmptyState
+        action={
+          onAddAppointment
+            ? { label: "Add appointment", onPress: onAddAppointment }
+            : null
+        }
+        icon={calendarIcon}
+        title="No appointments"
+      />
     );
   }
 

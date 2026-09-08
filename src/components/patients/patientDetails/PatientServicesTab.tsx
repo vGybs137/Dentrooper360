@@ -7,7 +7,8 @@ import {
 } from "react-native";
 
 import { AppointmentSearchDayGroup } from "@/components/schedule/appointmentSearch/AppointmentSearchDayGroup";
-import { ThemedText } from "@/components/ui";
+import { EmptyState, ThemedText } from "@/components/ui";
+import { notesIcon } from "@/constants";
 import { groupByDayKey } from "@/helpers/ui/dayGroups";
 import type { PatientServiceItem } from "@/hooks/patients/usePatientServices";
 import { useScrollToClosestDay } from "@/hooks/ui/useScrollToClosestDay";
@@ -81,11 +82,7 @@ export function PatientServicesTab({
   }
 
   if (services.length === 0) {
-    return (
-      <ThemedText className="px-page py-stack" tone="muted" variant="body">
-        No services for this patient yet.
-      </ThemedText>
-    );
+    return <EmptyState icon={notesIcon} title="No services" />;
   }
 
   return (
