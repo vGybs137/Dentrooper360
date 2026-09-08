@@ -118,6 +118,18 @@ export const wifiIcon = {
   web: "wifi",
 } as const;
 
+export const wifiOffIcon = {
+  ios: "wifi.slash",
+  android: "wifi_off",
+  web: "wifi_off",
+} as const;
+
+export const closeIcon = {
+  ios: "xmark",
+  android: "close",
+  web: "close",
+} as const;
+
 export const calendarIcon = {
   ios: "calendar",
   android: "calendar_month",

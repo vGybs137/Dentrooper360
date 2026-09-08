@@ -17,6 +17,7 @@ export { MetricColumn } from "./MetricColumn";
 export { SearchHighlightText } from "./SearchHighlightText";
 export { SearchToggle } from "./SearchToggle";
 export { ScrollToTopButton } from "./ScrollToTopButton";
+export { Snackbar } from "./Snackbar";
 export { ThemedIcon } from "./ThemedIcon";
 export { ThemedText } from "./ThemedText";
 export { ThemedView } from "./ThemedView";
@@ -45,6 +46,10 @@ export type { MetricColumnAlign, MetricColumnProps } from "./MetricColumn";
 export type { SearchHighlightTextProps } from "./SearchHighlightText";
 export type { SearchToggleProps } from "./SearchToggle";
 export type { ScrollToTopButtonProps } from "./ScrollToTopButton";
+export type {
+  ConnectivitySnackbarVariant,
+  SnackbarProps,
+} from "./Snackbar";
 export type { ThemedIconProps } from "./ThemedIcon";
 export type {
   ThemedTextDisplayProps,

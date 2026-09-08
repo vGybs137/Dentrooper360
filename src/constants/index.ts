@@ -46,6 +46,7 @@ export {
   chevronLeftIcon,
   chevronUpIcon,
   clockIcon,
+  closeIcon,
   deleteIcon,
   editIcon,
   ellipsisIcon,
@@ -70,6 +71,7 @@ export {
   warningIcon,
   weekStartIcon,
   wifiIcon,
+  wifiOffIcon,
 } from "./icons";
 export {
   DEFAULT_PATIENT_COUNTRY_CODE,

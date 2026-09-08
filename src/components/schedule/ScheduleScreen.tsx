@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-import { ScheduleSyncStatusBanner } from "@/components/schedule/ScheduleSyncStatusBanner";
 import { ThemedView } from "@/components/ui";
 import { BOTTOM_TAB_INSET } from "@/constants/navigation";
 import { monthViewScreenBottomPadding } from "@/helpers/schedule/monthViewLayout";
@@ -25,7 +24,6 @@ export function ScheduleScreen({ children }: ScheduleScreenProps) {
       variant="screen"
       style={{ paddingTop: insets.top }}
     >
-      <ScheduleSyncStatusBanner />
       {children}
     </ThemedView>
   );

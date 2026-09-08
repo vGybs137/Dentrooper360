@@ -11,6 +11,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AddAppointmentSheet } from "@/components/schedule/addAppointment";
 import { AddPatientSheet } from "@/components/patients/addPatient";
+import { ConnectivitySnackbar } from "@/components/app/ConnectivitySnackbar";
 import { keepNativeSplashVisible } from "@/helpers/auth/nativeSplash";
 import { useConnectivitySync } from "@/hooks/sync/useConnectivitySync";
 import { usePeriodicSync } from "@/hooks/sync/usePeriodicSync";
@@ -45,6 +46,7 @@ function RootLayout() {
             </Stack>
             <AddAppointmentSheet />
             <AddPatientSheet />
+            <ConnectivitySnackbar />
           </BottomSheetModalProvider>
         </QueryProvider>
       </BlurTargetView>
