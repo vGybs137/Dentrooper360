@@ -7,13 +7,13 @@ import { DayEventsSheet } from "@/components/schedule/dayEventsSheet";
 import { SheetOpenProgressContext } from "@/contexts/SheetOpenProgressContext";
 import { useMonthCalendarSession } from "@/hooks/schedule/useMonthCalendarSession";
 import { useMonthSheetGeometry } from "@/hooks/schedule/useMonthSheetGeometry";
-import type { WeekdayIndex } from "@/utils/calendar";
+import type { WeekdayIndex } from "@/helpers/schedule/calendar";
 
 import { MonthCalendarHeader } from "./MonthCalendarHeader";
 import { MonthPager } from "./MonthPager";
 import { MonthQuickAddField } from "./MonthQuickAddField";
 import { WeekdayHeader } from "./WeekdayHeader";
-import { WeekPager } from "./WeekPager";
+import { MonthWeekPager } from "./MonthWeekPager";
 
 export type MonthCalendarProps = {
   weekStartsOn?: WeekdayIndex;
@@ -82,7 +82,7 @@ export function MonthCalendar({ weekStartsOn = 0 }: MonthCalendarProps) {
                     geometry.weekPagerVisibilityStyle,
                   ]}
                 >
-                  <WeekPager
+                  <MonthWeekPager
                     ref={session.weekPagerRef}
                     weeks={session.weeks}
                     initialIndex={session.weekInitialIndex}

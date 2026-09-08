@@ -13,7 +13,7 @@ import {
   coerceDayViewDayKey,
   weekStartDayKey,
   type WeekdayIndex,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 import { DayCalendarHeader } from "./DayCalendarHeader";
 import { DayCalendarPager } from "./DayCalendarPager";

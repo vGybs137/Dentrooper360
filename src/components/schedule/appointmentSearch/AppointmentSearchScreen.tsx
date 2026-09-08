@@ -1,6 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, useWindowDimensions, View } from "react-native";
+import { useWindowDimensions, View } from "react-native";
 import Animated, {
   runOnJS,
   useAnimatedScrollHandler,
@@ -8,30 +8,32 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { SearchBar } from "@/components/search";
+import {
+  EntitySearchEmptyContent,
+  EntitySearchTitleHeader,
+  SearchBar,
+} from "@/components/search";
 import { AppointmentSearchBackButton } from "@/components/schedule/appointmentSearch/AppointmentSearchBackButton";
 import { AppointmentSearchDayGroup } from "@/components/schedule/appointmentSearch/AppointmentSearchDayGroup";
 import { AppointmentSearchFiltersCard } from "@/components/schedule/appointmentSearch/AppointmentSearchFiltersCard";
 import { AppointmentSearchResultItem } from "@/components/schedule/appointmentSearch/AppointmentSearchResultItem";
-import { ThemedText, ThemedView } from "@/components/ui";
+import { ThemedView } from "@/components/ui";
 import {
   appointmentSearchTimeWindowLabel,
   DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW,
   type AppointmentSearchCustomRange,
   type AppointmentSearchTimeWindow,
 } from "@/constants/appointmentSearch";
-import { useAppointmentSearch } from "@/hooks/useAppointmentSearch";
-import { getSearchBarReservedHeight } from "@/helpers/searchBarLayout";
-import { useNativeColors } from "@/theme";
+import { findClosestDayGroupIndex } from "@/helpers/ui/dayGroups";
+import { useAppointmentSearch } from "@/hooks/schedule/useAppointmentSearch";
+import { getSearchBarReservedHeight } from "@/helpers/ui/searchBarLayout";
 import { semantic } from "@/tokens";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import {
-  parseDayKey,
   toDayKey,
-  toLocalDate,
   todayCalendarDate,
   type DayKey,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 type SearchDayGroup = {
   dayKey: DayKey;
@@ -58,81 +60,12 @@ function groupResultsByDay(results: MonthDayEventPreview[]): SearchDayGroup[] {
   return groups;
 }
 
-/** Index of today, or the temporally closest day (prefer future on ties). */
-function findClosestDayGroupIndex(
-  groups: SearchDayGroup[],
-  todayKey: DayKey,
-): number {
-  if (groups.length === 0) {
-    return -1;
-  }
-
-  const todayIndex = groups.findIndex((group) => group.dayKey === todayKey);
-  if (todayIndex >= 0) {
-    return todayIndex;
-  }
-
-  const todayMs = toLocalDate(parseDayKey(todayKey)).getTime();
-  let bestIndex = 0;
-  let bestDistance = Number.POSITIVE_INFINITY;
-
-  for (let index = 0; index < groups.length; index += 1) {
-    const dayMs = toLocalDate(parseDayKey(groups[index].dayKey)).getTime();
-    const distance = Math.abs(dayMs - todayMs);
-
-    if (
-      distance < bestDistance ||
-      (distance === bestDistance && dayMs >= todayMs)
-    ) {
-      bestDistance = distance;
-      bestIndex = index;
-    }
-  }
-
-  return bestIndex;
-}
-
-function SearchListEmptyContent({
-  error,
-  hasActiveFilters,
-  isLoading,
-  query,
-}: {
-  error: unknown;
-  hasActiveFilters: boolean;
-  isLoading: boolean;
-  query: string;
-}) {
-  const native = useNativeColors();
-
-  return (
-    <View>
-      {isLoading ? (
-        <View className="items-center pt-stack-default">
-          <ActivityIndicator color={native.brand.default} />
-        </View>
-      ) : null}
-
-      {error ? (
-        <View className="px-page pt-stack-default">
-          <ThemedText align="center" tone="alert" variant="body">
-            Unable to search appointments.
-          </ThemedText>
-        </View>
-      ) : null}
-
-      {!isLoading && !error && hasActiveFilters ? (
-        <View className="px-page pt-stack-default">
-          <ThemedText align="center" tone="muted" variant="body">
-            {query.trim().length > 0
-              ? `No appointments match "${query.trim()}".`
-              : "No appointments match the selected filters."}
-          </ThemedText>
-        </View>
-      ) : null}
-    </View>
-  );
-}
+const APPOINTMENT_SEARCH_EMPTY_COPY = {
+  error: "Unable to search appointments.",
+  noMatch: (trimmedQuery: string) =>
+    `No appointments match "${trimmedQuery}".`,
+  noMatchFallback: "No appointments match the selected filters.",
+} as const;
 
 export function AppointmentSearchScreen() {
   const insets = useSafeAreaInsets();
@@ -391,17 +324,11 @@ export function AppointmentSearchScreen() {
   const listHeaderComponent = useMemo(
     () => (
       <View>
-        <View
-          style={{
-            paddingTop: titleTopPadding,
-            paddingBottom: titleBottomPadding,
-          }}
-        >
-          <ThemedText align="center" variant="display">
-            Search
-          </ThemedText>
-        </View>
-        <View style={{ height: chevronRowHeight }} />
+        <EntitySearchTitleHeader
+          chevronRowHeight={chevronRowHeight}
+          titleBottomPadding={titleBottomPadding}
+          titleTopPadding={titleTopPadding}
+        />
         <AppointmentSearchFiltersCard
           customCalendarOpen={customCalendarOpen}
           customPendingStartDayKey={customPendingStartDayKey}
@@ -433,9 +360,10 @@ export function AppointmentSearchScreen() {
 
   const listEmptyComponent = useMemo(
     () => (
-      <SearchListEmptyContent
+      <EntitySearchEmptyContent
+        copy={APPOINTMENT_SEARCH_EMPTY_COPY}
         error={error}
-        hasActiveFilters={hasActiveFilters}
+        hasQuery={hasActiveFilters}
         isLoading={isLoading}
         query={query}
       />

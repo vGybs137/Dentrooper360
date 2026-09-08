@@ -2,7 +2,7 @@ import { useRef, useState, type ReactNode } from "react";
 import { Modal, View, type LayoutRectangle } from "react-native";
 
 import { chevronDisclosureIcon } from "@/constants";
-import { cn } from "@/utils/cn";
+import { cn } from "@/helpers/ui/cn";
 
 import { Button } from "./Button";
 import { ColorSwatch } from "./ColorSwatch";

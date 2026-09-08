@@ -19,7 +19,7 @@ import {
   weekdayOffset,
   type DayKey,
   type WeekdayIndex,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 import { WeekCalendarHeader } from "./WeekCalendarHeader";
 import { WeekCalendarPager } from "./WeekCalendarPager";

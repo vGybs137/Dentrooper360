@@ -1,5 +1,5 @@
-import { parseQuickAddAppointment } from "../src/helpers/parseQuickAddAppointment";
-import { addDays, toDayKey, type DayKey } from "../src/utils/calendar";
+import { parseQuickAddAppointment } from "../src/helpers/schedule/parseQuickAddAppointment";
+import { addDays, toDayKey, type DayKey } from "../src/helpers/schedule/calendar";
 
 const patients = [
   {

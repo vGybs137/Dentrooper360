@@ -1,12 +1,12 @@
 import { type Href, useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { BrandedSplash } from "@/components/app/BrandLogo";
 import { Button, ThemedText, ThemedView } from "@/components/ui";
-import { hideNativeSplash } from "@/helpers/nativeSplash";
-import { prepareScheduleAppointments } from "@/helpers/prefetchScheduleAppointments";
-import { useStartupSessionCheck } from "@/hooks/useStartupSessionCheck";
-import { useStartupSync } from "@/hooks/useStartupSync";
+import { hideNativeSplash } from "@/helpers/auth/nativeSplash";
+import { prepareScheduleAppointments } from "@/helpers/schedule/prefetchScheduleAppointments";
+import { useStartupSessionCheck } from "@/hooks/auth/useStartupSessionCheck";
+import { useStartupSync } from "@/hooks/auth/useStartupSync";
 import {
   setOfflineMode,
   useAuthStore,
@@ -24,6 +24,8 @@ export default function Index() {
   const syncStatusHydrated = useSyncStatusHasHydrated();
   const isAuthenticated = useIsAuthenticated();
   const canEnterOffline = useCanEnterOffline();
+  const isEnteringRef = useRef(false);
+  const [isEntering, setIsEntering] = useState(false);
   const {
     isPending: isValidatingSession,
     isSuccess: isSessionValid,
@@ -37,16 +39,30 @@ export default function Index() {
     isFetching: isRetryingSync,
   } = useStartupSync(isSessionValid);
 
+  const enterSchedule = useCallback(
+    async (offline: boolean) => {
+      if (isEnteringRef.current) {
+        return;
+      }
+
+      isEnteringRef.current = true;
+      setIsEntering(true);
+
+      try {
+        setOfflineMode(offline);
+        await prepareScheduleAppointments();
+        void hideNativeSplash();
+        router.replace("/(tabs)/schedule" as Href);
+      } catch {
+        isEnteringRef.current = false;
+        setIsEntering(false);
+      }
+    },
+    [router],
+  );
+
   useEffect(() => {
     let cancelled = false;
-
-    const enterSchedule = async (offline: boolean) => {
-      setOfflineMode(offline);
-      await prepareScheduleAppointments();
-      if (cancelled) return;
-      void hideNativeSplash();
-      router.replace("/(tabs)/schedule" as Href);
-    };
 
     if (!hasHydrated || !syncStatusHydrated) {
       return () => {
@@ -90,7 +106,9 @@ export default function Index() {
 
     if (isSyncFailed) {
       if (canEnterOffline) {
-        void enterSchedule(true);
+        if (!cancelled) {
+          void enterSchedule(true);
+        }
         return () => {
           cancelled = true;
         };
@@ -109,7 +127,9 @@ export default function Index() {
     }
 
     if (isSyncComplete) {
-      void enterSchedule(false);
+      if (!cancelled) {
+        void enterSchedule(false);
+      }
     }
 
     return () => {
@@ -118,6 +138,7 @@ export default function Index() {
   }, [
     canEnterOffline,
     customerId,
+    enterSchedule,
     hasHydrated,
     isAuthenticated,
     isSessionInvalid,
@@ -141,7 +162,7 @@ export default function Index() {
             Unable to sync clinic data. Check your connection and try again.
           </ThemedText>
           <Button
-            disabled={isRetryingSync}
+            disabled={isRetryingSync || isEntering}
             label={isRetryingSync ? "Retrying sync..." : "Retry sync"}
             onPress={() => {
               void retrySync();
@@ -157,19 +178,15 @@ export default function Index() {
             clinic data.
           </ThemedText>
           <Button
-            label="Continue offline"
+            disabled={isEntering}
+            label={isEntering ? "Opening..." : "Continue offline"}
             onPress={() => {
-              void (async () => {
-                setOfflineMode(true);
-                await prepareScheduleAppointments();
-                void hideNativeSplash();
-                router.replace("/(tabs)/schedule" as Href);
-              })();
+              void enterSchedule(true);
             }}
             tone="brand"
           />
           <Button
-            disabled={isRetryingSync}
+            disabled={isRetryingSync || isEntering}
             label={isRetryingSync ? "Retrying sync..." : "Retry sync"}
             onPress={() => {
               void retrySync();

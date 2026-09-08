@@ -7,9 +7,9 @@ import { ThemedText } from "@/components/ui";
 import {
   formatProviderCurrencyAmount,
   resolveProviderCurrencySymbol,
-} from "@/helpers/currency";
-import { buildPaymentMonthDailyTotals } from "@/helpers/paymentDailyTotals";
-import type { ProviderPaymentItem } from "@/hooks/useProviderPayments";
+} from "@/helpers/payments/currency";
+import { buildPaymentMonthDailyTotals } from "@/helpers/payments/paymentDailyTotals";
+import type { ProviderPaymentItem } from "@/hooks/payments/useProviderPayments";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 

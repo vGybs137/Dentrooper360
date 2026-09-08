@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Gesture } from "react-native-gesture-handler";
 
-import { yearMonthFromDayKey } from "@/helpers/scheduleCalendar";
+import { yearMonthFromDayKey } from "@/helpers/schedule/scheduleCalendar";
 import { useDayEventsSheetProgress } from "@/hooks/schedule/useDayEventsSheetProgress";
 import { useMonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
 import { useVisibleMonth } from "@/hooks/schedule/useVisibleMonth";
@@ -12,7 +12,7 @@ import {
 } from "@/stores/calendarSelectionStore";
 import type {
   MonthPagerHandle,
-  WeekPagerHandle,
+  MonthWeekPagerHandle,
 } from "@/types/schedule";
 import {
   addDays,
@@ -24,7 +24,7 @@ import {
   weekStartDayKey,
   type DayKey,
   type WeekdayIndex,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 import type { DayCellEventIndicators } from "@/components/schedule/monthView/DayCell";
 
@@ -94,7 +94,7 @@ export function useMonthCalendarSession({
   const headerMonthKey = `${headerMonth.year}-${headerMonth.month}`;
 
   const pagerRef = useRef<MonthPagerHandle>(null);
-  const weekPagerRef = useRef<WeekPagerHandle>(null);
+  const weekPagerRef = useRef<MonthWeekPagerHandle>(null);
   const isDraggingRef = useRef(isDragging);
   isDraggingRef.current = isDragging;
   const selectedDayKeyRef = useRef(selectedDayKey);

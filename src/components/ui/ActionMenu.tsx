@@ -6,7 +6,7 @@ import { semantic } from "@/tokens";
 
 import { Button } from "./Button";
 import { ThemedText } from "./ThemedText";
-import { cn } from "@/utils/cn";
+import { cn } from "@/helpers/ui/cn";
 
 export type ActionMenuItem = {
   key: string;

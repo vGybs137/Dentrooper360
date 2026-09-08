@@ -6,12 +6,12 @@ import { ThemedText } from "@/components/ui";
 import {
   WEEK_VIEW_GUTTER_LABEL_LINE_HEIGHT,
 } from "@/constants/schedule";
-import { formatHourLabel } from "@/helpers/timeFormat";
+import { formatHourLabel } from "@/helpers/ui/timeFormat";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
 import {
   MINUTES_PER_HOUR,
   minutesToYInWorkingWindow,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 export type TimeGutterProps = {
   width: number;

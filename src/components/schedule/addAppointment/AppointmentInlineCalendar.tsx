@@ -7,13 +7,13 @@ import Animated from "react-native-reanimated";
 import {
   parseCalendarDateString,
   toCalendarDateString,
-} from "@/helpers/appointmentDate";
-import { closedWeekdayIndexes } from "@/helpers/scheduleHours";
+} from "@/helpers/schedule/appointmentDate";
+import { closedWeekdayIndexes } from "@/helpers/schedule/scheduleHours";
 import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
-import { useInlineCollapse } from "@/hooks/useInlineCollapse";
+import { useInlineCollapse } from "@/hooks/ui/useInlineCollapse";
 import { useWeekStartsOn } from "@/stores";
 import { useNativeColors } from "@/theme";
-import type { WeekdayIndex } from "@/utils/calendar";
+import type { WeekdayIndex } from "@/helpers/schedule/calendar";
 
 const FALLBACK_CALENDAR_HEIGHT = 300;
 

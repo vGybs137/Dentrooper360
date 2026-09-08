@@ -27,8 +27,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FormProvider } from "react-hook-form";
 
 import { Button, ThemedIcon, ThemedText } from "@/components/ui";
-import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
-import { useAddAppointmentForm } from "@/hooks/useAddAppointmentForm";
+import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/auth/motion";
+import { useAddAppointmentForm } from "@/hooks/schedule/useAddAppointmentForm";
 import {
   useAddAppointmentIsPresented,
   useAddAppointmentStore,
@@ -72,6 +72,7 @@ export function AddAppointmentSheet() {
   const {
     step,
     isSubmitting,
+    canSubmit,
     submitError,
     isEditing,
     goNext,
@@ -269,7 +270,9 @@ export function AddAppointmentSheet() {
             <Button
               bottomSheet
               className="min-w-[120px]"
-              disabled={isSubmitting}
+              disabled={
+                step === "patient" ? isSubmitting : isSubmitting || !canSubmit
+              }
               label={
                 step === "patient"
                   ? "Next"
@@ -290,6 +293,7 @@ export function AddAppointmentSheet() {
       </BottomSheetFooter>
     ),
     [
+      canSubmit,
       handleBack,
       handleNext,
       handleSubmit,

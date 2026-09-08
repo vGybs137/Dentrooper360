@@ -1,7 +1,8 @@
 import dayjs from "dayjs";
 import { create } from "zustand";
 
-import type { PatientCardData } from "@/helpers/patientDisplay";
+import { defaultAppointmentStart } from "@/helpers/schedule/createAppointment";
+import type { PatientCardData } from "@/helpers/patients/patientDisplay";
 
 export type AppointmentSlot = {
   start: Date;
@@ -55,10 +56,6 @@ function buildSlot(start: Date): AppointmentSlot {
       .add(ADD_APPOINTMENT_SLOT_DURATION_MINUTES, "minute")
       .toDate(),
   };
-}
-
-function defaultAppointmentStart(): Date {
-  return dayjs().add(1, "hour").startOf("hour").toDate();
 }
 
 const CLOSED_STATE = {

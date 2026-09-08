@@ -1,4 +1,4 @@
-import type { DayKey } from "@/utils/calendar";
+import type { DayKey } from "@/helpers/schedule/calendar";
 
 export type DayPressHandler = (
   dayKey: DayKey,

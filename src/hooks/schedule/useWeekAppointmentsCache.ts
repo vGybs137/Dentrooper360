@@ -5,14 +5,18 @@ import type { MonthDayEventPreview } from "@/types/schedule";
 import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import type AppointmentType from "@/database/models/AppointmentType";
-import { getScheduleAppointmentsPrefetch } from "@/helpers/prefetchScheduleAppointments";
+import { getScheduleAppointmentsPrefetch } from "@/helpers/schedule/prefetchScheduleAppointments";
 import {
   buildAppointmentTypesMap,
   buildWeekDayMap,
   type AppointmentTypeLookup,
   type MonthEventsByDay,
   type WeekAppointmentsCache,
-} from "@/helpers/scheduleAppointmentPreview";
+} from "@/helpers/schedule/scheduleAppointmentPreview";
+import {
+  APPOINTMENT_WINDOW_OBSERVE_COLUMNS,
+  APPOINTMENTS_CACHE_LOADER_DELAY_MS,
+} from "@/hooks/schedule/appointmentsWindowCacheShared";
 import { useAuthUser } from "@/stores/authStore";
 import {
   addWeeks,
@@ -20,9 +24,7 @@ import {
   toLocalDate,
   WEEK_DAYS,
   type DayKey,
-} from "@/utils/calendar";
-
-const LOADER_DELAY_MS = 200;
+} from "@/helpers/schedule/calendar";
 
 type SubscriptionLike = { unsubscribe: () => void };
 
@@ -145,16 +147,7 @@ export function useWeekAppointmentsCache({
           Q.where("start_time", Q.gte(weekStartMs)),
           Q.where("start_time", Q.lt(weekEndMs)),
         )
-        .observeWithColumns([
-          "patient_id",
-          "type_id",
-          "location_id",
-          "subject",
-          "status",
-          "description",
-          "start_time",
-          "end_time",
-        ])
+        .observeWithColumns([...APPOINTMENT_WINDOW_OBSERVE_COLUMNS])
         .subscribe({
           next: (appointments) => {
             publishWeek(weekStartKey, appointments);
@@ -230,7 +223,7 @@ export function useWeekAppointmentsCache({
     clearTimer();
     debounceTimerRef.current = setTimeout(() => {
       flushPending();
-    }, LOADER_DELAY_MS);
+    }, APPOINTMENTS_CACHE_LOADER_DELAY_MS);
 
     return clearTimer;
   }, [isDragging, flushPending]);

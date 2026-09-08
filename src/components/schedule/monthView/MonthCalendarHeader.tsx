@@ -1,7 +1,7 @@
 import { memo } from "react";
 
 import { ScheduleCalendarHeader } from "@/components/schedule/ScheduleCalendarHeader";
-import { formatYearMonthShort, type YearMonth } from "@/utils/calendar";
+import { formatYearMonthShort, type YearMonth } from "@/helpers/schedule/calendar";
 
 export type MonthCalendarHeaderProps = {
   yearMonth: YearMonth;

@@ -12,11 +12,11 @@ import {
 import { LoginForm } from "@/components/app/LoginForm";
 import { QrViewfinder } from "@/components/app/QrViewfinder";
 import { ThemedView } from "@/components/ui";
-import { getDeviceInfo, getOrCreateDeviceId } from "@/helpers/deviceId";
-import { isFromOnboarding } from "@/helpers/routeParams";
-import { useLoginLogoRestLayout } from "@/hooks/useAuthLogoRestOffset";
-import { usePairMutation } from "@/hooks/usePairMutation";
-import { useQrScannerMotion } from "@/hooks/useQrScannerMotion";
+import { getDeviceInfo, getOrCreateDeviceId } from "@/helpers/auth/deviceId";
+import { isFromOnboarding } from "@/helpers/ui/routeParams";
+import { useLoginLogoRestLayout } from "@/hooks/auth/useAuthLogoRestOffset";
+import { usePairMutation } from "@/hooks/auth/usePairMutation";
+import { useQrScannerMotion } from "@/hooks/auth/useQrScannerMotion";
 import { useRestoreOnboarding } from "@/stores";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";

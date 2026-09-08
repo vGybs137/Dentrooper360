@@ -13,7 +13,7 @@ import {
   notesIcon,
   personIcon,
 } from "@/constants";
-import { AUTH_SLIDE_EASING } from "@/helpers/authMotion";
+import { AUTH_SLIDE_EASING } from "@/helpers/auth/motion";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 

@@ -20,7 +20,7 @@ import { primitives, semantic } from "@/tokens";
 
 import { DayHeaderLabel } from "@/components/schedule/DayHeaderLabel";
 import { ThemedText } from "@/components/ui";
-import type { DayKey } from "@/utils/calendar";
+import type { DayKey } from "@/helpers/schedule/calendar";
 
 import type {
   DayEventsSheetHandle,

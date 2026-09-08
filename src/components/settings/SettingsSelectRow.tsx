@@ -3,9 +3,9 @@ import Animated from "react-native-reanimated";
 
 import { Button, ThemedIcon, ThemedText } from "@/components/ui";
 import { chevronDownIcon } from "@/constants";
-import { useInlineCollapse } from "@/hooks/useInlineCollapse";
+import { useInlineCollapse } from "@/hooks/ui/useInlineCollapse";
 import { semantic } from "@/tokens";
-import { cn } from "@/utils/cn";
+import { cn } from "@/helpers/ui/cn";
 
 import {
   SettingsRowLabel,

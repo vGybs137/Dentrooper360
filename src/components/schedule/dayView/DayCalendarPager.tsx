@@ -7,7 +7,7 @@ import { DAY_VIEW_PAGER_RENDER_RADIUS } from "@/constants/schedule";
 import { useWeekViewAxisLock } from "@/hooks/schedule/useWeekViewAxisLock";
 import { useAddAppointmentStore } from "@/stores/addAppointmentStore";
 import type { MonthDayEventPreview } from "@/types/schedule";
-import type { DayKey } from "@/utils/calendar";
+import type { DayKey } from "@/helpers/schedule/calendar";
 
 import { DayPageHeaderRow } from "./DayPageHeaderRow";
 import { DayTimeGrid } from "./DayTimeGrid";

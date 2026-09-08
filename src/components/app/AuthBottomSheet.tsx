@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedView } from "@/components/ui";
 import { semantic } from "@/tokens";
-import { cn } from "@/utils/cn";
+import { cn } from "@/helpers/ui/cn";
 
 type AuthBottomSheetProps = {
   children: ReactNode;

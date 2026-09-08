@@ -21,7 +21,7 @@ import {
   WEEK_VIEW_NOW_INDICATOR_ARROW_HEIGHT,
   WEEK_VIEW_SCROLL_PADDING_MINUTES,
 } from "@/constants/schedule";
-import { withOpacity } from "@/helpers/color";
+import { withOpacity } from "@/helpers/ui/color";
 import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
 import type { WeekEventsByDay } from "@/hooks/schedule/useWeekAppointmentsCache";
 import { useNativeColors } from "@/theme";
@@ -39,7 +39,7 @@ import {
   toDayKey,
   WEEK_DAYS,
   type DayKey,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 import { TimeGutter } from "./TimeGutter";
 import { WeekEventBlock } from "./WeekEventBlock";

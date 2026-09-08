@@ -12,14 +12,14 @@ import {
   wifiIcon,
 } from "@/constants";
 import { synchronize } from "@/database/synchronize";
-import { clearApplicationData } from "@/helpers/clearApplicationData";
-import { useIsOnCellular } from "@/hooks/useIsOnCellular";
-import { useSyncStatus } from "@/hooks/useSyncStatus";
+import { clearApplicationData } from "@/helpers/sync/clearApplicationData";
+import { useIsOnCellular } from "@/hooks/sync/useIsOnCellular";
+import { useSyncStatus } from "@/hooks/sync/useSyncStatus";
 import { useCustomerId, useSyncStatusStore, useSyncWifiOnly } from "@/stores";
 import { useNativeColors } from "@/theme";
 import { ApiError } from "@/types/api";
 
-import { formatLastSyncedAt } from "@/helpers/formatLastSyncedAt";
+import { formatLastSyncedAt } from "@/helpers/sync/formatLastSyncedAt";
 import { SettingsRow, SettingsSection } from "./SettingsSection";
 
 export function SettingsSyncSection() {
@@ -68,11 +68,14 @@ export function SettingsSyncSection() {
         ? "Unable to sync clinic data. Check your connection and try again."
         : undefined;
 
-  const clearDataError = clearDataMutation.isError
-    ? clearDataMutation.error instanceof Error
+  const clearDataError =
+    clearDataMutation.error instanceof ApiError
       ? clearDataMutation.error.message
-      : "Unable to clear application data."
-    : undefined;
+      : clearDataMutation.isError
+        ? clearDataMutation.error instanceof Error
+          ? clearDataMutation.error.message
+          : "Unable to clear application data."
+        : undefined;
 
   const blockedByWifiOnly = syncWifiOnly && onCellular && !isOffline;
   const canSyncNow =
@@ -197,6 +200,15 @@ export function SettingsSyncSection() {
             />
           }
         />
+        {syncError ? (
+          <ThemedText
+            className="px-inline-comfortable pb-stack-compact"
+            tone="alert"
+            variant="label"
+          >
+            {syncError}
+          </ThemedText>
+        ) : null}
         {/* Temporary: remove once no longer needed for local wipe / support. */}
         <SettingsRow
           title="Clear application data"
@@ -217,7 +229,11 @@ export function SettingsSyncSection() {
           }
         />
         {clearDataError ? (
-          <ThemedText className="px-4 pb-3" tone="alert" variant="label">
+          <ThemedText
+            className="px-inline-comfortable pb-stack-compact"
+            tone="alert"
+            variant="label"
+          >
             {clearDataError}
           </ThemedText>
         ) : null}

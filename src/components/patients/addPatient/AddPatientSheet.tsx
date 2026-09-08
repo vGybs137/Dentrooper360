@@ -31,9 +31,9 @@ import { AddPatientAppointmentStep } from "@/components/patients/addPatient/AddP
 import { AddPatientEssentialsStep } from "@/components/patients/addPatient/AddPatientEssentialsStep";
 import { PatientFormFocusProvider } from "@/components/patients/addPatient/PatientFormFocusContext";
 import { Button, ThemedIcon, ThemedText } from "@/components/ui";
-import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
-import { useAddPatientForm } from "@/hooks/useAddPatientForm";
-import { useBottomSheetKeyboardAvoidance } from "@/hooks/useBottomSheetKeyboardAvoidance";
+import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/auth/motion";
+import { useAddPatientForm } from "@/hooks/patients/useAddPatientForm";
+import { useBottomSheetKeyboardAvoidance } from "@/hooks/ui/useBottomSheetKeyboardAvoidance";
 import {
   useAddPatientIsPresented,
   useAddPatientPresentKey,
@@ -358,7 +358,7 @@ export function AddPatientSheet() {
             </View>
 
             {isLoadingPatient ? (
-              <View className="items-center py-8">
+              <View className="items-center py-section">
                 <ActivityIndicator color={native.brand.default} />
               </View>
             ) : (

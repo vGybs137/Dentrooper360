@@ -20,7 +20,7 @@ import {
 
 import { useNativeColors } from "@/theme";
 import type { ThemePalette } from "@/tokens";
-import { cn } from "@/utils/cn";
+import { cn } from "@/helpers/ui/cn";
 
 const themedTextVariants = cva("shrink", {
   variants: {

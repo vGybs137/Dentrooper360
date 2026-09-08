@@ -31,17 +31,18 @@ export type { MonthQuickAddFieldProps } from "./MonthQuickAddField";
 export { WeekdayHeader } from "./WeekdayHeader";
 export type { WeekdayHeaderProps } from "./WeekdayHeader";
 
-export { WeekPager } from "./WeekPager";
-export type { WeekPagerProps } from "./WeekPager";
+export { MonthWeekPager } from "./MonthWeekPager";
+export type { MonthWeekPagerProps } from "./MonthWeekPager";
 
-export { WeekStrip } from "./WeekStrip";
-export type { WeekStripProps } from "./WeekStrip";
+export { MonthWeekStrip } from "./MonthWeekStrip";
+export type { MonthWeekStripProps } from "./MonthWeekStrip";
 
 export type {
   DayEventsSheetHandle,
   DayPressHandler,
   MonthDayEventPreview,
   MonthPagerHandle,
+  MonthWeekPagerHandle,
   SheetOpenProgressValue,
   WeekPagerHandle,
 } from "@/types/schedule";

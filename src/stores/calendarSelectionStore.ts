@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { toDayKey, todayCalendarDate, type DayKey } from "@/utils/calendar";
+import { toDayKey, todayCalendarDate, type DayKey } from "@/helpers/schedule/calendar";
 
 type CalendarSelectionState = {
   selectedDayKey: DayKey;

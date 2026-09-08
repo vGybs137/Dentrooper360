@@ -5,7 +5,7 @@ import { Text, View } from "react-native";
 import { Button } from "@/components/ui";
 
 import { MONTH_VIEW_EVENT_LIST_RAIL_WIDTH } from "@/constants/schedule";
-import { formatTimeRange } from "@/helpers/timeFormat";
+import { formatTimeRange } from "@/helpers/ui/timeFormat";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
 import { useNativeColors } from "@/theme";
 import { primitives } from "@/tokens";

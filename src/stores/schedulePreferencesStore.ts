@@ -6,8 +6,8 @@ import {
 } from "zustand/middleware";
 
 import { SCHEDULE_PREFERENCES_STORE_KEY } from "@/constants/storage";
-import { getItem, setItem } from "@/helpers/secureStorage";
-import type { WeekdayIndex } from "@/utils/calendar";
+import { getItem, setItem } from "@/helpers/auth/secureStorage";
+import type { WeekdayIndex } from "@/helpers/schedule/calendar";
 
 export type ScheduleViewMode = "month" | "week" | "day";
 

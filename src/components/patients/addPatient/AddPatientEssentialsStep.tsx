@@ -2,7 +2,7 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useFormState, useWatch } from "react-hook-form";
 import { Switch, View } from "react-native";
 
-import { FormDivider } from "@/components/patients/addPatient/FormFieldSection";
+import { PatientFormDivider } from "./PatientFormFieldSection";
 import {
   PatientFormFieldRow,
   PatientFormInput,
@@ -21,7 +21,7 @@ import {
   starIcon,
 } from "@/constants";
 import { PATIENT_GENDER_OPTIONS } from "@/constants/patientForm";
-import type { AddPatientFormState } from "@/hooks/useAddPatientForm";
+import type { AddPatientFormState } from "@/hooks/patients/useAddPatientForm";
 import { useNativeColors } from "@/theme";
 
 type ExpandedField = "gender" | null;
@@ -189,7 +189,7 @@ function AddPatientEssentialsStepComponent({
         </View>
       </PatientFormSection>
 
-      <FormDivider />
+      <PatientFormDivider />
 
       <PatientFormSection
         errorAccessibilityLabel="Show phone errors"
@@ -228,7 +228,7 @@ function AddPatientEssentialsStepComponent({
         </View>
       </PatientFormSection>
 
-      <FormDivider />
+      <PatientFormDivider />
 
       <View className="items-start gap-2">
         <PatientFormFieldRow align="center" icon={ageIcon}>
@@ -262,7 +262,7 @@ function AddPatientEssentialsStepComponent({
         </View>
       </View>
 
-      <FormDivider />
+      <PatientFormDivider />
 
       <PatientFormFieldRow icon={emailIcon}>
         <PatientFormInput
@@ -275,7 +275,7 @@ function AddPatientEssentialsStepComponent({
         />
       </PatientFormFieldRow>
 
-      <FormDivider />
+      <PatientFormDivider />
 
       <PatientFormFieldRow icon={personsIcon}>
         <PatientFormInput
@@ -287,7 +287,7 @@ function AddPatientEssentialsStepComponent({
         />
       </PatientFormFieldRow>
 
-      <FormDivider />
+      <PatientFormDivider />
 
       <PatientFormFieldRow align="center" icon={addressIcon}>
         <PatientFormInput
@@ -299,7 +299,7 @@ function AddPatientEssentialsStepComponent({
         />
       </PatientFormFieldRow>
 
-      <FormDivider />
+      <PatientFormDivider />
 
       <PatientFormFieldRow align="center" icon={starIcon}>
         <View className="w-full flex-row items-center justify-between gap-inline px-inline">

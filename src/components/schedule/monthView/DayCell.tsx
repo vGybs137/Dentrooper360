@@ -18,15 +18,15 @@ import {
   MONTH_VIEW_MUTED_DAY_OPACITY,
 } from "@/constants/schedule";
 import { useSheetOpenProgress } from "@/contexts/SheetOpenProgressContext";
-import { visibleChipCount } from "@/helpers/monthViewLayout";
+import { visibleChipCount } from "@/helpers/schedule/monthViewLayout";
 import {
   selectCalendarDay,
   useCalendarSelectionStore,
   useIsCalendarDaySelected,
 } from "@/stores/calendarSelectionStore";
 import type { DayPressHandler, MonthDayEventPreview } from "@/types/schedule";
-import type { DayCellModel } from "@/utils/calendar";
-import { weekdayIndex } from "@/utils/calendar";
+import type { DayCellModel } from "@/helpers/schedule/calendar";
+import { weekdayIndex } from "@/helpers/schedule/calendar";
 
 import { DayEventChip } from "./DayEventChip";
 import { DayEventDots } from "./DayEventDots";

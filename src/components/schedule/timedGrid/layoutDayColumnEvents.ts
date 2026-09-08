@@ -10,12 +10,12 @@ import {
   minutesSpanToHeight,
   minutesToYInWorkingWindow,
   type DayKey,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 import {
   layoutTimedDayColumn,
   timedEventColumnRect,
   timedOverflowColumnRect,
-} from "@/utils/calendar/timedEventLayout";
+} from "@/helpers/schedule/calendar/timedEventLayout";
 
 export type PositionedTimedEvent = {
   event: MonthDayEventPreview;

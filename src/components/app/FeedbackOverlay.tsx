@@ -13,7 +13,7 @@ import Animated, {
 import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
-import { cn } from "@/utils/cn";
+import { cn } from "@/helpers/ui/cn";
 
 const markLogo = require("../../assets/no-text-logo.svg");
 const wordmarkLogo = require("../../assets/text-logo.svg");

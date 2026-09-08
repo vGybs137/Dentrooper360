@@ -1,8 +1,6 @@
-import { memo, useMemo } from "react";
-import { View } from "react-native";
+import { memo } from "react";
 
-import { SearchToggle, ThemedText } from "@/components/ui";
-import { semantic } from "@/tokens";
+import { EntityListHeader } from "@/components/list";
 
 export type PaymentsListHeaderProps = {
   openSearch: () => void;
@@ -15,27 +13,12 @@ function PaymentsListHeaderComponent({
   searchAccessibilityLabel = "Search payments",
   title = "Payments",
 }: PaymentsListHeaderProps) {
-  const rootStyle = useMemo(
-    () => ({
-      flexDirection: "row" as const,
-      alignItems: "center" as const,
-      width: "100%" as const,
-      paddingBottom: semantic.space.stack.compact,
-    }),
-    [],
-  );
-
   return (
-    <View style={rootStyle}>
-      <ThemedText numberOfLines={1} variant="title">
-        {title}
-      </ThemedText>
-      <View style={{ flex: 1, minWidth: 0 }} />
-      <SearchToggle
-        accessibilityLabel={searchAccessibilityLabel}
-        openSearch={openSearch}
-      />
-    </View>
+    <EntityListHeader
+      openSearch={openSearch}
+      searchAccessibilityLabel={searchAccessibilityLabel}
+      title={title}
+    />
   );
 }
 

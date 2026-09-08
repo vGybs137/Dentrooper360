@@ -6,7 +6,7 @@ import {
 } from "zustand/middleware";
 
 import { AUTH_STORE_KEY } from "@/constants/storage";
-import { getItem, setItem } from "@/helpers/secureStorage";
+import { getItem, setItem } from "@/helpers/auth/secureStorage";
 import type { AuthSession, AuthUser } from "@/types/auth";
 
 type PersistedAuthState = {

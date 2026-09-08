@@ -11,7 +11,7 @@ import {
   todayCalendarDate,
   weekdayIndex,
   type DayKey,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 export type DayHeaderLabelProps = {
   dayKey: DayKey;

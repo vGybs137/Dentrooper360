@@ -44,7 +44,7 @@ import {
   sameDay,
   todayCalendarDate,
   type DayKey,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 export type DayTimeGridProps = {
   dayKey: DayKey;

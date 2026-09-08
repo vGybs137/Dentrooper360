@@ -7,7 +7,7 @@ import {
   toLocalDate,
   type CalendarDate,
   type DayKey,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 export type AppointmentSearchTimeWindow =
   | "all"

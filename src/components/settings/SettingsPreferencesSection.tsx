@@ -15,7 +15,7 @@ import {
   type HourFormat,
   type ThemeMode,
 } from "@/stores";
-import type { WeekdayIndex } from "@/utils/calendar";
+import type { WeekdayIndex } from "@/helpers/schedule/calendar";
 
 import { SettingsSection } from "./SettingsSection";
 import { SettingsSelectRow } from "./SettingsSelectRow";

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { useSplashIntro } from "@/hooks/useSplashIntro";
+import { useSplashIntro } from "@/hooks/auth/useSplashIntro";
 import { useAuthFlowStore } from "@/stores/authFlowStore";
 
 export function AuthFlowSplashBridge() {

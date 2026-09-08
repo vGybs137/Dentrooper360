@@ -5,11 +5,11 @@ import { Switch, View } from "react-native";
 import { AddAppointmentDetailsStep } from "@/components/schedule/addAppointment";
 import { ThemedText, ThemedView } from "@/components/ui";
 import { calendarIcon } from "@/constants";
-import type { AddAppointmentFormState } from "@/hooks/useAddAppointmentForm";
-import type { AddPatientFormState } from "@/hooks/useAddPatientForm";
+import type { AddAppointmentFormState } from "@/hooks/schedule/useAddAppointmentForm";
+import type { AddPatientFormState } from "@/hooks/patients/useAddPatientForm";
 import { useNativeColors } from "@/theme";
 
-import { FormDivider } from "./FormFieldSection";
+import { PatientFormDivider } from "./PatientFormFieldSection";
 import { PatientFormFieldRow } from "./PatientFormField";
 
 type AddPatientAppointmentStepProps = {
@@ -57,7 +57,7 @@ function AddPatientAppointmentStepComponent({
 
       {addAppointment ? (
         <>
-          <FormDivider className="mt-2" />
+          <PatientFormDivider className="mt-2" />
           <AddAppointmentDetailsStep
             formState={
               appointmentFormState as unknown as AddAppointmentFormState

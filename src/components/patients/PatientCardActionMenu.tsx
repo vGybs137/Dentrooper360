@@ -11,9 +11,9 @@ import {
   ThemedIcon,
 } from "@/components/ui";
 import { addAppointmentIcon, deleteIcon, editIcon, ellipsisIcon } from "@/constants";
-import type { PatientCardData } from "@/helpers/patientDisplay";
-import { deletePatientAndRelated } from "@/helpers/deletePatient";
-import { requestSync } from "@/helpers/requestSync";
+import type { PatientCardData } from "@/helpers/patients/patientDisplay";
+import { deletePatientAndRelated } from "@/helpers/patients/deletePatient";
+import { requestSync } from "@/helpers/sync/requestSync";
 import { useAddAppointmentStore, useAddPatientStore } from "@/stores";
 
 type PatientCardActionMenuProps = {

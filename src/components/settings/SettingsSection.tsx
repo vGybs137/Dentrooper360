@@ -3,7 +3,7 @@ import { View } from "react-native";
 
 import { ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
 import { semantic } from "@/tokens";
-import { cn } from "@/utils/cn";
+import { cn } from "@/helpers/ui/cn";
 
 export type SettingsSymbolName = NonNullable<
   ComponentProps<typeof ThemedIcon>["name"]

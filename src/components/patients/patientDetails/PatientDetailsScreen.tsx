@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 import { useRouter, type Href } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { ActivityIndicator, Modal, View } from "react-native";
@@ -14,25 +13,26 @@ import {
   ThemedText,
   ThemedView,
 } from "@/components/ui";
-import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
-import { deletePatientAndRelated } from "@/helpers/deletePatient";
+import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/auth/motion";
+import { deletePatientAndRelated } from "@/helpers/patients/deletePatient";
+import { displayOrEmpty, formatDisplayDate } from "@/helpers/ui/display";
 import {
   formatNextVisitLabel,
   formatPatientBalance,
   formatPatientName,
   formatPatientPhone,
-} from "@/helpers/patientDisplay";
-import { requestSync } from "@/helpers/requestSync";
+} from "@/helpers/patients/patientDisplay";
+import { requestSync } from "@/helpers/sync/requestSync";
 import {
   findNextPatientVisit,
   usePatientAppointments,
-} from "@/hooks/usePatientAppointments";
+} from "@/hooks/patients/usePatientAppointments";
 import {
   usePatientDetails,
   type PatientDetailsData,
-} from "@/hooks/usePatientDetails";
-import { usePatientPayments } from "@/hooks/usePatientPayments";
-import { usePatientServices } from "@/hooks/usePatientServices";
+} from "@/hooks/patients/usePatientDetails";
+import { usePatientPayments } from "@/hooks/patients/usePatientPayments";
+import { usePatientServices } from "@/hooks/patients/usePatientServices";
 import { useAddPatientStore, useAuthUser } from "@/stores";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
@@ -54,29 +54,6 @@ import { PatientServicesTab } from "./PatientServicesTab";
 export type PatientDetailsScreenProps = {
   patientId: string | undefined;
 };
-
-function formatOverviewDate(value: Date | null | undefined): {
-  value: string;
-  empty: boolean;
-} {
-  if (!value || Number.isNaN(value.getTime())) {
-    return { value: "Not set", empty: true };
-  }
-
-  return { value: dayjs(value).format("D MMM, YYYY"), empty: false };
-}
-
-function displayOrEmpty(
-  value: string | null | undefined,
-  emptyLabel: string,
-): { value: string; empty: boolean } {
-  const trimmed = value?.trim();
-  if (!trimmed) {
-    return { value: emptyLabel, empty: true };
-  }
-
-  return { value: trimmed, empty: false };
-}
 
 function buildInformationFields(
   patient: PatientDetailsData,
@@ -117,8 +94,8 @@ function buildTimelineFields(
   patient: PatientDetailsData,
   nextAppointment: Date | null,
 ): PatientOverviewField[] {
-  const birthDate = formatOverviewDate(patient.birthDate);
-  const fileDate = formatOverviewDate(patient.fileDate);
+  const birthDate = formatDisplayDate(patient.birthDate);
+  const fileDate = formatDisplayDate(patient.fileDate);
   const nextVisitLabel = nextAppointment
     ? formatNextVisitLabel(nextAppointment)
     : null;
@@ -141,12 +118,21 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
   const slideDuration = getAuthSlideDuration();
   const openForEdit = useAddPatientStore((state) => state.openForEdit);
   const { patient, isLoading, error } = usePatientDetails(patientId);
-  const { appointments, isLoading: appointmentsLoading } =
-    usePatientAppointments(patientId);
-  const { services, isLoading: servicesLoading } =
-    usePatientServices(patientId);
-  const { payments, isLoading: paymentsLoading } =
-    usePatientPayments(patientId);
+  const {
+    appointments,
+    isLoading: appointmentsLoading,
+    error: appointmentsError,
+  } = usePatientAppointments(patientId);
+  const {
+    services,
+    isLoading: servicesLoading,
+    error: servicesError,
+  } = usePatientServices(patientId);
+  const {
+    payments,
+    isLoading: paymentsLoading,
+    error: paymentsError,
+  } = usePatientPayments(patientId);
   const [activeTab, setActiveTab] = useState<PatientDetailsTab>("overview");
   const [deleteVisible, setDeleteVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -262,16 +248,25 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
         return (
           <PatientAppointmentsTab
             appointments={appointments}
+            error={appointmentsError}
             isLoading={appointmentsLoading}
           />
         );
       case "services":
         return (
-          <PatientServicesTab isLoading={servicesLoading} services={services} />
+          <PatientServicesTab
+            error={servicesError}
+            isLoading={servicesLoading}
+            services={services}
+          />
         );
       case "payments":
         return (
-          <PatientPaymentsTab isLoading={paymentsLoading} payments={payments} />
+          <PatientPaymentsTab
+            error={paymentsError}
+            isLoading={paymentsLoading}
+            payments={payments}
+          />
         );
       default:
         return null;
@@ -279,11 +274,14 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
   }, [
     activeTab,
     appointments,
+    appointmentsError,
     appointmentsLoading,
     informationFields,
     payments,
+    paymentsError,
     paymentsLoading,
     services,
+    servicesError,
     servicesLoading,
     timelineFields,
   ]);
@@ -312,7 +310,7 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
         variant="screen"
       >
         <ThemedView align="center" space="default" variant="stack">
-          <ThemedText align="center" tone="muted">
+          <ThemedText align="center" tone={error ? "alert" : "muted"}>
             {error
               ? "Unable to load this patient."
               : "This patient could not be found."}

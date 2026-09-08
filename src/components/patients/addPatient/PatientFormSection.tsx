@@ -1,7 +1,7 @@
 import { memo, type ReactNode } from "react";
 import { View } from "react-native";
 
-import { FormSectionErrorTrigger } from "./FormSectionErrorTrigger";
+import { PatientFormSectionErrorTrigger } from "./PatientFormSectionErrorTrigger";
 
 type PatientFormSectionProps = {
   children: ReactNode;
@@ -25,7 +25,7 @@ function PatientFormSectionComponent({
       <View className="min-w-0 flex-1">{children}</View>
       {hasErrors ? (
         <View className="shrink-0 self-center">
-          <FormSectionErrorTrigger
+          <PatientFormSectionErrorTrigger
             accessibilityLabel={errorAccessibilityLabel}
             errors={errors}
             title={errorTitle}

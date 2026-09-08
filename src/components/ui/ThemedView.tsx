@@ -16,7 +16,7 @@ import {
 } from "react-native-safe-area-context";
 
 import { semantic } from "@/tokens";
-import { cn } from "@/utils/cn";
+import { cn } from "@/helpers/ui/cn";
 
 import { ThemedText } from "./ThemedText";
 

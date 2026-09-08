@@ -6,7 +6,7 @@ import { semantic } from "@/tokens";
 import { Button, ThemedText } from "@/components/ui";
 import { MONTH_VIEW_DAY_NUMBER_SIZE } from "@/constants/schedule";
 import { useWeekHighlightDayKey } from "@/contexts/WeekHighlightDayContext";
-import { weekdayLabels } from "@/helpers/weekdayLabels";
+import { weekdayLabels } from "@/helpers/schedule/weekdayLabels";
 import {
   selectCalendarDay,
   useCalendarSelectionStore,
@@ -20,7 +20,7 @@ import {
   type DayCellModel,
   type DayKey,
   type WeekdayIndex,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 export type WeekDayHeaderRowProps = {
   weekStartKey: DayKey;

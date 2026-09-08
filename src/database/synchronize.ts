@@ -6,8 +6,8 @@ import {
 
 import { pullChanges, pushChanges } from "@/api/functions/sync";
 import { MIGRATIONS_ENABLED_AT_VERSION } from "@/constants/sync";
-import { canSyncOnCurrentNetwork } from "@/helpers/connectivity";
-import { toPullMigration } from "@/helpers/sync";
+import { canSyncOnCurrentNetwork } from "@/helpers/sync/connectivity";
+import { toPullMigration } from "@/helpers/sync/sync";
 import { hydrateSyncStatusStore, markSyncSucceeded, useSyncStatusStore } from "@/stores";
 import { ApiError } from "@/types/api";
 import type { MobilePushRequest } from "@/types/sync";
@@ -66,25 +66,30 @@ async function runSynchronize(customerId: string): Promise<void> {
   markSyncSucceeded();
 }
 
-let inFlight: Promise<void> | null = null;
+/** In-flight syncs keyed by clinic so callers never join another customer’s run. */
+const inFlightByCustomerId = new Map<string, Promise<void>>();
 
 export async function synchronize(customerId: string): Promise<void> {
   await assertSyncNetworkAllowed();
 
-  if (inFlight) {
-    return inFlight;
+  const existing = inFlightByCustomerId.get(customerId);
+  if (existing) {
+    return existing;
   }
 
-  inFlight = (async () => {
+  const inFlight = (async () => {
     try {
       await runSynchronize(customerId);
     } catch {
       await runSynchronize(customerId);
     }
   })().finally(() => {
-    inFlight = null;
+    if (inFlightByCustomerId.get(customerId) === inFlight) {
+      inFlightByCustomerId.delete(customerId);
+    }
   });
 
+  inFlightByCustomerId.set(customerId, inFlight);
   return inFlight;
 }
 

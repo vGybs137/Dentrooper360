@@ -13,9 +13,9 @@ import {
   MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
   MONTH_VIEW_UNTYPED_OPACITY,
 } from "@/constants/schedule";
-import { formatAppointmentEventTitle } from "@/helpers/appointmentSubject";
-import { withOpacity } from "@/helpers/color";
-import { formatTimeRange } from "@/helpers/timeFormat";
+import { formatAppointmentEventTitle } from "@/helpers/schedule/appointmentSubject";
+import { withOpacity } from "@/helpers/ui/color";
+import { formatTimeRange } from "@/helpers/ui/timeFormat";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
 import type { MonthDayEventPreview } from "@/types/schedule";
 

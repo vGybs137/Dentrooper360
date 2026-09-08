@@ -15,7 +15,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import { cn } from "@/utils/cn";
+import { cn } from "@/helpers/ui/cn";
 
 import { ThemedText } from "./ThemedText";
 

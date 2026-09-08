@@ -1,138 +1,25 @@
-import dayjs from "dayjs";
-import { memo, useMemo } from "react";
-import { Text, View } from "react-native";
+import { memo } from "react";
+import { View } from "react-native";
 
 import {
   Button,
-  ThemedIcon,
+  EventRail,
+  MetricColumn,
+  SearchHighlightText,
   ThemedText,
-  type ThemedIconProps,
 } from "@/components/ui";
 import { balanceIcon, calendarIcon, notesIcon } from "@/constants";
-import { MONTH_VIEW_EVENT_LIST_RAIL_WIDTH } from "@/constants/schedule";
-import { formatPatientPhone } from "@/helpers/patientDisplay";
-import { splitTextBySearchQuery } from "@/helpers/searchHighlight";
-import type { ProviderPaymentItem } from "@/hooks/useProviderPayments";
+import { formatMoneyAmount } from "@/helpers/payments/currency";
+import { formatDisplayDate } from "@/helpers/ui/display";
+import { formatPatientPhone } from "@/helpers/patients/patientDisplay";
+import type { ProviderPaymentItem } from "@/hooks/payments/useProviderPayments";
 import { useNativeColors } from "@/theme";
-import { primitives } from "@/tokens";
 
 export type PaymentListItemProps = {
   item: ProviderPaymentItem;
   onPress?: () => void;
   searchQuery?: string;
 };
-
-function formatPaymentAmount(item: ProviderPaymentItem): string {
-  const prefix = item.currency?.trim() || "$";
-  return `${prefix} ${Math.abs(item.amount).toFixed(2)}`;
-}
-
-function formatPaymentDate(date: Date): string {
-  if (!date || Number.isNaN(date.getTime())) {
-    return "—";
-  }
-
-  return dayjs(date).format("D MMM, YYYY");
-}
-
-function MetricColumn({
-  icon,
-  label,
-  value,
-  align = "left",
-}: {
-  icon: NonNullable<ThemedIconProps["name"]>;
-  label: string;
-  value: string;
-  align?: "left" | "center" | "right";
-}) {
-  const alignClass =
-    align === "right"
-      ? "min-w-[72px] items-end gap-0.5"
-      : align === "center"
-        ? "min-w-[72px] items-center gap-0.5"
-        : "min-w-[72px] gap-0.5";
-
-  return (
-    <View className={alignClass}>
-      <View className="flex-row items-center gap-1">
-        <ThemedIcon dimension={16} name={icon} tone="muted" />
-        <ThemedText className="text-xs" tone="muted" variant="label">
-          {label}
-        </ThemedText>
-      </View>
-      <ThemedText
-        align={
-          align === "right" ? "right" : align === "center" ? "center" : "left"
-        }
-        className="font-normal capitalize"
-        numberOfLines={1}
-        tone="default"
-        variant="label"
-      >
-        {value}
-      </ThemedText>
-    </View>
-  );
-}
-
-function HighlightedText({
-  className,
-  numberOfLines,
-  searchQuery,
-  text,
-  tone = "default",
-  toneClassName = "text-foreground-default",
-  variant = "body",
-}: {
-  className?: string;
-  numberOfLines?: number;
-  searchQuery?: string;
-  text: string;
-  tone?: "default" | "muted";
-  toneClassName?: string;
-  variant?: "body" | "label";
-}) {
-  const parts = useMemo(
-    () => splitTextBySearchQuery(text, searchQuery ?? ""),
-    [searchQuery, text],
-  );
-  const hasHighlight = Boolean(searchQuery?.trim());
-  const sizeClass = variant === "label" ? "text-label" : "text-body";
-
-  if (!hasHighlight) {
-    return (
-      <ThemedText
-        className={className}
-        numberOfLines={numberOfLines}
-        tone={tone}
-        variant={variant}
-      >
-        {text}
-      </ThemedText>
-    );
-  }
-
-  return (
-    <Text
-      className={`${sizeClass} ${toneClassName}${className ? ` ${className}` : ""}`}
-      numberOfLines={numberOfLines}
-    >
-      {parts.map((part, index) => (
-        <Text
-          key={`${part.value}-${index}`}
-          className={
-            part.highlighted
-              ? "font-semibold text-brand-default"
-              : toneClassName
-          }
-        >
-          {part.value}
-        </Text>
-      ))}
-    </Text>
-  );
-}
 
 function PaymentListItemComponent({
   item,
@@ -141,10 +28,10 @@ function PaymentListItemComponent({
 }: PaymentListItemProps) {
   const native = useNativeColors();
   const railColor = native.border.strong;
-  const amountLabel = formatPaymentAmount(item);
+  const amountLabel = formatMoneyAmount(item.amount, item.currency);
   const methodLabel = item.method?.trim() || "—";
   const typeLabel = item.type?.trim() || "—";
-  const dateLabel = formatPaymentDate(item.date);
+  const dateLabel = formatDisplayDate(item.date, "—").value;
   const phone =
     formatPatientPhone(item.countryCode, item.phoneNumber) ?? "No phone";
 
@@ -153,24 +40,18 @@ function PaymentListItemComponent({
       accessibilityLabel={`Payment from ${item.patientName}, ${amountLabel}, date ${dateLabel}, method ${methodLabel}, type ${typeLabel}`}
       className="flex-row items-stretch gap-stack overflow-hidden rounded-card border border-border-subtle bg-surface-sunken py-stack pl-inline"
     >
-      <View
-        style={{
-          width: MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
-          borderRadius: primitives.radius.xs,
-          backgroundColor: railColor,
-        }}
-      />
+      <EventRail color={railColor} />
 
       <View className="min-w-0 flex-1 justify-center gap-inset-compact pr-inline">
         <View className="min-w-0 flex-row items-start gap-1.5">
           <View className="min-w-0 flex-1 shrink gap-0.5">
-            <HighlightedText
+            <SearchHighlightText
               className="min-w-0 font-semibold"
               numberOfLines={1}
               searchQuery={searchQuery}
               text={item.patientName}
             />
-            <HighlightedText
+            <SearchHighlightText
               numberOfLines={1}
               searchQuery={searchQuery}
               text={phone}
@@ -189,16 +70,23 @@ function PaymentListItemComponent({
         </View>
 
         <View className="flex-row items-start justify-between">
-          <MetricColumn icon={calendarIcon} label="Date" value={dateLabel} />
+          <MetricColumn
+            icon={calendarIcon}
+            iconSize={16}
+            label="Date"
+            value={dateLabel}
+          />
           <MetricColumn
             align="center"
             icon={balanceIcon}
+            iconSize={16}
             label="Method"
             value={methodLabel}
           />
           <MetricColumn
             align="right"
             icon={notesIcon}
+            iconSize={16}
             label="Type"
             value={typeLabel}
           />

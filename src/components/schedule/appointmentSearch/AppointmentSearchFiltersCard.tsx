@@ -7,10 +7,10 @@ import {
   type AppointmentSearchCustomRange,
   type AppointmentSearchTimeWindow,
 } from "@/constants/appointmentSearch";
-import type { AppointmentSearchTypeOption } from "@/hooks/useAppointmentSearch";
+import type { AppointmentSearchTypeOption } from "@/hooks/schedule/useAppointmentSearch";
 import { semantic } from "@/tokens";
-import { cn } from "@/utils/cn";
-import type { DayKey } from "@/utils/calendar";
+import { cn } from "@/helpers/ui/cn";
+import type { DayKey } from "@/helpers/schedule/calendar";
 
 import { AppointmentSearchCustomRangeCalendar } from "./AppointmentSearchCustomRangeCalendar";
 

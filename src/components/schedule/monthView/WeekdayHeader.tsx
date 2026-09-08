@@ -3,8 +3,8 @@ import { View } from "react-native";
 import { semantic } from "@/tokens";
 
 import { ThemedText } from "@/components/ui";
-import { weekdayLabels } from "@/helpers/weekdayLabels";
-import type { WeekdayIndex } from "@/utils/calendar";
+import { weekdayLabels } from "@/helpers/schedule/weekdayLabels";
+import type { WeekdayIndex } from "@/helpers/schedule/calendar";
 
 export type WeekdayHeaderProps = {
   weekStartsOn?: WeekdayIndex;

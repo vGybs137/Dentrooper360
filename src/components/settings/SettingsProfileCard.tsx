@@ -10,10 +10,10 @@ import { chevronDownIcon, logoutIcon } from "@/constants";
 import {
   initialsFromPatientName,
   patientInitialsColorsFromName,
-} from "@/helpers/patientInitials";
-import { useAppointmentFormOptions } from "@/hooks/useAppointmentFormOptions";
-import { useInlineCollapse } from "@/hooks/useInlineCollapse";
-import { useSyncStatus } from "@/hooks/useSyncStatus";
+} from "@/helpers/patients/patientInitials";
+import { useAppointmentFormOptions } from "@/hooks/schedule/useAppointmentFormOptions";
+import { useInlineCollapse } from "@/hooks/ui/useInlineCollapse";
+import { useSyncStatus } from "@/hooks/sync/useSyncStatus";
 import {
   resolveDefaultLocationId,
   useAuthUser,
@@ -30,7 +30,7 @@ export function SettingsProfileCard() {
   const queryClient = useQueryClient();
   const user = useAuthUser();
   const resolvedTheme = useResolvedTheme();
-  const { hasUnsynced, isOffline } = useSyncStatus();
+  const { hasUnsynced } = useSyncStatus();
   const defaultLocationId = useSchedulePreferencesStore(
     (state) => state.defaultLocationId,
   );
@@ -93,11 +93,11 @@ export function SettingsProfileCard() {
     logoutMutation.error instanceof ApiError
       ? logoutMutation.error.message
       : logoutMutation.isError
-        ? "Unable to sync clinic data. Stay online and try logging out again."
+        ? "Unable to finish logging out. Please try again."
         : undefined;
 
   const logoutMessage = hasUnsynced
-    ? "You have local changes that haven't synced yet. Logging out will try to sync first and may fail if you're offline."
+    ? "You have local changes that haven't synced yet. Logging out will try to sync first, then clear this device even if sync fails."
     : "Are you sure you want to log out of this device.";
 
   useEffect(() => {
@@ -119,7 +119,7 @@ export function SettingsProfileCard() {
     setDefaultLocationId,
   ]);
 
-  const canLogout = !isOffline && !logoutMutation.isPending;
+  const canLogout = !logoutMutation.isPending;
 
   function requestLogout() {
     if (!canLogout) {
@@ -137,10 +137,6 @@ export function SettingsProfileCard() {
   }
 
   function handleConfirmLogout() {
-    if (isOffline) {
-      setLogoutVisible(false);
-      return;
-    }
     logoutMutation.mutate();
   }
 

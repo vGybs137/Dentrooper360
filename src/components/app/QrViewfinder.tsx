@@ -4,7 +4,7 @@ import Animated, { type AnimatedStyle } from "react-native-reanimated";
 
 import { Button, ThemedIcon, ThemedView } from "@/components/ui";
 import { qrCodeIcon } from "@/constants";
-import type { QrScanStatus } from "@/hooks/useQrScannerMotion";
+import type { QrScanStatus } from "@/hooks/auth/useQrScannerMotion";
 import { semantic } from "@/tokens";
 
 type CornerPlacement = "tl" | "tr" | "bl" | "br";

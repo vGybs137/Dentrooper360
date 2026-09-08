@@ -7,9 +7,8 @@ import { API_BASE_URL, API_TIMEOUT_MS } from "@/constants/api";
 import {
   attachAccessToken,
   retryUnauthorizedRequest,
-  toRejectedError,
   unwrapEnvelope,
-} from "@/helpers/httpClient";
+} from "@/helpers/api/httpClientInterceptors";
 
 const REDACTED_KEYS = new Set([
   "authorization",

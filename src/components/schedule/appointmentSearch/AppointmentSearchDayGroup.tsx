@@ -9,7 +9,7 @@ import {
   toLocalDate,
   todayCalendarDate,
   type DayKey,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 export type AppointmentSearchDayGroupProps<T extends { id: string }> = {
   dayKey: DayKey;

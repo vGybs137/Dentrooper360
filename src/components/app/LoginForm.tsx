@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PatientFormFieldRow } from "@/components/patients/addPatient/PatientFormField";
 import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
 import { lockIcon, personIcon, visibilityIcon } from "@/constants";
-import { useLoginForm, type LoginFormState } from "@/hooks/useLoginForm";
+import { useLoginForm, type LoginFormState } from "@/hooks/auth/useLoginForm";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
@@ -148,6 +148,7 @@ export function LoginForm({
   const fieldsEditable = !login.isSigningIn && !login.hasSignedIn;
   const canSubmit =
     Boolean(login.customerId) &&
+    login.isOnline &&
     formState.isValid &&
     !login.isSigningIn &&
     !login.hasSignedIn;
@@ -266,12 +267,21 @@ export function LoginForm({
         style={[{ paddingBottom: footerOffset }, contentStyle]}
       >
         {!login.hasSignedIn ? (
-          <Button
-            disabled={!canSubmit}
-            label={login.isSigningIn ? "Signing in..." : "Login"}
-            onPress={login.submit}
-            size="lg"
-          />
+          <ThemedView space="compact" variant="stack">
+            {!login.isOnline ? (
+              <ThemedText align="center" tone="muted">
+                You need an internet connection to sign in. If you already have
+                a saved session, open the app while offline from the splash
+                screen.
+              </ThemedText>
+            ) : null}
+            <Button
+              disabled={!canSubmit}
+              label={login.isSigningIn ? "Signing in..." : "Login"}
+              onPress={login.submit}
+              size="lg"
+            />
+          </ThemedView>
         ) : null}
       </Animated.View>
       {(() => {

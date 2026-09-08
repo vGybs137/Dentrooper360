@@ -10,7 +10,7 @@ import {
   addMonths,
   toYearMonth,
   type YearMonth,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 import { usePagerScrollHandler } from "@/hooks/schedule/usePagerScrollHandler";
 

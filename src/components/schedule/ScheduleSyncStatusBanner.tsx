@@ -2,7 +2,7 @@ import { memo } from "react";
 import { View } from "react-native";
 
 import { ThemedText } from "@/components/ui";
-import { useSyncStatus } from "@/hooks/useSyncStatus";
+import { useSyncStatus } from "@/hooks/sync/useSyncStatus";
 import { semantic } from "@/tokens";
 
 function ScheduleSyncStatusBannerComponent() {

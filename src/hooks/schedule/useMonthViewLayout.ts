@@ -5,8 +5,8 @@ import { BOTTOM_TAB_INSET } from "@/constants/navigation";
 import {
   estimateMonthViewLayout,
   type MonthViewLayout,
-} from "@/helpers/monthViewLayout";
-import { useStableSafeAreaInsets } from "@/helpers/safeAreaInsets";
+} from "@/helpers/schedule/monthViewLayout";
+import { useStableSafeAreaInsets } from "@/helpers/ui/safeAreaInsets";
 
 /** Window-token geometry so month cells and chips can paint before onLayout. */
 export function useMonthViewLayout(): MonthViewLayout {

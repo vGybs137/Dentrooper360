@@ -11,7 +11,7 @@ import {
 import {
   minutesSpanToHeight,
   minutesToYInWorkingWindow,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 export type TimedGridSelectedSlotProps = {
   startMinutes: number;

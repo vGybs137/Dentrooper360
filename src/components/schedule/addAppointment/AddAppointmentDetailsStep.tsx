@@ -16,9 +16,9 @@ import {
   type DropdownOption,
 } from "@/components/ui";
 import { locationIcon, notesIcon } from "@/constants";
-import { buildAppointmentSubjectFromPatient } from "@/helpers/appointmentSubject";
-import type { AddAppointmentFormState } from "@/hooks/useAddAppointmentForm";
-import { cn } from "@/utils/cn";
+import { buildAppointmentSubjectFromPatient } from "@/helpers/schedule/appointmentSubject";
+import type { AddAppointmentFormState } from "@/hooks/schedule/useAddAppointmentForm";
+import { cn } from "@/helpers/ui/cn";
 import {
   AppointmentDateTimeField,
   type AppointmentDateTimeExpanded,

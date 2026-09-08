@@ -4,7 +4,7 @@ import { ScheduleCalendarHeader } from "@/components/schedule/ScheduleCalendarHe
 import {
   formatWeekHeaderMonthLabel,
   type DayKey,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 export type WeekCalendarHeaderProps = {
   weekStartKey: DayKey;

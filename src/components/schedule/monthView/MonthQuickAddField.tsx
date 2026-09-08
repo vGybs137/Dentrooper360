@@ -33,18 +33,18 @@ import {
   MONTH_QUICK_ADD_COLLAPSED_HEIGHT,
   MONTH_QUICK_ADD_EXPANDED_HEIGHT,
 } from "@/constants/schedule";
-import { createMonthQuickAddAppointment } from "@/helpers/createMonthQuickAddAppointment";
+import { createMonthQuickAddAppointment } from "@/helpers/schedule/createMonthQuickAddAppointment";
 import {
   applyPatientNameToQuickAdd,
   derivePatientSuggestionQuery,
   patientStillSelectedInText,
-} from "@/helpers/monthQuickAddPatientSuggestions";
-import type { PatientCardData } from "@/helpers/patientDisplay";
+} from "@/helpers/patients/monthQuickAddPatientSuggestions";
+import type { PatientCardData } from "@/helpers/patients/patientDisplay";
 import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
-import { useActivePatients } from "@/hooks/useActivePatients";
+import { useActivePatients } from "@/hooks/patients/useActivePatients";
 import { useAuthUser } from "@/stores";
 import type { MonthDayEventPreview } from "@/types/schedule";
-import type { DayKey } from "@/utils/calendar";
+import type { DayKey } from "@/helpers/schedule/calendar";
 
 import { MonthQuickAddPatientSuggestions } from "./MonthQuickAddPatientSuggestions";
 

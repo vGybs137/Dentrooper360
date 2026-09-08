@@ -5,8 +5,8 @@ import {
   TOKEN_REFRESH_CHECK_INTERVAL_MS,
   TOKEN_REFRESH_LEAD_MS,
 } from "@/constants/auth";
-import { isDeviceOnline } from "@/helpers/connectivity";
-import { recycleTokens } from "@/helpers/sessionRefresh";
+import { isDeviceOnline } from "@/helpers/sync/connectivity";
+import { recycleTokens } from "@/helpers/auth/sessionRefresh";
 import { getAccessTokenExpiresAt, useAuthStore } from "@/stores";
 
 let intervalId: ReturnType<typeof setInterval> | null = null;

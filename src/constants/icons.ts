@@ -78,6 +78,12 @@ export const chevronDownIcon = {
   web: "expand_more",
 } as const;
 
+export const chevronLeftIcon = {
+  ios: "chevron.left",
+  android: "chevron_left",
+  web: "chevron_left",
+} as const;
+
 export const chevronUpIcon = {
   ios: "chevron.up",
   android: "expand_less",

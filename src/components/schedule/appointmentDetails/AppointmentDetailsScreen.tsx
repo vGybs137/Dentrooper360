@@ -3,8 +3,8 @@ import { useRouter, type Href } from "expo-router";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
+  Modal,
   ScrollView,
   Text,
   View,
@@ -13,39 +13,50 @@ import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
+  FeedbackOverlay,
+  type FeedbackOverlayProps,
+} from "@/components/app/FeedbackOverlay";
+import {
   InlineSelectColorLeading,
   InlineSelectSymbolLeading,
 } from "@/components/schedule/addAppointment/AppointmentInlineSelect";
 import {
   Button,
   DeleteConfirmationDialog,
+  DetailsActionBar,
+  DETAILS_ACTION_BAR_HEIGHT,
   ThemedIcon,
   ThemedText,
   ThemedView,
-  type ThemedIconProps,
 } from "@/components/ui";
-import { clockIcon, locationIcon, notesIcon } from "@/constants";
+import {
+  chevronLeftIcon,
+  clockIcon,
+  deleteIcon,
+  editIcon,
+  locationIcon,
+  notesIcon,
+} from "@/constants";
 import database from "@/database";
-import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
+import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/auth/motion";
 import {
   formatPatientName,
   mapPatientToCardData,
-} from "@/helpers/patientDisplay";
+} from "@/helpers/patients/patientDisplay";
 import {
   initialsFromPatientName,
   patientInitialsColorsFromName,
-} from "@/helpers/patientInitials";
-import { requestSync } from "@/helpers/requestSync";
-import { dayjsTimePattern } from "@/helpers/timeFormat";
-import { useAppointmentDetails } from "@/hooks/useAppointmentDetails";
+} from "@/helpers/patients/patientInitials";
+import { requestSync } from "@/helpers/sync/requestSync";
+import { dayjsTimePattern } from "@/helpers/ui/timeFormat";
+import { useAppointmentDetails } from "@/hooks/schedule/useAppointmentDetails";
 import { useAddAppointmentStore } from "@/stores";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
 import { useNativeColors, useResolvedTheme } from "@/theme";
 import { semantic } from "@/tokens";
-import { cn } from "@/utils/cn";
+import { cn } from "@/helpers/ui/cn";
 
 const AVATAR_SIZE = 80;
-const ACTION_BAR_HEIGHT = 64;
 
 const CHEVRON_RIGHT_ICON = {
   ios: "chevron.right",
@@ -53,28 +64,10 @@ const CHEVRON_RIGHT_ICON = {
   web: "chevron_right",
 } as const;
 
-const CHEVRON_LEFT_ICON = {
-  ios: "chevron.left",
-  android: "chevron_left",
-  web: "chevron_left",
-} as const;
-
 const ARROW_RIGHT_ICON = {
   ios: "arrow.right",
   android: "arrow_forward",
   web: "arrow_forward",
-} as const;
-
-const EDIT_ICON = {
-  ios: "pencil",
-  android: "edit",
-  web: "edit",
-} as const;
-
-const DELETE_ICON = {
-  ios: "trash",
-  android: "delete",
-  web: "delete",
 } as const;
 
 function FormDivider({ className }: { className?: string }) {
@@ -265,82 +258,6 @@ function DetailSelectRow({
   );
 }
 
-function ActionSeparator() {
-  return <View className="h-[80%] w-px self-center bg-border-subtle" />;
-}
-
-function DetailsActionItem({
-  icon,
-  label,
-  onPress,
-  tone = "default",
-}: {
-  icon: NonNullable<ThemedIconProps["name"]>;
-  label: string;
-  onPress: () => void;
-  tone?: "default" | "alert";
-}) {
-  return (
-    <Button
-      accessibilityLabel={label}
-      className="min-w-0 flex-1 items-center justify-center gap-1 py-stack-compact"
-      hitSlop={6}
-      onPress={onPress}
-      size="none"
-      style={({ pressed }) => (pressed ? { opacity: 0.7 } : undefined)}
-      tone="neutral"
-      variant="ghost"
-    >
-      <ThemedIcon
-        dimension={22}
-        name={icon}
-        tone={tone === "alert" ? "alert" : "default"}
-      />
-      <ThemedText
-        className="font-medium"
-        tone={tone === "alert" ? "alert" : "default"}
-        variant="label"
-      >
-        {label}
-      </ThemedText>
-    </Button>
-  );
-}
-
-function DetailsActionBar({
-  onBack,
-  onEdit,
-  onDelete,
-}: {
-  onBack: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
-  return (
-    <View className="px-inline pb-stack-compact">
-      <View
-        className="flex-row items-stretch rounded-card border-subtle border-border-subtle bg-surface-default"
-        style={{ height: ACTION_BAR_HEIGHT }}
-      >
-        <DetailsActionItem
-          icon={CHEVRON_LEFT_ICON}
-          label="Back"
-          onPress={onBack}
-        />
-        <ActionSeparator />
-        <DetailsActionItem icon={EDIT_ICON} label="Edit" onPress={onEdit} />
-        <ActionSeparator />
-        <DetailsActionItem
-          icon={DELETE_ICON}
-          label="Delete"
-          onPress={onDelete}
-          tone="alert"
-        />
-      </View>
-    </View>
-  );
-}
-
 export type AppointmentDetailsScreenProps = {
   appointmentId: string | undefined;
 };
@@ -355,6 +272,8 @@ export function AppointmentDetailsScreen({
   const slideDuration = getAuthSlideDuration();
   const [deleteVisible, setDeleteVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteFeedback, setDeleteFeedback] =
+    useState<FeedbackOverlayProps | null>(null);
 
   const goBack = useCallback(() => {
     if (router.canGoBack()) {
@@ -364,6 +283,11 @@ export function AppointmentDetailsScreen({
 
     router.replace("/(tabs)/schedule" as Href);
   }, [router]);
+
+  const dismissDeleteFeedback = useCallback(() => {
+    setDeleteFeedback(null);
+    setIsDeleting(false);
+  }, []);
 
   const handleEdit = useCallback(() => {
     if (!details) {
@@ -407,6 +331,12 @@ export function AppointmentDetailsScreen({
 
     const appointment = details.appointment;
     setIsDeleting(true);
+    setDeleteVisible(false);
+    setDeleteFeedback({
+      stage: "loading",
+      title: "Deleting...",
+      message: "Removing this appointment.",
+    });
 
     void (async () => {
       try {
@@ -414,17 +344,30 @@ export function AppointmentDetailsScreen({
           await appointment.markAsDeleted();
         });
         requestSync();
-        setDeleteVisible(false);
-        goBack();
+        setDeleteFeedback({
+          stage: "success",
+          title: "Appointment deleted",
+          message: "The appointment was removed.",
+          continueLabel: "Done",
+          onContinue: () => {
+            setDeleteFeedback(null);
+            goBack();
+          },
+        });
       } catch (err) {
         setIsDeleting(false);
-        Alert.alert(
-          "Unable to delete",
-          err instanceof Error ? err.message : "Please try again.",
-        );
+        setDeleteFeedback({
+          stage: "error",
+          title: "Unable to delete",
+          message:
+            err instanceof Error ? err.message : "Please try again.",
+          retryLabel: "OK",
+          onRetry: dismissDeleteFeedback,
+          onDismiss: dismissDeleteFeedback,
+        });
       }
     })();
-  }, [details, goBack, isDeleting]);
+  }, [details, dismissDeleteFeedback, goBack, isDeleting]);
 
   const title = details?.appointment.subject?.trim() || "Appointment";
   const typeName = details?.type?.nameEn?.trim() || null;
@@ -462,7 +405,7 @@ export function AppointmentDetailsScreen({
         variant="screen"
       >
         <ThemedView align="center" space="default" variant="stack">
-          <ThemedText align="center" tone="muted">
+          <ThemedText align="center" tone={error ? "alert" : "muted"}>
             {error
               ? "Unable to load this appointment."
               : "This appointment could not be found."}
@@ -491,7 +434,7 @@ export function AppointmentDetailsScreen({
         contentContainerStyle={{
           paddingBottom:
             semantic.space.section +
-            ACTION_BAR_HEIGHT +
+            DETAILS_ACTION_BAR_HEIGHT +
             semantic.space.stack.compact,
         }}
         keyboardShouldPersistTaps="handled"
@@ -567,9 +510,16 @@ export function AppointmentDetailsScreen({
       </ScrollView>
 
       <DetailsActionBar
-        onBack={goBack}
-        onDelete={handleDelete}
-        onEdit={handleEdit}
+        items={[
+          { icon: chevronLeftIcon, label: "Back", onPress: goBack },
+          { icon: editIcon, label: "Edit", onPress: handleEdit },
+          {
+            icon: deleteIcon,
+            label: "Delete",
+            onPress: handleDelete,
+            tone: "alert",
+          },
+        ]}
       />
 
       <DeleteConfirmationDialog
@@ -578,6 +528,14 @@ export function AppointmentDetailsScreen({
         onConfirm={handleConfirmDelete}
         visible={deleteVisible}
       />
+
+      {deleteFeedback ? (
+        <Modal animationType="fade" statusBarTranslucent transparent visible>
+          <View className="flex-1">
+            <FeedbackOverlay {...deleteFeedback} />
+          </View>
+        </Modal>
+      ) : null}
     </ThemedView>
   );
 }

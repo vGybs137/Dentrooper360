@@ -1,4 +1,4 @@
-import { MINUTES_PER_HOUR, minutesToYInWorkingWindow } from "@/utils/calendar";
+import { MINUTES_PER_HOUR, minutesToYInWorkingWindow } from "@/helpers/schedule/calendar";
 
 export function localMinutesFromMidnight(date: Date): number {
   return date.getHours() * MINUTES_PER_HOUR + date.getMinutes();

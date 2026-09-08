@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
 
 import { ScheduleCalendarHeader } from "@/components/schedule/ScheduleCalendarHeader";
-import { formatDayKeyMonthShort, type DayKey } from "@/utils/calendar";
+import { formatDayKeyMonthShort, type DayKey } from "@/helpers/schedule/calendar";
 
 export type DayCalendarHeaderProps = {
   dayKey: DayKey;

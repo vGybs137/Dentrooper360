@@ -8,7 +8,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { Button, ColorSwatch, ThemedIcon, ThemedText } from "@/components/ui";
-import type { AppointmentSearchTypeOption } from "@/hooks/useAppointmentSearch";
+import type { AppointmentSearchTypeOption } from "@/hooks/schedule/useAppointmentSearch";
 import { semantic } from "@/tokens";
 
 const CHEVRON_LEFT_ICON = {

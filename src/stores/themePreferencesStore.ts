@@ -8,7 +8,7 @@ import {
 } from "zustand/middleware";
 
 import { THEME_PREFERENCES_STORE_KEY } from "@/constants/storage";
-import { getItem, setItem } from "@/helpers/secureStorage";
+import { getItem, setItem } from "@/helpers/auth/secureStorage";
 
 export type ThemeMode = "system" | "light" | "dark";
 export type ResolvedTheme = "light" | "dark";

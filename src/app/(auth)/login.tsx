@@ -11,13 +11,13 @@ import Animated, {
 import { BrandLogo, SplashFooter } from "@/components/app/BrandLogo";
 import { LoginForm } from "@/components/app/LoginForm";
 import { ThemedView } from "@/components/ui";
-import { hideNativeSplash } from "@/helpers/nativeSplash";
-import { isIntroFromSplash } from "@/helpers/routeParams";
+import { hideNativeSplash } from "@/helpers/auth/nativeSplash";
+import { isIntroFromSplash } from "@/helpers/ui/routeParams";
 import {
   useLoginLogoIntroStyle,
   useLoginLogoRestLayout,
-} from "@/hooks/useAuthLogoRestOffset";
-import { useSplashIntro } from "@/hooks/useSplashIntro";
+} from "@/hooks/auth/useAuthLogoRestOffset";
+import { useSplashIntro } from "@/hooks/auth/useSplashIntro";
 
 export default function LoginScreen() {
   const { intro } = useLocalSearchParams<{

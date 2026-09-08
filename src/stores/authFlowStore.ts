@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import type { useSplashIntro } from "@/hooks/useSplashIntro";
+import type { useSplashIntro } from "@/hooks/auth/useSplashIntro";
 
 export type SplashIntro = ReturnType<typeof useSplashIntro>;
 

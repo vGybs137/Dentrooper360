@@ -4,7 +4,7 @@ import { synchronize } from "@/database/synchronize";
 import {
   canSyncOnCurrentNetwork,
   isNetInfoOnline,
-} from "@/helpers/connectivity";
+} from "@/helpers/sync/connectivity";
 import { setOfflineMode, useSyncStatusStore } from "@/stores";
 
 let subscription: NetInfoSubscription | null = null;
@@ -20,6 +20,11 @@ async function syncOnReconnect(customerId: string) {
   const wifiOnly = useSyncStatusStore.getState().syncWifiOnly;
   const { allowed } = await canSyncOnCurrentNetwork(wifiOnly);
   if (!allowed) {
+    return;
+  }
+
+  // Abort if connectivity sync was stopped/restarted while awaiting network.
+  if (activeCustomerId !== customerId) {
     return;
   }
 
@@ -69,5 +74,6 @@ export function stopConnectivitySync() {
   subscription = null;
   activeCustomerId = null;
   wasOnline = null;
-  isSyncInFlight = false;
+  // Leave isSyncInFlight alone so an in-flight reconnect sync can finish
+  // without a second sync starting under a falsely-cleared flag.
 }

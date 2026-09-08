@@ -1,6 +1,6 @@
 import type { MobilePullRequest, MobilePullResponse, MobilePushRequest } from "@/types/sync";
 
-import { mapPullChanges, toPullPayload, toPushPayload, type WireMobilePullResponse } from "@/helpers/sync";
+import { mapPullChanges, toPullPayload, toPushPayload, type WireMobilePullResponse } from "@/helpers/sync/sync";
 import { httpClient } from "../httpClient";
 import { SYNC_MOBILE_PULL_PATH, SYNC_MOBILE_PUSH_PATH } from "@/constants/sync";
 

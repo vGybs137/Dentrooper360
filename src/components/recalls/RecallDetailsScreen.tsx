@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 import { useRouter, type Href } from "expo-router";
 import { useCallback, useMemo } from "react";
 import { ActivityIndicator, ScrollView, View } from "react-native";
@@ -9,16 +8,18 @@ import { PatientOverviewTab } from "@/components/patients/patientDetails/Patient
 import { RecallDetailsActionBar } from "@/components/recalls/RecallDetailsActionBar";
 import { RecallDetailsHero } from "@/components/recalls/RecallDetailsHero";
 import { Button, ThemedText, ThemedView } from "@/components/ui";
-import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/authMotion";
-import { openPatientWhatsApp } from "@/helpers/patientContact";
-import { formatPatientPhone } from "@/helpers/patientDisplay";
-import { hasRecallAppointment } from "@/helpers/recallKpis";
-import type { PatientDetailsData } from "@/hooks/usePatientDetails";
+import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/auth/motion";
+import { displayOrEmpty, formatDisplayDate } from "@/helpers/ui/display";
+import { openPatientWhatsApp } from "@/helpers/patients/patientContact";
+import { formatPatientPhone } from "@/helpers/patients/patientDisplay";
+import { recallStatusLabel } from "@/helpers/recalls/recallDisplay";
+import { hasRecallAppointment } from "@/helpers/recalls/recallKpis";
+import type { PatientDetailsData } from "@/hooks/patients/usePatientDetails";
 import {
   toAppointmentPatientDraft,
   useRecallDetails,
   type RecallDetailsData,
-} from "@/hooks/useRecallDetails";
+} from "@/hooks/recalls/useRecallDetails";
 import { useAddAppointmentStore } from "@/stores";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
@@ -26,29 +27,6 @@ import { semantic } from "@/tokens";
 export type RecallDetailsScreenProps = {
   recallId: string | undefined;
 };
-
-function formatOverviewDate(value: Date | null | undefined): {
-  value: string;
-  empty: boolean;
-} {
-  if (!value || Number.isNaN(value.getTime())) {
-    return { value: "Not set", empty: true };
-  }
-
-  return { value: dayjs(value).format("D MMM, YYYY"), empty: false };
-}
-
-function displayOrEmpty(
-  value: string | null | undefined,
-  emptyLabel: string,
-): { value: string; empty: boolean } {
-  const trimmed = value?.trim();
-  if (!trimmed) {
-    return { value: emptyLabel, empty: true };
-  }
-
-  return { value: trimmed, empty: false };
-}
 
 function formatIntervalDays(value: number): string {
   if (!Number.isFinite(value)) {
@@ -60,36 +38,6 @@ function formatIntervalDays(value: number): string {
   }
 
   return `${value} days`;
-}
-
-function recallStatusLabel(recall: RecallDetailsData): string {
-  if (hasRecallAppointment(recall.appointmentId)) {
-    const start = recall.appointmentStartTime;
-    if (start && !Number.isNaN(start.getTime())) {
-      const days = dayjs(start)
-        .startOf("day")
-        .diff(dayjs().startOf("day"), "day");
-      if (days <= 0) {
-        return "Done";
-      }
-    }
-    return "Scheduled";
-  }
-
-  const due = recall.dueDate;
-  if (!due || Number.isNaN(due.getTime())) {
-    return "—";
-  }
-
-  if (dayjs(due).isBefore(dayjs().startOf("day"))) {
-    return "Overdue";
-  }
-
-  if (dayjs(due).isSame(dayjs(), "day")) {
-    return "Due today";
-  }
-
-  return "Upcoming";
 }
 
 function buildRecallInformationFields(
@@ -109,9 +57,9 @@ function buildRecallInformationFields(
 function buildRecallTimelineFields(
   recall: RecallDetailsData,
 ): PatientOverviewField[] {
-  const dueDate = formatOverviewDate(recall.dueDate);
-  const recallDate = formatOverviewDate(recall.date);
-  const appointmentDate = formatOverviewDate(recall.appointmentStartTime);
+  const dueDate = formatDisplayDate(recall.dueDate);
+  const recallDate = formatDisplayDate(recall.date);
+  const appointmentDate = formatDisplayDate(recall.appointmentStartTime);
   const appointmentStatus = displayOrEmpty(
     recall.appointmentStatus,
     "No appointment",
@@ -251,7 +199,7 @@ export function RecallDetailsScreen({ recallId }: RecallDetailsScreenProps) {
         variant="screen"
       >
         <ThemedView align="center" space="default" variant="stack">
-          <ThemedText align="center" tone="muted">
+          <ThemedText align="center" tone={error ? "alert" : "muted"}>
             {error
               ? "Unable to load this recall."
               : "This recall could not be found."}

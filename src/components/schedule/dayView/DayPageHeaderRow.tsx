@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { semantic } from "@/tokens";
 
 import { DayHeaderLabel } from "@/components/schedule/DayHeaderLabel";
-import type { DayKey } from "@/utils/calendar";
+import type { DayKey } from "@/helpers/schedule/calendar";
 
 export type DayPageHeaderRowProps = {
   dayKey: DayKey;

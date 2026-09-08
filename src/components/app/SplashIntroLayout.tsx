@@ -3,7 +3,7 @@ import { View } from "react-native";
 import Animated from "react-native-reanimated";
 
 import { ThemedView } from "@/components/ui";
-import { type useSplashIntro } from "@/hooks/useSplashIntro";
+import { type useSplashIntro } from "@/hooks/auth/useSplashIntro";
 
 import { SplashFooter } from "./BrandLogo";
 

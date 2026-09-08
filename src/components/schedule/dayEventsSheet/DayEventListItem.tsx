@@ -6,8 +6,8 @@ import { primitives, semantic } from "@/tokens";
 
 import { Button } from "@/components/ui";
 
-import { formatAppointmentEventTitle } from "@/helpers/appointmentSubject";
-import { formatTimeRange } from "@/helpers/timeFormat";
+import { formatAppointmentEventTitle } from "@/helpers/schedule/appointmentSubject";
+import { formatTimeRange } from "@/helpers/ui/timeFormat";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
 import { MONTH_VIEW_EVENT_LIST_RAIL_WIDTH } from "@/constants/schedule";
 import type { MonthDayEventPreview } from "@/types/schedule";

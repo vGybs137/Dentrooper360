@@ -8,10 +8,10 @@ import {
   applyCustomRangeDayPress,
   type AppointmentSearchCustomRange,
 } from "@/constants/appointmentSearch";
-import { useInlineCollapse } from "@/hooks/useInlineCollapse";
+import { useInlineCollapse } from "@/hooks/ui/useInlineCollapse";
 import { useWeekStartsOn } from "@/stores";
 import { useNativeColors } from "@/theme";
-import type { DayKey } from "@/utils/calendar";
+import type { DayKey } from "@/helpers/schedule/calendar";
 
 const FALLBACK_CALENDAR_HEIGHT = 300;
 

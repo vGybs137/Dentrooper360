@@ -5,18 +5,22 @@ import type { MonthDayEventPreview } from "@/types/schedule";
 import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import type AppointmentType from "@/database/models/AppointmentType";
-import { getScheduleAppointmentsPrefetch } from "@/helpers/prefetchScheduleAppointments";
+import { getScheduleAppointmentsPrefetch } from "@/helpers/schedule/prefetchScheduleAppointments";
 import {
   buildAppointmentTypesMap,
   buildMonthDayMap,
   type AppointmentTypeLookup,
   type MonthAppointmentsCache,
   type MonthEventsByDay,
-} from "@/helpers/scheduleAppointmentPreview";
+} from "@/helpers/schedule/scheduleAppointmentPreview";
 import {
   EMPTY_DAY_EVENTS,
   EMPTY_MONTH_EVENTS,
-} from "@/helpers/scheduleEvents";
+} from "@/helpers/schedule/scheduleEvents";
+import {
+  APPOINTMENT_WINDOW_OBSERVE_COLUMNS,
+  APPOINTMENTS_CACHE_LOADER_DELAY_MS,
+} from "@/hooks/schedule/appointmentsWindowCacheShared";
 import { useAuthUser } from "@/stores/authStore";
 import {
   addMonths,
@@ -27,9 +31,8 @@ import {
   type DayKey,
   type MonthKey,
   type YearMonth,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
-const LOADER_DELAY_MS = 200;
 /** Active Watermelon observers: visible month ± this radius. */
 const SUBSCRIBE_RADIUS = 1;
 /**
@@ -159,16 +162,7 @@ export function useMonthAppointmentsCache({
           Q.where("start_time", Q.gte(startMs)),
           Q.where("start_time", Q.lt(endMs)),
         )
-        .observeWithColumns([
-          "patient_id",
-          "type_id",
-          "location_id",
-          "subject",
-          "status",
-          "description",
-          "start_time",
-          "end_time",
-        ])
+        .observeWithColumns([...APPOINTMENT_WINDOW_OBSERVE_COLUMNS])
         .subscribe({
           next: (appointments) => {
             publishMonth(monthKey, appointments);
@@ -313,7 +307,7 @@ export function useMonthAppointmentsCache({
     clearTimer();
     debounceTimerRef.current = setTimeout(() => {
       flushPending();
-    }, LOADER_DELAY_MS);
+    }, APPOINTMENTS_CACHE_LOADER_DELAY_MS);
 
     return clearTimer;
   }, [isDragging, flushPending]);

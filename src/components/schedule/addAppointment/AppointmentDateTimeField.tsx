@@ -4,9 +4,9 @@ import { View } from "react-native";
 
 import { Button, ThemedIcon, ThemedText } from "@/components/ui";
 import { clockIcon } from "@/constants";
-import { dayjsTimePattern } from "@/helpers/timeFormat";
+import { dayjsTimePattern } from "@/helpers/ui/timeFormat";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
-import { cn } from "@/utils/cn";
+import { cn } from "@/helpers/ui/cn";
 
 import { AppointmentDayFreeHoursInfo } from "./AppointmentDayFreeHoursInfo";
 import { AppointmentInlineCalendar } from "./AppointmentInlineCalendar";

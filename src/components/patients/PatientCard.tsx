@@ -2,21 +2,26 @@ import { useMemo } from "react";
 import { Image, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { PatientCardActionMenu } from "@/components/patients/PatientCardActionMenu";
-import { Button, ThemedIcon, ThemedText, ThemedView, type ThemedIconProps } from "@/components/ui";
+import {
+  Button,
+  MetricColumn,
+  SearchHighlightText,
+  ThemedIcon,
+  ThemedView,
+} from "@/components/ui";
 import { balanceIcon, calendarIcon, checkCircleIcon, starIcon } from "@/constants";
 import {
   formatPatientBalance,
   formatPatientNextVisit,
   type PatientCardData,
-} from "@/helpers/patientDisplay";
+} from "@/helpers/patients/patientDisplay";
 import {
   initialsFromPatientName,
   patientInitialsColorsFromName,
-} from "@/helpers/patientInitials";
-import { splitTextBySearchQuery } from "@/helpers/searchHighlight";
+} from "@/helpers/patients/patientInitials";
 import { useAuthUser } from "@/stores";
 import { useNativeColors, useResolvedTheme } from "@/theme";
-import { cn } from "@/utils/cn";
+import { cn } from "@/helpers/ui/cn";
 
 const AVATAR_SIZE = 30;
 const INDICATOR_SIZE = 22;
@@ -29,30 +34,6 @@ type PatientCardProps = {
   searchQuery?: string;
   style?: StyleProp<ViewStyle>;
 };
-
-function MetricColumn({
-  icon,
-  label,
-  value,
-}: {
-  icon: NonNullable<ThemedIconProps["name"]>;
-  label: string;
-  value: string;
-}) {
-  return (
-    <View className="min-w-[72px] gap-0.5">
-      <View className="flex-row items-center gap-1">
-        <ThemedIcon dimension={14} name={icon} tone="muted" />
-        <ThemedText className="text-xs" tone="muted" variant="label">
-          {label}
-        </ThemedText>
-      </View>
-      <ThemedText className="font-normal" numberOfLines={1} variant="label">
-        {value}
-      </ThemedText>
-    </View>
-  );
-}
 
 function PatientAvatar({
   displayName,
@@ -125,52 +106,6 @@ function SelectionIndicator({ selected }: { selected: boolean }) {
   );
 }
 
-function PatientDisplayName({
-  displayName,
-  searchQuery,
-}: {
-  displayName: string;
-  searchQuery?: string;
-}) {
-  const parts = useMemo(
-    () => splitTextBySearchQuery(displayName, searchQuery ?? ""),
-    [displayName, searchQuery],
-  );
-  const hasHighlight = Boolean(searchQuery?.trim());
-
-  if (!hasHighlight) {
-    return (
-      <ThemedText
-        className="min-w-0 flex-1 shrink font-semibold"
-        numberOfLines={1}
-        variant="body"
-      >
-        {displayName}
-      </ThemedText>
-    );
-  }
-
-  return (
-    <Text
-      className="min-w-0 flex-1 shrink text-body font-semibold text-foreground-default"
-      numberOfLines={1}
-    >
-      {parts.map((part, index) => (
-        <Text
-          key={`${part.value}-${index}`}
-          className={
-            part.highlighted
-              ? "font-semibold text-brand-default"
-              : "text-foreground-default"
-          }
-        >
-          {part.value}
-        </Text>
-      ))}
-    </Text>
-  );
-}
-
 export function PatientCard({
   patient,
   selectable = false,
@@ -215,9 +150,11 @@ export function PatientCard({
         <View className="flex-1 gap-inset-compact">
           <View className="min-w-0 flex-1 justify-center px-gap">
             <View className="flex-row items-center gap-1.5">
-              <PatientDisplayName
-                displayName={patient.displayName}
+              <SearchHighlightText
+                className="min-w-0 flex-1 shrink font-semibold"
+                numberOfLines={1}
                 searchQuery={searchQuery}
+                text={patient.displayName}
               />
               {patient.isVip ? (
                 <ThemedIcon dimension={14} name={starIcon} tone="brand" />

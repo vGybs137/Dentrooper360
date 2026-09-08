@@ -6,7 +6,7 @@ import {
   toLocalDate,
   yToMinutesInWorkingWindow,
   type DayKey,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 export const TIMED_GRID_SLOT_SNAP_MINUTES = MINUTES_PER_HOUR;
 

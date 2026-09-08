@@ -1,23 +1,34 @@
 import dayjs from "dayjs";
 import { memo, useMemo } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
-import { Button, ThemedIcon, ThemedText } from "@/components/ui";
-import { notesIcon } from "@/constants";
-import { MONTH_VIEW_EVENT_LIST_RAIL_WIDTH } from "@/constants/schedule";
-import { withOpacity } from "@/helpers/color";
-import { formatPatientPhone } from "@/helpers/patientDisplay";
+import {
+  Button,
+  EventRail,
+  SearchHighlightText,
+  ThemedIcon,
+  ThemedText,
+} from "@/components/ui";
+import {
+  accentBlue,
+  accentOrange,
+  accentRed,
+  accentSlate,
+  accentTeal,
+  notesIcon,
+} from "@/constants";
+import { withOpacity } from "@/helpers/ui/color";
+import { formatPatientPhone } from "@/helpers/patients/patientDisplay";
+import { daysFromToday } from "@/helpers/recalls/recallDisplay";
 import {
   classifyRecallDueDate,
   getRecallDueBounds,
   hasRecallAppointment,
   type RecallDueBucket,
-} from "@/helpers/recallKpis";
-import { splitTextBySearchQuery } from "@/helpers/searchHighlight";
-import type { ProviderRecallItem } from "@/hooks/useProviderRecalls";
+} from "@/helpers/recalls/recallKpis";
+import type { ProviderRecallItem } from "@/hooks/recalls/useProviderRecalls";
 import { useWeekStartsOn } from "@/stores/schedulePreferencesStore";
 import { useNativeColors } from "@/theme";
-import { primitives } from "@/tokens";
 
 export type RecallListItemProps = {
   item: ProviderRecallItem;
@@ -26,32 +37,23 @@ export type RecallListItemProps = {
 };
 
 const RAIL_BY_BUCKET: Record<RecallDueBucket, string> = {
-  overdue: "#EF4444",
-  dueToday: "#F97316",
-  dueThisWeek: "#3B82F6",
-  later: "#94A3B8",
+  overdue: accentRed,
+  dueToday: accentOrange,
+  dueThisWeek: accentBlue,
+  later: accentSlate,
 };
 
-const DONE_PILL = { accent: "#0A9E91", textTone: "success" as const };
+const DONE_PILL = { accent: accentTeal, textTone: "success" as const };
 
 const PILL_BY_BUCKET: Record<
   RecallDueBucket,
   { accent: string; textTone: "alert" | "default" | "muted" | "success" }
 > = {
-  overdue: { accent: "#EF4444", textTone: "alert" },
-  dueToday: { accent: "#F97316", textTone: "default" },
-  dueThisWeek: { accent: "#3B82F6", textTone: "default" },
-  later: { accent: "#94A3B8", textTone: "muted" },
+  overdue: { accent: accentRed, textTone: "alert" },
+  dueToday: { accent: accentOrange, textTone: "default" },
+  dueThisWeek: { accent: accentBlue, textTone: "default" },
+  later: { accent: accentSlate, textTone: "muted" },
 };
-
-/** Whole calendar days from today to a date (negative when in the past). */
-function daysFromToday(date: Date): number | null {
-  if (!date || Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  return dayjs(date).startOf("day").diff(dayjs().startOf("day"), "day");
-}
 
 function formatRelativeDayLabel(
   days: number,
@@ -119,64 +121,6 @@ function isCompletedRecall(
 
   const doneDays = daysFromToday(appointmentStartTime ?? dueDate);
   return doneDays != null && doneDays <= 0;
-}
-
-function HighlightedText({
-  className,
-  numberOfLines,
-  searchQuery,
-  text,
-  tone = "default",
-  toneClassName = "text-foreground-default",
-  variant = "body",
-}: {
-  className?: string;
-  numberOfLines?: number;
-  searchQuery?: string;
-  text: string;
-  tone?: "default" | "muted";
-  toneClassName?: string;
-  variant?: "body" | "label";
-}) {
-  const parts = useMemo(
-    () => splitTextBySearchQuery(text, searchQuery ?? ""),
-    [searchQuery, text],
-  );
-  const hasHighlight = Boolean(searchQuery?.trim());
-  const sizeClass = variant === "label" ? "text-label" : "text-body";
-
-  if (!hasHighlight) {
-    return (
-      <ThemedText
-        className={className}
-        numberOfLines={numberOfLines}
-        tone={tone}
-        variant={variant}
-      >
-        {text}
-      </ThemedText>
-    );
-  }
-
-  return (
-    <Text
-      className={`${sizeClass} ${toneClassName}${className ? ` ${className}` : ""}`}
-      numberOfLines={numberOfLines}
-    >
-      {parts.map((part, index) => (
-        <Text
-          key={`${part.value}-${index}`}
-          className={
-            part.highlighted
-              ? "font-semibold text-brand-default"
-              : toneClassName
-          }
-        >
-          {part.value}
-        </Text>
-      ))}
-    </Text>
-  );
 }
 
 function DueInPill({
@@ -254,23 +198,17 @@ function RecallListItemComponent({
       accessibilityLabel={`Recall for ${item.patientName}, ${phone}, ${item.serviceName}, ${duePillLabel}`}
       className="flex-row items-stretch gap-stack overflow-hidden rounded-card border border-border-subtle bg-surface-sunken py-stack pl-inline"
     >
-      <View
-        style={{
-          width: MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
-          borderRadius: primitives.radius.xs,
-          backgroundColor: railColor,
-        }}
-      />
+      <EventRail color={railColor} />
 
       <View className="min-w-0 flex-1 justify-center gap-inset-compact pr-inline">
         <View className="min-w-0 flex-row items-center gap-2">
-          <HighlightedText
+          <SearchHighlightText
             className="min-w-0 shrink font-semibold"
             numberOfLines={1}
             searchQuery={searchQuery}
             text={item.patientName}
           />
-          <HighlightedText
+          <SearchHighlightText
             className="min-w-0 shrink"
             numberOfLines={1}
             searchQuery={searchQuery}
@@ -289,7 +227,7 @@ function RecallListItemComponent({
                 Service
               </ThemedText>
             </View>
-            <HighlightedText
+            <SearchHighlightText
               className="max-w-full font-normal"
               numberOfLines={1}
               searchQuery={searchQuery}

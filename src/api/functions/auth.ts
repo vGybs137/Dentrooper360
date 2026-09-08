@@ -13,7 +13,7 @@ import {
   type WireAuthSession,
   type WireAuthUser,
   type WirePairResponse,
-} from "@/helpers/auth";
+} from "@/helpers/auth/auth";
 import { httpClient } from "../httpClient";
 import {
   AUTH_LOGIN_PATH,
@@ -60,8 +60,13 @@ export async function logout(): Promise<void> {
   const refreshToken = store.refreshToken;
   const customerId = store.customerId;
 
+  // Best-effort sync before clearing; never block logout on sync/network failure.
   if (customerId) {
-    await synchronize(customerId);
+    try {
+      await synchronize(customerId);
+    } catch {
+      // Continue to clear the local session.
+    }
   }
 
   try {
@@ -72,6 +77,8 @@ export async function logout(): Promise<void> {
         { skipAuth: true },
       );
     }
+  } catch {
+    // Server logout is best-effort; local session still clears.
   } finally {
     store.clearSession();
   }

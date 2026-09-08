@@ -10,10 +10,10 @@ import {
   type DropdownOption,
   type ThemedIconProps,
 } from "@/components/ui";
-import { splitTextBySearchQuery } from "@/helpers/searchHighlight";
-import { useInlineCollapse } from "@/hooks/useInlineCollapse";
+import { splitTextBySearchQuery } from "@/helpers/ui/searchHighlight";
+import { useInlineCollapse } from "@/hooks/ui/useInlineCollapse";
 import { semantic } from "@/tokens";
-import { cn } from "@/utils/cn";
+import { cn } from "@/helpers/ui/cn";
 
 export type InlineSelectOption = DropdownOption;
 

@@ -10,14 +10,14 @@ import Animated, {
 
 import {
   Button,
-  ThemedIcon,
+  EventRail,
+  MetricColumn,
   ThemedText,
-  type ThemedIconProps,
 } from "@/components/ui";
 import { balanceIcon, calendarIcon, checkCircleIcon } from "@/constants";
-import { MONTH_VIEW_EVENT_LIST_RAIL_WIDTH } from "@/constants/schedule";
-import { AUTH_SLIDE_EASING } from "@/helpers/authMotion";
-import type { PatientServiceItem } from "@/hooks/usePatientServices";
+import { AUTH_SLIDE_EASING } from "@/helpers/auth/motion";
+import { formatMoneyAmount } from "@/helpers/payments/currency";
+import type { PatientServiceItem } from "@/hooks/patients/usePatientServices";
 import { useNativeColors } from "@/theme";
 import { primitives } from "@/tokens";
 
@@ -34,54 +34,6 @@ export type PatientServiceResultItemProps = {
   currency: string | null | undefined;
 };
 
-function formatServiceFee(
-  fee: number,
-  currency: string | null | undefined,
-): string {
-  const prefix = currency?.trim() || "$";
-  return `${prefix} ${Math.abs(fee).toFixed(2)}`;
-}
-
-function MetricColumn({
-  icon,
-  label,
-  value,
-  align = "left",
-  mutedValue = false,
-}: {
-  icon: NonNullable<ThemedIconProps["name"]>;
-  label: string;
-  value: string;
-  align?: "left" | "right";
-  mutedValue?: boolean;
-}) {
-  return (
-    <View
-      className={
-        align === "right"
-          ? "min-w-[72px] items-end gap-0.5"
-          : "min-w-[72px] gap-0.5"
-      }
-    >
-      <View className="flex-row items-center gap-1">
-        <ThemedIcon dimension={16} name={icon} tone="muted" />
-        <ThemedText className="text-xs" tone="muted" variant="label">
-          {label}
-        </ThemedText>
-      </View>
-      <ThemedText
-        align={align === "right" ? "right" : "left"}
-        className={mutedValue ? "font-normal opacity-30" : "font-normal"}
-        numberOfLines={1}
-        tone="default"
-        variant="label"
-      >
-        {value}
-      </ThemedText>
-    </View>
-  );
-}
-
 function PatientServiceResultItemComponent({
   item,
   currency,
@@ -92,7 +44,7 @@ function PatientServiceResultItemComponent({
   const expandProgress = useSharedValue(0);
   const noteHeight = useSharedValue(0);
   const railColor = item.color ?? native.border.strong;
-  const feeLabel = formatServiceFee(item.fee, currency);
+  const feeLabel = formatMoneyAmount(item.fee, currency);
   const codeLabel = item.code?.trim() || null;
   const statusLabel = item.status?.trim() || null;
   const noteLabel = item.note?.trim() || null;
@@ -159,13 +111,7 @@ function PatientServiceResultItemComponent({
         tone="neutral"
         variant="ghost"
       >
-        <View
-          style={{
-            width: MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
-            borderRadius: primitives.radius.xs,
-            backgroundColor: railColor,
-          }}
-        />
+        <EventRail color={railColor} />
 
         <View className="min-w-0 flex-1 justify-center gap-inset-compact pr-inline">
           <View className="min-w-0 flex-row items-center gap-1.5">
@@ -191,12 +137,17 @@ function PatientServiceResultItemComponent({
           </View>
 
           <View className="flex-row items-start justify-between">
-            <MetricColumn icon={balanceIcon} label="Fee" value={feeLabel} />
+            <MetricColumn
+              icon={balanceIcon}
+              iconSize={16}
+              label="Fee"
+              value={feeLabel}
+            />
             <MetricColumn
               align="right"
               icon={postedIcon}
+              iconSize={16}
               label="Posted"
-              mutedValue={!item.isPosted}
               value={postedLabel}
             />
           </View>
@@ -216,11 +167,9 @@ function PatientServiceResultItemComponent({
             className="flex-row items-stretch gap-stack pb-stack pl-inline pr-inline"
             style={noteContentStyle}
           >
-            <View
+            <EventRail
+              color={native.brand.default}
               style={{
-                width: MONTH_VIEW_EVENT_LIST_RAIL_WIDTH,
-                borderRadius: primitives.radius.xs,
-                backgroundColor: native.brand.default,
                 alignSelf: "stretch",
                 minHeight: primitives.lineHeight.xs,
               }}

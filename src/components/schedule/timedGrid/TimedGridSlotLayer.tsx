@@ -3,7 +3,7 @@ import { StyleSheet, View } from "react-native";
 import type { GestureResponderEvent } from "react-native";
 
 import { Button } from "@/components/ui";
-import { withOpacity } from "@/helpers/color";
+import { withOpacity } from "@/helpers/ui/color";
 import {
   useAddAppointmentSlot,
   useAddAppointmentStore,
@@ -13,7 +13,7 @@ import {
   minutesToYInWorkingWindow,
   MINUTES_PER_HOUR,
   type DayKey,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 import { TimedGridSelectedSlot } from "./TimedGridSelectedSlot";
 import {

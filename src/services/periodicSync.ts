@@ -2,7 +2,7 @@ import { AppState, type AppStateStatus, type NativeEventSubscription } from "rea
 
 import { SYNC_INTERVAL_MS } from "@/constants/sync";
 import { synchronize } from "@/database/synchronize";
-import { canSyncOnCurrentNetwork } from "@/helpers/connectivity";
+import { canSyncOnCurrentNetwork } from "@/helpers/sync/connectivity";
 import { useSyncStatusStore } from "@/stores";
 
 let intervalId: ReturnType<typeof setInterval> | null = null;
@@ -67,4 +67,5 @@ export function stopPeriodicSync() {
   appStateSubscription?.remove();
   appStateSubscription = null;
   activeCustomerId = null;
+  isTickInFlight = false;
 }

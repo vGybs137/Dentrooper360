@@ -9,9 +9,9 @@ import {
   hoursForWeekday as resolveHoursForWeekday,
   scheduleHoursEnvelope,
   type ScheduleHourRange,
-} from "@/helpers/scheduleHours";
+} from "@/helpers/schedule/scheduleHours";
 import { useAuthUser } from "@/stores/authStore";
-import type { DayKey, WeekdayIndex } from "@/utils/calendar";
+import type { DayKey, WeekdayIndex } from "@/helpers/schedule/calendar";
 
 export type UserScheduleHours = ScheduleHourRange;
 
@@ -25,6 +25,7 @@ export type UseUserScheduleHoursResult = {
   /** Convenience: same as `envelope` for callers that still expect a single range. */
   startHour: number;
   endHour: number;
+  error: Error | null;
   hoursForWeekday: (weekday: WeekdayIndex) => ScheduleHourRange | null;
   hoursForDayKey: (dayKey: DayKey) => ScheduleHourRange | null;
 };
@@ -33,10 +34,12 @@ export type UseUserScheduleHoursResult = {
 export function useUserScheduleHours(): UseUserScheduleHoursResult {
   const user = useAuthUser();
   const [rows, setRows] = useState<ProviderWorkingHours[]>([]);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (!user?.id) {
       setRows([]);
+      setError(null);
       return;
     }
 
@@ -44,7 +47,16 @@ export function useUserScheduleHours(): UseUserScheduleHoursResult {
       "provider_working_hours",
     );
     const query = collection.query(Q.where("provider_id", user.id));
-    const subscription = query.observe().subscribe(setRows);
+    const subscription = query.observe().subscribe({
+      next: (nextRows) => {
+        setRows(nextRows);
+        setError(null);
+      },
+      error: (err) => {
+        setRows([]);
+        setError(err instanceof Error ? err : new Error(String(err)));
+      },
+    });
     return () => subscription.unsubscribe();
   }, [user?.id]);
 
@@ -59,10 +71,11 @@ export function useUserScheduleHours(): UseUserScheduleHoursResult {
       envelope,
       startHour: envelope.startHour,
       endHour: envelope.endHour,
+      error,
       hoursForWeekday: (weekday: WeekdayIndex) =>
         resolveHoursForWeekday(hoursByWeekday, weekday, hasConfiguredHours),
       hoursForDayKey: (dayKey: DayKey) =>
         resolveHoursForDayKey(hoursByWeekday, dayKey, hasConfiguredHours),
     };
-  }, [rows]);
+  }, [error, rows]);
 }

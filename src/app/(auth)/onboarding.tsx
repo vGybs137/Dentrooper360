@@ -6,7 +6,7 @@ import { BrandLogo } from "@/components/app/BrandLogo";
 import { SplashIntroLayout } from "@/components/app/SplashIntroLayout";
 import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
 import { qrCodeIcon } from "@/constants";
-import { hideNativeSplash } from "@/helpers/nativeSplash";
+import { hideNativeSplash } from "@/helpers/auth/nativeSplash";
 import {
   useAuthFlowIsLeaving,
   useAuthFlowSplashIntro,

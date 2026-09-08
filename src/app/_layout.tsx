@@ -11,10 +11,10 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AddAppointmentSheet } from "@/components/schedule/addAppointment";
 import { AddPatientSheet } from "@/components/patients/addPatient";
-import { keepNativeSplashVisible } from "@/helpers/nativeSplash";
-import { useConnectivitySync } from "@/hooks/useConnectivitySync";
-import { usePeriodicSync } from "@/hooks/usePeriodicSync";
-import { useTokenRefresh } from "@/hooks/useTokenRefresh";
+import { keepNativeSplashVisible } from "@/helpers/auth/nativeSplash";
+import { useConnectivitySync } from "@/hooks/sync/useConnectivitySync";
+import { usePeriodicSync } from "@/hooks/sync/usePeriodicSync";
+import { useTokenRefresh } from "@/hooks/auth/useTokenRefresh";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeEffects, ThemeSwitchOverlay } from "@/theme";
 

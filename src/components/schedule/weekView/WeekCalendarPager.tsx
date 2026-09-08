@@ -9,7 +9,7 @@ import type { WeekEventsByDay } from "@/hooks/schedule/useWeekAppointmentsCache"
 import { useWeekViewAxisLock } from "@/hooks/schedule/useWeekViewAxisLock";
 import { useAddAppointmentStore } from "@/stores/addAppointmentStore";
 import type { DayPressHandler } from "@/types/schedule";
-import type { DayKey, WeekdayIndex } from "@/utils/calendar";
+import type { DayKey, WeekdayIndex } from "@/helpers/schedule/calendar";
 
 import { WeekDayHeaderRow } from "./WeekDayHeaderRow";
 import { WeekTimeGrid } from "./WeekTimeGrid";

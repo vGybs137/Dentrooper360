@@ -7,7 +7,7 @@ import {
   ThemedText,
   type ThemedTextInputProps,
 } from "@/components/ui";
-import { cn } from "@/utils/cn";
+import { cn } from "@/helpers/ui/cn";
 
 import { usePatientFormFocusField } from "./PatientFormFocusContext";
 

@@ -3,7 +3,7 @@ import { useSegments } from "expo-router";
 import { PaymentsListScreen } from "@/components/payments/PaymentsListScreen";
 import { ThemedView } from "@/components/ui";
 import { getWebTabBarInset } from "@/constants/navigation";
-import { useStableSafeAreaInsets } from "@/helpers/safeAreaInsets";
+import { useStableSafeAreaInsets } from "@/helpers/ui/safeAreaInsets";
 
 export default function PaymentsScreen() {
   const segments = useSegments();

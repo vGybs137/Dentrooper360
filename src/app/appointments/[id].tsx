@@ -1,3 +1,7 @@
+/**
+ * Route: `/appointments/[id]`
+ * Screen UI: `components/schedule/appointmentDetails` (appointments → schedule asymmetry).
+ */
 import { useLocalSearchParams } from "expo-router";
 
 import { AppointmentDetailsScreen } from "@/components/schedule/appointmentDetails/AppointmentDetailsScreen";

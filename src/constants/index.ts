@@ -1,5 +1,17 @@
 export { API_BASE_URL, API_TIMEOUT_MS } from "./api";
 export {
+  accentBlue,
+  accentOrange,
+  accentRed,
+  accentSlate,
+  accentTeal,
+  accentYellow,
+  DETAILS_ACTION_BAR_HEIGHT,
+  DETAILS_HERO_AVATAR_SIZE,
+  DETAILS_HERO_CTA_ICON_SIZE,
+  SCROLL_TO_TOP_THRESHOLD,
+} from "./accents";
+export {
   APPOINTMENT_SEARCH_TIME_WINDOWS,
   applyCustomRangeDayPress,
   appointmentSearchTimeWindowLabel,
@@ -31,6 +43,7 @@ export {
   checkCircleIcon,
   chevronDisclosureIcon,
   chevronDownIcon,
+  chevronLeftIcon,
   chevronUpIcon,
   clockIcon,
   deleteIcon,

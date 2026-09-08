@@ -1,16 +1,15 @@
 import { memo, useMemo } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
-import { ThemedText } from "@/components/ui";
+import { SearchHighlightText } from "@/components/ui";
 import {
   formatPatientPhone,
   type PatientCardData,
-} from "@/helpers/patientDisplay";
+} from "@/helpers/patients/patientDisplay";
 import {
   initialsFromPatientName,
   patientInitialsColorsFromName,
-} from "@/helpers/patientInitials";
-import { splitTextBySearchQuery } from "@/helpers/searchHighlight";
+} from "@/helpers/patients/patientInitials";
 import { useNativeColors, useResolvedTheme } from "@/theme";
 import { semantic } from "@/tokens";
 
@@ -23,64 +22,6 @@ export type MonthQuickAddPatientSuggestionsProps = {
   searchQuery: string;
   onSelect: (patient: PatientCardData) => void;
 };
-
-function HighlightedText({
-  className,
-  numberOfLines,
-  searchQuery,
-  text,
-  tone = "default",
-  toneClassName = "text-foreground-default",
-  variant = "body",
-}: {
-  className?: string;
-  numberOfLines?: number;
-  searchQuery?: string;
-  text: string;
-  tone?: "default" | "muted";
-  toneClassName?: string;
-  variant?: "body" | "label";
-}) {
-  const parts = useMemo(
-    () => splitTextBySearchQuery(text, searchQuery ?? ""),
-    [searchQuery, text],
-  );
-  const hasHighlight = Boolean(searchQuery?.trim());
-  const sizeClass = variant === "label" ? "text-label" : "text-body";
-
-  if (!hasHighlight) {
-    return (
-      <ThemedText
-        className={className}
-        numberOfLines={numberOfLines}
-        tone={tone}
-        variant={variant}
-      >
-        {text}
-      </ThemedText>
-    );
-  }
-
-  return (
-    <Text
-      className={`${sizeClass} ${toneClassName}${className ? ` ${className}` : ""}`}
-      numberOfLines={numberOfLines}
-    >
-      {parts.map((part, index) => (
-        <Text
-          key={`${part.value}-${index}`}
-          className={
-            part.highlighted
-              ? "font-semibold text-brand-default"
-              : toneClassName
-          }
-        >
-          {part.value}
-        </Text>
-      ))}
-    </Text>
-  );
-}
 
 function SuggestionInitials({ displayName }: { displayName: string }) {
   const resolvedTheme = useResolvedTheme();
@@ -166,13 +107,13 @@ function MonthQuickAddPatientSuggestionsComponent({
                 <View className="min-w-0 flex-row items-center gap-3">
                   <SuggestionInitials displayName={patient.displayName} />
                   <View className="min-w-0 flex-1 gap-0.5">
-                    <HighlightedText
+                    <SearchHighlightText
                       className="min-w-0 font-semibold"
                       numberOfLines={1}
                       searchQuery={searchQuery}
                       text={patient.displayName}
                     />
-                    <HighlightedText
+                    <SearchHighlightText
                       className="min-w-0"
                       numberOfLines={1}
                       searchQuery={searchQuery}

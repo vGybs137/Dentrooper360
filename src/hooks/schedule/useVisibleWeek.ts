@@ -1,10 +1,6 @@
-import { useCallback, useMemo, useRef, useState } from "react";
-import type { NativeSyntheticEvent } from "react-native";
-import type {
-  PageScrollStateChangedNativeEventData,
-  PagerViewOnPageSelectedEventData,
-} from "react-native-pager-view";
+import { useMemo, useRef } from "react";
 
+import { usePagerPageState } from "@/hooks/schedule/usePagerPageState";
 import {
   buildWeekWindow,
   toDayKey,
@@ -13,7 +9,7 @@ import {
   weekStartDayKey,
   type DayKey,
   type WeekdayIndex,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 export type UseVisibleWeekResult = {
   weeks: DayKey[];
@@ -21,12 +17,10 @@ export type UseVisibleWeekResult = {
   pageIndex: number;
   visibleWeekStart: DayKey;
   isDragging: boolean;
-  onPageSelected: (
-    event: NativeSyntheticEvent<PagerViewOnPageSelectedEventData>,
-  ) => void;
-  onPageScrollStateChanged: (
-    event: NativeSyntheticEvent<PageScrollStateChangedNativeEventData>,
-  ) => void;
+  onPageSelected: ReturnType<typeof usePagerPageState>["onPageSelected"];
+  onPageScrollStateChanged: ReturnType<
+    typeof usePagerPageState
+  >["onPageScrollStateChanged"];
   setPageIndex: (index: number) => void;
 };
 
@@ -52,24 +46,15 @@ export function useVisibleWeek(
   );
 
   const initialIndex = WEEK_PAGER_RADIUS;
-  const [pageIndex, setPageIndex] = useState(initialIndex);
-  const [isDragging, setIsDragging] = useState(false);
+  const {
+    pageIndex,
+    isDragging,
+    onPageSelected,
+    onPageScrollStateChanged,
+    setPageIndex,
+  } = usePagerPageState(initialIndex);
 
   const visibleWeekStart = weeks[pageIndex] ?? center;
-
-  const onPageSelected = useCallback(
-    (event: NativeSyntheticEvent<PagerViewOnPageSelectedEventData>) => {
-      setPageIndex(event.nativeEvent.position);
-    },
-    [],
-  );
-
-  const onPageScrollStateChanged = useCallback(
-    (event: NativeSyntheticEvent<PageScrollStateChangedNativeEventData>) => {
-      setIsDragging(event.nativeEvent.pageScrollState !== "idle");
-    },
-    [],
-  );
 
   return {
     weeks,

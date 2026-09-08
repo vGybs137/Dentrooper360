@@ -14,7 +14,7 @@ import { searchIcon } from "@/constants";
 import {
   SEARCH_BAR_COLLAPSED_HEIGHT,
   SEARCH_BAR_EXPANDED_HEIGHT,
-} from "@/helpers/searchBarLayout";
+} from "@/helpers/ui/searchBarLayout";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 

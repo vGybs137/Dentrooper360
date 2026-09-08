@@ -8,7 +8,10 @@ export type MonthPagerHandle = {
   setPageWithoutAnimation: (index: number) => void;
 };
 
-export type WeekPagerHandle = {
+export type MonthWeekPagerHandle = {
   setPage: (index: number) => void;
   setPageWithoutAnimation: (index: number) => void;
 };
+
+/** @deprecated Use `MonthWeekPagerHandle`. */
+export type WeekPagerHandle = MonthWeekPagerHandle;

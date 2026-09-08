@@ -7,7 +7,7 @@ import { MONTH_VIEW_CELL_GAP } from "@/constants/schedule";
 import {
   EMPTY_MONTH_EVENTS,
   eventsForDayWithNeighbors,
-} from "@/helpers/scheduleEvents";
+} from "@/helpers/schedule/scheduleEvents";
 import { useMonthViewLayout } from "@/hooks/schedule/useMonthViewLayout";
 import type { MonthEventsByDay } from "@/hooks/schedule/useMonthAppointmentsCache";
 import type { DayPressHandler } from "@/types/schedule";
@@ -18,7 +18,7 @@ import {
   toMonthKey,
   type WeekdayIndex,
   type YearMonth,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 import { DayCell, type DayCellEventIndicators } from "./DayCell";
 

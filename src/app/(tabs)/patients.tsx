@@ -3,7 +3,7 @@ import { useSegments } from "expo-router";
 import { PatientsListScreen } from "@/components/patients/PatientsListScreen";
 import { ThemedView } from "@/components/ui";
 import { getWebTabBarInset } from "@/constants/navigation";
-import { useStableSafeAreaInsets } from "@/helpers/safeAreaInsets";
+import { useStableSafeAreaInsets } from "@/helpers/ui/safeAreaInsets";
 
 export default function PatientsScreen() {
   const segments = useSegments();

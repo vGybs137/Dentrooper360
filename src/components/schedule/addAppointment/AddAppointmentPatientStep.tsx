@@ -4,8 +4,8 @@ import { ActivityIndicator, View } from "react-native";
 
 import { PatientCard } from "@/components/patients";
 import { ThemedText, ThemedView } from "@/components/ui";
-import type { AddAppointmentFormState } from "@/hooks/useAddAppointmentForm";
-import type { AppointmentPatientOption } from "@/hooks/useAppointmentFormOptions";
+import type { AddAppointmentFormState } from "@/hooks/schedule/useAddAppointmentForm";
+import type { AppointmentPatientOption } from "@/hooks/schedule/useAppointmentFormOptions";
 import { useNativeColors } from "@/theme";
 
 type AddAppointmentPatientStepProps = {
@@ -52,7 +52,7 @@ function AddAppointmentPatientStepComponent({
       </View>
 
       {options.patientsLoading ? (
-        <View className="items-center py-6">
+        <View className="items-center py-section">
           <ActivityIndicator color={native.brand.default} />
         </View>
       ) : options.error ? (

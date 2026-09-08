@@ -4,7 +4,7 @@ import { View } from "react-native";
 
 import { ActionMenu, ThemedIcon } from "@/components/ui";
 import { infoIcon } from "@/constants";
-import { useDayFreeHours } from "@/hooks/useDayFreeHours";
+import { useDayFreeHours } from "@/hooks/schedule/useDayFreeHours";
 import { useAddAppointmentStore } from "@/stores";
 
 type AppointmentDayFreeHoursInfoProps = {

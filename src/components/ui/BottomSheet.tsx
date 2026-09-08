@@ -10,9 +10,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   useBottomSheetMotion,
   type BottomSheetMotion,
-} from "@/hooks/useBottomSheetMotion";
+} from "@/hooks/ui/useBottomSheetMotion";
 import { semantic } from "@/tokens";
-import { cn } from "@/utils/cn";
+import { cn } from "@/helpers/ui/cn";
 
 import { ThemedView, type ThemedViewProps } from "./ThemedView";
 

@@ -12,13 +12,13 @@ import { semantic } from "@/tokens";
 
 import type { MonthAppointmentsCache } from "@/hooks/schedule/useMonthAppointmentsCache";
 import type { usePagerScrollHandler } from "@/hooks/schedule/usePagerScrollHandler";
-import { monthEventsSlice } from "@/helpers/scheduleEvents";
+import { monthEventsSlice } from "@/helpers/schedule/scheduleEvents";
 import {
   addMonths,
   toMonthKey,
   type WeekdayIndex,
   type YearMonth,
-} from "@/utils/calendar";
+} from "@/helpers/schedule/calendar";
 
 import { MONTH_VIEW_PAGER_RENDER_RADIUS } from "@/constants/schedule";
 import type { DayPressHandler, MonthPagerHandle } from "@/types/schedule";

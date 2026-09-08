@@ -6,7 +6,7 @@ import {
 } from "zustand/middleware";
 
 import { SYNC_STATUS_STORE_KEY } from "@/constants/storage";
-import { getItem, setItem } from "@/helpers/secureStorage";
+import { getItem, setItem } from "@/helpers/auth/secureStorage";
 
 type PersistedSyncStatusState = {
   lastSuccessfulSyncAt: number | null;

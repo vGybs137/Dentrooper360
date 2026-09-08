@@ -1,134 +1,30 @@
-import { useCallback, useMemo } from "react";
-import { Image, Text, View } from "react-native";
+import { useCallback } from "react";
+import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button, ThemedIcon, ThemedText, type ThemedIconProps } from "@/components/ui";
+import {
+  DetailsHeroAvatar,
+  DetailsHeroCta,
+  ThemedIcon,
+  ThemedText,
+} from "@/components/ui";
 import { addAppointmentIcon, messageIcon, phoneIcon, starIcon } from "@/constants";
 import {
   formatPatientName,
   type PatientCardData,
-} from "@/helpers/patientDisplay";
+} from "@/helpers/patients/patientDisplay";
 import {
   openPatientPhoneCall,
   openPatientWhatsApp,
   patientPhoneDigits,
-} from "@/helpers/patientContact";
-import {
-  initialsFromPatientName,
-  patientInitialsColorsFromName,
-} from "@/helpers/patientInitials";
-import type { PatientDetailsData } from "@/hooks/usePatientDetails";
+} from "@/helpers/patients/patientContact";
+import type { PatientDetailsData } from "@/hooks/patients/usePatientDetails";
 import { useAddAppointmentStore } from "@/stores";
-import { useResolvedTheme } from "@/theme";
 import { semantic } from "@/tokens";
-
-const AVATAR_SIZE = 80;
-const CTA_ICON_SIZE = 44;
 
 type PatientDetailsHeroProps = {
   patient: PatientDetailsData;
 };
-
-function HeroAvatar({
-  displayName,
-  profilePhoto,
-}: {
-  displayName: string;
-  profilePhoto: string | null;
-}) {
-  const resolvedTheme = useResolvedTheme();
-  const initials = useMemo(
-    () => initialsFromPatientName(displayName),
-    [displayName],
-  );
-  const initialsColors = useMemo(
-    () =>
-      patientInitialsColorsFromName(displayName, {
-        isDark: resolvedTheme === "dark",
-      }),
-    [displayName, resolvedTheme],
-  );
-
-  if (profilePhoto) {
-    return (
-      <Image
-        accessibilityIgnoresInvertColors
-        source={{ uri: profilePhoto }}
-        style={{
-          width: AVATAR_SIZE,
-          height: AVATAR_SIZE,
-          borderRadius: AVATAR_SIZE / 2,
-        }}
-      />
-    );
-  }
-
-  return (
-    <View
-      className="items-center justify-center rounded-full"
-      style={{
-        width: AVATAR_SIZE,
-        height: AVATAR_SIZE,
-        backgroundColor: initialsColors.background,
-      }}
-    >
-      <Text
-        className="text-xl font-semibold"
-        style={{ color: initialsColors.foreground }}
-      >
-        {initials}
-      </Text>
-    </View>
-  );
-}
-
-function HeroCta({
-  accessibilityLabel,
-  disabled,
-  icon,
-  label,
-  onPress,
-}: {
-  accessibilityLabel: string;
-  disabled?: boolean;
-  icon: NonNullable<ThemedIconProps["name"]>;
-  label: string;
-  onPress: () => void;
-}) {
-  return (
-    <Button
-      accessibilityLabel={accessibilityLabel}
-      className="min-w-0 flex-1 items-center gap-1.5 py-1"
-      disabled={disabled}
-      hitSlop={6}
-      onPress={onPress}
-      size="none"
-      style={({ pressed }) => (pressed && !disabled ? { opacity: 0.7 } : undefined)}
-      tone="neutral"
-      variant="ghost"
-    >
-      <View
-        className="items-center justify-center rounded-full bg-brand-subtle"
-        style={{ width: CTA_ICON_SIZE, height: CTA_ICON_SIZE }}
-      >
-        <ThemedIcon
-          dimension={22}
-          name={icon}
-          tone={disabled ? "muted" : "brand"}
-        />
-      </View>
-      <ThemedText
-        align="center"
-        className="font-medium"
-        numberOfLines={2}
-        tone={disabled ? "muted" : "default"}
-        variant="label"
-      >
-        {label}
-      </ThemedText>
-    </Button>
-  );
-}
 
 function toAppointmentPatientDraft(
   patient: PatientDetailsData,
@@ -181,7 +77,10 @@ export function PatientDetailsHero({ patient }: PatientDetailsHeroProps) {
         paddingHorizontal: semantic.space.inline.default,
       }}
     >
-      <HeroAvatar displayName={displayName} profilePhoto={patient.profilePhoto} />
+      <DetailsHeroAvatar
+        displayName={displayName}
+        profilePhoto={patient.profilePhoto}
+      />
 
       <View className="w-full flex-row items-center justify-center gap-1.5 px-inline">
         <ThemedText
@@ -198,21 +97,21 @@ export function PatientDetailsHero({ patient }: PatientDetailsHeroProps) {
       </View>
 
       <View className="w-full flex-row items-start justify-between gap-1 px-inline">
-        <HeroCta
+        <DetailsHeroCta
           accessibilityLabel="Message patient"
           disabled={!hasPhone}
           icon={messageIcon}
           label="Message"
           onPress={handleMessage}
         />
-        <HeroCta
+        <DetailsHeroCta
           accessibilityLabel="Call patient"
           disabled={!hasPhone}
           icon={phoneIcon}
           label="Call"
           onPress={handleCall}
         />
-        <HeroCta
+        <DetailsHeroCta
           accessibilityLabel="Add appointment"
           icon={addAppointmentIcon}
           label="Appointment"

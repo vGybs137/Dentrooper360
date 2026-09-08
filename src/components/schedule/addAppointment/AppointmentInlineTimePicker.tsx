@@ -2,9 +2,9 @@ import { View } from "react-native";
 import DatePicker from "react-native-date-picker";
 import Animated from "react-native-reanimated";
 
-import { combineDateAndTime } from "@/helpers/appointmentDate";
-import { hourFormatLocale } from "@/helpers/timeFormat";
-import { useInlineCollapse } from "@/hooks/useInlineCollapse";
+import { combineDateAndTime } from "@/helpers/schedule/appointmentDate";
+import { hourFormatLocale } from "@/helpers/ui/timeFormat";
+import { useInlineCollapse } from "@/hooks/ui/useInlineCollapse";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
 import { useNativeColors, useResolvedTheme } from "@/theme";
 
