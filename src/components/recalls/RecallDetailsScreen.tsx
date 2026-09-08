@@ -43,15 +43,21 @@ function formatIntervalDays(value: number): string {
 function buildRecallInformationFields(
   recall: RecallDetailsData,
 ): PatientOverviewField[] {
-  const note = displayOrEmpty(recall.note, "No note");
   const serviceCode = displayOrEmpty(recall.serviceCode, "No code");
 
   return [
     { label: "Service", value: recall.serviceName },
     { label: "Service code", ...serviceCode },
     { label: "Status", value: recallStatusLabel(recall) },
-    { label: "Note", ...note },
   ];
+}
+
+function buildRecallNote(recall: RecallDetailsData) {
+  const note = displayOrEmpty(recall.note, "No note");
+  return {
+    value: note.value,
+    empty: note.empty,
+  };
 }
 
 function buildRecallTimelineFields(
@@ -124,6 +130,11 @@ export function RecallDetailsScreen({ recallId }: RecallDetailsScreenProps) {
 
   const recallInformation = useMemo(
     () => (recall ? buildRecallInformationFields(recall) : []),
+    [recall],
+  );
+
+  const recallNote = useMemo(
+    () => (recall ? buildRecallNote(recall) : null),
     [recall],
   );
 
@@ -242,8 +253,9 @@ export function RecallDetailsScreen({ recallId }: RecallDetailsScreenProps) {
           entering={FadeIn.duration(slideDuration).easing(AUTH_SLIDE_EASING)}
         >
           <ScrollView
+            className="flex-1"
             contentContainerStyle={{
-              gap: semantic.space.gap.default,
+              gap: semantic.space.section,
               paddingBottom: semantic.space.page,
             }}
             showsVerticalScrollIndicator={false}
@@ -251,6 +263,7 @@ export function RecallDetailsScreen({ recallId }: RecallDetailsScreenProps) {
             <PatientOverviewTab
               information={recallInformation}
               informationTitle="Recall Information"
+              note={recallNote}
               timeline={recallTimeline}
               timelineTitle="Recall Timeline"
             />

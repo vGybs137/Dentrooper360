@@ -5,6 +5,7 @@ export { ColorSwatch } from "./ColorSwatch";
 export { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 export { DetailsActionBar } from "./DetailsActionBar";
 export { DetailsHeroAvatar, DetailsHeroCta } from "./DetailsHero";
+export { DetailsSection } from "./DetailsSection";
 export { Dropdown } from "./Dropdown";
 export { EventRail } from "./EventRail";
 export {
@@ -38,6 +39,10 @@ export type {
   DetailsHeroAvatarProps,
   DetailsHeroCtaProps,
 } from "./DetailsHero";
+export type {
+  DetailsField,
+  DetailsNote,
+} from "./DetailsSection";
 export type { DropdownOption, DropdownProps } from "./Dropdown";
 export type { EventRailProps } from "./EventRail";
 export type { InlineSelectOption, InlineSelectProps } from "./InlineSelect";

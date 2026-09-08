@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { useRouter, type Href } from "expo-router";
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -17,25 +17,20 @@ import {
   type FeedbackOverlayProps,
 } from "@/components/app/FeedbackOverlay";
 import {
-  InlineSelectColorLeading,
-  InlineSelectSymbolLeading,
-} from "@/components/schedule/addAppointment/AppointmentInlineSelect";
-import {
   Button,
   DeleteConfirmationDialog,
   DetailsActionBar,
   DETAILS_ACTION_BAR_HEIGHT,
+  DetailsSection,
   ThemedIcon,
   ThemedText,
   ThemedView,
+  type DetailsField,
 } from "@/components/ui";
 import {
   chevronLeftIcon,
-  clockIcon,
   deleteIcon,
   editIcon,
-  locationIcon,
-  notesIcon,
 } from "@/constants";
 import database from "@/database";
 import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/auth/motion";
@@ -54,7 +49,6 @@ import { useAddAppointmentStore } from "@/stores";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
 import { useNativeColors, useResolvedTheme } from "@/theme";
 import { semantic } from "@/tokens";
-import { cn } from "@/helpers/ui/cn";
 
 const AVATAR_SIZE = 80;
 
@@ -63,16 +57,6 @@ const CHEVRON_RIGHT_ICON = {
   android: "chevron_right",
   web: "chevron_right",
 } as const;
-
-const ARROW_RIGHT_ICON = {
-  ios: "arrow.right",
-  android: "arrow_forward",
-  web: "arrow_forward",
-} as const;
-
-function FormDivider({ className }: { className?: string }) {
-  return <View className={cn("h-px w-full bg-border-subtle", className)} />;
-}
 
 function PatientAvatar({
   displayName,
@@ -197,67 +181,6 @@ function PatientHero({
   );
 }
 
-function ReadOnlyDateTime({
-  startTime,
-  endTime,
-}: {
-  startTime: Date;
-  endTime: Date;
-}) {
-  const hourFormat = useHourFormat();
-  const timePattern = dayjsTimePattern(hourFormat);
-  const dateLabel = dayjs(startTime).format("D MMM, YYYY");
-  const startLabel = dayjs(startTime).format(timePattern);
-  const endLabel = dayjs(endTime).format(timePattern);
-  return (
-    <View className="gap-gap-compact">
-      <View className="items-start gap-2">
-        <View className="flex-row items-center gap-3">
-          <ThemedIcon dimension={20} name={clockIcon} tone="muted" />
-          <View className="justify-center rounded-pill px-inline py-stack-compact">
-            <ThemedText variant="body">{dateLabel}</ThemedText>
-          </View>
-        </View>
-
-        <View className="ml-8 flex-row items-center gap-2">
-          <View className="justify-center rounded-pill px-inline py-stack-compact">
-            <ThemedText variant="body">{startLabel}</ThemedText>
-          </View>
-
-          <ThemedIcon dimension={14} name={ARROW_RIGHT_ICON} tone="muted" />
-
-          <View className="justify-center rounded-pill px-inline py-stack-compact">
-            <ThemedText variant="body">{endLabel}</ThemedText>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function DetailSelectRow({
-  leading,
-  label,
-  muted,
-}: {
-  leading: ReactNode;
-  label: string;
-  muted?: boolean;
-}) {
-  return (
-    <View className="w-full flex-row items-center gap-3">
-      <View className="size-5 shrink-0 items-center justify-center">
-        {leading}
-      </View>
-      <View className="min-h-control min-w-0 flex-1 justify-center rounded-pill px-inline py-stack-compact">
-        <ThemedText tone={muted ? "muted" : "default"} variant="body">
-          {label}
-        </ThemedText>
-      </View>
-    </View>
-  );
-}
-
 export type AppointmentDetailsScreenProps = {
   appointmentId: string | undefined;
 };
@@ -267,6 +190,7 @@ export function AppointmentDetailsScreen({
 }: AppointmentDetailsScreenProps) {
   const native = useNativeColors();
   const router = useRouter();
+  const hourFormat = useHourFormat();
   const { details, isLoading, error } = useAppointmentDetails(appointmentId);
   const openForEdit = useAddAppointmentStore((state) => state.openForEdit);
   const slideDuration = getAuthSlideDuration();
@@ -369,9 +293,8 @@ export function AppointmentDetailsScreen({
     })();
   }, [details, dismissDeleteFeedback, goBack, isDeleting]);
 
-  const title = details?.appointment.subject?.trim() || "Appointment";
+  const subject = details?.appointment.subject?.trim() || "Appointment";
   const typeName = details?.type?.nameEn?.trim() || null;
-  const typeColor = details?.type?.color ?? undefined;
   const locationName = details?.location?.nameEn?.trim() || null;
   const notes = details?.appointment.description?.trim() || null;
 
@@ -380,6 +303,35 @@ export function AppointmentDetailsScreen({
     : "No patient linked";
   const profilePhoto = details?.patient?.profilePhoto ?? null;
   const patientId = details?.patient?.id;
+
+  const appointmentFields = useMemo((): DetailsField[] => {
+    if (!details) {
+      return [];
+    }
+
+    const timePattern = dayjsTimePattern(hourFormat);
+    const dateLabel = dayjs(details.appointment.startTime).format(
+      "D MMM, YYYY",
+    );
+    const startLabel = dayjs(details.appointment.startTime).format(timePattern);
+    const endLabel = dayjs(details.appointment.endTime).format(timePattern);
+
+    return [
+      { label: "Subject", value: subject },
+      { label: "Date", value: dateLabel },
+      { label: "Time", value: `${startLabel} – ${endLabel}` },
+      {
+        label: "Type",
+        value: typeName ?? "No type",
+        empty: !typeName,
+      },
+      {
+        label: "Location",
+        value: locationName ?? "No location",
+        empty: !locationName,
+      },
+    ];
+  }, [details, hourFormat, locationName, subject, typeName]);
 
   if (isLoading) {
     return (
@@ -454,57 +406,15 @@ export function AppointmentDetailsScreen({
             profilePhoto={profilePhoto}
           />
 
-          <View
-            style={{
-              paddingHorizontal: semantic.space.inline.default,
-              paddingTop: semantic.space.section,
-            }}
-          >
-            <ThemedView space="default" variant="stack">
-              <ThemedText variant="body">{title}</ThemedText>
-
-              <FormDivider className="mt-2" />
-
-              <ReadOnlyDateTime
-                endTime={details.appointment.endTime}
-                startTime={details.appointment.startTime}
-              />
-
-              <FormDivider />
-
-              <DetailSelectRow
-                label={typeName ?? "No type"}
-                leading={<InlineSelectColorLeading color={typeColor} />}
-                muted={!typeName}
-              />
-
-              <FormDivider />
-
-              <DetailSelectRow
-                label={locationName ?? "No location"}
-                leading={
-                  <InlineSelectSymbolLeading name={locationIcon} />
-                }
-                muted={!locationName}
-              />
-
-              <FormDivider />
-
-              <View className="w-full flex-row items-start gap-3">
-                <View className="mt-stack-compact size-5 items-center justify-center">
-                  <ThemedIcon dimension={20} name={notesIcon} tone="muted" />
-                </View>
-                <View className="min-w-0 flex-1">
-                  <ThemedText
-                    className="min-h-[96px] w-full px-inline"
-                    tone={notes ? "default" : "muted"}
-                    variant="body"
-                  >
-                    {notes ?? "No notes"}
-                  </ThemedText>
-                </View>
-              </View>
-            </ThemedView>
+          <View className="px-page pt-section">
+            <DetailsSection
+              fields={appointmentFields}
+              note={{
+                value: notes ?? "No notes",
+                empty: !notes,
+              }}
+              title="Appointment Details"
+            />
           </View>
         </Animated.View>
       </ScrollView>

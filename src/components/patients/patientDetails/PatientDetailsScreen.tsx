@@ -1,6 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, Modal, View } from "react-native";
+import { ActivityIndicator, Modal, ScrollView, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
 import {
@@ -239,10 +239,18 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
     switch (activeTab) {
       case "overview":
         return (
-          <PatientOverviewTab
-            information={informationFields}
-            timeline={timelineFields}
-          />
+          <ScrollView
+            className="flex-1"
+            contentContainerStyle={{
+              paddingBottom: semantic.space.page,
+            }}
+            showsVerticalScrollIndicator={false}
+          >
+            <PatientOverviewTab
+              information={informationFields}
+              timeline={timelineFields}
+            />
+          </ScrollView>
         );
       case "appointments":
         return (
