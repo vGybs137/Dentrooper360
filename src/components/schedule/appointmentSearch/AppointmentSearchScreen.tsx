@@ -89,6 +89,16 @@ export function AppointmentSearchScreen() {
   );
   const hasQuery = query.trim().length > 0;
   const hasActiveFilters = hasQuery || selectedTypeIds.length > 0;
+
+  useEffect(() => {
+    if (!hasQuery) {
+      return;
+    }
+
+    setCustomCalendarOpen(false);
+    setCustomPendingStartDayKey(null);
+  }, [hasQuery]);
+
   const searchKey = `${query.trim()}\0${selectedTypeIds.slice().sort().join(",")}\0${timeWindow}\0${customRange?.startDayKey ?? ""}\0${customRange?.endDayKey ?? ""}`;
   const scrollY = useSharedValue(0);
   const savedScrollOffset = useRef(0);
@@ -329,17 +339,19 @@ export function AppointmentSearchScreen() {
           titleBottomPadding={titleBottomPadding}
           titleTopPadding={titleTopPadding}
         />
-        <AppointmentSearchFiltersCard
-          customCalendarOpen={customCalendarOpen}
-          customPendingStartDayKey={customPendingStartDayKey}
-          customRange={customRange}
-          onCustomDayPressResult={handleCustomDayPressResult}
-          onSelectTimeWindow={handleSelectTimeWindow}
-          onToggleType={toggleTypeFilter}
-          selectedTypeIds={selectedTypeIds}
-          timeWindow={timeWindow}
-          types={typeOptions}
-        />
+        {!hasQuery ? (
+          <AppointmentSearchFiltersCard
+            customCalendarOpen={customCalendarOpen}
+            customPendingStartDayKey={customPendingStartDayKey}
+            customRange={customRange}
+            onCustomDayPressResult={handleCustomDayPressResult}
+            onSelectTimeWindow={handleSelectTimeWindow}
+            onToggleType={toggleTypeFilter}
+            selectedTypeIds={selectedTypeIds}
+            timeWindow={timeWindow}
+            types={typeOptions}
+          />
+        ) : null}
       </View>
     ),
     [
@@ -349,6 +361,7 @@ export function AppointmentSearchScreen() {
       customRange,
       handleCustomDayPressResult,
       handleSelectTimeWindow,
+      hasQuery,
       selectedTypeIds,
       timeWindow,
       titleBottomPadding,
