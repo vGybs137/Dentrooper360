@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Q } from "@nozbe/watermelondb";
+import { useDatabase } from "@nozbe/watermelondb/react";
 
-import database from "@/database";
 import type ProviderWorkingHours from "@/database/models/ProviderWorkingHours";
 import {
   buildHoursByWeekday,
@@ -32,6 +32,7 @@ export type UseUserScheduleHoursResult = {
 
 /** Working hours from synced `provider_working_hours`, keyed by weekday. */
 export function useUserScheduleHours(): UseUserScheduleHoursResult {
+  const database = useDatabase();
   const user = useAuthUser();
   const [rows, setRows] = useState<ProviderWorkingHours[]>([]);
   const [error, setError] = useState<Error | null>(null);

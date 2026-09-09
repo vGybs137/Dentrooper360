@@ -1,6 +1,6 @@
 import { Q } from "@nozbe/watermelondb";
+import { useDatabase } from "@nozbe/watermelondb/react";
 
-import database from "@/database";
 import type Service from "@/database/models/Service";
 import { useObservedQuery } from "@/hooks/data/useObservedQuery";
 import { useAuthUser } from "@/stores/authStore";
@@ -56,6 +56,7 @@ function mapService(record: Service): PatientServiceItem {
 export function usePatientServices(
   patientId: string | undefined,
 ): UsePatientServicesResult {
+  const database = useDatabase();
   const providerId = useAuthUser()?.id ?? null;
   const enabled = Boolean(patientId && providerId);
 

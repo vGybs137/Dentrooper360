@@ -1,27 +1,40 @@
 import { hydrateAuthStore, useAuthStore } from "@/stores";
 import { ApiError } from "@/types/api";
-import type { AuthSession, AuthUser, LoginRequest, PairRequest, PairResponse } from "@/types/auth";
+import type {
+  AuthSession,
+  AuthUser,
+  ClinicsList,
+  LoginRequest,
+  PairRequest,
+  PairResponse,
+  SwitchClinicRequest,
+} from "@/types/auth";
 import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import { synchronize } from "@/database/synchronize";
 
 import {
   mapAuthSession,
   mapAuthUser,
+  mapClinicsResponse,
   mapPairResponse,
   persistSession,
   toLoginPayload,
   toPairPayload,
+  toSwitchClinicPayload,
   type WireAuthSession,
   type WireAuthUser,
+  type WireClinicsResponse,
   type WirePairResponse,
 } from "@/helpers/auth/auth";
 import { httpClient } from "../httpClient";
 import {
+  AUTH_CLINICS_PATH,
   AUTH_LOGIN_PATH,
   AUTH_LOGOUT_PATH,
   AUTH_ME_PATH,
   AUTH_PAIR_PATH,
   AUTH_REFRESH_PATH,
+  AUTH_SWITCH_CLINIC_PATH,
 } from "@/constants/auth";
 
 export async function login(request: LoginRequest): Promise<AuthSession> {
@@ -101,4 +114,20 @@ export async function pairDevice(request: PairRequest): Promise<PairResponse> {
 export async function getCurrentUser(): Promise<AuthUser> {
   const response = await httpClient.get<WireAuthUser>(AUTH_ME_PATH);
   return mapAuthUser(response.data);
+}
+
+export async function listClinics(): Promise<ClinicsList> {
+  const response = await httpClient.get<WireClinicsResponse>(AUTH_CLINICS_PATH);
+  return mapClinicsResponse(response.data);
+}
+
+export async function switchClinicSession(
+  request: SwitchClinicRequest,
+): Promise<AuthSession> {
+  const response = await httpClient.post<WireAuthSession>(
+    AUTH_SWITCH_CLINIC_PATH,
+    toSwitchClinicPayload(request),
+  );
+
+  return mapAuthSession(response.data);
 }

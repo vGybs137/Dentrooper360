@@ -1,6 +1,6 @@
 import { Q } from "@nozbe/watermelondb";
 
-import database from "@/database";
+import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import type Patient from "@/database/models/Patient";
 
 export type PatientIdentityFields = {
@@ -40,6 +40,7 @@ export async function findDuplicatePatient(
   identity: PatientIdentityFields,
   excludePatientId?: string | null,
 ): Promise<Patient | null> {
+  const database = clinicDatabaseManager.requireActive();
   const phoneDigits = normalizePhone(identity.countryCode, identity.phoneNumber);
   if (!phoneDigits) {
     return null;

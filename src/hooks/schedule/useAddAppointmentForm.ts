@@ -1,3 +1,4 @@
+import { useDatabase } from "@nozbe/watermelondb/react";
 import dayjs from "dayjs";
 import {
   useCallback,
@@ -9,7 +10,6 @@ import {
 import { Alert } from "react-native";
 import { useForm, useWatch } from "react-hook-form";
 
-import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import { combineDateAndTime } from "@/helpers/schedule/appointmentDate";
 import { buildAppointmentSubjectFromPatient } from "@/helpers/schedule/appointmentSubject";
@@ -53,6 +53,7 @@ const EMPTY_VALUES: AddAppointmentFields = {
 };
 
 export function useAddAppointmentForm() {
+  const database = useDatabase();
   const user = useAuthUser();
   const slot = useAddAppointmentSlot();
   const isPresented = useAddAppointmentIsPresented();

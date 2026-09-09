@@ -1,7 +1,7 @@
 import { Q } from "@nozbe/watermelondb";
 import dayjs from "dayjs";
 
-import database from "@/database";
+import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import type Appointment from "@/database/models/Appointment";
 import type AppointmentType from "@/database/models/AppointmentType";
 import type Location from "@/database/models/Location";
@@ -83,6 +83,7 @@ async function loadLookups(): Promise<{
   locations: QuickAddNamedCandidate[];
   fallbackLocationId: string | null;
 }> {
+  const database = clinicDatabaseManager.requireActive();
   const [patientRecords, typeRecords, locationRecords] = await Promise.all([
     database
       .get<Patient>("patients")
@@ -130,6 +131,7 @@ async function loadDayEventTimes(
   dayKey: DayKey,
   providerId: string,
 ): Promise<Array<{ startTime: number; endTime: number }>> {
+  const database = clinicDatabaseManager.requireActive();
   const dayStart = toLocalDate(parseDayKey(dayKey));
   const dayEnd = new Date(dayStart);
   dayEnd.setDate(dayEnd.getDate() + 1);
@@ -160,6 +162,7 @@ export async function createMonthQuickAddAppointment({
   hoursForDayKey,
   patientId: forcedPatientId = null,
 }: CreateMonthQuickAddArgs): Promise<CreateMonthQuickAddResult> {
+  const database = clinicDatabaseManager.requireActive();
   const trimmed = text.trim();
   if (!trimmed) {
     return failure("Unable to add appointment", "Enter an appointment subject.");

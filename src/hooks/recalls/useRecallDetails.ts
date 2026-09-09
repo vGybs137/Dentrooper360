@@ -1,4 +1,4 @@
-import database from "@/database";
+import { useDatabase } from "@nozbe/watermelondb/react";
 import type Appointment from "@/database/models/Appointment";
 import type Patient from "@/database/models/Patient";
 import type Recall from "@/database/models/Recall";
@@ -111,6 +111,7 @@ async function mapRecallRecord(record: Recall): Promise<RecallDetailsBundle> {
 export function useRecallDetails(
   recallId: string | undefined,
 ): UseRecallDetailsResult {
+  const database = useDatabase();
   const { data, isLoading, error } = useObservedRecord({
     enabled: Boolean(recallId),
     deps: [recallId],

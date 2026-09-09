@@ -1,6 +1,6 @@
 import { Q } from "@nozbe/watermelondb";
+import { useDatabase } from "@nozbe/watermelondb/react";
 
-import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import { useObservedQuery } from "@/hooks/data/useObservedQuery";
 import { useAuthUser } from "@/stores/authStore";
@@ -61,6 +61,7 @@ async function mapAppointment(
 export function usePatientAppointments(
   patientId: string | undefined,
 ): UsePatientAppointmentsResult {
+  const database = useDatabase();
   const providerId = useAuthUser()?.id ?? null;
   const enabled = Boolean(patientId && providerId);
 

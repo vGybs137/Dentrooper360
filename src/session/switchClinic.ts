@@ -1,0 +1,98 @@
+import type { QueryClient } from "@tanstack/react-query";
+
+import { listClinics, switchClinicSession } from "@/api/functions/auth";
+import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
+import { synchronize } from "@/database/synchronize";
+import { persistSession } from "@/helpers/auth/auth";
+import { clearScheduleAppointmentsPrefetch } from "@/helpers/schedule/prefetchScheduleAppointments";
+import {
+  useAddAppointmentStore,
+  useAddPatientStore,
+  useAuthStore,
+} from "@/stores";
+
+export class ClinicSwitchError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ClinicSwitchError";
+  }
+}
+
+export type SwitchClinicOptions = {
+  targetCustomerId: string;
+  queryClient?: QueryClient;
+  /** Skip post-switch sync (e.g. offline warm clinic). */
+  skipSync?: boolean;
+};
+
+/**
+ * Ordered clinic switch protocol (Phase 2).
+ * Drain → token switch → tear down UI caches → open target DB → optional sync.
+ */
+export async function switchClinic({
+  targetCustomerId,
+  queryClient,
+  skipSync = false,
+}: SwitchClinicOptions): Promise<void> {
+  const store = useAuthStore.getState();
+  const activeCustomerId = store.customerId;
+  const refreshToken = store.refreshToken;
+
+  if (!activeCustomerId) {
+    throw new ClinicSwitchError("No active clinic is paired on this device.");
+  }
+
+  if (activeCustomerId === targetCustomerId) {
+    await clinicDatabaseManager.ensureActive(targetCustomerId);
+    return;
+  }
+
+  const memberships = await listClinics();
+  const allowed = memberships.clinics.some(
+    (clinic) => clinic.customerId === targetCustomerId && clinic.isActive,
+  );
+  if (!allowed) {
+    throw new ClinicSwitchError("You are not a member of the requested clinic.");
+  }
+
+  const unsynced = await clinicDatabaseManager.hasUnsyncedChanges(activeCustomerId);
+  if (unsynced) {
+    try {
+      await synchronize(activeCustomerId);
+    } catch {
+      throw new ClinicSwitchError(
+        "Sync the current clinic before switching. Local changes could not be uploaded.",
+      );
+    }
+
+    const stillUnsynced =
+      await clinicDatabaseManager.hasUnsyncedChanges(activeCustomerId);
+    if (stillUnsynced) {
+      throw new ClinicSwitchError(
+        "Sync the current clinic before switching. Local changes are still pending.",
+      );
+    }
+  }
+
+  const session = await switchClinicSession({
+    customerId: targetCustomerId,
+    refreshToken,
+  });
+
+  await persistSession(session, targetCustomerId);
+
+  useAddAppointmentStore.getState().dismissImmediately();
+  useAddPatientStore.setState({
+    isPresented: false,
+    step: "essentials",
+    editingPatientId: null,
+  });
+  clearScheduleAppointmentsPrefetch();
+  queryClient?.clear();
+
+  await clinicDatabaseManager.setActive(targetCustomerId);
+
+  if (!skipSync) {
+    await synchronize(targetCustomerId);
+  }
+}

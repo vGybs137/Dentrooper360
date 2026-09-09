@@ -3,6 +3,8 @@ export const AUTH_REFRESH_PATH = "/api/auth/refresh";
 export const AUTH_LOGOUT_PATH = "/api/auth/logout";
 export const AUTH_PAIR_PATH = "/api/auth/pair";
 export const AUTH_ME_PATH = "/api/auth/me";
+export const AUTH_CLINICS_PATH = "/api/auth/clinics";
+export const AUTH_SWITCH_CLINIC_PATH = "/api/auth/switch-clinic";
 
 export const ACCESS_TOKEN_LIFETIME_MS = 15 * 60 * 1000;
 export const TOKEN_REFRESH_LEAD_MS = 2 * 60 * 1000;

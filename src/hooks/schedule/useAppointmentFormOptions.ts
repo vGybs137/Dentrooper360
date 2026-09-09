@@ -1,6 +1,6 @@
+import { useDatabase } from "@nozbe/watermelondb/react";
 import { useEffect, useState } from "react";
 
-import database from "@/database";
 import type AppointmentType from "@/database/models/AppointmentType";
 import type Location from "@/database/models/Location";
 import type { PatientCardData } from "@/helpers/patients/patientDisplay";
@@ -32,6 +32,7 @@ export function useAppointmentFormOptions({
   loadPatients = true,
   enabled = true,
 }: UseAppointmentFormOptionsArgs = {}) {
+  const database = useDatabase();
   const {
     patients,
     allPatients,

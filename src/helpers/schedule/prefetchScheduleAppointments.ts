@@ -1,6 +1,6 @@
 import { Q } from "@nozbe/watermelondb";
 
-import database from "@/database";
+import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import type Appointment from "@/database/models/Appointment";
 import type AppointmentType from "@/database/models/AppointmentType";
 import {
@@ -101,6 +101,7 @@ export function clearScheduleAppointmentsPrefetch(providerId?: string): void {
 }
 
 async function fetchAppointmentTypesMap(): Promise<AppointmentTypeLookup> {
+  const database = clinicDatabaseManager.requireActive();
   const types = await database
     .get<AppointmentType>("appointment_types")
     .query()
@@ -112,6 +113,7 @@ async function fetchMonthAppointments(
   providerId: string,
   yearMonth: YearMonth,
 ): Promise<Appointment[]> {
+  const database = clinicDatabaseManager.requireActive();
   const startMs = startOfMonthDate(yearMonth).getTime();
   const endMs = startOfNextMonthDate(yearMonth).getTime();
 
@@ -129,6 +131,7 @@ async function fetchWeekAppointments(
   providerId: string,
   weekStartKey: DayKey,
 ): Promise<Appointment[]> {
+  const database = clinicDatabaseManager.requireActive();
   const weekStartMs = toLocalDate(parseDayKey(weekStartKey)).getTime();
   const weekEndMs = weekStartMs + WEEK_DAYS * 24 * 60 * 60 * 1000;
 

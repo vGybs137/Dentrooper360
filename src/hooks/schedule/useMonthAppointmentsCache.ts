@@ -1,8 +1,8 @@
 import { Q } from "@nozbe/watermelondb";
+import { useDatabase } from "@nozbe/watermelondb/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { MonthDayEventPreview } from "@/types/schedule";
-import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import type AppointmentType from "@/database/models/AppointmentType";
 import { getScheduleAppointmentsPrefetch } from "@/helpers/schedule/prefetchScheduleAppointments";
@@ -97,6 +97,7 @@ function monthByKeyFromCache(cache: MonthAppointmentsCache) {
 export function useMonthAppointmentsCache({
   isDragging,
 }: UseMonthAppointmentsCacheOptions): UseMonthAppointmentsCacheResult {
+  const database = useDatabase();
   const providerId = useAuthUser()?.id ?? null;
   const initialSeedRef = useRef<ReturnType<typeof seedFromPrefetch> | null>(
     null,

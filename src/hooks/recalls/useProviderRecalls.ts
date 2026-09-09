@@ -1,8 +1,8 @@
 import { Q } from "@nozbe/watermelondb";
+import { useDatabase } from "@nozbe/watermelondb/react";
 import dayjs from "dayjs";
 import { useMemo } from "react";
 
-import database from "@/database";
 import type Recall from "@/database/models/Recall";
 import {
   formatPatientName,
@@ -110,6 +110,7 @@ async function mapRecall(record: Recall): Promise<ProviderRecallItem> {
 export function useProviderRecalls(
   { enabled = true }: { enabled?: boolean } = {},
 ): UseProviderRecallsResult {
+  const database = useDatabase();
   const providerId = useAuthUser()?.id ?? null;
   const weekStartsOn = useWeekStartsOn();
   const isEnabled = Boolean(enabled && providerId);

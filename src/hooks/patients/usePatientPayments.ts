@@ -1,6 +1,6 @@
 import { Q } from "@nozbe/watermelondb";
+import { useDatabase } from "@nozbe/watermelondb/react";
 
-import database from "@/database";
 import type Payment from "@/database/models/Payment";
 import { useObservedQuery } from "@/hooks/data/useObservedQuery";
 import { useAuthUser } from "@/stores/authStore";
@@ -48,6 +48,7 @@ function mapPayment(record: Payment): PatientPaymentItem {
 export function usePatientPayments(
   patientId: string | undefined,
 ): UsePatientPaymentsResult {
+  const database = useDatabase();
   const providerId = useAuthUser()?.id ?? null;
   const enabled = Boolean(patientId && providerId);
 

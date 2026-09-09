@@ -1,5 +1,10 @@
 export type { AuthSession } from "./authSession";
 export type { AuthUser } from "./authUser";
+export type {
+  ClinicMembership,
+  ClinicsList,
+  SwitchClinicRequest,
+} from "./clinics";
 export type { LoginRequest } from "./loginRequest";
 export type { LogoutRequest } from "./logoutRequest";
 export type { PairRequest } from "./pairRequest";

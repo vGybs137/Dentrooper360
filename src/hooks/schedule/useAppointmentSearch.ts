@@ -1,4 +1,5 @@
 import { Q } from "@nozbe/watermelondb";
+import { useDatabase } from "@nozbe/watermelondb/react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -7,7 +8,6 @@ import {
   type AppointmentSearchCustomRange,
   type AppointmentSearchTimeWindow,
 } from "@/constants/appointmentSearch";
-import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import type AppointmentType from "@/database/models/AppointmentType";
 import { useAuthUser } from "@/stores/authStore";
@@ -58,6 +58,7 @@ export function useAppointmentSearch(
   timeWindow: AppointmentSearchTimeWindow = DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW,
   customRange: AppointmentSearchCustomRange | null = null,
 ): UseAppointmentSearchResult {
+  const database = useDatabase();
   const providerId = useAuthUser()?.id ?? null;
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [types, setTypes] = useState(

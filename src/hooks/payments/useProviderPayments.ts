@@ -1,6 +1,6 @@
 import { Q } from "@nozbe/watermelondb";
+import { useDatabase } from "@nozbe/watermelondb/react";
 
-import database from "@/database";
 import type Payment from "@/database/models/Payment";
 import {
   formatPatientName,
@@ -77,6 +77,7 @@ async function mapPayment(record: Payment): Promise<ProviderPaymentItem> {
 export function useProviderPayments(
   { enabled = true }: { enabled?: boolean } = {},
 ): UseProviderPaymentsResult {
+  const database = useDatabase();
   const providerId = useAuthUser()?.id ?? null;
   const isEnabled = Boolean(enabled && providerId);
 

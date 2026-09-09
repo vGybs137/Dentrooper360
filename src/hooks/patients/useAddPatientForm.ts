@@ -1,3 +1,4 @@
+import { useDatabase } from "@nozbe/watermelondb/react";
 import dayjs from "dayjs";
 import {
   useCallback,
@@ -11,7 +12,6 @@ import { useForm, useWatch } from "react-hook-form";
 import {
   DEFAULT_PATIENT_COUNTRY_CODE,
 } from "@/constants/patientForm";
-import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import type Patient from "@/database/models/Patient";
 import { combineDateAndTime } from "@/helpers/schedule/appointmentDate";
@@ -114,6 +114,7 @@ const ESSENTIALS_FIELDS = [
 ] as const satisfies readonly (keyof AddPatientFields)[];
 
 export function useAddPatientForm() {
+  const database = useDatabase();
   const user = useAuthUser();
   const isPresented = useAddPatientIsPresented();
   const step = useAddPatientStep();

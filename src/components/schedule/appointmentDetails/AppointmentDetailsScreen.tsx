@@ -1,3 +1,4 @@
+import { useDatabase } from "@nozbe/watermelondb/react";
 import dayjs from "dayjs";
 import { useRouter, type Href } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
@@ -34,7 +35,6 @@ import {
   deleteIcon,
   editIcon,
 } from "@/constants";
-import database from "@/database";
 import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/auth/motion";
 import {
   formatPatientName,
@@ -190,6 +190,7 @@ export type AppointmentDetailsScreenProps = {
 export function AppointmentDetailsScreen({
   appointmentId,
 }: AppointmentDetailsScreenProps) {
+  const database = useDatabase();
   const native = useNativeColors();
   const router = useRouter();
   const hourFormat = useHourFormat();

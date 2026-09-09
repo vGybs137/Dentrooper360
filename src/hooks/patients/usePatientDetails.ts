@@ -1,4 +1,4 @@
-import database from "@/database";
+import { useDatabase } from "@nozbe/watermelondb/react";
 import type Patient from "@/database/models/Patient";
 import { useObservedRecord } from "@/hooks/data/useObservedQuery";
 
@@ -56,6 +56,7 @@ export type UsePatientDetailsResult = {
 export function usePatientDetails(
   patientId: string | undefined,
 ): UsePatientDetailsResult {
+  const database = useDatabase();
   const { data, isLoading, error } = useObservedRecord({
     enabled: Boolean(patientId),
     deps: [patientId],

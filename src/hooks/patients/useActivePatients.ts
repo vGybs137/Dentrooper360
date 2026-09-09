@@ -1,7 +1,7 @@
 import { Q } from "@nozbe/watermelondb";
+import { useDatabase } from "@nozbe/watermelondb/react";
 import { useEffect, useMemo, useState } from "react";
 
-import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import type Patient from "@/database/models/Patient";
 import {
@@ -105,6 +105,7 @@ export function useActivePatients(
   search = "",
   { enabled = true, sortBy = "name" }: UseActivePatientsOptions = {},
 ) {
+  const database = useDatabase();
   const [patients, setPatients] = useState<PatientCardData[]>([]);
   const [kpis, setKpis] = useState<PatientListKpis>(EMPTY_PATIENT_LIST_KPIS);
   const [isLoading, setIsLoading] = useState(enabled);

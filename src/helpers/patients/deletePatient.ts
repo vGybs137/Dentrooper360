@@ -1,6 +1,6 @@
 import { Q } from "@nozbe/watermelondb";
 
-import database from "@/database";
+import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import type Appointment from "@/database/models/Appointment";
 import type Patient from "@/database/models/Patient";
 import type Payment from "@/database/models/Payment";
@@ -23,6 +23,7 @@ export class PatientHasOutstandingBalanceError extends Error {
 export async function deletePatientAndRelated(
   patientId: string,
 ): Promise<void> {
+  const database = clinicDatabaseManager.requireActive();
   const patient = await database.get<Patient>("patients").find(patientId);
 
   if ((patient.balance ?? 0) > 0) {

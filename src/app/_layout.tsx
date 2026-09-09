@@ -17,6 +17,10 @@ import { useConnectivitySync } from "@/hooks/sync/useConnectivitySync";
 import { usePeriodicSync } from "@/hooks/sync/usePeriodicSync";
 import { useTokenRefresh } from "@/hooks/auth/useTokenRefresh";
 import { QueryProvider } from "@/providers/QueryProvider";
+import {
+  ClinicSessionProvider,
+  useClinicSession,
+} from "@/providers/ClinicSessionProvider";
 import { ThemeEffects, ThemeSwitchOverlay } from "@/theme";
 
 keepNativeSplashVisible();
@@ -30,28 +34,44 @@ function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <BlurTargetView ref={blurTargetRef} style={{ flex: 1 }}>
         <QueryProvider>
-          <ThemeEffects />
-          <BottomSheetModalProvider>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="(auth)" options={{ animation: "none" }} />
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="appointments/search" />
-              <Stack.Screen name="appointments/[id]" />
-              <Stack.Screen name="patients/search" />
-              <Stack.Screen name="patients/[id]" />
-              <Stack.Screen name="payments/search" />
-              <Stack.Screen name="recalls/search" />
-              <Stack.Screen name="recalls/[id]" />
-            </Stack>
-            <AddAppointmentSheet />
-            <AddPatientSheet />
-            <ConnectivitySnackbar />
-          </BottomSheetModalProvider>
+          <ClinicSessionProvider>
+            <ThemeEffects />
+            <BottomSheetModalProvider>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(auth)" options={{ animation: "none" }} />
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="appointments/search" />
+                <Stack.Screen name="appointments/[id]" />
+                <Stack.Screen name="patients/search" />
+                <Stack.Screen name="patients/[id]" />
+                <Stack.Screen name="payments/search" />
+                <Stack.Screen name="recalls/search" />
+                <Stack.Screen name="recalls/[id]" />
+              </Stack>
+              <ClinicReadySheets />
+              <ConnectivitySnackbar />
+            </BottomSheetModalProvider>
+          </ClinicSessionProvider>
         </QueryProvider>
       </BlurTargetView>
       <ThemeSwitchOverlay blurTargetRef={blurTargetRef} />
     </GestureHandlerRootView>
+  );
+}
+
+/** Sheets call useDatabase(); only mount once the clinic DB is in context. */
+function ClinicReadySheets() {
+  const { isDatabaseReady } = useClinicSession();
+  if (!isDatabaseReady) {
+    return null;
+  }
+
+  return (
+    <>
+      <AddAppointmentSheet />
+      <AddPatientSheet />
+    </>
   );
 }
 

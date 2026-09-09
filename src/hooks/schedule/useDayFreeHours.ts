@@ -1,7 +1,7 @@
 import { Q } from "@nozbe/watermelondb";
+import { useDatabase } from "@nozbe/watermelondb/react";
 import { useEffect, useMemo, useState } from "react";
 
-import database from "@/database";
 import type Appointment from "@/database/models/Appointment";
 import {
   computeDayFreeIntervals,
@@ -31,6 +31,7 @@ export function useDayFreeHours(
     selectionEnd = null,
   }: UseDayFreeHoursOptions = {},
 ) {
+  const database = useDatabase();
   const user = useAuthUser();
   const hourFormat = useHourFormat();
   const { hoursForDayKey } = useUserScheduleHours();
