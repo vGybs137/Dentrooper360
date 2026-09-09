@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { BrandedSplash } from "@/components/app/BrandLogo";
 import { Button, ThemedText, ThemedView } from "@/components/ui";
 import { hideNativeSplash } from "@/helpers/auth/nativeSplash";
+import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import { prepareScheduleAppointments } from "@/helpers/schedule/prefetchScheduleAppointments";
 import { useStartupSessionCheck } from "@/hooks/auth/useStartupSessionCheck";
 import { useStartupSync } from "@/hooks/auth/useStartupSync";
@@ -50,6 +51,9 @@ export default function Index() {
 
       try {
         setOfflineMode(offline);
+        if (customerId) {
+          await clinicDatabaseManager.ensureActive(customerId);
+        }
         await prepareScheduleAppointments();
         void hideNativeSplash();
         router.replace("/(tabs)/schedule" as Href);
@@ -58,7 +62,7 @@ export default function Index() {
         setIsEntering(false);
       }
     },
-    [router],
+    [customerId, router],
   );
 
   useEffect(() => {

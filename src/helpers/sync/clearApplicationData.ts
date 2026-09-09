@@ -1,5 +1,6 @@
-import database from "@/database";
 import { clearDeviceId } from "@/helpers/auth/deviceId";
+import { toDayKey, todayCalendarDate } from "@/helpers/schedule/calendar";
+import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import {
   applyThemeColorScheme,
   useAddAppointmentStore,
@@ -11,17 +12,15 @@ import {
   useSyncStatusStore,
   useThemePreferencesStore,
 } from "@/stores";
-import { toDayKey, todayCalendarDate } from "@/helpers/schedule/calendar";
 
 /**
  * Temporary local wipe for development / support.
- * Clears WatermelonDB, persisted stores, device id, and in-memory UI state.
+ * Resets every known clinic WatermelonDB, registry, persisted stores, device id,
+ * and in-memory UI state.
  * Caller should clear React Query and navigate away after this resolves.
  */
 export async function clearApplicationData(): Promise<void> {
-  await database.write(async () => {
-    await database.unsafeResetDatabase();
-  });
+  await clinicDatabaseManager.resetAll();
 
   useAuthStore.getState().clearAll();
   await useAuthStore.persist.clearStorage();

@@ -1,6 +1,7 @@
 import { hydrateAuthStore, useAuthStore } from "@/stores";
 import { ApiError } from "@/types/api";
 import type { AuthSession, AuthUser, LoginRequest, PairRequest, PairResponse } from "@/types/auth";
+import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import { synchronize } from "@/database/synchronize";
 
 import {
@@ -93,6 +94,7 @@ export async function pairDevice(request: PairRequest): Promise<PairResponse> {
 
   const pairResponse = mapPairResponse(response.data);
   useAuthStore.getState().setCustomerId(pairResponse.customerId);
+  await clinicDatabaseManager.ensureActive(pairResponse.customerId);
   return pairResponse;
 }
 

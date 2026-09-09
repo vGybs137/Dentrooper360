@@ -12,7 +12,8 @@ import { hydrateSyncStatusStore, markSyncSucceeded, useSyncStatusStore } from "@
 import { ApiError } from "@/types/api";
 import type { MobilePushRequest } from "@/types/sync";
 
-import database from ".";
+import { clinicDatabaseManager } from "./ClinicDatabaseManager";
+import { markClinicSynced } from "./ClinicRegistry";
 
 export const SYNC_WIFI_ONLY_MESSAGE =
   "Sync is limited to Wi-Fi. Connect to Wi-Fi or allow mobile data in Settings.";
@@ -34,6 +35,8 @@ async function assertSyncNetworkAllowed(): Promise<void> {
 }
 
 async function runSynchronize(customerId: string): Promise<void> {
+  const database = await clinicDatabaseManager.ensureActive(customerId);
+
   await watermelonSynchronize({
     database,
     pullChanges: async ({ lastPulledAt, schemaVersion, migration }) => {
@@ -64,12 +67,15 @@ async function runSynchronize(customerId: string): Promise<void> {
 
   await hydrateSyncStatusStore();
   markSyncSucceeded();
+  await markClinicSynced(customerId);
 }
 
 /** In-flight syncs keyed by clinic so callers never join another customer’s run. */
 const inFlightByCustomerId = new Map<string, Promise<void>>();
 
 export async function synchronize(customerId: string): Promise<void> {
+  // Open/migrate the clinic DB before the network gate so offline continue still works.
+  await clinicDatabaseManager.ensureActive(customerId);
   await assertSyncNetworkAllowed();
 
   const existing = inFlightByCustomerId.get(customerId);
@@ -93,6 +99,15 @@ export async function synchronize(customerId: string): Promise<void> {
   return inFlight;
 }
 
-export function hasUnsyncedChanges(): Promise<boolean> {
-  return watermelonHasUnsyncedChanges({ database });
+export async function hasUnsyncedChanges(customerId?: string | null): Promise<boolean> {
+  if (customerId) {
+    return clinicDatabaseManager.hasUnsyncedChanges(customerId);
+  }
+
+  const active = clinicDatabaseManager.tryGetActive();
+  if (!active) {
+    return false;
+  }
+
+  return watermelonHasUnsyncedChanges({ database: active });
 }

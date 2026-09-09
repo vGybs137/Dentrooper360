@@ -1,47 +1,28 @@
-import { Database } from "@nozbe/watermelondb";
-import SQLiteAdapter from "@nozbe/watermelondb/adapters/sqlite";
+import type { Database } from "@nozbe/watermelondb";
 
-import migrations from "./migrations";
-import {
-  Appointment,
-  AppointmentType,
-  Location,
-  Patient,
-  Payment,
-  ProviderWorkingHours,
-  Recall,
-  Service,
-} from "./models";
-import schema from "./schema";
+import { clinicDatabaseManager } from "./ClinicDatabaseManager";
 
-const adapter = new SQLiteAdapter({
-  schema,
-  // (You might want to comment it out for development purposes -- see Migrations documentation)
-  migrations,
-  // (optional database name or file system path)
-  // dbName: 'myapp',
-  // (recommended option, should work flawlessly out of the box on iOS. On Android,
-  // additional installation steps have to be taken - disable if you run into issues...)
-  jsi: true /* Platform.OS === 'ios' */,
-  // (optional, but you should implement this method)
-  onSetUpError: (error) => {
-    // Database failed to load -- offer the user to reload the app or log out
+export { clinicDatabaseManager } from "./ClinicDatabaseManager";
+export {
+  clearClinicRegistry,
+  getOrCreateClinicRegistryEntry,
+  loadClinicRegistry,
+  markClinicSynced,
+  type ClinicRegistryEntry,
+  type ClinicRegistryState,
+} from "./ClinicRegistry";
+export { clinicDbNameForCustomer, LEGACY_CLINIC_DB_NAME } from "./clinicDbNames";
+
+/**
+ * Compatibility proxy for existing `import database from "@/database"` call sites.
+ * Forwards to the active clinic Database after `clinicDatabaseManager.ensureActive`.
+ */
+const database = new Proxy({} as Database, {
+  get(_target, property, _receiver) {
+    const active = clinicDatabaseManager.requireActive();
+    const value = Reflect.get(active, property, active);
+    return typeof value === "function" ? value.bind(active) : value;
   },
-});
-
-const database = new Database({
-  adapter,
-  modelClasses: [
-    AppointmentType,
-    Location,
-    ProviderWorkingHours,
-    Patient,
-    Appointment,
-    Service,
-    Payment,
-    Recall,
-  ],
-});
+}) as Database;
 
 export default database;
-
