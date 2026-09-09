@@ -11,7 +11,11 @@ import {
 
 import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import { clearScheduleAppointmentsPrefetch } from "@/helpers/schedule/prefetchScheduleAppointments";
-import { useCustomerId, useHasHydrated } from "@/stores";
+import {
+  hydrateActiveClinicSyncStatus,
+  useCustomerId,
+  useHasHydrated,
+} from "@/stores";
 
 type ClinicSessionValue = {
   customerId: string | null;
@@ -54,12 +58,14 @@ export function ClinicSessionProvider({ children }: ClinicSessionProviderProps) 
           setReadyCustomerId(null);
         }
         clearScheduleAppointmentsPrefetch();
+        void hydrateActiveClinicSyncStatus(null);
         return;
       }
 
       try {
         clearScheduleAppointmentsPrefetch();
         const nextDatabase = await clinicDatabaseManager.ensureActive(customerId);
+        await hydrateActiveClinicSyncStatus(customerId);
         if (!cancelled) {
           setDatabase(nextDatabase);
           setReadyCustomerId(customerId);

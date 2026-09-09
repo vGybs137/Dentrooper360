@@ -1,6 +1,7 @@
 import { clearDeviceId } from "@/helpers/auth/deviceId";
 import { toDayKey, todayCalendarDate } from "@/helpers/schedule/calendar";
 import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
+import { waitForAllClinicSyncsIdle } from "@/database/synchronize";
 import {
   applyThemeColorScheme,
   useAddAppointmentStore,
@@ -15,11 +16,12 @@ import {
 
 /**
  * Temporary local wipe for development / support.
- * Resets every known clinic WatermelonDB, registry, persisted stores, device id,
- * and in-memory UI state.
+ * Drains in-flight syncs, resets every known clinic WatermelonDB + registry,
+ * then clears auth / preference stores and device id.
  * Caller should clear React Query and navigate away after this resolves.
  */
 export async function clearApplicationData(): Promise<void> {
+  await waitForAllClinicSyncsIdle();
   await clinicDatabaseManager.resetAll();
 
   useAuthStore.getState().clearAll();

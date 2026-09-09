@@ -6,6 +6,7 @@ import {
 } from "zustand/middleware";
 
 import { SYNC_STATUS_STORE_KEY } from "@/constants/storage";
+import { getClinicLastSuccessfulSyncAt } from "@/database/ClinicRegistry";
 import { getItem, setItem } from "@/helpers/auth/secureStorage";
 
 type PersistedSyncStatusState = {
@@ -87,6 +88,24 @@ export async function hydrateSyncStatusStore(): Promise<void> {
   }
 
   await hydrationPromise;
+}
+
+/**
+ * Overlay the UI “last sync” stamp from the per-clinic registry for the active clinic.
+ * Registry is source of truth; the persisted store field is only a mirror for the UI.
+ */
+export async function hydrateActiveClinicSyncStatus(
+  customerId: string | null | undefined,
+): Promise<void> {
+  await hydrateSyncStatusStore();
+
+  if (!customerId) {
+    useSyncStatusStore.setState({ lastSuccessfulSyncAt: null });
+    return;
+  }
+
+  const at = await getClinicLastSuccessfulSyncAt(customerId);
+  useSyncStatusStore.setState({ lastSuccessfulSyncAt: at });
 }
 
 export function markSyncSucceeded(at?: number): void {

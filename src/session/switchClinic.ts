@@ -2,10 +2,14 @@ import type { QueryClient } from "@tanstack/react-query";
 
 import { listClinics, switchClinicSession } from "@/api/functions/auth";
 import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
-import { synchronize } from "@/database/synchronize";
+import {
+  synchronize,
+  waitForClinicSyncIdle,
+} from "@/database/synchronize";
 import { persistSession } from "@/helpers/auth/auth";
 import { clearScheduleAppointmentsPrefetch } from "@/helpers/schedule/prefetchScheduleAppointments";
 import {
+  hydrateActiveClinicSyncStatus,
   useAddAppointmentStore,
   useAddPatientStore,
   useAuthStore,
@@ -55,6 +59,8 @@ export async function switchClinic({
     throw new ClinicSwitchError("You are not a member of the requested clinic.");
   }
 
+  await waitForClinicSyncIdle(activeCustomerId);
+
   const unsynced = await clinicDatabaseManager.hasUnsyncedChanges(activeCustomerId);
   if (unsynced) {
     try {
@@ -74,6 +80,8 @@ export async function switchClinic({
     }
   }
 
+  await waitForClinicSyncIdle(activeCustomerId);
+
   const session = await switchClinicSession({
     customerId: targetCustomerId,
     refreshToken,
@@ -91,6 +99,7 @@ export async function switchClinic({
   queryClient?.clear();
 
   await clinicDatabaseManager.setActive(targetCustomerId);
+  await hydrateActiveClinicSyncStatus(targetCustomerId);
 
   if (!skipSync) {
     await synchronize(targetCustomerId);

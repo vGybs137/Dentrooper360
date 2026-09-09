@@ -8,15 +8,30 @@ import { pullChanges, pushChanges } from "@/api/functions/sync";
 import { MIGRATIONS_ENABLED_AT_VERSION } from "@/constants/sync";
 import { canSyncOnCurrentNetwork } from "@/helpers/sync/connectivity";
 import { toPullMigration } from "@/helpers/sync/sync";
-import { hydrateSyncStatusStore, markSyncSucceeded, useSyncStatusStore } from "@/stores";
+import {
+  hydrateSyncStatusStore,
+  markSyncSucceeded,
+  useSyncStatusStore,
+} from "@/stores";
 import { ApiError } from "@/types/api";
 import type { MobilePushRequest } from "@/types/sync";
 
+import {
+  assertClinicSyncBinding,
+  type SynchronizeOptions,
+} from "./assertClinicSyncBinding";
 import { clinicDatabaseManager } from "./ClinicDatabaseManager";
 import { markClinicSynced } from "./ClinicRegistry";
+import {
+  clearClinicSyncInFlight,
+  getClinicSyncInFlight,
+  setClinicSyncInFlight,
+} from "./clinicSyncLock";
 
 export const SYNC_WIFI_ONLY_MESSAGE =
   "Sync is limited to Wi-Fi. Connect to Wi-Fi or allow mobile data in Settings.";
+
+export type { SynchronizeOptions };
 
 async function assertSyncNetworkAllowed(): Promise<void> {
   await hydrateSyncStatusStore();
@@ -34,12 +49,25 @@ async function assertSyncNetworkAllowed(): Promise<void> {
   throw new ApiError("Unable to reach the server.", 0);
 }
 
-async function runSynchronize(customerId: string): Promise<void> {
-  const database = await clinicDatabaseManager.ensureActive(customerId);
+function isMobilePushConflict(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 409;
+}
+
+/**
+ * One pull+push cycle for a single clinic DB.
+ * Never calls unsafeResetDatabase — conflicts must retry sync, not wipe.
+ */
+async function runSynchronizeOnce(
+  customerId: string,
+  options: SynchronizeOptions,
+): Promise<void> {
+  await assertClinicSyncBinding(customerId, options);
+  const database = await clinicDatabaseManager.getOrOpen(customerId);
 
   await watermelonSynchronize({
     database,
     pullChanges: async ({ lastPulledAt, schemaVersion, migration }) => {
+      await assertClinicSyncBinding(customerId, options);
       const response = await pullChanges({
         customerId,
         lastPulledAt: lastPulledAt ?? 0,
@@ -53,6 +81,7 @@ async function runSynchronize(customerId: string): Promise<void> {
       };
     },
     pushChanges: async ({ changes, lastPulledAt }) => {
+      await assertClinicSyncBinding(customerId, options);
       await pushChanges({
         customerId,
         lastPulledAt,
@@ -60,46 +89,72 @@ async function runSynchronize(customerId: string): Promise<void> {
       });
     },
     migrationsEnabledAtVersion: MIGRATIONS_ENABLED_AT_VERSION,
-    // Backend incremental pulls send new client-id rows as "updated" so the creating
-    // device does not conflict; other devices still create missing rows via this flag.
-    // sendCreatedAsUpdated: true,
   });
 
+  const syncedAt = Date.now();
+  await markClinicSynced(customerId, new Date(syncedAt));
   await hydrateSyncStatusStore();
-  markSyncSucceeded();
-  await markClinicSynced(customerId);
+  // UI store mirrors the active clinic only; registry remains per-clinic source of truth.
+  if (clinicDatabaseManager.getActiveCustomerId() === customerId) {
+    markSyncSucceeded(syncedAt);
+  }
 }
 
-/** In-flight syncs keyed by clinic so callers never join another customer’s run. */
-const inFlightByCustomerId = new Map<string, Promise<void>>();
+async function runSynchronizeWithRetries(
+  customerId: string,
+  options: SynchronizeOptions,
+): Promise<void> {
+  try {
+    await runSynchronizeOnce(customerId, options);
+  } catch (error) {
+    if (isMobilePushConflict(error)) {
+      // 409: another writer won. Pull then push again for THIS clinic only.
+      // Do not switch clinics and never reset the local DB.
+      await runSynchronizeOnce(customerId, options);
+      return;
+    }
 
-export async function synchronize(customerId: string): Promise<void> {
-  // Open/migrate the clinic DB before the network gate so offline continue still works.
-  await clinicDatabaseManager.ensureActive(customerId);
+    // Transient failure: one generic retry for the same clinic.
+    await runSynchronizeOnce(customerId, options);
+  }
+}
+
+export async function synchronize(
+  customerId: string,
+  options: SynchronizeOptions = {},
+): Promise<void> {
+  const normalized = customerId.trim();
+
+  await assertClinicSyncBinding(normalized, options);
+
+  if (options.allowBackgroundClinic) {
+    await clinicDatabaseManager.getOrOpen(normalized);
+  } else {
+    // Foreground: open and set active before network gate (offline enter still works
+    // when callers only need ensureActive — sync itself requires network after this).
+    await clinicDatabaseManager.ensureActive(normalized);
+  }
+
   await assertSyncNetworkAllowed();
 
-  const existing = inFlightByCustomerId.get(customerId);
+  const existing = getClinicSyncInFlight(normalized);
   if (existing) {
     return existing;
   }
 
   const inFlight = (async () => {
-    try {
-      await runSynchronize(customerId);
-    } catch {
-      await runSynchronize(customerId);
-    }
+    await runSynchronizeWithRetries(normalized, options);
   })().finally(() => {
-    if (inFlightByCustomerId.get(customerId) === inFlight) {
-      inFlightByCustomerId.delete(customerId);
-    }
+    clearClinicSyncInFlight(normalized, inFlight);
   });
 
-  inFlightByCustomerId.set(customerId, inFlight);
+  setClinicSyncInFlight(normalized, inFlight);
   return inFlight;
 }
 
-export async function hasUnsyncedChanges(customerId?: string | null): Promise<boolean> {
+export async function hasUnsyncedChanges(
+  customerId?: string | null,
+): Promise<boolean> {
   if (customerId) {
     return clinicDatabaseManager.hasUnsyncedChanges(customerId);
   }
@@ -111,3 +166,9 @@ export async function hasUnsyncedChanges(customerId?: string | null): Promise<bo
 
   return watermelonHasUnsyncedChanges({ database: active });
 }
+
+export {
+  isClinicSyncInFlight,
+  waitForAllClinicSyncsIdle,
+  waitForClinicSyncIdle,
+} from "./clinicSyncLock";

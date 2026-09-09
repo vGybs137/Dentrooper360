@@ -77,6 +77,7 @@ export type { AddPatientStep } from "./addPatientStore";
 export {
   canEnterOffline,
   clearSyncStatus,
+  hydrateActiveClinicSyncStatus,
   hydrateSyncStatusStore,
   markSyncSucceeded,
   setOfflineMode,

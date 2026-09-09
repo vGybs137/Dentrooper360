@@ -148,3 +148,26 @@ export async function listWarmClinicIds(): Promise<string[]> {
     .filter((entry) => entry.isWarm)
     .map((entry) => entry.customerId);
 }
+
+/** Milliseconds since epoch, or null if this clinic has never synced successfully. */
+export async function getClinicLastSuccessfulSyncAt(
+  customerId: string,
+): Promise<number | null> {
+  const state = await loadClinicRegistry();
+  const raw = state.clinics[customerId]?.lastSuccessfulSyncAt;
+  if (!raw) {
+    return null;
+  }
+
+  const parsed = Date.parse(raw);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/**
+ * True when the clinic has completed at least one successful sync (offline-capable).
+ */
+export async function clinicHasSuccessfulSync(
+  customerId: string,
+): Promise<boolean> {
+  return (await getClinicLastSuccessfulSyncAt(customerId)) != null;
+}

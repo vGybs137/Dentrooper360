@@ -9,11 +9,12 @@ import {
   removeClinicRegistryEntry,
   type ClinicRegistryEntry,
 } from "./ClinicRegistry";
+import { waitForClinicSyncIdle } from "./clinicSyncLock";
 import { createClinicDatabase } from "./createClinicDatabase";
 
 /**
- * Owns per-customerId WatermelonDB instances. Phase 1 keeps existing call sites
- * working via the active-database proxy in `database/index.ts`.
+ * Owns per-customerId WatermelonDB instances.
+ * setActive waits for in-flight sync on the previous and target clinics.
  */
 class ClinicDatabaseManager {
   private activeCustomerId: string | null = null;
@@ -63,6 +64,12 @@ class ClinicDatabaseManager {
   }
 
   async setActive(customerId: string): Promise<Database> {
+    const previous = this.activeCustomerId;
+    if (previous && previous !== customerId) {
+      await waitForClinicSyncIdle(previous);
+    }
+    await waitForClinicSyncIdle(customerId);
+
     const database = await this.getOrOpen(customerId);
     this.activeCustomerId = customerId;
     await markClinicOpened(customerId);
@@ -106,6 +113,8 @@ class ClinicDatabaseManager {
   }
 
   async deleteClinicData(customerId: string): Promise<void> {
+    await waitForClinicSyncIdle(customerId);
+
     const database = await this.getOrOpen(customerId);
     const unsynced = await watermelonHasUnsyncedChanges({ database });
     if (unsynced) {
@@ -127,8 +136,8 @@ class ClinicDatabaseManager {
   }
 
   /**
-   * Support / settings wipe: reset every warm clinic DB we know about, then clear registry.
-   * Unsynced data is intentionally discarded (same as previous clearApplicationData).
+   * Support / settings wipe: wait for sync idle, reset every warm clinic DB,
+   * then clear registry. Unsynced rows are intentionally discarded (explicit clear).
    */
   async resetAll(): Promise<void> {
     const warmIds = await listWarmClinicIds();
@@ -139,6 +148,7 @@ class ClinicDatabaseManager {
     ]);
 
     for (const customerId of customerIds) {
+      await waitForClinicSyncIdle(customerId);
       const database = await this.getOrOpen(customerId);
       await database.write(async () => {
         await database.unsafeResetDatabase();
