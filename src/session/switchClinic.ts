@@ -30,8 +30,9 @@ export type SwitchClinicOptions = {
 };
 
 /**
- * Ordered clinic switch protocol (Phase 2).
- * Drain → token switch → tear down UI caches → open target DB → optional sync.
+ * Ordered clinic switch protocol.
+ * Drain → token switch → tear down UI caches → open target DB → sync
+ * (required when the target was demoted / cold).
  */
 export async function switchClinic({
   targetCustomerId,
@@ -82,6 +83,15 @@ export async function switchClinic({
 
   await waitForClinicSyncIdle(activeCustomerId);
 
+  const wasCold =
+    await clinicDatabaseManager.wasColdBeforeOpen(targetCustomerId);
+
+  if (wasCold && skipSync) {
+    throw new ClinicSwitchError(
+      "This clinic’s local data was cleared to free space. Connect online to download it again.",
+    );
+  }
+
   const session = await switchClinicSession({
     customerId: targetCustomerId,
     refreshToken,
@@ -101,7 +111,7 @@ export async function switchClinic({
   await clinicDatabaseManager.setActive(targetCustomerId);
   await hydrateActiveClinicSyncStatus(targetCustomerId);
 
-  if (!skipSync) {
+  if (wasCold || !skipSync) {
     await synchronize(targetCustomerId);
   }
 }

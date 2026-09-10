@@ -1,4 +1,5 @@
 export { clinicDatabaseManager } from "./ClinicDatabaseManager";
+export type { DemoteClinicResult } from "./ClinicDatabaseManager";
 export {
   assertClinicSyncBinding,
   readAccessTokenCustomerId,
@@ -9,7 +10,11 @@ export {
   clinicHasSuccessfulSync,
   getClinicLastSuccessfulSyncAt,
   getOrCreateClinicRegistryEntry,
+  isClinicWarm,
+  listWarmClinicIds,
+  listWarmClinicsByLru,
   loadClinicRegistry,
+  markClinicCold,
   markClinicSynced,
   type ClinicRegistryEntry,
   type ClinicRegistryState,
@@ -20,3 +25,5 @@ export {
   waitForAllClinicSyncsIdle,
   waitForClinicSyncIdle,
 } from "./clinicSyncLock";
+export { getWarmClinicMetrics } from "./warmClinicMetrics";
+export { resolveWarmClinicPolicy } from "./warmClinicPolicy";
