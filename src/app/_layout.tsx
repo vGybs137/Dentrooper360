@@ -17,6 +17,10 @@ import { keepNativeSplashVisible } from "@/helpers/auth/nativeSplash";
 import { useConnectivitySync } from "@/hooks/sync/useConnectivitySync";
 import { usePeriodicSync } from "@/hooks/sync/usePeriodicSync";
 import { useTokenRefresh } from "@/hooks/auth/useTokenRefresh";
+import {
+  ClinicDatabaseBoundary,
+  useIsOnClinicAppRoute,
+} from "@/providers/ClinicDatabaseBoundary";
 import { QueryProvider } from "@/providers/QueryProvider";
 import {
   ClinicSessionProvider,
@@ -42,13 +46,10 @@ function RootLayout() {
                 <Stack.Screen name="index" />
                 <Stack.Screen name="(auth)" options={{ animation: "none" }} />
                 <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="appointments/search" />
-                <Stack.Screen name="appointments/[id]" />
-                <Stack.Screen name="patients/search" />
-                <Stack.Screen name="patients/[id]" />
-                <Stack.Screen name="payments/search" />
-                <Stack.Screen name="recalls/search" />
-                <Stack.Screen name="recalls/[id]" />
+                <Stack.Screen name="appointments" />
+                <Stack.Screen name="patients" />
+                <Stack.Screen name="payments" />
+                <Stack.Screen name="recalls" />
               </Stack>
               <ClinicReadySheets />
               <ConnectivitySnackbar />
@@ -62,18 +63,19 @@ function RootLayout() {
   );
 }
 
-/** Sheets call useDatabase(); only mount once the clinic DB is in context. */
+/** Sheets call useDatabase(); mount only on clinic routes with a ready DB. */
 function ClinicReadySheets() {
+  const onClinicRoute = useIsOnClinicAppRoute();
   const { isDatabaseReady } = useClinicSession();
-  if (!isDatabaseReady) {
+  if (!onClinicRoute || !isDatabaseReady) {
     return null;
   }
 
   return (
-    <>
+    <ClinicDatabaseBoundary>
       <AddAppointmentSheet />
       <AddPatientSheet />
-    </>
+    </ClinicDatabaseBoundary>
   );
 }
 

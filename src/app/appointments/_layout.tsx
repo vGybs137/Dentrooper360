@@ -1,10 +1,11 @@
-import AppTabs from "@/components/app/AppTabs";
+import { Stack } from "expo-router";
+
 import { ClinicDatabaseBoundary } from "@/providers/ClinicDatabaseBoundary";
 
-export default function TabsLayout() {
+export default function AppointmentsLayout() {
   return (
     <ClinicDatabaseBoundary>
-      <AppTabs />
+      <Stack screenOptions={{ headerShown: false }} />
     </ClinicDatabaseBoundary>
   );
 }

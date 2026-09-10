@@ -4,6 +4,7 @@ export type ClinicMembership = {
   clinicDisplayName: string | null;
   syncScope: string;
   scopeVersion: number;
+  roleName: string | null;
   isActive: boolean;
 };
 

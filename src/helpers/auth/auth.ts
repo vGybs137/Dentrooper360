@@ -19,6 +19,7 @@ export type WireAuthUser = {
   color: number | null;
   sync_scope?: string | null;
   scope_version?: number | null;
+  role_name?: string | null;
 };
 
 export type WireAuthSession = {
@@ -40,6 +41,7 @@ export type WireClinicMembership = {
   clinic_display_name: string | null;
   sync_scope: string;
   scope_version: number;
+  role_name?: string | null;
   is_active: boolean;
 };
 
@@ -58,6 +60,7 @@ export function mapAuthUser(user: WireAuthUser): AuthUser {
     color: user.color,
     syncScope: user.sync_scope ?? null,
     scopeVersion: user.scope_version ?? null,
+    roleName: user.role_name ?? null,
   };
 }
 
@@ -85,6 +88,7 @@ export function mapClinicMembership(clinic: WireClinicMembership): ClinicMembers
     clinicDisplayName: clinic.clinic_display_name,
     syncScope: clinic.sync_scope,
     scopeVersion: clinic.scope_version,
+    roleName: clinic.role_name ?? null,
     isActive: clinic.is_active,
   };
 }

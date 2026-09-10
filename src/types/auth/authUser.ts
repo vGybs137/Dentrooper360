@@ -7,4 +7,6 @@ export type AuthUser = {
   color: number | null;
   syncScope: string | null;
   scopeVersion: number | null;
+  /** Normalized role name from API (e.g. RECEPTION, PROVIDER). */
+  roleName: string | null;
 };
