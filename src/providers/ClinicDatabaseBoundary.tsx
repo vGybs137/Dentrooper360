@@ -47,6 +47,25 @@ export function ClinicDatabaseBoundary({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Re-provides WatermelonDB inside BottomSheetModal content.
+ * Gorhom portals modal children under BottomSheetModalProvider, so they lose
+ * any DatabaseProvider that only wraps the BottomSheetModal host component.
+ */
+export function ClinicSheetDatabaseProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const { customerId, database, isDatabaseReady } = useClinicSession();
+
+  if (!isDatabaseReady || !database || !customerId) {
+    return null;
+  }
+
+  return <DatabaseProvider database={database}>{children}</DatabaseProvider>;
+}
+
 function ClinicSessionSubtree({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }

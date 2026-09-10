@@ -34,6 +34,7 @@ import { Button, ThemedIcon, ThemedText } from "@/components/ui";
 import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/auth/motion";
 import { useAddPatientForm } from "@/hooks/patients/useAddPatientForm";
 import { useBottomSheetKeyboardAvoidance } from "@/hooks/ui/useBottomSheetKeyboardAvoidance";
+import { ClinicSheetDatabaseProvider } from "@/providers/ClinicDatabaseBoundary";
 import {
   useAddPatientIsPresented,
   useAddPatientPresentKey,
@@ -319,74 +320,76 @@ export function AddPatientSheet() {
       onDismiss={handleDismiss}
       snapPoints={snapPoints}
     >
-      <BottomSheetScrollView
-        ref={scrollRef}
-        contentContainerStyle={contentPadding}
-        keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="always"
-        nestedScrollEnabled
-        onScrollBeginDrag={onScrollBeginDrag}
-      >
-        <FormProvider {...formState.form}>
-          <View ref={contentRef} collapsable={false}>
-            <View
-              className="mb-stack flex-row items-center justify-between pb-3"
-              style={{
-                borderBottomWidth: semantic.borderWidth.subtle,
-                borderBottomColor: native.border.subtle,
-                marginHorizontal: -semantic.space.inline.default,
-                paddingHorizontal: semantic.space.inline.default,
-              }}
-            >
-              <ThemedText variant="title">
-                {isEditing ? "Edit Patient" : "Add Patient"}
-              </ThemedText>
-              <Button
-                accessibilityLabel="Close add patient"
-                bottomSheet
-                hitSlop={12}
-                onPress={requestClose}
-                size="sm"
-                tone="neutral"
-                variant="ghost"
+      <ClinicSheetDatabaseProvider>
+        <BottomSheetScrollView
+          ref={scrollRef}
+          contentContainerStyle={contentPadding}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="always"
+          nestedScrollEnabled
+          onScrollBeginDrag={onScrollBeginDrag}
+        >
+          <FormProvider {...formState.form}>
+            <View ref={contentRef} collapsable={false}>
+              <View
+                className="mb-stack flex-row items-center justify-between pb-3"
+                style={{
+                  borderBottomWidth: semantic.borderWidth.subtle,
+                  borderBottomColor: native.border.subtle,
+                  marginHorizontal: -semantic.space.inline.default,
+                  paddingHorizontal: semantic.space.inline.default,
+                }}
               >
-                <ThemedIcon
-                  dimension={22}
-                  name={{ ios: "xmark", android: "close", web: "close" }}
-                />
-              </Button>
-            </View>
-
-            {isLoadingPatient ? (
-              <View className="items-center py-section">
-                <ActivityIndicator color={native.brand.default} />
+                <ThemedText variant="title">
+                  {isEditing ? "Edit Patient" : "Add Patient"}
+                </ThemedText>
+                <Button
+                  accessibilityLabel="Close add patient"
+                  bottomSheet
+                  hitSlop={12}
+                  onPress={requestClose}
+                  size="sm"
+                  tone="neutral"
+                  variant="ghost"
+                >
+                  <ThemedIcon
+                    dimension={22}
+                    name={{ ios: "xmark", android: "close", web: "close" }}
+                  />
+                </Button>
               </View>
-            ) : (
-              <PatientFormFocusProvider
-                contentRef={contentRef}
-                onInputBlur={handleInputBlur}
-                onInputFocus={handleInputFocus}
-              >
-                <Animated.View key={step} entering={entering}>
-                  {step === "essentials" ? (
-                    <AddPatientEssentialsStep
-                      formState={formState}
-                      onInputBlur={handleInputBlur}
-                      panelCollapseKey={panelCollapseKey}
-                    />
-                  ) : (
-                    <AddPatientAppointmentStep
-                      formState={formState}
-                      onInputBlur={handleInputBlur}
-                      onInputFocus={handleInputFocus}
-                    />
-                  )}
-                </Animated.View>
-              </PatientFormFocusProvider>
-            )}
-          </View>
-        </FormProvider>
-      </BottomSheetScrollView>
+
+              {isLoadingPatient ? (
+                <View className="items-center py-section">
+                  <ActivityIndicator color={native.brand.default} />
+                </View>
+              ) : (
+                <PatientFormFocusProvider
+                  contentRef={contentRef}
+                  onInputBlur={handleInputBlur}
+                  onInputFocus={handleInputFocus}
+                >
+                  <Animated.View key={step} entering={entering}>
+                    {step === "essentials" ? (
+                      <AddPatientEssentialsStep
+                        formState={formState}
+                        onInputBlur={handleInputBlur}
+                        panelCollapseKey={panelCollapseKey}
+                      />
+                    ) : (
+                      <AddPatientAppointmentStep
+                        formState={formState}
+                        onInputBlur={handleInputBlur}
+                        onInputFocus={handleInputFocus}
+                      />
+                    )}
+                  </Animated.View>
+                </PatientFormFocusProvider>
+              )}
+            </View>
+          </FormProvider>
+        </BottomSheetScrollView>
+      </ClinicSheetDatabaseProvider>
     </BottomSheetModal>
   );
 }

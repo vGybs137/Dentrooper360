@@ -29,6 +29,7 @@ import { FormProvider } from "react-hook-form";
 import { Button, ThemedIcon, ThemedText } from "@/components/ui";
 import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/auth/motion";
 import { useAddAppointmentForm } from "@/hooks/schedule/useAddAppointmentForm";
+import { ClinicSheetDatabaseProvider } from "@/providers/ClinicDatabaseBoundary";
 import {
   useAddAppointmentIsPresented,
   useAddAppointmentStore,
@@ -359,59 +360,62 @@ export function AddAppointmentSheet() {
       {/*
         BottomSheetScrollView must be a direct modal child (not inside
         BottomSheetView / flex:1 overflow wrappers) or gestures steal scroll.
-        FormProvider must live inside this tree — the modal portals children
-        out of the React parent that wraps BottomSheetModal.
+        FormProvider and ClinicSheetDatabaseProvider must live inside this tree —
+        the modal portals children out of the React parent that wraps
+        BottomSheetModal (Context.Provider does not add a native view).
       */}
-      <BottomSheetScrollView
-        ref={scrollRef}
-        contentContainerStyle={contentPadding}
-        keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="always"
-        nestedScrollEnabled
-        onScrollBeginDrag={handleScrollBeginDrag}
-      >
-        <FormProvider {...formState.form}>
-          <View
-            className="mb-stack flex-row items-center justify-between pb-3"
-            style={{
-              borderBottomWidth: semantic.borderWidth.subtle,
-              borderBottomColor: native.border.subtle,
-              marginHorizontal: -semantic.space.inline.default,
-              paddingHorizontal: semantic.space.inline.default,
-            }}
-          >
-            <ThemedText variant="title">
-              {isEditing ? "Edit Appointment" : "Add Appointment"}
-            </ThemedText>
-            <Button
-              accessibilityLabel="Close add appointment"
-              bottomSheet
-              hitSlop={12}
-              onPress={requestClose}
-              size="sm"
-              tone="neutral"
-              variant="ghost"
+      <ClinicSheetDatabaseProvider>
+        <BottomSheetScrollView
+          ref={scrollRef}
+          contentContainerStyle={contentPadding}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="always"
+          nestedScrollEnabled
+          onScrollBeginDrag={handleScrollBeginDrag}
+        >
+          <FormProvider {...formState.form}>
+            <View
+              className="mb-stack flex-row items-center justify-between pb-3"
+              style={{
+                borderBottomWidth: semantic.borderWidth.subtle,
+                borderBottomColor: native.border.subtle,
+                marginHorizontal: -semantic.space.inline.default,
+                paddingHorizontal: semantic.space.inline.default,
+              }}
             >
-              <ThemedIcon
-                dimension={22}
-                name={{ ios: "xmark", android: "close", web: "close" }}
-              />
-            </Button>
-          </View>
+              <ThemedText variant="title">
+                {isEditing ? "Edit Appointment" : "Add Appointment"}
+              </ThemedText>
+              <Button
+                accessibilityLabel="Close add appointment"
+                bottomSheet
+                hitSlop={12}
+                onPress={requestClose}
+                size="sm"
+                tone="neutral"
+                variant="ghost"
+              >
+                <ThemedIcon
+                  dimension={22}
+                  name={{ ios: "xmark", android: "close", web: "close" }}
+                />
+              </Button>
+            </View>
 
-          <Animated.View key={step} entering={entering}>
-            {step === "patient" ? (
-              <AddAppointmentPatientStep formState={formState} />
-            ) : (
-              <AddAppointmentDetailsStep
-                formState={formState}
-                onNotesBlur={handleNotesBlur}
-                onNotesFocus={handleNotesFocus}
-              />
-            )}
-          </Animated.View>
-        </FormProvider>
-      </BottomSheetScrollView>
+            <Animated.View key={step} entering={entering}>
+              {step === "patient" ? (
+                <AddAppointmentPatientStep formState={formState} />
+              ) : (
+                <AddAppointmentDetailsStep
+                  formState={formState}
+                  onNotesBlur={handleNotesBlur}
+                  onNotesFocus={handleNotesFocus}
+                />
+              )}
+            </Animated.View>
+          </FormProvider>
+        </BottomSheetScrollView>
+      </ClinicSheetDatabaseProvider>
     </BottomSheetModal>
   );
 }
