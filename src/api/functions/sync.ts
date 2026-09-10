@@ -15,6 +15,8 @@ export async function pullChanges(
   return {
     timestamp: response.data.timestamp,
     changes: mapPullChanges(response.data.changes),
+    appliedSyncScope: response.data.appliedSyncScope ?? null,
+    scopeVersion: response.data.scopeVersion ?? null,
   };
 }
 

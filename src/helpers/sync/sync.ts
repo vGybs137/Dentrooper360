@@ -18,6 +18,8 @@ export type WireSyncTableChanges = {
 export type WireMobilePullResponse = {
   timestamp: number;
   changes?: Partial<Record<SyncTableName, WireSyncTableChanges>>;
+  appliedSyncScope?: string | null;
+  scopeVersion?: number | null;
 };
 
 function mapTableChanges(changes?: WireSyncTableChanges): SyncTableChanges {

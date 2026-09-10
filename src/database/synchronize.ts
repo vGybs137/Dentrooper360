@@ -64,6 +64,9 @@ async function runSynchronizeOnce(
   await assertClinicSyncBinding(customerId, options);
   const database = await clinicDatabaseManager.getOrOpen(customerId);
 
+  let appliedSyncScope: string | null = null;
+  let scopeVersion: number | null = null;
+
   await watermelonSynchronize({
     database,
     pullChanges: async ({ lastPulledAt, schemaVersion, migration }) => {
@@ -74,6 +77,10 @@ async function runSynchronizeOnce(
         schemaVersion,
         migration: toPullMigration(migration),
       });
+
+      appliedSyncScope = response.appliedSyncScope ?? null;
+      scopeVersion =
+        typeof response.scopeVersion === "number" ? response.scopeVersion : null;
 
       return {
         changes: response.changes as SyncDatabaseChangeSet,
@@ -92,7 +99,12 @@ async function runSynchronizeOnce(
   });
 
   const syncedAt = Date.now();
-  await markClinicSynced(customerId, new Date(syncedAt));
+  await markClinicSynced(
+    customerId,
+    new Date(syncedAt),
+    appliedSyncScope,
+    scopeVersion,
+  );
   await hydrateSyncStatusStore();
   // UI store mirrors the active clinic only; registry remains per-clinic source of truth.
   if (clinicDatabaseManager.getActiveCustomerId() === customerId) {

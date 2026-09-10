@@ -4,4 +4,6 @@ import type { SyncTableName } from "./syncTableName";
 export type MobilePullResponse = {
   timestamp: number;
   changes: Partial<Record<SyncTableName, SyncTableChanges>>;
+  appliedSyncScope?: string | null;
+  scopeVersion?: number | null;
 };

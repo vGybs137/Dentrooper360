@@ -121,7 +121,12 @@ export async function markClinicOpened(customerId: string): Promise<void> {
   await saveClinicRegistry(state);
 }
 
-export async function markClinicSynced(customerId: string, syncedAt = new Date()): Promise<void> {
+export async function markClinicSynced(
+  customerId: string,
+  syncedAt = new Date(),
+  syncScope?: string | null,
+  scopeVersion?: number | null,
+): Promise<void> {
   const state = await loadClinicRegistry();
   const entry = state.clinics[customerId];
   if (!entry) {
@@ -129,6 +134,12 @@ export async function markClinicSynced(customerId: string, syncedAt = new Date()
   }
 
   entry.lastSuccessfulSyncAt = syncedAt.toISOString();
+  if (syncScope !== undefined) {
+    entry.syncScope = syncScope;
+  }
+  if (scopeVersion !== undefined) {
+    entry.scopeVersion = scopeVersion;
+  }
   state.clinics[customerId] = entry;
   await saveClinicRegistry(state);
 }
