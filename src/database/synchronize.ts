@@ -6,6 +6,9 @@ import {
 
 import { pullChanges, pushChanges } from "@/api/functions/sync";
 import { MIGRATIONS_ENABLED_AT_VERSION } from "@/constants/sync";
+import {
+  isSyncScopeProviderPanelEnabled,
+} from "@/constants/multiClinicFlags";
 import { canSyncOnCurrentNetwork } from "@/helpers/sync/connectivity";
 import { toPullMigration } from "@/helpers/sync/sync";
 import {
@@ -99,11 +102,12 @@ async function runSynchronizeOnce(
   });
 
   const syncedAt = Date.now();
+  const persistPanel = isSyncScopeProviderPanelEnabled();
   await markClinicSynced(
     customerId,
     new Date(syncedAt),
-    appliedSyncScope,
-    scopeVersion,
+    persistPanel ? appliedSyncScope : "full_clinic",
+    persistPanel ? scopeVersion : 1,
   );
   await hydrateSyncStatusStore();
   // UI store mirrors the active clinic only; registry remains per-clinic source of truth.

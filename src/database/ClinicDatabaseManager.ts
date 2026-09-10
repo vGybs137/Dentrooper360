@@ -1,6 +1,7 @@
 import { Database } from "@nozbe/watermelondb";
 import { hasUnsyncedChanges as watermelonHasUnsyncedChanges } from "@nozbe/watermelondb/sync";
 
+import { isWarmLruDemoteEnabled } from "@/constants/multiClinicFlags";
 import { useAuthStore } from "@/stores";
 
 import { closeClinicDatabase } from "./closeClinicDatabase";
@@ -225,6 +226,12 @@ class ClinicDatabaseManager {
   private async runEnforceWarmBudget(
     activeCustomerId: string | null,
   ): Promise<void> {
+    if (!isWarmLruDemoteEnabled()) {
+      const warm = await listWarmClinicsByLru();
+      recordWarmCount(warm.length);
+      return;
+    }
+
     const policy = resolveWarmClinicPolicy();
     const maxAttempts = 8;
 

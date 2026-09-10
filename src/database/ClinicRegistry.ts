@@ -2,6 +2,7 @@ import { CLINIC_REGISTRY_KEY } from "@/constants/storage";
 import { getItem, setItem } from "@/helpers/auth/secureStorage";
 
 import { clinicDbNameForCustomer, LEGACY_CLINIC_DB_NAME } from "./clinicDbNames";
+import { sortClinicsByLru } from "./clinicLru";
 
 export type ClinicRegistryEntry = {
   customerId: string;
@@ -160,18 +161,13 @@ export async function listWarmClinicIds(): Promise<string[]> {
     .map((entry) => entry.customerId);
 }
 
+/** Pure LRU ordering: oldest lastOpenedAt first; null/invalid timestamps sort first. */
+export { sortClinicsByLru } from "./clinicLru";
+
 /** Warm clinics oldest-first (LRU victims). Null lastOpenedAt sorts first. */
 export async function listWarmClinicsByLru(): Promise<ClinicRegistryEntry[]> {
   const state = await loadClinicRegistry();
-  return Object.values(state.clinics)
-    .filter((entry) => entry.isWarm)
-    .sort((a, b) => {
-      const aAt = a.lastOpenedAt ? Date.parse(a.lastOpenedAt) : 0;
-      const bAt = b.lastOpenedAt ? Date.parse(b.lastOpenedAt) : 0;
-      const aTime = Number.isFinite(aAt) ? aAt : 0;
-      const bTime = Number.isFinite(bAt) ? bAt : 0;
-      return aTime - bTime;
-    });
+  return sortClinicsByLru(Object.values(state.clinics).filter((entry) => entry.isWarm));
 }
 
 export async function isClinicWarm(customerId: string): Promise<boolean> {

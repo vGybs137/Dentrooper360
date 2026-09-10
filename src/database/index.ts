@@ -5,6 +5,7 @@ export {
   readAccessTokenCustomerId,
   type SynchronizeOptions,
 } from "./assertClinicSyncBinding";
+export { sortClinicsByLru } from "./clinicLru";
 export {
   clearClinicRegistry,
   clinicHasSuccessfulSync,

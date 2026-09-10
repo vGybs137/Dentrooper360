@@ -2,6 +2,7 @@ import { useAuthStore } from "@/stores";
 import { ApiError } from "@/types/api";
 
 import { getOrCreateClinicRegistryEntry } from "./ClinicRegistry";
+import { readAccessTokenCustomerId } from "./readAccessTokenCustomerId";
 
 export type SynchronizeOptions = {
   /**
@@ -12,36 +13,7 @@ export type SynchronizeOptions = {
   allowBackgroundClinic?: boolean;
 };
 
-/** Best-effort decode of JWT payload `customer_id` (signature already trusted by HTTP layer). */
-export function readAccessTokenCustomerId(
-  accessToken: string | null | undefined,
-): string | null {
-  if (!accessToken) {
-    return null;
-  }
-
-  try {
-    const payloadSegment = accessToken.split(".")[1];
-    if (!payloadSegment) {
-      return null;
-    }
-
-    const normalized = payloadSegment.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = normalized.padEnd(
-      normalized.length + ((4 - (normalized.length % 4)) % 4),
-      "=",
-    );
-
-    if (typeof atob !== "function") {
-      return null;
-    }
-
-    const payload = JSON.parse(atob(padded)) as { customer_id?: string };
-    return typeof payload.customer_id === "string" ? payload.customer_id : null;
-  } catch {
-    return null;
-  }
-}
+export { readAccessTokenCustomerId } from "./readAccessTokenCustomerId";
 
 /**
  * Ensures sync target, auth session, JWT claim, and registry row all agree.

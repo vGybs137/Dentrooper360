@@ -1,6 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 
 import { listClinics, switchClinicSession } from "@/api/functions/auth";
+import { isClinicSwitchEnabled } from "@/constants/multiClinicFlags";
 import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import {
   synchronize,
@@ -45,6 +46,12 @@ export async function switchClinic({
 
   if (!activeCustomerId) {
     throw new ClinicSwitchError("No active clinic is paired on this device.");
+  }
+
+  if (!isClinicSwitchEnabled()) {
+    throw new ClinicSwitchError(
+      "Clinic switching is disabled on this build.",
+    );
   }
 
   if (activeCustomerId === targetCustomerId) {

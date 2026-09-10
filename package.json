@@ -72,7 +72,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test:hardening": "npx --yes tsx scripts/run-hardening-tests.mts"
   },
   "private": true
 }

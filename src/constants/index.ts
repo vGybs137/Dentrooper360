@@ -1,3 +1,11 @@
+export {
+  getMultiClinicFlags,
+  isClinicSwitchEnabled,
+  isSyncScopeProviderPanelEnabled,
+  isWarmLruDemoteEnabled,
+  setMultiClinicFlagsForTests,
+  type MultiClinicFlags,
+} from "./multiClinicFlags";
 export { API_BASE_URL, API_TIMEOUT_MS } from "./api";
 export {
   accentBlue,

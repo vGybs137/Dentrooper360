@@ -1,7 +1,5 @@
-import * as Device from "expo-device";
-
 /** Low-end phones keep fewer warm clinic SQLite files. */
-const LOW_END_TOTAL_MEMORY_BYTES = 3.5 * 1024 * 1024 * 1024;
+export const LOW_END_TOTAL_MEMORY_BYTES = 3.5 * 1024 * 1024 * 1024;
 
 export type WarmClinicPolicy = {
   maxWarmClinics: number;
@@ -9,16 +7,31 @@ export type WarmClinicPolicy = {
   minFreeDiskBytes: number;
 };
 
+function readDeviceTotalMemory(): number | null {
+  try {
+    // Lazy require keeps Node unit tests free of expo-device.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Device = require("expo-device") as { totalMemory?: number | null };
+    return Device.totalMemory ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Device-class warm-clinic budget.
  * Defaults: max 3 warm clinics; low-end (≤ ~3.5GB RAM) max 2.
+ * Pass `totalMemoryBytes` to unit-test without expo-device.
  */
-export function resolveWarmClinicPolicy(): WarmClinicPolicy {
-  const totalMemory = Device.totalMemory ?? null;
+export function resolveWarmClinicPolicy(
+  totalMemoryBytes?: number | null,
+): WarmClinicPolicy {
+  const memory =
+    totalMemoryBytes === undefined ? readDeviceTotalMemory() : totalMemoryBytes;
   const isLowEnd =
-    typeof totalMemory === "number" &&
-    totalMemory > 0 &&
-    totalMemory <= LOW_END_TOTAL_MEMORY_BYTES;
+    typeof memory === "number" &&
+    memory > 0 &&
+    memory <= LOW_END_TOTAL_MEMORY_BYTES;
 
   return {
     maxWarmClinics: isLowEnd ? 2 : 3,
