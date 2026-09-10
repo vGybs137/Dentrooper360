@@ -4,10 +4,12 @@ import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import { clearScheduleAppointmentsPrefetch } from "@/helpers/schedule/prefetchScheduleAppointments";
@@ -16,6 +18,9 @@ import {
   useCustomerId,
   useHasHydrated,
 } from "@/stores";
+import { useNativeColors } from "@/theme";
+import { semantic } from "@/tokens";
+import { ThemedText } from "@/components/ui";
 
 type ClinicSessionValue = {
   customerId: string | null;
@@ -37,6 +42,16 @@ type ClinicSessionProviderProps = {
   children: ReactNode;
 };
 
+function resolveManagerDatabase(customerId: string | null): Database | null {
+  if (!customerId) {
+    return null;
+  }
+  if (clinicDatabaseManager.getActiveCustomerId() !== customerId) {
+    return null;
+  }
+  return clinicDatabaseManager.tryGetActive();
+}
+
 /**
  * Opens the active clinic SQLite via ClinicDatabaseManager and exposes it through
  * Watermelon's DatabaseProvider. Remounts the clinic subtree when customerId changes
@@ -47,6 +62,46 @@ export function ClinicSessionProvider({ children }: ClinicSessionProviderProps) 
   const customerId = useCustomerId();
   const [database, setDatabase] = useState<Database | null>(null);
   const [readyCustomerId, setReadyCustomerId] = useState<string | null>(null);
+
+  // Prefer React state when it already matches; otherwise adopt from the manager
+  // during render so clinic switches do not render one frame without a provider.
+  // Never serve a DB while the manager is pointed at a different clinic.
+  const managerActiveId = hasHydrated
+    ? clinicDatabaseManager.getActiveCustomerId()
+    : null;
+  const managerOutOfSync =
+    Boolean(customerId) &&
+    managerActiveId != null &&
+    managerActiveId !== customerId;
+
+  const stateDatabase =
+    !managerOutOfSync &&
+    customerId &&
+    readyCustomerId === customerId
+      ? database
+      : null;
+  const managerDatabase =
+    hasHydrated && !managerOutOfSync
+      ? resolveManagerDatabase(customerId)
+      : null;
+  const resolvedDatabase = stateDatabase ?? managerDatabase;
+
+  const isDatabaseReady = Boolean(customerId && resolvedDatabase);
+  const isClinicTransition =
+    Boolean(customerId) &&
+    ((readyCustomerId != null && readyCustomerId !== customerId) ||
+      managerOutOfSync) &&
+    !resolvedDatabase;
+
+  useLayoutEffect(() => {
+    if (!customerId || !resolvedDatabase) {
+      return;
+    }
+    if (readyCustomerId !== customerId || database !== resolvedDatabase) {
+      setDatabase(resolvedDatabase);
+      setReadyCustomerId(customerId);
+    }
+  }, [customerId, database, readyCustomerId, resolvedDatabase]);
 
   useEffect(() => {
     let cancelled = false;
@@ -62,9 +117,14 @@ export function ClinicSessionProvider({ children }: ClinicSessionProviderProps) 
         return;
       }
 
+      if (resolveManagerDatabase(customerId)) {
+        return;
+      }
+
       try {
         clearScheduleAppointmentsPrefetch();
-        const nextDatabase = await clinicDatabaseManager.ensureActive(customerId);
+        const nextDatabase =
+          await clinicDatabaseManager.ensureActive(customerId);
         await hydrateActiveClinicSyncStatus(customerId);
         if (!cancelled) {
           setDatabase(nextDatabase);
@@ -86,31 +146,26 @@ export function ClinicSessionProvider({ children }: ClinicSessionProviderProps) 
     };
   }, [customerId, hasHydrated]);
 
-  const isDatabaseReady =
-    Boolean(customerId) &&
-    Boolean(database) &&
-    readyCustomerId === customerId;
-
   const value = useMemo<ClinicSessionValue>(
     () => ({
       customerId,
-      database: isDatabaseReady ? database : null,
+      database: isDatabaseReady ? resolvedDatabase : null,
       isDatabaseReady,
     }),
-    [customerId, database, isDatabaseReady],
+    [customerId, isDatabaseReady, resolvedDatabase],
   );
 
-  if (!isDatabaseReady || !database || !customerId) {
+  if (!isDatabaseReady || !resolvedDatabase || !customerId) {
     return (
       <ClinicSessionContext.Provider value={value}>
-        {children}
+        {isClinicTransition ? <ClinicSessionOpening /> : children}
       </ClinicSessionContext.Provider>
     );
   }
 
   return (
     <ClinicSessionContext.Provider value={value}>
-      <DatabaseProvider database={database}>
+      <DatabaseProvider database={resolvedDatabase}>
         {/* Remount all clinic-scoped UI when the active customer changes. */}
         <ClinicSessionSubtree key={customerId}>{children}</ClinicSessionSubtree>
       </DatabaseProvider>
@@ -120,4 +175,30 @@ export function ClinicSessionProvider({ children }: ClinicSessionProviderProps) 
 
 function ClinicSessionSubtree({ children }: { children: ReactNode }) {
   return <>{children}</>;
+}
+
+function ClinicSessionOpening() {
+  const native = useNativeColors();
+
+  return (
+    <View
+      accessibilityLabel="Opening clinic"
+      accessibilityViewIsModal
+      style={[
+        StyleSheet.absoluteFill,
+        {
+          backgroundColor: native.surface.default,
+          alignItems: "center",
+          justifyContent: "center",
+          gap: semantic.space.gap.default,
+          paddingHorizontal: semantic.space.inline.comfortable,
+        },
+      ]}
+    >
+      <ActivityIndicator color={native.brand.default} size="large" />
+      <ThemedText align="center" className="font-semibold" variant="body">
+        Opening clinic…
+      </ThemedText>
+    </View>
+  );
 }

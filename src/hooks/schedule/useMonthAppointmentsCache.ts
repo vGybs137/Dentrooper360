@@ -336,7 +336,7 @@ export function useMonthAppointmentsCache({
       subscriptionsRef.current.clear();
       pendingKeysRef.current.clear();
     };
-  }, [providerId]);
+  }, [database, providerId]);
 
   const getEventsForDay = useCallback(
     (dayKey: DayKey): MonthDayEventPreview[] => {

@@ -88,3 +88,8 @@ export {
   useSyncStatusStore,
   useSyncWifiOnly,
 } from "./syncStatusStore";
+export {
+  useClinicSwitchError,
+  useClinicSwitchStore,
+  useIsSwitchingClinic,
+} from "./clinicSwitchStore";

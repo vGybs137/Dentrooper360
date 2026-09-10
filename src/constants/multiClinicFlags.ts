@@ -3,7 +3,7 @@
  *
  * Env (build-time via EXPO_PUBLIC_*):
  * - EXPO_PUBLIC_FLAG_MULTI_CLINIC_REGISTRY — master multi-clinic path (default true)
- * - EXPO_PUBLIC_FLAG_MULTI_CLINIC_SWITCH_UI — allow switchClinic / future switcher (default false)
+ * - EXPO_PUBLIC_FLAG_MULTI_CLINIC_SWITCH_UI — allow switchClinic / Settings switcher (default true)
  * - EXPO_PUBLIC_FLAG_SYNC_SCOPE_PROVIDER_PANEL — persist/apply provider_panel echoes (default true)
  * - EXPO_PUBLIC_FLAG_WARM_LRU_DEMOTE — allow SQLite file demotion (default false)
  *
@@ -14,7 +14,7 @@
 export type MultiClinicFlags = {
   /** Per-customerId registry + ClinicSessionProvider path. */
   multiClinicRegistry: boolean;
-  /** Clinic switch protocol + future switcher UI. */
+  /** Clinic switch protocol + Settings switcher UI. */
   multiClinicSwitchUi: boolean;
   /** Persist server-applied provider_panel / scope_version on the device. */
   syncScopeProviderPanel: boolean;
@@ -56,7 +56,7 @@ export function getMultiClinicFlags(): MultiClinicFlags {
     ),
     multiClinicSwitchUi: envFlag(
       "EXPO_PUBLIC_FLAG_MULTI_CLINIC_SWITCH_UI",
-      false,
+      true,
     ),
     syncScopeProviderPanel: envFlag(
       "EXPO_PUBLIC_FLAG_SYNC_SCOPE_PROVIDER_PANEL",

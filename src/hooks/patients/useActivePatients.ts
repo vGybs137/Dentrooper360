@@ -119,6 +119,9 @@ export function useActivePatients(
     }
 
     setIsLoading(true);
+    setPatients([]);
+    setKpis(EMPTY_PATIENT_LIST_KPIS);
+    setError(null);
 
     let patientRecords: Patient[] = [];
     let nextByPatient = new Map<string, Date>();
@@ -180,7 +183,7 @@ export function useActivePatients(
       patientsSub.unsubscribe();
       appointmentsSub.unsubscribe();
     };
-  }, [enabled, sortBy]);
+  }, [enabled, sortBy, database]);
 
   const filteredPatients = useMemo(
     () => patients.filter((patient) => patientMatchesSearch(patient, search)),

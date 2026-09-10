@@ -251,7 +251,7 @@ export function useWeekAppointmentsCache({
       subscriptionsRef.current.clear();
       pendingKeysRef.current.clear();
     };
-  }, [providerId]);
+  }, [database, providerId]);
 
   const getEventsForWeek = useCallback(
     (weekStartKey: WeekStartDayKey): WeekEventsByDay =>

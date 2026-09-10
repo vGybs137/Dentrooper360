@@ -57,6 +57,9 @@ export function useAppointmentFormOptions({
 
     setTypesLoading(true);
     setLocationsLoading(true);
+    setTypes([]);
+    setLocations([]);
+    setOptionsError(null);
 
     const typesQuery = database.get<AppointmentType>("appointment_types").query();
     const locationsQuery = database.get<Location>("locations").query();
@@ -104,7 +107,7 @@ export function useAppointmentFormOptions({
       typesSub.unsubscribe();
       locationsSub.unsubscribe();
     };
-  }, [enabled]);
+  }, [database, enabled]);
 
   return {
     patients,

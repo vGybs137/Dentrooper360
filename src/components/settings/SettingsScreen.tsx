@@ -13,6 +13,7 @@ import { ThemedText, ThemedView } from "@/components/ui";
 import { getWebTabBarInset } from "@/constants/navigation";
 import { semantic } from "@/tokens";
 
+import { SettingsClinicsSection } from "./SettingsClinicsSection";
 import { SettingsPreferencesSection } from "./SettingsPreferencesSection";
 import { SettingsProfileCard } from "./SettingsProfileCard";
 import { SettingsSyncSection } from "./SettingsSyncSection";
@@ -92,6 +93,7 @@ export function SettingsScreen() {
             variant="stack"
           >
             <SettingsProfileCard />
+            <SettingsClinicsSection />
             <SettingsPreferencesSection />
             <SettingsSyncSection />
           </ThemedView>

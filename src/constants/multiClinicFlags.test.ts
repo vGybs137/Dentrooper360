@@ -10,9 +10,9 @@ import {
 setMultiClinicFlagsForTests(null);
 const defaults = getMultiClinicFlags();
 assert.equal(defaults.multiClinicRegistry, true);
-assert.equal(defaults.multiClinicSwitchUi, false);
+assert.equal(defaults.multiClinicSwitchUi, true);
 assert.equal(defaults.warmLruDemote, false);
-assert.equal(isClinicSwitchEnabled(), false);
+assert.equal(isClinicSwitchEnabled(), true);
 assert.equal(isWarmLruDemoteEnabled(), false);
 
 setMultiClinicFlagsForTests({
