@@ -2,7 +2,7 @@ import * as Device from "expo-device";
 import { Platform } from "react-native";
 
 import { generateGuid } from "@/helpers/ui/guid";
-import { getItem, setItem } from "@/helpers/auth/secureStorage";
+import { getItem, setItem } from "@/security/vault/secureStorage";
 
 const DEVICE_ID_KEY = "device_id";
 
