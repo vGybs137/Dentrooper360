@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { useTranslation } from "react-i18next";
 
 import { EntityListHeader } from "@/components/list";
 import { personAddIcon } from "@/constants";
@@ -12,16 +13,17 @@ export type PatientsListHeaderProps = {
 function PatientsListHeaderComponent({
   openSearch,
   openAddPatient,
-  title = "Patients",
+  title,
 }: PatientsListHeaderProps) {
+  const { t } = useTranslation(["patients", "a11y"]);
   return (
     <EntityListHeader
-      addAccessibilityLabel="Add patient"
+      addAccessibilityLabel={t("a11y:addPatient")}
       addIcon={personAddIcon}
       onAdd={openAddPatient}
       openSearch={openSearch}
-      searchAccessibilityLabel="Search patients"
-      title={title}
+      searchAccessibilityLabel={t("a11y:searchPatients")}
+      title={title ?? t("patients:list.title")}
     />
   );
 }

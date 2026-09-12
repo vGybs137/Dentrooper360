@@ -1,6 +1,7 @@
 /** Shared appointment subject (persisted) and list display title helpers. */
 
 import { formatPatientPhone } from "@/helpers/patients/patientDisplay";
+import { t } from "@/i18n";
 
 export type AppointmentSubjectPatient = {
   displayName: string;
@@ -29,7 +30,7 @@ export function formatAppointmentEventTitle(
   subject: string,
   typeName?: string | null,
 ): string {
-  const trimmedSubject = subject.trim() || "Appointment";
+  const trimmedSubject = subject.trim() || t("schedule:add.defaultSubject");
   const trimmedType = typeName?.trim();
   if (!trimmedType) return trimmedSubject;
   return `${trimmedSubject} - ${trimmedType}`;

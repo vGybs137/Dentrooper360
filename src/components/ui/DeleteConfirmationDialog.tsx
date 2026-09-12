@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, View } from "react-native";
 
+import { t as translate } from "@/i18n";
 import { semantic } from "@/tokens";
 
 import { BottomSheet } from "./BottomSheet";
@@ -8,9 +10,10 @@ import { Button } from "./Button";
 import { ThemedText } from "./ThemedText";
 import { ThemedView } from "./ThemedView";
 
-export const DELETE_CONFIRMATION_TITLE = "Delete";
-export const DELETE_CONFIRMATION_MESSAGE =
-  "Are you sure you want to delete this.";
+export const DELETE_CONFIRMATION_TITLE = translate("common:confirm.deleteTitle");
+export const DELETE_CONFIRMATION_MESSAGE = translate(
+  "common:confirm.deleteMessage",
+);
 
 export type DeleteConfirmationDialogProps = {
   visible: boolean;
@@ -22,7 +25,7 @@ export type DeleteConfirmationDialogProps = {
   message?: string;
   cancelLabel?: string;
   confirmLabel?: string;
-  /** Label while `confirming` is true. Defaults to "Deleting...". */
+  /** Label while `confirming` is true. Defaults to translated "Deleting...". */
   confirmingLabel?: string;
   /** Disables actions while a delete is in progress. */
   confirming?: boolean;
@@ -32,14 +35,21 @@ export function DeleteConfirmationDialog({
   visible,
   onCancel,
   onConfirm,
-  title = DELETE_CONFIRMATION_TITLE,
-  message = DELETE_CONFIRMATION_MESSAGE,
-  cancelLabel = "Cancel",
-  confirmLabel = "Yes, delete",
-  confirmingLabel = "Deleting...",
+  title,
+  message,
+  cancelLabel,
+  confirmLabel,
+  confirmingLabel,
   confirming = false,
 }: DeleteConfirmationDialogProps) {
+  const { t } = useTranslation(["common", "a11y"]);
   const [mounted, setMounted] = useState(visible);
+  const resolvedTitle = title ?? t("common:confirm.deleteTitle");
+  const resolvedMessage = message ?? t("common:confirm.deleteMessage");
+  const resolvedCancelLabel = cancelLabel ?? t("common:actions.cancel");
+  const resolvedConfirmLabel = confirmLabel ?? t("common:confirm.yesDelete");
+  const resolvedConfirmingLabel =
+    confirmingLabel ?? t("common:confirm.deleting");
 
   useEffect(() => {
     if (visible) {
@@ -72,7 +82,7 @@ export function DeleteConfirmationDialog({
     >
       <View className="flex-1 justify-end">
         <Button
-          accessibilityLabel="Dismiss confirmation"
+          accessibilityLabel={t("a11y:dismissConfirmation")}
           className="absolute inset-0 rounded-none"
           onPress={handleDismiss}
           ripple={false}
@@ -97,11 +107,11 @@ export function DeleteConfirmationDialog({
             tone="alert"
             variant="title"
           >
-            {title}
+            {resolvedTitle}
           </ThemedText>
 
           <ThemedText align="center" variant="body">
-            {message}
+            {resolvedMessage}
           </ThemedText>
 
           <ThemedView
@@ -113,7 +123,7 @@ export function DeleteConfirmationDialog({
             <Button
               className="min-w-0 flex-1"
               disabled={confirming}
-              label={cancelLabel}
+              label={resolvedCancelLabel}
               onPress={handleDismiss}
               tone="brand"
               variant="soft"
@@ -121,7 +131,7 @@ export function DeleteConfirmationDialog({
             <Button
               className="min-w-0 flex-1"
               disabled={confirming}
-              label={confirming ? confirmingLabel : confirmLabel}
+              label={confirming ? resolvedConfirmingLabel : resolvedConfirmLabel}
               onPress={onConfirm}
               tone="brand"
               variant="solid"

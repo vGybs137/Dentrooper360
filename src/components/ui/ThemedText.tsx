@@ -41,9 +41,11 @@ const themedTextVariants = cva("shrink", {
     },
     align: {
       auto: "",
-      left: "text-left",
+      left: "text-start",
+      start: "text-start",
       center: "text-center",
-      right: "text-right",
+      right: "text-end",
+      end: "text-end",
       justify: "text-justify",
     },
   },

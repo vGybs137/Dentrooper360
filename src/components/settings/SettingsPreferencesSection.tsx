@@ -1,57 +1,42 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   appearanceIcon,
   calendarIcon,
   clockIcon,
+  languageIcon,
   weekStartIcon,
 } from "@/constants";
+import type { WeekdayIndex } from "@/helpers/schedule/calendar";
 import {
   applyScheduleViewPreference,
   setScheduleViewMode,
+  useLocalePreferencesStore,
   useSchedulePreferencesStore,
   useThemePreferencesStore,
   type DefaultCalendarView,
   type HourFormat,
+  type LocaleMode,
   type ThemeMode,
 } from "@/stores";
-import type { WeekdayIndex } from "@/helpers/schedule/calendar";
 
 import { SettingsSection } from "./SettingsSection";
 import { SettingsSelectRow } from "./SettingsSelectRow";
 
 type PreferenceSelectKey =
+  | "language"
   | "appearance"
   | "defaultView"
   | "hourFormat"
   | "weekStartsOn";
 
-const DEFAULT_VIEW_OPTIONS = [
-  { value: "last" as const, label: "Last used" },
-  { value: "day" as const, label: "Day" },
-  { value: "week" as const, label: "Week" },
-  { value: "month" as const, label: "Month" },
-];
-
-const HOUR_FORMAT_OPTIONS = [
-  { value: "12h" as const, label: "12-hour" },
-  { value: "24h" as const, label: "24-hour" },
-];
-
-const WEEK_START_OPTIONS = [
-  { value: 0 as WeekdayIndex, label: "Sunday" },
-  { value: 1 as WeekdayIndex, label: "Monday" },
-];
-
-const APPEARANCE_OPTIONS = [
-  { value: "system" as const, label: "System" },
-  { value: "light" as const, label: "Light" },
-  { value: "dark" as const, label: "Dark" },
-];
-
 export function SettingsPreferencesSection() {
+  const { t } = useTranslation(["settings", "navigation"]);
   const mode = useThemePreferencesStore((state) => state.mode);
   const setMode = useThemePreferencesStore((state) => state.setMode);
+  const localeMode = useLocalePreferencesStore((state) => state.mode);
+  const setLocaleMode = useLocalePreferencesStore((state) => state.setMode);
   const defaultCalendarView = useSchedulePreferencesStore(
     (state) => state.defaultCalendarView,
   );
@@ -71,6 +56,87 @@ export function SettingsPreferencesSection() {
   const [expandedSelect, setExpandedSelect] =
     useState<PreferenceSelectKey | null>(null);
   const [snapAppearanceClosed, setSnapAppearanceClosed] = useState(false);
+
+  const appearanceOptions = useMemo(
+    () => [
+      {
+        value: "system" as const,
+        label: t("settings:preferences.appearance.system"),
+      },
+      {
+        value: "light" as const,
+        label: t("settings:preferences.appearance.light"),
+      },
+      {
+        value: "dark" as const,
+        label: t("settings:preferences.appearance.dark"),
+      },
+    ],
+    [t],
+  );
+
+  const languageOptions = useMemo(
+    () => [
+      {
+        value: "system" as const,
+        label: t("settings:preferences.language.system"),
+      },
+      { value: "en" as const, label: t("settings:preferences.language.en") },
+      { value: "fr" as const, label: t("settings:preferences.language.fr") },
+      { value: "ar" as const, label: t("settings:preferences.language.ar") },
+    ],
+    [t],
+  );
+
+  const defaultViewOptions = useMemo(
+    () => [
+      {
+        value: "last" as const,
+        label: t("settings:preferences.defaultView.lastUsed"),
+      },
+      {
+        value: "day" as const,
+        label: t("navigation:schedule.view.day"),
+      },
+      {
+        value: "week" as const,
+        label: t("navigation:schedule.view.week"),
+      },
+      {
+        value: "month" as const,
+        label: t("navigation:schedule.view.month"),
+      },
+    ],
+    [t],
+  );
+
+  const hourFormatOptions = useMemo(
+    () => [
+      {
+        value: "12h" as const,
+        label: t("settings:preferences.hourFormat.12h"),
+      },
+      {
+        value: "24h" as const,
+        label: t("settings:preferences.hourFormat.24h"),
+      },
+    ],
+    [t],
+  );
+
+  const weekStartOptions = useMemo(
+    () => [
+      {
+        value: 0 as WeekdayIndex,
+        label: t("settings:preferences.weekStartsOn.sunday"),
+      },
+      {
+        value: 1 as WeekdayIndex,
+        label: t("settings:preferences.weekStartsOn.monday"),
+      },
+    ],
+    [t],
+  );
 
   function toggleSelect(key: PreferenceSelectKey) {
     if (key === "appearance") {
@@ -94,12 +160,22 @@ export function SettingsPreferencesSection() {
   }
 
   return (
-    <SettingsSection label="User preferences">
+    <SettingsSection label={t("settings:preferences.section")}>
+      <SettingsSelectRow<LocaleMode>
+        title={t("settings:preferences.language.label")}
+        description={t("settings:preferences.languageDesc")}
+        icon={languageIcon}
+        options={languageOptions}
+        value={localeMode}
+        onChange={setLocaleMode}
+        expanded={expandedSelect === "language"}
+        onToggle={() => toggleSelect("language")}
+      />
       <SettingsSelectRow<ThemeMode>
-        title="Appearance"
-        description="App color scheme"
+        title={t("settings:preferences.appearance.label")}
+        description={t("settings:preferences.appearanceDesc")}
         icon={appearanceIcon}
-        options={APPEARANCE_OPTIONS}
+        options={appearanceOptions}
         value={mode}
         onChange={handleAppearanceChange}
         expanded={expandedSelect === "appearance"}
@@ -107,31 +183,31 @@ export function SettingsPreferencesSection() {
         onToggle={() => toggleSelect("appearance")}
       />
       <SettingsSelectRow<DefaultCalendarView>
-        title="Default calendar view"
-        description="Opens when you launch Schedule"
+        title={t("settings:preferences.defaultView.label")}
+        description={t("settings:preferences.defaultViewDesc")}
         icon={calendarIcon}
-        options={DEFAULT_VIEW_OPTIONS}
+        options={defaultViewOptions}
         value={defaultCalendarView}
         onChange={handleDefaultCalendarViewChange}
         expanded={expandedSelect === "defaultView"}
         onToggle={() => toggleSelect("defaultView")}
       />
       <SettingsSelectRow<HourFormat>
-        title="Hour format"
-        description="Calendar and appointment times"
+        title={t("settings:preferences.hourFormat.label")}
+        description={t("settings:preferences.hourFormatDesc")}
         icon={clockIcon}
-        options={HOUR_FORMAT_OPTIONS}
+        options={hourFormatOptions}
         value={hourFormat}
         onChange={setHourFormat}
         expanded={expandedSelect === "hourFormat"}
         onToggle={() => toggleSelect("hourFormat")}
       />
       <SettingsSelectRow<WeekdayIndex>
-        title="Week starts on"
-        description="Month and week calendars"
+        title={t("settings:preferences.weekStartsOn.label")}
+        description={t("settings:preferences.weekStartsOnDesc")}
         icon={weekStartIcon}
         last
-        options={WEEK_START_OPTIONS}
+        options={weekStartOptions}
         value={weekStartsOn === 0 ? 0 : 1}
         onChange={setWeekStartsOn}
         expanded={expandedSelect === "weekStartsOn"}

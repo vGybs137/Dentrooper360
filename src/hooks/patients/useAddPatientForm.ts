@@ -28,6 +28,7 @@ import {
 } from "@/helpers/patients/patientAge";
 import { formatPatientName } from "@/helpers/patients/patientDisplay";
 import { findDuplicatePatient } from "@/helpers/patients/patientDuplicate";
+import { t } from "@/i18n";
 import { requestSync } from "@/helpers/sync/requestSync";
 import {
   useAddPatientEditingId,
@@ -253,7 +254,7 @@ export function useAddPatientForm() {
         });
       } catch {
         if (!cancelled) {
-          setSubmitError("Unable to load patient.");
+          setSubmitError(t("patients:form.error.load"));
         }
       } finally {
         if (!cancelled) {
@@ -298,7 +299,7 @@ export function useAddPatientForm() {
       [firstName, fatherName, lastName]
         .map((part) => part?.trim())
         .filter(Boolean)
-        .join(" ") || "New patient"
+        .join(" ") || t("common:patient.newPatient")
     );
   }, [fatherName, firstName, lastName]);
 
@@ -482,12 +483,12 @@ export function useAddPatientForm() {
       data.addAppointment &&
       !dayjs(data.endTime).isAfter(dayjs(data.startTime))
     ) {
-      setSubmitError("End time must be after start time.");
+      setSubmitError(t("errors:form.endAfterStart"));
       return;
     }
 
     if (data.addAppointment && !data.locationId) {
-      setSubmitError("Select a location for the appointment.");
+      setSubmitError(t("patients:form.error.selectLocation"));
       return;
     }
 
@@ -585,8 +586,12 @@ export function useAddPatientForm() {
       requestClose();
     } catch (error) {
       Alert.alert(
-        isEditing ? "Unable to update patient" : "Unable to add patient",
-        error instanceof Error ? error.message : "Please try again.",
+        isEditing
+          ? t("patients:form.error.unableUpdate")
+          : t("patients:form.error.unableAdd"),
+        error instanceof Error
+          ? error.message
+          : t("errors:generic.pleaseTryAgain"),
       );
     } finally {
       setIsSubmitting(false);

@@ -5,6 +5,7 @@ import axios, {
 } from "axios";
 
 import { recycleTokens } from "@/helpers/auth/sessionRefresh";
+import { t } from "@/i18n";
 import { hydrateAuthStore, useAuthStore } from "@/stores";
 import { ApiError, type ApiResponse, type ApiResponseError } from "@/types/api";
 
@@ -60,7 +61,7 @@ export function unwrapEnvelope(response: AxiosResponse): AxiosResponse {
   }
 
   if (!payload.success) {
-    throw toApiError(response.status, payload, "Request failed.");
+    throw toApiError(response.status, payload, t("sync:network.requestFailed"));
   }
 
   response.data = payload.data;
@@ -76,8 +77,8 @@ export function toRejectedError(error: unknown): Promise<never> {
     const status = error.response?.status ?? 0;
     const fallback =
       status === 0
-        ? "Unable to reach the server."
-        : error.message || "Request failed.";
+        ? t("sync:network.unableReach")
+        : error.message || t("sync:network.requestFailed");
 
     return Promise.reject(toApiError(status, error.response?.data, fallback));
   }

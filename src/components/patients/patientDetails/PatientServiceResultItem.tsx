@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { memo, useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { View, type LayoutChangeEvent } from "react-native";
 import Animated, {
   interpolate,
@@ -38,6 +39,7 @@ function PatientServiceResultItemComponent({
   item,
   currency,
 }: PatientServiceResultItemProps) {
+  const { t } = useTranslation(["patients", "common", "a11y"]);
   const native = useNativeColors();
   const [expanded, setExpanded] = useState(false);
   const [measuredNoteHeight, setMeasuredNoteHeight] = useState(0);
@@ -52,8 +54,8 @@ function PatientServiceResultItemComponent({
     item.isPosted && item.postedDate
       ? dayjs(item.postedDate).format("D MMM, YYYY")
       : item.isPosted
-        ? "Posted"
-        : "Not posted";
+        ? t("patients:service.posted")
+        : t("patients:service.notPosted");
   const postedIcon = item.isPosted ? checkCircleIcon : calendarIcon;
 
   useEffect(() => {
@@ -104,7 +106,7 @@ function PatientServiceResultItemComponent({
       <Button
         accessibilityLabel={`${item.name}${codeLabel ? `, ${codeLabel}` : ""}${statusLabel ? `, ${statusLabel}` : ""}, ${feeLabel}, ${postedLabel}`}
         accessibilityState={{ expanded }}
-        className="flex-row items-stretch gap-stack overflow-hidden py-stack pl-inline"
+        className="flex-row items-stretch gap-stack overflow-hidden py-stack ps-inline"
         onPress={toggleExpanded}
         ripple={false}
         size="none"
@@ -113,7 +115,7 @@ function PatientServiceResultItemComponent({
       >
         <EventRail color={railColor} />
 
-        <View className="min-w-0 flex-1 justify-center gap-inset-compact pr-inline">
+        <View className="min-w-0 flex-1 justify-center gap-inset-compact pe-inline">
           <View className="min-w-0 flex-row items-center gap-1.5">
             <ThemedText
               className="min-w-0 flex-1 shrink font-semibold"
@@ -140,14 +142,14 @@ function PatientServiceResultItemComponent({
             <MetricColumn
               icon={balanceIcon}
               iconSize={16}
-              label="Fee"
+              label={t("patients:service.fee")}
               value={feeLabel}
             />
             <MetricColumn
               align="right"
               icon={postedIcon}
               iconSize={16}
-              label="Posted"
+              label={t("patients:service.posted")}
               value={postedLabel}
             />
           </View>
@@ -164,7 +166,7 @@ function PatientServiceResultItemComponent({
           }
         >
           <Animated.View
-            className="flex-row items-stretch gap-stack pb-stack pl-inline pr-inline"
+            className="flex-row items-stretch gap-stack pb-stack ps-inline pe-inline"
             style={noteContentStyle}
           >
             <EventRail
@@ -180,7 +182,7 @@ function PatientServiceResultItemComponent({
                 tone={noteLabel ? "default" : "muted"}
                 variant="label"
               >
-                {noteLabel ?? "No note"}
+                {noteLabel ?? t("common:empty.noNote")}
               </ThemedText>
             </View>
           </Animated.View>

@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import {
   Button,
@@ -13,6 +14,7 @@ import { formatMoneyAmount } from "@/helpers/payments/currency";
 import { formatDisplayDate } from "@/helpers/ui/display";
 import { formatPatientPhone } from "@/helpers/patients/patientDisplay";
 import type { ProviderPaymentItem } from "@/hooks/payments/useProviderPayments";
+import { useResolvedLocale } from "@/stores";
 import { useNativeColors } from "@/theme";
 
 export type PaymentListItemProps = {
@@ -26,23 +28,37 @@ function PaymentListItemComponent({
   onPress,
   searchQuery,
 }: PaymentListItemProps) {
+  const { t } = useTranslation(["common", "a11y"]);
+  const locale = useResolvedLocale();
   const native = useNativeColors();
   const railColor = native.border.strong;
-  const amountLabel = formatMoneyAmount(item.amount, item.currency);
-  const methodLabel = item.method?.trim() || "—";
-  const typeLabel = item.type?.trim() || "—";
-  const dateLabel = formatDisplayDate(item.date, "—").value;
+  const amountLabel = formatMoneyAmount(item.amount, item.currency, {
+    locale,
+  });
+  const methodLabel = item.method?.trim() || t("common:empty.emDash");
+  const typeLabel = item.type?.trim() || t("common:empty.emDash");
+  const dateLabel = formatDisplayDate(
+    item.date,
+    t("common:empty.emDash"),
+  ).value;
   const phone =
-    formatPatientPhone(item.countryCode, item.phoneNumber) ?? "No phone";
+    formatPatientPhone(item.countryCode, item.phoneNumber) ??
+    t("common:empty.noPhone");
 
   const content = (
     <View
-      accessibilityLabel={`Payment from ${item.patientName}, ${amountLabel}, date ${dateLabel}, method ${methodLabel}, type ${typeLabel}`}
-      className="flex-row items-stretch gap-stack overflow-hidden rounded-card border border-border-subtle bg-surface-sunken py-stack pl-inline"
+      accessibilityLabel={t("a11y:paymentItem", {
+        patient: item.patientName,
+        amount: amountLabel,
+        date: dateLabel,
+        method: methodLabel,
+        type: typeLabel,
+      })}
+      className="flex-row items-stretch gap-stack overflow-hidden rounded-card border border-border-subtle bg-surface-sunken py-stack ps-inline"
     >
       <EventRail color={railColor} />
 
-      <View className="min-w-0 flex-1 justify-center gap-inset-compact pr-inline">
+      <View className="min-w-0 flex-1 justify-center gap-inset-compact pe-inline">
         <View className="min-w-0 flex-row items-start gap-1.5">
           <View className="min-w-0 flex-1 shrink gap-0.5">
             <SearchHighlightText
@@ -73,21 +89,21 @@ function PaymentListItemComponent({
           <MetricColumn
             icon={calendarIcon}
             iconSize={16}
-            label="Date"
+            label={t("common:labels.date")}
             value={dateLabel}
           />
           <MetricColumn
             align="center"
             icon={balanceIcon}
             iconSize={16}
-            label="Method"
+            label={t("common:labels.method")}
             value={methodLabel}
           />
           <MetricColumn
-            align="right"
+            align="end"
             icon={notesIcon}
             iconSize={16}
-            label="Type"
+            label={t("common:labels.type")}
             value={typeLabel}
           />
         </View>

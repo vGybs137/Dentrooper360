@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, View } from "react-native";
 
 import {
@@ -21,6 +22,7 @@ type PatientCardActionMenuProps = {
 };
 
 export function PatientCardActionMenu({ patient }: PatientCardActionMenuProps) {
+  const { t } = useTranslation(["patients", "common", "errors", "a11y"]);
   const openWithPatient = useAddAppointmentStore(
     (state) => state.openWithPatient,
   );
@@ -64,8 +66,8 @@ export function PatientCardActionMenu({ patient }: PatientCardActionMenuProps) {
     setDeleteVisible(false);
     setDeleteFeedback({
       stage: "loading",
-      title: "Deleting...",
-      message: "Removing this patient and related records.",
+      title: t("patients:details.deletingTitle"),
+      message: t("patients:details.deletingMessage"),
     });
 
     void (async () => {
@@ -74,55 +76,57 @@ export function PatientCardActionMenu({ patient }: PatientCardActionMenuProps) {
         requestSync();
         setDeleteFeedback({
           stage: "success",
-          title: "Patient deleted",
-          message: "The patient and related records were removed.",
-          continueLabel: "Done",
+          title: t("patients:details.deletedTitle"),
+          message: t("patients:details.deletedMessage"),
+          continueLabel: t("common:actions.done"),
           onContinue: dismissDeleteFeedback,
         });
       } catch (err) {
         setIsDeleting(false);
         setDeleteFeedback({
           stage: "error",
-          title: "Unable to delete",
+          title: t("errors:delete.unable"),
           message:
-            err instanceof Error ? err.message : "Please try again.",
-          retryLabel: "OK",
+            err instanceof Error
+              ? err.message
+              : t("errors:generic.pleaseTryAgain"),
+          retryLabel: t("common:actions.ok"),
           onRetry: dismissDeleteFeedback,
           onDismiss: dismissDeleteFeedback,
         });
       }
     })();
-  }, [dismissDeleteFeedback, isDeleting, patient.id]);
+  }, [dismissDeleteFeedback, isDeleting, patient.id, t]);
 
   const items = useMemo(
     () => [
       {
         key: "edit",
-        label: "Edit",
+        label: t("common:actions.edit"),
         icon: <ThemedIcon dimension={20} name={editIcon} tone="muted" />,
         onPress: handleEdit,
       },
       {
         key: "add-appointment",
-        label: "Add appointment",
+        label: t("patients:menu.addAppointment"),
         icon: <ThemedIcon dimension={20} name={addAppointmentIcon} tone="muted" />,
         onPress: handleAddAppointment,
       },
       {
         key: "delete",
-        label: "Delete",
+        label: t("common:actions.delete"),
         icon: <ThemedIcon dimension={20} name={deleteIcon} tone="alert" />,
         tone: "alert" as const,
         onPress: handleDelete,
       },
     ],
-    [handleAddAppointment, handleDelete, handleEdit],
+    [handleAddAppointment, handleDelete, handleEdit, t],
   );
 
   return (
     <>
       <ActionMenu
-        accessibilityLabel={`Actions for ${patient.displayName}`}
+        accessibilityLabel={t("a11y:actionsForPatient", { name: patient.displayName })}
         items={items}
         trigger={({ open }) => (
           <ThemedIcon
@@ -135,10 +139,12 @@ export function PatientCardActionMenu({ patient }: PatientCardActionMenuProps) {
 
       <DeleteConfirmationDialog
         confirming={isDeleting}
-        message={`Are you sure you want to delete ${patient.displayName}?`}
+        message={t("patients:details.deleteMessage", {
+          name: patient.displayName,
+        })}
         onCancel={handleCancelDelete}
         onConfirm={handleConfirmDelete}
-        title="Delete patient"
+        title={t("patients:details.deleteTitle")}
         visible={deleteVisible}
       />
 

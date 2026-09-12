@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useFormState, useWatch } from "react-hook-form";
 import { Switch, View } from "react-native";
 
@@ -14,13 +15,15 @@ import {
   addressIcon,
   ageIcon,
   emailIcon,
-  PATIENT_FORM_VALIDATION_MESSAGES,
   personIcon,
   personsIcon,
   phoneIcon,
   starIcon,
 } from "@/constants";
-import { PATIENT_GENDER_OPTIONS } from "@/constants/patientForm";
+import {
+  PATIENT_FORM_VALIDATION_KEYS,
+  PATIENT_GENDER_OPTIONS,
+} from "@/constants/patientForm";
 import type { AddPatientFormState } from "@/hooks/patients/useAddPatientForm";
 import { useNativeColors } from "@/theme";
 
@@ -41,6 +44,7 @@ function AddPatientEssentialsStepComponent({
   onInputBlur,
   panelCollapseKey = 0,
 }: AddPatientEssentialsStepProps) {
+  const { t } = useTranslation(["patients", "a11y", "validation", "common"]);
   const native = useNativeColors();
   const [expandedField, setExpandedField] = useState<ExpandedField>(null);
   const {
@@ -61,9 +65,9 @@ function AddPatientEssentialsStepComponent({
     () =>
       PATIENT_GENDER_OPTIONS.map((option) => ({
         value: option.value,
-        label: option.label,
+        label: t(option.labelKey),
       })),
-    [],
+    [t],
   );
 
   const nameSectionErrors = useMemo(() => {
@@ -79,7 +83,7 @@ function AddPatientEssentialsStepComponent({
     }
     if (!isEditing && duplicatePatient && duplicatePatientName) {
       messages.push(
-        `A patient named ${duplicatePatientName} with this phone number already exists.`,
+        t("patients:form.duplicate", { name: duplicatePatientName }),
       );
     }
 
@@ -90,6 +94,7 @@ function AddPatientEssentialsStepComponent({
     errors.firstName?.message,
     errors.lastName?.message,
     isEditing,
+    t,
   ]);
 
   const phoneSectionErrors = useMemo(() => {
@@ -148,8 +153,8 @@ function AddPatientEssentialsStepComponent({
   return (
     <ThemedView space="default" variant="stack">
       <PatientFormSection
-        errorAccessibilityLabel="Show name errors"
-        errorTitle="Name issues"
+        errorAccessibilityLabel={t("a11y:showNameErrors")}
+        errorTitle={t("patients:form.nameIssues")}
         errors={nameSectionErrors}
         showErrors={showNameSectionErrors}
       >
@@ -159,9 +164,9 @@ function AddPatientEssentialsStepComponent({
               autoCapitalize="words"
               autoCorrect={false}
               name="firstName"
-              placeholder="First name"
+              placeholder={t("patients:form.firstName")}
               rules={{
-                required: PATIENT_FORM_VALIDATION_MESSAGES.firstNameRequired,
+                required: t(PATIENT_FORM_VALIDATION_KEYS.firstNameRequired),
               }}
               {...sectionInputProps}
             />
@@ -172,16 +177,16 @@ function AddPatientEssentialsStepComponent({
               autoCapitalize="words"
               autoCorrect={false}
               name="fatherName"
-              placeholder="Father name"
+              placeholder={t("patients:form.fatherName")}
               {...sectionInputProps}
             />
             <PatientFormInput
               autoCapitalize="words"
               autoCorrect={false}
               name="lastName"
-              placeholder="Last name"
+              placeholder={t("patients:form.lastName")}
               rules={{
-                required: PATIENT_FORM_VALIDATION_MESSAGES.lastNameRequired,
+                required: t(PATIENT_FORM_VALIDATION_KEYS.lastNameRequired),
               }}
               {...sectionInputProps}
             />
@@ -192,8 +197,8 @@ function AddPatientEssentialsStepComponent({
       <PatientFormDivider />
 
       <PatientFormSection
-        errorAccessibilityLabel="Show phone errors"
-        errorTitle="Phone issues"
+        errorAccessibilityLabel={t("a11y:showPhoneErrors")}
+        errorTitle={t("patients:form.phoneIssues")}
         errors={phoneSectionErrors}
         showErrors={showPhoneSectionErrors}
       >
@@ -204,9 +209,9 @@ function AddPatientEssentialsStepComponent({
               autoCorrect={false}
               keyboardType="phone-pad"
               name="countryCode"
-              placeholder="Zip"
+              placeholder={t("patients:form.zip")}
               rules={{
-                required: PATIENT_FORM_VALIDATION_MESSAGES.countryCodeRequired,
+                required: t(PATIENT_FORM_VALIDATION_KEYS.countryCodeRequired),
               }}
               {...sectionInputProps}
             />
@@ -218,9 +223,9 @@ function AddPatientEssentialsStepComponent({
               autoCorrect={false}
               keyboardType="phone-pad"
               name="phoneNumber"
-              placeholder="Phone number"
+              placeholder={t("patients:form.phoneNumber")}
               rules={{
-                required: PATIENT_FORM_VALIDATION_MESSAGES.phoneNumberRequired,
+                required: t(PATIENT_FORM_VALIDATION_KEYS.phoneNumberRequired),
               }}
               {...sectionInputProps}
             />
@@ -237,7 +242,7 @@ function AddPatientEssentialsStepComponent({
             autoCorrect={false}
             keyboardType="number-pad"
             name="age"
-            placeholder="Age"
+            placeholder={t("patients:form.age")}
             {...inputHandlers}
           />
         </PatientFormFieldRow>
@@ -254,8 +259,8 @@ function AddPatientEssentialsStepComponent({
             onSearchBlur={onInputBlur}
             onToggle={() => togglePanel("gender")}
             options={genderOptions}
-            placeholder="Select gender"
-            searchPlaceholder="Search gender..."
+            placeholder={t("patients:form.selectGender")}
+            searchPlaceholder={t("patients:form.searchGender")}
             value={gender}
             visible={expandedField === "gender"}
           />
@@ -270,7 +275,7 @@ function AddPatientEssentialsStepComponent({
           autoCorrect={false}
           keyboardType="email-address"
           name="emailAddress"
-          placeholder="Email"
+          placeholder={t("patients:form.email")}
           {...inputHandlers}
         />
       </PatientFormFieldRow>
@@ -282,7 +287,7 @@ function AddPatientEssentialsStepComponent({
           autoCapitalize="words"
           autoCorrect={false}
           name="referralSource"
-          placeholder="Referral source"
+          placeholder={t("patients:form.referralSource")}
           {...inputHandlers}
         />
       </PatientFormFieldRow>
@@ -294,7 +299,7 @@ function AddPatientEssentialsStepComponent({
           autoCapitalize="sentences"
           autoCorrect
           name="address"
-          placeholder="Address"
+          placeholder={t("patients:form.address")}
           {...inputHandlers}
         />
       </PatientFormFieldRow>
@@ -304,10 +309,10 @@ function AddPatientEssentialsStepComponent({
       <PatientFormFieldRow align="center" icon={starIcon}>
         <View className="w-full flex-row items-center justify-between gap-inline px-inline">
           <ThemedText tone={isVip ? "default" : "muted"} variant="body">
-            VIP patient
+            {t("patients:form.vipPatient")}
           </ThemedText>
           <Switch
-            accessibilityLabel="Mark patient as VIP"
+            accessibilityLabel={t("a11y:markVip")}
             onValueChange={(value) =>
               setValue("isVip", value, {
                 shouldDirty: true,

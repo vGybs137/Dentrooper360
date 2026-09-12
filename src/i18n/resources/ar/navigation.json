@@ -1,0 +1,17 @@
+{
+  "tabs": {
+    "schedule": "الجدول",
+    "patients": "المرضى",
+    "payments": "المدفوعات",
+    "recalls": "المتابعات",
+    "settings": "الإعدادات"
+  },
+  "schedule": {
+    "calendar": "التقويم",
+    "view": {
+      "month": "شهر",
+      "week": "أسبوع",
+      "day": "يوم"
+    }
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "actions": {
+    "cancel": "Annuler",
+    "continue": "Continuer",
+    "tryAgain": "Réessayer",
+    "retry": "Réessayer",
+    "retrying": "Nouvelle tentative…",
+    "done": "Terminé",
+    "ok": "OK",
+    "back": "Retour",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "next": "Suivant",
+    "save": "Enregistrer",
+    "add": "Ajouter",
+    "saving": "Enregistrement...",
+    "adding": "Ajout...",
+    "scrollToTop": "Haut de page",
+    "openMenu": "Ouvrir le menu",
+    "dismissMenu": "Fermer le menu",
+    "dismissConfirmation": "Fermer la confirmation",
+    "dismiss": "Fermer",
+    "menuTitle": "Actions",
+    "select": "Sélectionner…"
+  },
+  "search": {
+    "title": "Rechercher",
+    "placeholder": "Rechercher...",
+    "clear": "Effacer la recherche",
+    "noMatch": "Aucun(e) {{entity}} ne correspond à « {{query}} ».",
+    "noMatchFallback": "Aucun(e) {{entity}} ne correspond à votre recherche.",
+    "unable": "Impossible de rechercher {{entity}}.",
+    "noResults": "Aucun résultat.",
+    "searchEntity": "Rechercher {{entity}}..."
+  },
+  "empty": {
+    "emDash": "—",
+    "notSet": "Non défini",
+    "none": "Aucun",
+    "noneScheduled": "Aucun prévu",
+    "noNote": "Aucune note",
+    "noNotes": "Aucune note",
+    "noPhone": "Pas de téléphone",
+    "noEmail": "Pas d'e-mail",
+    "noAddress": "Pas d'adresse",
+    "loadingEllipsis": "Chargement…"
+  },
+  "brand": {
+    "markA11y": "Marque Dentrooper 360",
+    "wordmarkA11y": "Dentrooper 360",
+    "from": "Par",
+    "company": "Sol-T Solutions"
+  },
+  "confirm": {
+    "deleteTitle": "Supprimer",
+    "deleteMessage": "Voulez-vous vraiment supprimer cet élément ?",
+    "yesDelete": "Oui, supprimer",
+    "deleting": "Suppression..."
+  },
+  "labels": {
+    "note": "Note",
+    "date": "Date",
+    "time": "Heure",
+    "method": "Méthode",
+    "type": "Type",
+    "payment": "Paiement"
+  },
+  "vip": {
+    "vip": "VIP",
+    "normal": "Standard",
+    "status": "Statut VIP"
+  },
+  "patient": {
+    "unnamed": "Patient sans nom",
+    "unknown": "Patient inconnu",
+    "thisPatient": "ce patient",
+    "newPatient": "Nouveau patient"
+  },
+  "pleaseTryAgain": "Veuillez réessayer.",
+  "days": {
+    "oneDay": "1 jour",
+    "nDays": "{{count}} jours"
+  }
+}

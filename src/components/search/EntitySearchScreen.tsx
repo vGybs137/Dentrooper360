@@ -6,6 +6,7 @@ import {
   useRef,
   type ReactElement,
 } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   useWindowDimensions,
@@ -23,6 +24,7 @@ import { SearchBar } from "@/components/search/SearchBar";
 import { AppointmentSearchBackButton } from "@/components/schedule/appointmentSearch/AppointmentSearchBackButton";
 import { ThemedText, ThemedView } from "@/components/ui";
 import { getSearchBarReservedHeight } from "@/helpers/ui/searchBarLayout";
+import { t } from "@/i18n";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
@@ -36,9 +38,12 @@ export function defaultEntitySearchEmptyCopy(
   entityLabel: string,
 ): EntitySearchEmptyCopy {
   return {
-    error: `Unable to search ${entityLabel}.`,
-    noMatch: (trimmedQuery) => `No ${entityLabel} match "${trimmedQuery}".`,
-    noMatchFallback: `No ${entityLabel} match your search.`,
+    error: t("common:search.unable", { entity: entityLabel }),
+    noMatch: (trimmedQuery) =>
+      t("common:search.noMatch", { entity: entityLabel, query: trimmedQuery }),
+    noMatchFallback: t("common:search.noMatchFallback", {
+      entity: entityLabel,
+    }),
   };
 }
 
@@ -94,6 +99,8 @@ export function EntitySearchTitleHeader({
   titleBottomPadding: number;
   titleTopPadding: number;
 }) {
+  const { t } = useTranslation("common");
+
   return (
     <View>
       <View
@@ -103,7 +110,7 @@ export function EntitySearchTitleHeader({
         }}
       >
         <ThemedText align="center" variant="display">
-          Search
+          {t("search.title")}
         </ThemedText>
       </View>
       <View style={{ height: chevronRowHeight }} />

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Image, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { PatientCardActionMenu } from "@/components/patients/PatientCardActionMenu";
@@ -114,6 +115,7 @@ export function PatientCard({
   searchQuery,
   style,
 }: PatientCardProps) {
+  const { t } = useTranslation("patients");
   const native = useNativeColors();
   const user = useAuthUser();
   const isSelected = selectable && selected;
@@ -163,15 +165,15 @@ export function PatientCard({
             </View>
           </View>
 
-          <View className="flex-1 flex-row justify-between py-0.5 pl-gap">
+          <View className="flex-1 flex-row justify-between py-0.5 ps-gap">
             <MetricColumn
               icon={calendarIcon}
-              label="Next visit"
+              label={t("patients:card.nextVisit")}
               value={formatPatientNextVisit(patient.nextVisit)}
             />
             <MetricColumn
               icon={balanceIcon}
-              label="Balance"
+              label={t("patients:card.balance")}
               value={formatPatientBalance(
                 patient.balance,
                 user?.currencySymbol ?? patient.currency,

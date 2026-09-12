@@ -1,10 +1,10 @@
 /** Format amounts with the provider's currency symbol. */
 export function formatProviderCurrencyAmount(
   amount: number,
-  options?: { decimals?: number },
+  options?: { decimals?: number; locale?: string },
 ): string {
   const decimals = options?.decimals ?? 0;
-  return Math.abs(amount).toLocaleString(undefined, {
+  return Math.abs(amount).toLocaleString(options?.locale, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
@@ -13,7 +13,7 @@ export function formatProviderCurrencyAmount(
 export function formatProviderCurrency(
   amount: number,
   currencySymbol: string | null | undefined,
-  options?: { decimals?: number },
+  options?: { decimals?: number; locale?: string },
 ): string {
   const symbol = currencySymbol?.trim() || "$";
   return `${symbol}${formatProviderCurrencyAmount(amount, options)}`;
@@ -32,9 +32,16 @@ export function resolveProviderCurrencySymbol(
 export function formatMoneyAmount(
   amount: number,
   currencySymbol: string | null | undefined,
-  options?: { decimals?: number },
+  options?: { decimals?: number; locale?: string },
 ): string {
   const decimals = options?.decimals ?? 2;
   const symbol = resolveProviderCurrencySymbol(currencySymbol);
-  return `${symbol} ${Math.abs(amount).toFixed(decimals)}`;
+  const absolute = Math.abs(amount);
+  if (options?.locale) {
+    return `${symbol} ${absolute.toLocaleString(options.locale, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    })}`;
+  }
+  return `${symbol} ${absolute.toFixed(decimals)}`;
 }

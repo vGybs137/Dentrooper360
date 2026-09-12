@@ -1,5 +1,6 @@
 import { type Href, useRouter } from "expo-router";
 import { useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 import { EntityListScreen } from "@/components/list";
 import { PatientCard } from "@/components/patients/PatientCard";
@@ -10,6 +11,7 @@ import { useActivePatients } from "@/hooks/patients/useActivePatients";
 import { useAddPatientStore, useAuthUser } from "@/stores";
 
 export function PatientsListScreen() {
+  const { t } = useTranslation(["patients", "a11y"]);
   const router = useRouter();
   const user = useAuthUser();
   const openAddPatient = useAddPatientStore((state) => state.open);
@@ -50,25 +52,25 @@ export function PatientsListScreen() {
 
   return (
     <EntityListScreen
-      addAccessibilityLabel="Add patient"
+      addAccessibilityLabel={t("a11y:addPatient")}
       addIcon={personAddIcon}
       data={patients}
       emptyAction={{
-        label: "Add patient",
+        label: t("patients:list.add"),
         onPress: handleOpenAddPatient,
       }}
       emptyIcon={personsIcon}
-      emptyTitle="No patients"
+      emptyTitle={t("patients:list.empty")}
       error={error}
-      errorMessage="Unable to load patients."
+      errorMessage={t("patients:list.loadError")}
       isLoading={isLoading}
       keyExtractor={keyExtractor}
       listHeader={listHeader}
       onAdd={handleOpenAddPatient}
       openSearch={openSearch}
       renderItem={renderItem}
-      searchAccessibilityLabel="Search patients"
-      title="Patients"
+      searchAccessibilityLabel={t("a11y:searchPatients")}
+      title={t("patients:list.title")}
     />
   );
 }

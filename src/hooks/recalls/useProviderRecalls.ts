@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import { useMemo } from "react";
 
 import type Recall from "@/database/models/Recall";
+import { pickLocalizedServiceName } from "@/helpers/i18n/pickLocalizedName";
 import {
   formatPatientName,
   patientMatchesSearch,
@@ -16,7 +17,12 @@ import {
   type RecallListKpis,
 } from "@/helpers/recalls/recallKpis";
 import { useObservedQuery } from "@/hooks/data/useObservedQuery";
-import { useAuthUser } from "@/stores/authStore";
+import { t } from "@/i18n";
+import {
+  getResolvedLocale,
+  useAuthUser,
+  useResolvedLocale,
+} from "@/stores";
 import { useWeekStartsOn } from "@/stores/schedulePreferencesStore";
 
 const RECALL_COLUMNS = [
@@ -63,7 +69,7 @@ export type UseProviderRecallsResult = {
 
 async function mapRecall(record: Recall): Promise<ProviderRecallItem> {
   let patientId = "";
-  let patientName = "Unknown patient";
+  let patientName = t("common:patient.unknown");
   let countryCode: string | null = null;
   let phoneNumber: string | null = null;
   let appointmentStartTime: Date | null = null;
@@ -71,7 +77,8 @@ async function mapRecall(record: Recall): Promise<ProviderRecallItem> {
   try {
     const patient = await record.patient.fetch();
     patientId = patient.id;
-    patientName = formatPatientName(patient) || "Unnamed patient";
+    patientName =
+      formatPatientName(patient) || t("common:patient.unnamed");
     countryCode = patient.countryCode?.trim() || null;
     phoneNumber = patient.phoneNumber?.trim() || null;
   } catch {
@@ -98,7 +105,11 @@ async function mapRecall(record: Recall): Promise<ProviderRecallItem> {
     appointmentId,
     appointmentStartTime,
     serviceCode: record.serviceCode,
-    serviceName: record.serviceNameEn?.trim() || "Service",
+    serviceName: pickLocalizedServiceName(
+      record,
+      getResolvedLocale(),
+      t("recalls:service.fallback"),
+    ),
     interval: record.interval,
     reminderInterval: record.reminderInterval,
     date: record.date,
@@ -113,6 +124,7 @@ export function useProviderRecalls(
   const database = useDatabase();
   const providerId = useAuthUser()?.id ?? null;
   const weekStartsOn = useWeekStartsOn();
+  const locale = useResolvedLocale();
   const isEnabled = Boolean(enabled && providerId);
 
   const { data, isLoading, error } = useObservedQuery<
@@ -120,7 +132,7 @@ export function useProviderRecalls(
     ProviderRecallItem[]
   >({
     enabled: isEnabled,
-    deps: [enabled, providerId],
+    deps: [enabled, providerId, locale],
     columns: RECALL_COLUMNS,
     emptyData: EMPTY_RECALLS,
     getQuery: () =>

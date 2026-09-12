@@ -1,6 +1,6 @@
 import type Appointment from "@/database/models/Appointment";
 import type AppointmentType from "@/database/models/AppointmentType";
-import type { MonthDayEventPreview } from "@/types/schedule";
+import { pickLocalizedName } from "@/helpers/i18n/pickLocalizedName";
 import {
   addDays,
   clipEventToDay,
@@ -10,6 +10,10 @@ import {
   type DayKey,
   type MonthKey,
 } from "@/helpers/schedule/calendar";
+import { t } from "@/i18n";
+import type { AppLocale } from "@/i18n/locales";
+import { getResolvedLocale } from "@/stores";
+import type { MonthDayEventPreview } from "@/types/schedule";
 
 export type AppointmentTypeLookup = Map<
   string,
@@ -22,12 +26,13 @@ export type WeekAppointmentsCache = Record<DayKey, MonthEventsByDay>;
 
 export function buildAppointmentTypesMap(
   types: AppointmentType[],
+  locale: AppLocale = getResolvedLocale(),
 ): AppointmentTypeLookup {
   const next = new Map<string, { color: string | null; name: string }>();
   for (const type of types) {
     next.set(type.id, {
       color: type.color || null,
-      name: type.nameEn?.trim() || "",
+      name: pickLocalizedName(type, locale),
     });
   }
   return next;
@@ -41,7 +46,8 @@ export function toAppointmentPreview(
   const type = typeId ? types.get(typeId) : undefined;
   return {
     id: appointment.id,
-    title: appointment.subject?.trim() || "Appointment",
+    title:
+      appointment.subject?.trim() || t("schedule:add.defaultSubject"),
     color: type?.color ?? null,
     typeName: type?.name ? type.name : null,
     startTime: appointment.startTime.getTime(),

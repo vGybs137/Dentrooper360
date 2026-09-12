@@ -1,5 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { memo, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View, type ViewStyle } from "react-native";
 import { useNativeColors } from "@/theme";
 import { primitives, semantic } from "@/tokens";
@@ -40,6 +41,7 @@ function WeekEventBlockComponent({
   width,
   variant = "week",
 }: WeekEventBlockProps) {
+  const { t } = useTranslation("schedule");
   const native = useNativeColors();
   const hourFormat = useHourFormat();
   const router = useRouter();
@@ -49,7 +51,7 @@ function WeekEventBlockComponent({
   const timeRange = formatTimeRange(event.startTime, event.endTime, hourFormat);
   const durationMinutes = (event.endTime - event.startTime) / (60 * 1000);
   const isCompactDayEvent = isDayVariant && durationMinutes <= 30;
-  const subjectLabel = event.title.trim() || "Appointment";
+  const subjectLabel = event.title.trim() || t("schedule:add.defaultSubject");
 
   const onPress = useCallback(() => {
     router.push(`/appointments/${event.id}` as Href);

@@ -1,5 +1,6 @@
 import { memo, useMemo } from "react";
 import { View, type LayoutChangeEvent } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
@@ -12,6 +13,7 @@ import {
   useCalendarSelectionStore,
   useIsCalendarDaySelected,
 } from "@/stores/calendarSelectionStore";
+import { useResolvedLocale } from "@/stores";
 import type { DayPressHandler } from "@/types/schedule";
 import {
   buildWeekCells,
@@ -48,6 +50,7 @@ function WeekDayHeaderCell({
   onDayPress,
   useHighlightContext = false,
 }: WeekDayHeaderCellProps) {
+  const { t } = useTranslation("a11y");
   const native = useNativeColors();
   const highlightDayKey = useWeekHighlightDayKey();
   const storeSelected = useIsCalendarDaySelected(cell.dayKey);
@@ -83,7 +86,11 @@ function WeekDayHeaderCell({
 
   return (
     <Button
-      accessibilityLabel={`${cell.dayKey}${cell.isToday ? ", today" : ""}`}
+      accessibilityLabel={
+        cell.isToday
+          ? t("dayCellToday", { dayKey: cell.dayKey })
+          : cell.dayKey
+      }
       accessibilityState={{ selected }}
       nestedScroll
       onPress={() => {
@@ -127,7 +134,11 @@ function WeekDayHeaderRowComponent({
   useHighlightContext = false,
 }: WeekDayHeaderRowProps) {
   const native = useNativeColors();
-  const labels = useMemo(() => weekdayLabels(weekStartsOn), [weekStartsOn]);
+  const locale = useResolvedLocale();
+  const labels = useMemo(
+    () => weekdayLabels(weekStartsOn, locale),
+    [locale, weekStartsOn],
+  );
   const cells = useMemo(
     () => buildWeekCells(weekStartKey, focusMonthForWeek(weekStartKey)),
     [weekStartKey],

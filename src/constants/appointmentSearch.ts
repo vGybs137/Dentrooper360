@@ -8,6 +8,7 @@ import {
   type CalendarDate,
   type DayKey,
 } from "@/helpers/schedule/calendar";
+import { t } from "@/i18n";
 
 export type AppointmentSearchTimeWindow =
   | "all"
@@ -19,7 +20,7 @@ export type AppointmentSearchTimeWindow =
 
 export type AppointmentSearchTimeWindowOption = {
   id: Exclude<AppointmentSearchTimeWindow, "all">;
-  label: string;
+  labelKey: string;
 };
 
 /** Inclusive local-day range for the Custom time window. */
@@ -31,12 +32,13 @@ export type AppointmentSearchCustomRange = {
 /** Selectable time pills — `all` is the unset default, not listed. */
 export const APPOINTMENT_SEARCH_TIME_WINDOWS: readonly AppointmentSearchTimeWindowOption[] =
   [
-    { id: "past_week", label: "Past week" },
-    { id: "next_week", label: "Next week" },
-    { id: "past_3_months", label: "Past 3 months" },
-    { id: "next_3_months", label: "Next 3 months" },
-    { id: "custom", label: "Custom" },
+    { id: "past_week", labelKey: "schedule:search.time.pastWeek" },
+    { id: "next_week", labelKey: "schedule:search.time.nextWeek" },
+    { id: "past_3_months", labelKey: "schedule:search.time.past3Months" },
+    { id: "next_3_months", labelKey: "schedule:search.time.next3Months" },
+    { id: "custom", labelKey: "schedule:search.time.custom" },
   ] as const;
+
 
 export const DEFAULT_APPOINTMENT_SEARCH_TIME_WINDOW: AppointmentSearchTimeWindow =
   "all";
@@ -138,12 +140,12 @@ export function appointmentSearchTimeWindowLabel(
   customRange: AppointmentSearchCustomRange | null = null,
 ): string {
   if (window === "all") {
-    return "All time";
+    return t("schedule:search.time.all");
   }
 
   if (window === "custom") {
     if (!customRange) {
-      return "Custom";
+      return t("schedule:search.time.custom");
     }
 
     const normalized = normalizeCustomRange(customRange);
@@ -154,10 +156,10 @@ export function appointmentSearchTimeWindowLabel(
     return `${formatCustomDayLabel(normalized.startDayKey)}–${formatCustomDayLabel(normalized.endDayKey)}`;
   }
 
-  return (
-    APPOINTMENT_SEARCH_TIME_WINDOWS.find((option) => option.id === window)
-      ?.label ?? "All time"
+  const option = APPOINTMENT_SEARCH_TIME_WINDOWS.find(
+    (entry) => entry.id === window,
   );
+  return option ? t(option.labelKey) : t("schedule:search.time.all");
 }
 
 /**

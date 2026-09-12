@@ -1,0 +1,59 @@
+{
+  "list": {
+    "title": "Rappels",
+    "empty": "Aucun rappel",
+    "loadError": "Impossible de charger les rappels."
+  },
+  "search": {
+    "placeholder": "Rechercher des rappels...",
+    "entityLabel": "rappels"
+  },
+  "kpis": {
+    "overdue": "En retard",
+    "dueToday": "Dus aujourd'hui",
+    "dueThisWeek": "Dus cette semaine",
+    "overdueRatio": "Taux de retard"
+  },
+  "status": {
+    "done": "Terminé",
+    "scheduled": "Planifié",
+    "upcoming": "À venir"
+  },
+  "pill": {
+    "doneToday": "Terminé aujourd'hui",
+    "doneOneDayAgo": "Terminé il y a 1 jour",
+    "doneNDaysAgo": "Terminé il y a {{count}} jours",
+    "dueOneDayAgo": "Échéance il y a 1 jour",
+    "dueNDaysAgo": "Échéance il y a {{count}} jours",
+    "dueInOneDay": "Échéance dans 1 jour",
+    "dueInNDays": "Échéance dans {{count}} jours"
+  },
+  "service": {
+    "fallback": "Service"
+  },
+  "details": {
+    "service": "Service",
+    "serviceCode": "Code du service",
+    "noCode": "Pas de code",
+    "status": "Statut",
+    "dueDate": "Date d'échéance",
+    "recallDate": "Date du rappel",
+    "interval": "Intervalle",
+    "reminder": "Rappel",
+    "appointment": "Rendez-vous",
+    "notLinked": "Non lié",
+    "apptStatus": "Statut du RDV",
+    "noAppointment": "Aucun rendez-vous",
+    "information": "Informations du rappel",
+    "timeline": "Chronologie du rappel",
+    "patientInformation": "Informations du patient",
+    "emptyTitle": "Aucun rappel",
+    "backToRecalls": "Retour aux rappels",
+    "loadError": "Impossible de charger ce rappel.",
+    "notFound": "Ce rappel est introuvable."
+  },
+  "hero": {
+    "patient": "Patient",
+    "message": "Message"
+  }
+}

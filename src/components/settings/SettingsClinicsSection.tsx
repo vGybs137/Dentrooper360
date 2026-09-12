@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
 import {
@@ -26,16 +27,22 @@ import type { ClinicMembership } from "@/types/auth";
 
 import { SettingsRowLabel, SettingsSection } from "./SettingsSection";
 
-function clinicLabel(clinic: ClinicMembership): string {
+function clinicLabel(
+  clinic: ClinicMembership,
+  t: (key: string, options?: Record<string, unknown>) => string,
+): string {
   const name = clinic.clinicDisplayName?.trim();
   if (name) {
     return name;
   }
   const id = clinic.customerId;
-  return id.length > 8 ? `Clinic ${id.slice(0, 8)}…` : `Clinic ${id}`;
+  return t("settings:clinics.fallbackName", {
+    idPrefix: id.length > 8 ? id.slice(0, 8) : id,
+  });
 }
 
 export function SettingsClinicsSection() {
+  const { t } = useTranslation(["settings", "common"]);
   const activeCustomerId = useCustomerId();
   const clinicsQuery = useClinicsList();
   const switchMutation = useSwitchClinicMutation();
@@ -54,9 +61,9 @@ export function SettingsClinicsSection() {
       if (aActive !== bActive) {
         return aActive - bActive;
       }
-      return clinicLabel(a).localeCompare(clinicLabel(b));
+      return clinicLabel(a, t).localeCompare(clinicLabel(b, t));
     });
-  }, [activeCustomerId, clinics]);
+  }, [activeCustomerId, clinics, t]);
 
   if (!isClinicSwitchEnabled()) {
     return null;
@@ -102,7 +109,7 @@ export function SettingsClinicsSection() {
 
   return (
     <>
-      <SettingsSection label="Clinics">
+      <SettingsSection label={t("settings:clinics.section")}>
         {clinicsQuery.isLoading && sortedClinics.length === 0 ? (
           <View
             style={{
@@ -113,7 +120,7 @@ export function SettingsClinicsSection() {
             }}
           >
             <ThemedText tone="muted" variant="label">
-              Loading clinics…
+              {t("settings:clinics.loading")}
             </ThemedText>
           </View>
         ) : null}
@@ -132,7 +139,11 @@ export function SettingsClinicsSection() {
             <Button
               disabled={clinicsQuery.isFetching}
               hitSlop={8}
-              label={clinicsQuery.isFetching ? "Retrying…" : "Retry"}
+              label={
+                clinicsQuery.isFetching
+                  ? t("common:actions.retrying")
+                  : t("common:actions.retry")
+              }
               onPress={() => {
                 void clinicsQuery.refetch();
               }}
@@ -152,7 +163,7 @@ export function SettingsClinicsSection() {
             }}
           >
             <ThemedText tone="muted" variant="label">
-              No clinic memberships found for this account.
+              {t("settings:clinics.empty")}
             </ThemedText>
           </View>
         ) : null}
@@ -161,11 +172,12 @@ export function SettingsClinicsSection() {
           const isCurrent = clinic.customerId === activeCustomerId;
           const canSwitch = clinic.isActive && !isCurrent && !isSwitching;
           const description = isCurrent
-            ? "Signed in on this device"
+            ? t("settings:clinics.currentDescription")
             : clinic.isActive
-              ? "Tap to switch and sync this clinic"
-              : "Membership inactive — switching unavailable";
+              ? t("settings:clinics.switchDescription")
+              : t("settings:clinics.inactiveDescription");
           const isLast = index === sortedClinics.length - 1 && !switchError;
+          const label = clinicLabel(clinic, t);
 
           return (
             <View
@@ -173,7 +185,7 @@ export function SettingsClinicsSection() {
               className={cn(!isLast && "border-b border-border-subtle")}
             >
               <Button
-                accessibilityLabel={clinicLabel(clinic)}
+                accessibilityLabel={label}
                 accessibilityState={{
                   selected: isCurrent,
                   disabled: !canSwitch,
@@ -200,7 +212,7 @@ export function SettingsClinicsSection() {
                   <SettingsRowLabel
                     description={description}
                     icon={locationIcon}
-                    title={clinicLabel(clinic)}
+                    title={label}
                   />
                   {isCurrent ? (
                     <View style={{ flexShrink: 0, justifyContent: "center" }}>
@@ -226,15 +238,17 @@ export function SettingsClinicsSection() {
 
       <DeleteConfirmationDialog
         confirming={false}
-        confirmLabel="Yes, switch clinic"
+        confirmLabel={t("settings:clinics.switchConfirm")}
         message={
           pendingClinic
-            ? `Switch to ${clinicLabel(pendingClinic)}? Local changes sync first. Downloading clinic data may take a moment.`
-            : "Switch clinics?"
+            ? t("settings:clinics.switchMessage", {
+                clinic: clinicLabel(pendingClinic, t),
+              })
+            : t("settings:clinics.switchMessageFallback")
         }
         onCancel={handleCancelSwitch}
         onConfirm={handleConfirmSwitch}
-        title="Switch clinic"
+        title={t("settings:clinics.switchTitle")}
         visible={pendingClinic != null}
       />
     </>

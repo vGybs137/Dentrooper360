@@ -1,0 +1,59 @@
+{
+  "list": {
+    "title": "المتابعات",
+    "empty": "لا توجد متابعات",
+    "loadError": "تعذّر تحميل المتابعات."
+  },
+  "search": {
+    "placeholder": "البحث عن متابعات...",
+    "entityLabel": "متابعات"
+  },
+  "kpis": {
+    "overdue": "متأخرة",
+    "dueToday": "مستحقة اليوم",
+    "dueThisWeek": "مستحقة هذا الأسبوع",
+    "overdueRatio": "نسبة المتأخر"
+  },
+  "status": {
+    "done": "منجز",
+    "scheduled": "مجدول",
+    "upcoming": "قادم"
+  },
+  "pill": {
+    "doneToday": "أُنجز اليوم",
+    "doneOneDayAgo": "أُنجز منذ يوم واحد",
+    "doneNDaysAgo": "أُنجز منذ {{count}} أيام",
+    "dueOneDayAgo": "كان مستحقًا منذ يوم واحد",
+    "dueNDaysAgo": "كان مستحقًا منذ {{count}} أيام",
+    "dueInOneDay": "مستحق خلال يوم واحد",
+    "dueInNDays": "مستحق خلال {{count}} أيام"
+  },
+  "service": {
+    "fallback": "خدمة"
+  },
+  "details": {
+    "service": "الخدمة",
+    "serviceCode": "رمز الخدمة",
+    "noCode": "لا يوجد رمز",
+    "status": "الحالة",
+    "dueDate": "تاريخ الاستحقاق",
+    "recallDate": "تاريخ المتابعة",
+    "interval": "الفترة",
+    "reminder": "تذكير",
+    "appointment": "الموعد",
+    "notLinked": "غير مرتبط",
+    "apptStatus": "حالة الموعد",
+    "noAppointment": "لا يوجد موعد",
+    "information": "معلومات المتابعة",
+    "timeline": "الجدول الزمني للمتابعة",
+    "patientInformation": "معلومات المريض",
+    "emptyTitle": "لا توجد متابعة",
+    "backToRecalls": "العودة إلى المتابعات",
+    "loadError": "تعذّر تحميل هذه المتابعة.",
+    "notFound": "تعذّر العثور على هذه المتابعة."
+  },
+  "hero": {
+    "patient": "المريض",
+    "message": "رسالة"
+  }
+}

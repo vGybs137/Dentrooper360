@@ -54,6 +54,16 @@ export {
 } from "./themePreferencesStore";
 export type { ResolvedTheme, ThemeMode } from "./themePreferencesStore";
 export {
+  getDeviceLocale,
+  getResolvedLocale,
+  resolveLocaleFromMode,
+  useLocaleMode,
+  useLocalePreferencesHasHydrated,
+  useLocalePreferencesStore,
+  useResolvedLocale,
+} from "./localePreferencesStore";
+export type { AppLocale, LocaleMode } from "./localePreferencesStore";
+export {
   ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
   useAddAppointmentEditingId,
   useAddAppointmentIsPresented,

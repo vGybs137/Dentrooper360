@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -45,11 +46,12 @@ function toAppointmentPatientDraft(
 }
 
 export function PatientDetailsHero({ patient }: PatientDetailsHeroProps) {
+  const { t } = useTranslation(["patients", "common", "a11y"]);
   const insets = useSafeAreaInsets();
   const openWithPatient = useAddAppointmentStore(
     (state) => state.openWithPatient,
   );
-  const displayName = formatPatientName(patient) || "Unnamed patient";
+  const displayName = formatPatientName(patient) || t("common:patient.unnamed");
   const hasPhone = Boolean(
     patientPhoneDigits(patient.countryCode, patient.phoneNumber),
   );
@@ -98,23 +100,23 @@ export function PatientDetailsHero({ patient }: PatientDetailsHeroProps) {
 
       <View className="w-full flex-row items-start justify-between gap-1 px-inline">
         <DetailsHeroCta
-          accessibilityLabel="Message patient"
+          accessibilityLabel={t("a11y:messagePatient")}
           disabled={!hasPhone}
           icon={messageIcon}
-          label="Message"
+          label={t("patients:details.cta.message")}
           onPress={handleMessage}
         />
         <DetailsHeroCta
-          accessibilityLabel="Call patient"
+          accessibilityLabel={t("a11y:callPatient")}
           disabled={!hasPhone}
           icon={phoneIcon}
-          label="Call"
+          label={t("patients:details.cta.call")}
           onPress={handleCall}
         />
         <DetailsHeroCta
-          accessibilityLabel="Add appointment"
+          accessibilityLabel={t("a11y:addAppointment")}
           icon={addAppointmentIcon}
-          label="Appointment"
+          label={t("patients:details.cta.appointment")}
           onPress={handleAddAppointment}
         />
       </View>

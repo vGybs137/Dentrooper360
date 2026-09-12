@@ -1,5 +1,6 @@
 import { Image } from "expo-image";
 import { type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { View, type StyleProp, type ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { type AnimatedStyle } from "react-native-reanimated";
@@ -23,10 +24,12 @@ export function BrandLogo({
   showWordmark = true,
   wordmarkStyle,
 }: BrandLogoProps) {
+  const { t } = useTranslation(["common", "a11y"]);
+
   return (
     <ThemedView align="center" space="default" variant="stack">
       <Image
-        accessibilityLabel="Dentrooper 360 mark"
+        accessibilityLabel={t("a11y:brandMark")}
         contentFit="contain"
         source={markLogo}
         style={{ width: BRAND_MARK_SIZE, height: BRAND_MARK_SIZE }}
@@ -34,7 +37,7 @@ export function BrandLogo({
       {showWordmark ? (
         <Animated.View style={wordmarkStyle}>
           <Image
-            accessibilityLabel="Dentrooper 360"
+            accessibilityLabel={t("a11y:brandWordmark")}
             contentFit="contain"
             source={wordmarkLogo}
             style={{
@@ -49,13 +52,15 @@ export function BrandLogo({
 }
 
 export function SplashAttribution() {
+  const { t } = useTranslation("common");
+
   return (
     <ThemedView align="center" space="compact" variant="stack">
       <ThemedText align="center" tone="muted" variant="label">
-        From
+        {t("brand.from")}
       </ThemedText>
       <ThemedText align="center" variant="label">
-        Sol-T Solutions
+        {t("brand.company")}
       </ThemedText>
     </ThemedView>
   );

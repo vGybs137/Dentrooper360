@@ -5,12 +5,11 @@ import type Appointment from "@/database/models/Appointment";
 import type Patient from "@/database/models/Patient";
 import type Payment from "@/database/models/Payment";
 import type Service from "@/database/models/Service";
+import { t } from "@/i18n";
 
 export class PatientHasOutstandingBalanceError extends Error {
   constructor() {
-    super(
-      "This patient has an outstanding balance and cannot be deleted until it is cleared.",
-    );
+    super(t("patients:delete.outstandingBalance"));
     this.name = "PatientHasOutstandingBalanceError";
   }
 }

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type Href, useRouter } from "expo-router";
 
 import { queryKeys } from "@/constants/queryKeys";
+import { t } from "@/i18n";
 import { ClinicSwitchError, switchClinic } from "@/session/switchClinic";
 import { ApiError } from "@/types/api";
 
@@ -30,5 +31,5 @@ export function switchClinicErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message.trim()) {
     return error.message;
   }
-  return "Unable to switch clinics. Please try again.";
+  return t("settings:clinics.switchErrorGeneric");
 }

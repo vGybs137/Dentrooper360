@@ -1,5 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Modal, ScrollView, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
@@ -63,34 +64,44 @@ export type PatientDetailsScreenProps = {
 function buildInformationFields(
   patient: PatientDetailsData,
   currencySymbol: string | null | undefined,
+  t: (key: string) => string,
 ): PatientOverviewField[] {
   const phone = displayOrEmpty(
     formatPatientPhone(patient.countryCode, patient.phoneNumber),
-    "No phone",
+    t("common:empty.noPhone"),
   );
-  const email = displayOrEmpty(patient.emailAddress, "No email");
-  const address = displayOrEmpty(patient.address, "No address");
-  const referral = displayOrEmpty(patient.referralSource, "No referral");
+  const email = displayOrEmpty(
+    patient.emailAddress,
+    t("common:empty.noEmail"),
+  );
+  const address = displayOrEmpty(
+    patient.address,
+    t("common:empty.noAddress"),
+  );
+  const referral = displayOrEmpty(
+    patient.referralSource,
+    t("patients:details.noReferral"),
+  );
   const hasBalance = patient.balance != null && patient.balance !== 0;
 
   return [
-    { label: "Phone", ...phone },
-    { label: "Email", ...email },
-    { label: "Address", ...address },
+    { label: t("patients:details.phone"), ...phone },
+    { label: t("patients:details.email"), ...email },
+    { label: t("patients:details.address"), ...address },
     {
-      label: "Balance",
+      label: t("patients:details.balance"),
       value: hasBalance
         ? formatPatientBalance(
             patient.balance,
             patient.currency ?? currencySymbol ?? null,
           )
-        : "No balance",
+        : t("patients:details.noBalance"),
       empty: !hasBalance,
     },
-    { label: "Referral source", ...referral },
+    { label: t("patients:details.referralSource"), ...referral },
     {
-      label: "VIP status",
-      value: patient.isVip ? "VIP" : "Normal",
+      label: t("common:vip.status"),
+      value: patient.isVip ? t("common:vip.vip") : t("common:vip.normal"),
     },
   ];
 }
@@ -98,6 +109,7 @@ function buildInformationFields(
 function buildTimelineFields(
   patient: PatientDetailsData,
   nextAppointment: Date | null,
+  t: (key: string) => string,
 ): PatientOverviewField[] {
   const birthDate = formatDisplayDate(patient.birthDate);
   const fileDate = formatDisplayDate(patient.fileDate);
@@ -106,17 +118,22 @@ function buildTimelineFields(
     : null;
 
   return [
-    { label: "Birth date", ...birthDate },
-    { label: "File date", ...fileDate },
+    { label: t("patients:details.birthDate"), ...birthDate },
+    { label: t("patients:details.fileDate"), ...fileDate },
     {
-      label: "Next appointment",
-      value: nextVisitLabel ?? "None scheduled",
+      label: t("patients:details.nextAppointment"),
+      value: nextVisitLabel ?? t("common:empty.noneScheduled"),
       empty: !nextVisitLabel,
     },
   ];
 }
 
 export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
+  const { t } = useTranslation([
+    "patients",
+    "common",
+    "errors",
+  ]);
   const native = useNativeColors();
   const router = useRouter();
   const user = useAuthUser();
@@ -154,13 +171,16 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
 
   const informationFields = useMemo(
     () =>
-      patient ? buildInformationFields(patient, user?.currencySymbol) : [],
-    [patient, user?.currencySymbol],
+      patient
+        ? buildInformationFields(patient, user?.currencySymbol, t)
+        : [],
+    [patient, t, user?.currencySymbol],
   );
 
   const timelineFields = useMemo(
-    () => (patient ? buildTimelineFields(patient, nextAppointment) : []),
-    [nextAppointment, patient],
+    () =>
+      patient ? buildTimelineFields(patient, nextAppointment, t) : [],
+    [nextAppointment, patient, t],
   );
 
   const goBack = useCallback(() => {
@@ -177,7 +197,8 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
       return;
     }
 
-    const displayName = formatPatientName(patient) || "Unnamed patient";
+    const displayName =
+      formatPatientName(patient) || t("common:patient.unnamed");
     const draft: PatientCardData = {
       id: patient.id,
       displayName,
@@ -191,7 +212,7 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
       nextVisit: null,
     };
     openWithPatient(draft);
-  }, [openWithPatient, patient]);
+  }, [openWithPatient, patient, t]);
 
   const dismissDeleteFeedback = useCallback(() => {
     setDeleteFeedback(null);
@@ -231,8 +252,8 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
     setDeleteVisible(false);
     setDeleteFeedback({
       stage: "loading",
-      title: "Deleting...",
-      message: "Removing this patient and related records.",
+      title: t("patients:details.deletingTitle"),
+      message: t("patients:details.deletingMessage"),
     });
 
     void (async () => {
@@ -241,9 +262,9 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
         requestSync();
         setDeleteFeedback({
           stage: "success",
-          title: "Patient deleted",
-          message: "The patient and related records were removed.",
-          continueLabel: "Done",
+          title: t("patients:details.deletedTitle"),
+          message: t("patients:details.deletedMessage"),
+          continueLabel: t("common:actions.done"),
           onContinue: () => {
             setDeleteFeedback(null);
             goBack();
@@ -253,16 +274,18 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
         setIsDeleting(false);
         setDeleteFeedback({
           stage: "error",
-          title: "Unable to delete",
+          title: t("patients:details.unableDelete"),
           message:
-            err instanceof Error ? err.message : "Please try again.",
-          retryLabel: "OK",
+            err instanceof Error
+              ? err.message
+              : t("errors:generic.pleaseTryAgain"),
+          retryLabel: t("common:actions.ok"),
           onRetry: dismissDeleteFeedback,
           onDismiss: dismissDeleteFeedback,
         });
       }
     })();
-  }, [dismissDeleteFeedback, goBack, isDeleting, patient]);
+  }, [dismissDeleteFeedback, goBack, isDeleting, patient, t]);
 
   const tabContent = useMemo(() => {
     switch (activeTab) {
@@ -349,14 +372,17 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
         variant="screen"
       >
         <EmptyState
-          action={{ label: "Back to patients", onPress: goBack }}
+          action={{
+            label: t("patients:details.backToPatients"),
+            onPress: goBack,
+          }}
           description={
             error
-              ? "Unable to load this patient."
-              : "This patient could not be found."
+              ? t("patients:details.loadError")
+              : t("patients:details.notFound")
           }
           icon={personIcon}
-          title="No patient"
+          title={t("patients:details.emptyTitle")}
         />
       </ThemedView>
     );
@@ -395,10 +421,13 @@ export function PatientDetailsScreen({ patientId }: PatientDetailsScreenProps) {
 
       <DeleteConfirmationDialog
         confirming={isDeleting}
-        message={`Are you sure you want to delete ${formatPatientName(patient) || "this patient"}?`}
+        message={t("patients:details.deleteMessage", {
+          name:
+            formatPatientName(patient) || t("common:patient.thisPatient"),
+        })}
         onCancel={handleCancelDelete}
         onConfirm={handleConfirmDelete}
-        title="Delete patient"
+        title={t("patients:details.deleteTitle")}
         visible={deleteVisible}
       />
 

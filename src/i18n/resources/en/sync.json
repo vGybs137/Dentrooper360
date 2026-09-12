@@ -1,0 +1,23 @@
+{
+  "status": {
+    "offline": "Offline",
+    "online": "Online"
+  },
+  "lastSynced": {
+    "never": "Never"
+  },
+  "snackbar": {
+    "offline": "You're offline. Please check your connection.",
+    "online": "You're back online."
+  },
+  "error": {
+    "noClinicPaired": "No clinic is paired on this device.",
+    "offlineAuto": "You're offline. Sync will run automatically when you're back online.",
+    "unableSync": "Unable to sync clinic data. Check your connection and try again.",
+    "unableClear": "Unable to clear application data."
+  },
+  "network": {
+    "unableReach": "Unable to reach the server.",
+    "requestFailed": "Request failed."
+  }
+}

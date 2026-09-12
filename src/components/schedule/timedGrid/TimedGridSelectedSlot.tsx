@@ -1,4 +1,5 @@
 import { memo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
@@ -30,6 +31,7 @@ function TimedGridSelectedSlotComponent({
   hourGap,
   variant = "day",
 }: TimedGridSelectedSlotProps) {
+  const { t } = useTranslation("a11y");
   const native = useNativeColors();
   const open = useAddAppointmentStore((state) => state.open);
 
@@ -50,8 +52,8 @@ function TimedGridSelectedSlotComponent({
 
   return (
     <Button
-      accessibilityHint="Tap to add an appointment"
-      accessibilityLabel="Selected time slot"
+      accessibilityHint={t("a11y:selectedTimeSlotHint")}
+      accessibilityLabel={t("a11y:selectedTimeSlot")}
       nestedScroll
       onPress={handlePress}
       size="none"

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter, type Href } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import Animated from "react-native-reanimated";
 
@@ -26,6 +27,7 @@ import { ApiError } from "@/types/api";
 const OPTION_ROW_HEIGHT = 44;
 
 export function SettingsProfileCard() {
+  const { t } = useTranslation(["settings", "a11y", "common"]);
   const router = useRouter();
   const queryClient = useQueryClient();
   const user = useAuthUser();
@@ -44,7 +46,7 @@ export function SettingsProfileCard() {
   const [locationExpanded, setLocationExpanded] = useState(false);
   const [logoutVisible, setLogoutVisible] = useState(false);
 
-  const displayName = user?.fullName?.trim() || "Signed in";
+  const displayName = user?.fullName?.trim() || t("settings:profile.signedIn");
   const displayEmail = user?.email?.trim() || null;
   const initials = useMemo(
     () => initialsFromPatientName(displayName),
@@ -68,7 +70,10 @@ export function SettingsProfileCard() {
     ) ?? "";
   const selectedLocationLabel =
     locationOptions.find((option) => option.value === selectedLocationId)
-      ?.label ?? (locationsLoading ? "Loading…" : "No location");
+      ?.label ??
+    (locationsLoading
+      ? t("common:empty.loadingEllipsis")
+      : t("settings:profile.noLocation"));
 
   const optionGap = semantic.space.gap.compact;
   const contentHeight =
@@ -93,12 +98,12 @@ export function SettingsProfileCard() {
     logoutMutation.error instanceof ApiError
       ? logoutMutation.error.message
       : logoutMutation.isError
-        ? "Unable to finish logging out. Please try again."
+        ? t("settings:profile.logoutError")
         : undefined;
 
   const logoutMessage = hasUnsynced
-    ? "You have local changes that haven't synced yet. Logging out will try to sync first, then clear this device even if sync fails."
-    : "Are you sure you want to log out of this device.";
+    ? t("settings:profile.logoutMessageUnsynced")
+    : t("settings:profile.logoutMessage");
 
   useEffect(() => {
     if (locationsLoading || locations.length === 0) {
@@ -179,13 +184,13 @@ export function SettingsProfileCard() {
           </ThemedText>
           <ThemedText numberOfLines={1} tone="muted" variant="label">
             {logoutMutation.isPending
-              ? "Signing out…"
-              : (displayEmail ?? "No Email")}
+              ? t("settings:profile.signingOut")
+              : (displayEmail ?? t("settings:profile.noEmail"))}
           </ThemedText>
         </View>
 
         <Button
-          accessibilityLabel="Log out"
+          accessibilityLabel={t("a11y:logOut")}
           accessibilityState={{ disabled: !canLogout }}
           disabled={!canLogout}
           hitSlop={8}
@@ -322,12 +327,12 @@ export function SettingsProfileCard() {
 
       <DeleteConfirmationDialog
         confirming={logoutMutation.isPending}
-        confirmingLabel="Signing out…"
-        confirmLabel="Yes, log out"
+        confirmingLabel={t("settings:profile.signingOut")}
+        confirmLabel={t("settings:profile.logoutConfirm")}
         message={logoutMessage}
         onCancel={handleCancelLogout}
         onConfirm={handleConfirmLogout}
-        title="Log out"
+        title={t("settings:profile.logoutTitle")}
         visible={logoutVisible}
       />
     </>

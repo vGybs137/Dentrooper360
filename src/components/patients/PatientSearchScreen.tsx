@@ -1,5 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
 import { PatientCard } from "@/components/patients/PatientCard";
@@ -8,6 +9,7 @@ import type { PatientCardData } from "@/helpers/patients/patientDisplay";
 import { useActivePatients } from "@/hooks/patients/useActivePatients";
 
 export function PatientSearchScreen() {
+  const { t } = useTranslation(["patients", "a11y", "common"]);
   const router = useRouter();
   const [query, setQuery] = useState("");
   const hasQuery = query.trim().length > 0;
@@ -41,7 +43,7 @@ export function PatientSearchScreen() {
   return (
     <EntitySearchScreen
       data={hasQuery ? patients : []}
-      entityLabel="patients"
+      entityLabel={t("patients:search.entityLabel")}
       error={error}
       fallbackHref={"/(tabs)/patients" as Href}
       hasQuery={hasQuery}
@@ -50,8 +52,8 @@ export function PatientSearchScreen() {
       onChangeQuery={setQuery}
       query={query}
       renderItem={renderItem}
-      searchAccessibilityLabel="Search patients"
-      searchPlaceholder="Search patients..."
+      searchAccessibilityLabel={t("a11y:searchPatients")}
+      searchPlaceholder={t("patients:search.placeholder")}
     />
   );
 }

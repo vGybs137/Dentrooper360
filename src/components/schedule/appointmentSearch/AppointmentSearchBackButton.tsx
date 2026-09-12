@@ -1,4 +1,5 @@
 import { memo, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import Animated, {
   Extrapolation,
@@ -52,6 +53,7 @@ function AppointmentSearchBackButtonComponent({
   onClearType,
   onClearTimeWindow,
 }: AppointmentSearchBackButtonProps) {
+  const { t } = useTranslation(["common", "a11y"]);
   const touchSize = semantic.size.touch;
   const pageInset = semantic.space.page;
   const hasFilterChips = selectedTypes.length > 0 || timeWindowLabel != null;
@@ -125,7 +127,7 @@ function AppointmentSearchBackButtonComponent({
       style={[slotStyle, containerAnimatedStyle]}
     >
       <Button
-        accessibilityLabel="Back"
+        accessibilityLabel={t("common:actions.back")}
         hitSlop={8}
         onPress={onPress}
         size="none"
@@ -152,15 +154,15 @@ function AppointmentSearchBackButtonComponent({
             gap: semantic.space.gap.compact,
             flexGrow: 1,
           }}
-          style={{ flex: 1, marginLeft: semantic.space.gap.default }}
+          style={{ flex: 1, marginStart: semantic.space.gap.default }}
         >
           {timeWindowLabel ? (
-            <View className="h-control-sm max-w-[160px] flex-row items-center gap-gap-compact rounded-pill border-subtle border-foreground-default bg-surface-sunken pl-inline-compact pr-stack-compact">
+            <View className="h-control-sm max-w-[160px] flex-row items-center gap-gap-compact rounded-pill border-subtle border-foreground-default bg-surface-sunken ps-inline-compact pe-stack-compact">
               <ThemedText numberOfLines={1} variant="label">
                 {timeWindowLabel}
               </ThemedText>
               <Button
-                accessibilityLabel={`Clear ${timeWindowLabel} filter`}
+                accessibilityLabel={t("a11y:clearFilter", { label: timeWindowLabel })}
                 hitSlop={8}
                 onPress={onClearTimeWindow}
                 ripple={false}
@@ -179,7 +181,7 @@ function AppointmentSearchBackButtonComponent({
           ) : null}
           {selectedTypes.map((type) => (
             <View
-              className="h-control-sm max-w-[160px] flex-row items-center gap-gap-compact rounded-pill border-subtle border-foreground-default bg-surface-sunken pl-inline-compact pr-stack-compact"
+              className="h-control-sm max-w-[160px] flex-row items-center gap-gap-compact rounded-pill border-subtle border-foreground-default bg-surface-sunken ps-inline-compact pe-stack-compact"
               key={type.id}
             >
               {type.color ? (
@@ -189,7 +191,7 @@ function AppointmentSearchBackButtonComponent({
                 {type.name}
               </ThemedText>
               <Button
-                accessibilityLabel={`Clear ${type.name} filter`}
+                accessibilityLabel={t("a11y:clearFilter", { label: type.name })}
                 hitSlop={8}
                 onPress={() => onClearType(type.id)}
                 ripple={false}

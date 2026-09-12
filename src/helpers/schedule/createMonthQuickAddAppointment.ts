@@ -17,6 +17,7 @@ import {
 import { formatPatientName } from "@/helpers/patients/patientDisplay";
 import { requestSync } from "@/helpers/sync/requestSync";
 import type { ScheduleHourRange } from "@/helpers/schedule/scheduleHours";
+import { t } from "@/i18n";
 import { ADD_APPOINTMENT_SLOT_DURATION_MINUTES } from "@/stores/addAppointmentStore";
 import { resolveDefaultLocationId } from "@/stores/schedulePreferencesStore";
 import type { MonthDayEventPreview } from "@/types/schedule";
@@ -26,11 +27,6 @@ import {
   toLocalDate,
   type DayKey,
 } from "@/helpers/schedule/calendar";
-
-const OUTSIDE_WORKING_DAY_MESSAGE =
-  "This day is outside your working days.";
-const OUTSIDE_WORKING_HOURS_MESSAGE =
-  "This time is outside your working hours for this day.";
 
 export type CreateMonthQuickAddArgs = {
   text: string;
@@ -96,7 +92,8 @@ async function loadLookups(): Promise<{
   const patients: QuickAddPatientCandidate[] = patientRecords
     .map((patient) => ({
       id: patient.id,
-      displayName: formatPatientName(patient) || "Unnamed patient",
+      displayName:
+        formatPatientName(patient) || t("common:patient.unnamed"),
       phoneNumber: patient.phoneNumber?.trim() || null,
     }))
     .filter((patient) => patient.displayName.trim().length > 0);
@@ -165,7 +162,10 @@ export async function createMonthQuickAddAppointment({
   const database = clinicDatabaseManager.requireActive();
   const trimmed = text.trim();
   if (!trimmed) {
-    return failure("Unable to add appointment", "Enter an appointment subject.");
+    return failure(
+      t("schedule:quickAdd.error.unableAdd"),
+      t("schedule:quickAdd.error.enterSubject"),
+    );
   }
 
   const { patients, types, locations, fallbackLocationId } =
@@ -173,8 +173,8 @@ export async function createMonthQuickAddAppointment({
 
   if (!fallbackLocationId) {
     return failure(
-      "Unable to add appointment",
-      "No locations are available. Add a location first.",
+      t("schedule:quickAdd.error.unableAdd"),
+      t("schedule:quickAdd.error.noLocations"),
     );
   }
 
@@ -193,7 +193,10 @@ export async function createMonthQuickAddAppointment({
   const targetHours = hoursForDayKey(resolvedDayKey);
 
   if (!targetHours) {
-    return failure("Unable to add appointment", OUTSIDE_WORKING_DAY_MESSAGE);
+    return failure(
+      t("schedule:quickAdd.error.unableAdd"),
+      t("schedule:quickAdd.error.outsideDay"),
+    );
   }
 
   const dayEvents =
@@ -224,7 +227,10 @@ export async function createMonthQuickAddAppointment({
       targetHours,
     )
   ) {
-    return failure("Unable to add appointment", OUTSIDE_WORKING_HOURS_MESSAGE);
+    return failure(
+      t("schedule:quickAdd.error.unableAdd"),
+      t("schedule:quickAdd.error.outsideHours"),
+    );
   }
 
   const locationId = parsed.locationId ?? fallbackLocationId;
@@ -250,8 +256,10 @@ export async function createMonthQuickAddAppointment({
     return { ok: true };
   } catch (error) {
     return failure(
-      "Unable to add appointment",
-      error instanceof Error ? error.message : "Please try again.",
+      t("schedule:quickAdd.error.unableAdd"),
+      error instanceof Error
+        ? error.message
+        : t("errors:generic.pleaseTryAgain"),
     );
   }
 }

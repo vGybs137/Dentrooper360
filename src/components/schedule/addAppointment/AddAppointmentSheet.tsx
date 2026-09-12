@@ -16,6 +16,7 @@ import {
   useState,
   type ComponentRef,
 } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Keyboard,
   Platform,
@@ -50,6 +51,7 @@ type StepDirection = "forward" | "back";
 const FOOTER_ESTIMATED_HEIGHT = 76;
 
 export function AddAppointmentSheet() {
+  const { t } = useTranslation(["schedule", "common", "a11y"]);
   const native = useNativeColors();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -240,7 +242,7 @@ export function AddAppointmentSheet() {
         >
           {step === "details" ? (
             <Button
-              accessibilityLabel="Go back to patient step"
+              accessibilityLabel={t("a11y:backToPatientStep")}
               bottomSheet
               className="size-control shrink-0 rounded-control border-strong border-border"
               hitSlop={8}
@@ -276,14 +278,14 @@ export function AddAppointmentSheet() {
               }
               label={
                 step === "patient"
-                  ? "Next"
+                  ? t("common:actions.next")
                   : isSubmitting
                     ? isEditing
-                      ? "Saving..."
-                      : "Adding..."
+                      ? t("common:actions.saving")
+                      : t("common:actions.adding")
                     : isEditing
-                      ? "Save"
-                      : "Add"
+                      ? t("common:actions.save")
+                      : t("common:actions.add")
               }
               onPress={step === "patient" ? handleNext : handleSubmit}
               tone="brand"
@@ -384,10 +386,10 @@ export function AddAppointmentSheet() {
               }}
             >
               <ThemedText variant="title">
-                {isEditing ? "Edit Appointment" : "Add Appointment"}
+                {isEditing ? t("schedule:edit.title") : t("schedule:add.title")}
               </ThemedText>
               <Button
-                accessibilityLabel="Close add appointment"
+                accessibilityLabel={t("a11y:closeAddAppointment")}
                 bottomSheet
                 hitSlop={12}
                 onPress={requestClose}

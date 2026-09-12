@@ -1,5 +1,6 @@
 import { type ComponentProps, type ReactNode, useEffect, useState } from "react";
 import { FormProvider } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import Animated, {
   Easing,
@@ -78,19 +79,20 @@ function LoginFieldShell({
 
 function getLoginFeedbackOverlay(
   form: LoginFormState,
+  t: (key: string) => string,
 ): FeedbackOverlayProps | null {
   if (form.isSigningIn) {
     return {
       stage: "loading",
-      title: "Signing in...",
-      message: "Please wait while we sign you in.",
+      title: t("auth:login.feedback.signingInTitle"),
+      message: t("auth:login.feedback.signingInMessage"),
     };
   }
 
   if (form.loginError && !form.hasSignedIn) {
     return {
       stage: "error",
-      title: "Sign-in failed",
+      title: t("auth:login.feedback.signInFailed"),
       message: form.loginError,
       onRetry: form.dismissLoginError,
       onDismiss: form.dismissLoginError,
@@ -100,8 +102,8 @@ function getLoginFeedbackOverlay(
   if (form.isSyncFailed) {
     return {
       stage: "error",
-      title: "Sync failed",
-      message: "Unable to finish preparing your clinic data.",
+      title: t("auth:login.feedback.syncFailedTitle"),
+      message: t("auth:login.feedback.syncFailedMessage"),
       onRetry: form.retrySync,
       isRetrying: form.isRetryingSync,
     };
@@ -110,8 +112,8 @@ function getLoginFeedbackOverlay(
   if (form.isAppReady) {
     return {
       stage: "success",
-      title: "Success!",
-      message: "Your app is ready to open.",
+      title: t("auth:login.feedback.successTitle"),
+      message: t("auth:login.feedback.successMessage"),
       onContinue: form.continueToApp,
     };
   }
@@ -119,8 +121,8 @@ function getLoginFeedbackOverlay(
   if (form.isSyncingNow) {
     return {
       stage: "loading",
-      title: "Preparing workspace...",
-      message: "Syncing clinic data with the server.",
+      title: t("auth:login.feedback.preparingTitle"),
+      message: t("auth:login.feedback.preparingMessage"),
     };
   }
 
@@ -138,6 +140,7 @@ export function LoginForm({
   contentStyle,
   onFieldsLayout,
 }: LoginFormProps) {
+  const { t } = useTranslation(["auth", "a11y"]);
   const insets = useSafeAreaInsets();
   const footerOffset = useSplashFooterOffset();
   const login = useLoginForm();
@@ -167,10 +170,10 @@ export function LoginForm({
         >
           <ThemedView space="compact" variant="stack">
             <ThemedText align="center" variant="display">
-              Welcome back!
+              {t("auth:login.welcome")}
             </ThemedText>
             <ThemedText align="center" tone="muted">
-              Please enter your details.
+              {t("auth:login.enterDetails")}
             </ThemedText>
           </ThemedView>
         </Animated.View>
@@ -186,10 +189,10 @@ export function LoginForm({
           {!login.customerId ? (
             <ThemedView space="compact" variant="stack">
               <ThemedText align="center" tone="muted">
-                Pair this device with a clinic QR code before signing in.
+                {t("auth:login.pairBeforeSignIn")}
               </ThemedText>
               <Button
-                label="Scan clinic QR"
+                label={t("auth:login.scanClinicQr")}
                 onPress={login.goToQrScanner}
                 tone="brand"
                 variant="outline"
@@ -213,7 +216,7 @@ export function LoginForm({
                   )
                 }
                 onFocus={() => setFocusedField("username")}
-                placeholder="Username"
+                placeholder={t("auth:login.usernamePlaceholder")}
                 rules={{ required: true }}
                 textContentType="username"
               />
@@ -234,7 +237,7 @@ export function LoginForm({
                   )
                 }
                 onFocus={() => setFocusedField("password")}
-                placeholder="Password"
+                placeholder={t("auth:login.passwordPlaceholder")}
                 rules={{ required: true }}
                 secureTextEntry={!login.isPasswordVisible}
                 textContentType="password"
@@ -242,8 +245,8 @@ export function LoginForm({
                   <Button
                     accessibilityLabel={
                       login.isPasswordVisible
-                        ? "Hide password"
-                        : "Show password"
+                        ? t("a11y:hidePassword")
+                        : t("a11y:showPassword")
                     }
                     hitSlop={semantic.space.inset.compact}
                     onPress={login.togglePasswordVisibility}
@@ -270,14 +273,16 @@ export function LoginForm({
           <ThemedView space="compact" variant="stack">
             {!login.isOnline ? (
               <ThemedText align="center" tone="muted">
-                You need an internet connection to sign in. If you already have
-                a saved session, open the app while offline from the splash
-                screen.
+                {t("auth:login.offlineHint")}
               </ThemedText>
             ) : null}
             <Button
               disabled={!canSubmit}
-              label={login.isSigningIn ? "Signing in..." : "Login"}
+              label={
+                login.isSigningIn
+                  ? t("auth:login.signingInButton")
+                  : t("auth:login.button")
+              }
               onPress={login.submit}
               size="lg"
             />
@@ -285,7 +290,7 @@ export function LoginForm({
         ) : null}
       </Animated.View>
       {(() => {
-        const overlay = getLoginFeedbackOverlay(login);
+        const overlay = getLoginFeedbackOverlay(login, t);
 
         if (!overlay) {
           return null;

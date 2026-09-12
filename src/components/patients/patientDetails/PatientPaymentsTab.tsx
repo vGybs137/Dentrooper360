@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
@@ -34,6 +35,7 @@ export function PatientPaymentsTab({
   isLoading,
   error = null,
 }: PatientPaymentsTabProps) {
+  const { t } = useTranslation("patients");
   const native = useNativeColors();
   const listRef = useRef<FlatListType<PatientPaymentDayGroup>>(null);
 
@@ -70,13 +72,13 @@ export function PatientPaymentsTab({
   if (error) {
     return (
       <ThemedText className="px-page py-stack" tone="alert" variant="body">
-        Unable to load payments for this patient.
+        {t("patients:tabs.paymentsError")}
       </ThemedText>
     );
   }
 
   if (payments.length === 0) {
-    return <EmptyState icon={balanceIcon} title="No payments" />;
+    return <EmptyState icon={balanceIcon} title={t("patients:tabs.noPayments")} />;
   }
 
   return (

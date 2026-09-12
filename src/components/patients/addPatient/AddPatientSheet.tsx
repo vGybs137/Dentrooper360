@@ -16,6 +16,7 @@ import {
   useState,
   type ComponentRef,
 } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Keyboard,
@@ -53,6 +54,7 @@ type StepDirection = "forward" | "back";
 const FOOTER_ESTIMATED_HEIGHT = 76;
 
 export function AddPatientSheet() {
+  const { t } = useTranslation(["patients", "common", "a11y"]);
   const native = useNativeColors();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -200,7 +202,7 @@ export function AddPatientSheet() {
         >
           {step === "appointment" ? (
             <Button
-              accessibilityLabel="Go back to essentials step"
+              accessibilityLabel={t("a11y:backToEssentials")}
               bottomSheet
               className="size-control shrink-0 rounded-control border-strong border-border"
               hitSlop={8}
@@ -238,14 +240,14 @@ export function AddPatientSheet() {
               }
               label={
                 step === "essentials"
-                  ? "Next"
+                  ? t("common:actions.next")
                   : isSubmitting
                     ? isEditing
-                      ? "Saving..."
-                      : "Adding..."
+                      ? t("common:actions.saving")
+                      : t("common:actions.adding")
                     : isEditing
-                      ? "Save"
-                      : "Add"
+                      ? t("common:actions.save")
+                      : t("common:actions.add")
               }
               onPress={step === "essentials" ? handleNext : handleSubmit}
               tone="brand"
@@ -341,10 +343,10 @@ export function AddPatientSheet() {
                 }}
               >
                 <ThemedText variant="title">
-                  {isEditing ? "Edit Patient" : "Add Patient"}
+                  {isEditing ? t("patients:form.editTitle") : t("patients:form.addTitle")}
                 </ThemedText>
                 <Button
-                  accessibilityLabel="Close add patient"
+                  accessibilityLabel={t("a11y:closeAddPatient")}
                   bottomSheet
                   hitSlop={12}
                   onPress={requestClose}

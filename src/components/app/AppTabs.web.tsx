@@ -7,6 +7,7 @@ import {
   type TabTriggerSlotProps,
 } from "expo-router/ui";
 import { StyleSheet, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { Button, ThemedText } from "@/components/ui";
 import { APP_TABS } from "@/constants/navigation";
@@ -14,6 +15,8 @@ import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
 export default function AppTabs() {
+  const { t } = useTranslation("navigation");
+
   return (
     <Tabs>
       <TabSlot style={styles.slot} />
@@ -21,7 +24,7 @@ export default function AppTabs() {
         <CustomTabList>
           {APP_TABS.map((tab) => (
             <TabTrigger key={tab.name} name={tab.name} href={tab.href} asChild>
-              <TabButton>{tab.label}</TabButton>
+              <TabButton>{t(tab.labelKey)}</TabButton>
             </TabTrigger>
           ))}
         </CustomTabList>

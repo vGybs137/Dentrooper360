@@ -1,13 +1,23 @@
 export const DEFAULT_PATIENT_COUNTRY_CODE = "+961";
 
+export const PATIENT_GENDER_VALUES = ["Male", "Female"] as const;
+
+export type PatientGenderValue = (typeof PATIENT_GENDER_VALUES)[number];
+
+/** Stored gender values stay English for DB compatibility; labels are translated in UI. */
 export const PATIENT_GENDER_OPTIONS = [
-  { value: "Male", label: "Male" },
-  { value: "Female", label: "Female" },
+  { value: "Male" as const, labelKey: "patients:form.gender.male" },
+  { value: "Female" as const, labelKey: "patients:form.gender.female" },
 ] as const;
 
-export type PatientGenderValue =
-  (typeof PATIENT_GENDER_OPTIONS)[number]["value"];
+export const PATIENT_FORM_VALIDATION_KEYS = {
+  firstNameRequired: "validation:patients.firstNameRequired",
+  lastNameRequired: "validation:patients.lastNameRequired",
+  countryCodeRequired: "validation:patients.countryCodeRequired",
+  phoneNumberRequired: "validation:patients.phoneRequired",
+} as const;
 
+/** @deprecated Prefer PATIENT_FORM_VALIDATION_KEYS + t() */
 export const PATIENT_FORM_VALIDATION_MESSAGES = {
   firstNameRequired: "First name is required",
   lastNameRequired: "Last name is required",

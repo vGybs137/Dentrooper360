@@ -1,6 +1,7 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { type Href, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import Animated from "react-native-reanimated";
 
@@ -24,6 +25,7 @@ import { semantic } from "@/tokens";
 const VIEWFINDER_MAX = 280;
 
 export default function QrScannerScreen() {
+  const { t } = useTranslation(["auth", "common"]);
   const router = useRouter();
   const { from } = useLocalSearchParams<{ from?: string | string[] }>();
   const fromOnboarding = isFromOnboarding(from);
@@ -153,11 +155,11 @@ export default function QrScannerScreen() {
         latestBarcodeRef.current = data;
         setScanFeedback({
           stage: "error",
-          title: "Invalid QR Code",
-          message: "The scanned QR code is not a valid registration code.",
+          title: t("auth:qr.invalidTitle"),
+          message: t("auth:qr.invalidMessage"),
           onRetry: dismissFeedback,
           onDismiss: dismissFeedback,
-          retryLabel: "Try again",
+          retryLabel: t("common:actions.tryAgain"),
           autoDismissMs: 3000,
         });
         return;
@@ -167,8 +169,8 @@ export default function QrScannerScreen() {
 
       setScanFeedback({
         stage: "loading",
-        title: "Pairing device...",
-        message: "Registering this device with your clinic.",
+        title: t("auth:qr.pairingTitle"),
+        message: t("auth:qr.pairingMessage"),
       });
 
       try {
@@ -187,8 +189,8 @@ export default function QrScannerScreen() {
 
         setScanFeedback({
           stage: "success",
-          title: "Device paired!",
-          message: "Your device has been registered successfully.",
+          title: t("auth:qr.pairedTitle"),
+          message: t("auth:qr.pairedMessage"),
           autoContinueMs: 1500,
           onContinue: () => {
             setScanFeedback(null);
@@ -199,16 +201,15 @@ export default function QrScannerScreen() {
         latestBarcodeRef.current = null;
         setScanFeedback({
           stage: "error",
-          title: "Pairing failed",
-          message:
-            "Unable to register your device. Please check the QR code and try again.",
+          title: t("auth:qr.failedTitle"),
+          message: t("auth:qr.failedMessage"),
           onRetry: dismissFeedback,
           onDismiss: dismissFeedback,
-          retryLabel: "Try again",
+          retryLabel: t("common:actions.tryAgain"),
         });
       }
     },
-    [dismissFeedback, pairMutation, parseValidatedQrPayload, simulateScan, status],
+    [dismissFeedback, pairMutation, simulateScan, status, t],
   );
 
   const frameColor =

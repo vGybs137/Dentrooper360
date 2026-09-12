@@ -5,13 +5,18 @@ import { semantic } from "@/tokens";
 import { ThemedText } from "@/components/ui";
 import { weekdayLabels } from "@/helpers/schedule/weekdayLabels";
 import type { WeekdayIndex } from "@/helpers/schedule/calendar";
+import { useResolvedLocale } from "@/stores";
 
 export type WeekdayHeaderProps = {
   weekStartsOn?: WeekdayIndex;
 };
 
 function WeekdayHeaderComponent({ weekStartsOn = 0 }: WeekdayHeaderProps) {
-  const labels = useMemo(() => weekdayLabels(weekStartsOn), [weekStartsOn]);
+  const locale = useResolvedLocale();
+  const labels = useMemo(
+    () => weekdayLabels(weekStartsOn, locale),
+    [locale, weekStartsOn],
+  );
 
   const rootStyle = useMemo(
     () => ({

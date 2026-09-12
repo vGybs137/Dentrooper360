@@ -1,5 +1,6 @@
 import { type Href, useRouter } from "expo-router";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 import { AuthBottomSheet } from "@/components/app/AuthBottomSheet";
 import { BrandLogo } from "@/components/app/BrandLogo";
@@ -14,6 +15,7 @@ import {
 } from "@/stores";
 
 export default function OnboardingScreen() {
+  const { t } = useTranslation("auth");
   const router = useRouter();
   const splashIntro = useAuthFlowSplashIntro();
   const isLeaving = useAuthFlowIsLeaving();
@@ -32,18 +34,16 @@ export default function OnboardingScreen() {
         <ThemedView space="comfortable" variant="stack">
           <ThemedView space="default" variant="stack">
             <ThemedText align="center" tone="brand" variant="title">
-              Access, manage, and stay in control — wherever you are.
+              {t("onboarding.headline")}
             </ThemedText>
             <ThemedText align="center" tone="muted">
-              On your Desktop:{"\n"}
-              Dentrooper 360 → register product → registration key{"\n"}
-              and scan the QR code available.
+              {t("onboarding.instructions")}
             </ThemedText>
           </ThemedView>
           <Button
             disabled={isLeaving}
             icon={<ThemedIcon name={qrCodeIcon} tone="brand" />}
-            label="Scan QR Code"
+            label={t("onboarding.scanQr")}
             onPress={() => {
               if (isLeaving) {
                 return;

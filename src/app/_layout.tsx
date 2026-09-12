@@ -21,6 +21,7 @@ import {
   ClinicDatabaseBoundary,
   useIsOnClinicAppRoute,
 } from "@/providers/ClinicDatabaseBoundary";
+import { I18nProvider } from "@/providers/I18nProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import {
   ClinicSessionProvider,
@@ -37,28 +38,30 @@ function RootLayout() {
   useTokenRefresh();
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <BlurTargetView ref={blurTargetRef} style={{ flex: 1 }}>
-        <QueryProvider>
-          <ClinicSessionProvider>
-            <ThemeEffects />
-            <BottomSheetModalProvider>
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="index" />
-                <Stack.Screen name="(auth)" options={{ animation: "none" }} />
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="appointments" />
-                <Stack.Screen name="patients" />
-                <Stack.Screen name="payments" />
-                <Stack.Screen name="recalls" />
-              </Stack>
-              <ClinicReadySheets />
-              <ConnectivitySnackbar />
-              <ClinicSwitchOverlay />
-            </BottomSheetModalProvider>
-          </ClinicSessionProvider>
-        </QueryProvider>
-      </BlurTargetView>
-      <ThemeSwitchOverlay blurTargetRef={blurTargetRef} />
+      <I18nProvider>
+        <BlurTargetView ref={blurTargetRef} style={{ flex: 1 }}>
+          <QueryProvider>
+            <ClinicSessionProvider>
+              <ThemeEffects />
+              <BottomSheetModalProvider>
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="index" />
+                  <Stack.Screen name="(auth)" options={{ animation: "none" }} />
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen name="appointments" />
+                  <Stack.Screen name="patients" />
+                  <Stack.Screen name="payments" />
+                  <Stack.Screen name="recalls" />
+                </Stack>
+                <ClinicReadySheets />
+                <ConnectivitySnackbar />
+                <ClinicSwitchOverlay />
+              </BottomSheetModalProvider>
+            </ClinicSessionProvider>
+          </QueryProvider>
+        </BlurTargetView>
+        <ThemeSwitchOverlay blurTargetRef={blurTargetRef} />
+      </I18nProvider>
     </GestureHandlerRootView>
   );
 }

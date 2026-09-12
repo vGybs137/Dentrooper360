@@ -1,3 +1,5 @@
+import { t } from "@/i18n";
+
 import dayjs from "dayjs";
 
 import { hasRecallAppointment } from "@/helpers/recalls/recallKpis";
@@ -24,24 +26,24 @@ export function recallStatusLabel(recall: RecallStatusLabelInput): string {
     if (start && !Number.isNaN(start.getTime())) {
       const days = daysFromToday(start);
       if (days != null && days <= 0) {
-        return "Done";
+        return t("recalls:status.done");
       }
     }
-    return "Scheduled";
+    return t("recalls:status.scheduled");
   }
 
   const due = recall.dueDate;
   if (!due || Number.isNaN(due.getTime())) {
-    return "—";
+    return t("common:empty.emDash");
   }
 
   if (dayjs(due).isBefore(dayjs().startOf("day"))) {
-    return "Overdue";
+    return t("recalls:kpis.overdue");
   }
 
   if (dayjs(due).isSame(dayjs(), "day")) {
-    return "Due today";
+    return t("recalls:kpis.dueToday");
   }
 
-  return "Upcoming";
+  return t("recalls:status.upcoming");
 }

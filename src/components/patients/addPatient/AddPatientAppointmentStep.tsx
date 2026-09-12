@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { useTranslation } from "react-i18next";
 import { useWatch } from "react-hook-form";
 import { Switch, View } from "react-native";
 
@@ -23,6 +24,7 @@ function AddPatientAppointmentStepComponent({
   onInputFocus,
   onInputBlur,
 }: AddPatientAppointmentStepProps) {
+  const { t } = useTranslation(["patients", "a11y"]);
   const native = useNativeColors();
   const { control, setValue, appointmentFormState } = formState;
   const addAppointment = useWatch({ control, name: "addAppointment" });
@@ -35,10 +37,10 @@ function AddPatientAppointmentStepComponent({
             tone={addAppointment ? "default" : "muted"}
             variant="body"
           >
-            Add appointment
+            {t("patients:form.addAppointment")}
           </ThemedText>
           <Switch
-            accessibilityLabel="Add appointment"
+            accessibilityLabel={t("a11y:addAppointment")}
             onValueChange={(value) =>
               setValue("addAppointment", value, {
                 shouldDirty: true,

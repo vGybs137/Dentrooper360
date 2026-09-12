@@ -1,0 +1,14 @@
+{
+  "generic": {
+    "pleaseTryAgain": "يرجى المحاولة مرة أخرى."
+  },
+  "auth": {
+    "sessionRefresh": "لا يوجد رمز تحديث محفوظ."
+  },
+  "delete": {
+    "unable": "تعذّر الحذف"
+  },
+  "form": {
+    "endAfterStart": "يجب أن يكون وقت الانتهاء بعد وقت البدء."
+  }
+}

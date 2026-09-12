@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
@@ -69,6 +70,7 @@ export function PatientAppointmentsTab({
   error = null,
   onAddAppointment,
 }: PatientAppointmentsTabProps) {
+  const { t } = useTranslation(["patients", "schedule"]);
   const native = useNativeColors();
   const listRef = useRef<FlatListType<PatientAppointmentDayGroup>>(null);
 
@@ -105,7 +107,7 @@ export function PatientAppointmentsTab({
   if (error) {
     return (
       <ThemedText className="px-page py-stack" tone="alert" variant="body">
-        Unable to load appointments for this patient.
+        {t("patients:tabs.appointmentsError")}
       </ThemedText>
     );
   }
@@ -115,11 +117,11 @@ export function PatientAppointmentsTab({
       <EmptyState
         action={
           onAddAppointment
-            ? { label: "Add appointment", onPress: onAddAppointment }
+            ? { label: t("patients:menu.addAppointment"), onPress: onAddAppointment }
             : null
         }
         icon={calendarIcon}
-        title="No appointments"
+        title={t("patients:tabs.noAppointments")}
       />
     );
   }

@@ -1,0 +1,84 @@
+{
+  "actions": {
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "tryAgain": "Try again",
+    "retry": "Retry",
+    "retrying": "Retrying…",
+    "done": "Done",
+    "ok": "OK",
+    "back": "Back",
+    "edit": "Edit",
+    "delete": "Delete",
+    "next": "Next",
+    "save": "Save",
+    "add": "Add",
+    "saving": "Saving...",
+    "adding": "Adding...",
+    "scrollToTop": "Scroll to top",
+    "openMenu": "Open menu",
+    "dismissMenu": "Dismiss menu",
+    "dismissConfirmation": "Dismiss confirmation",
+    "dismiss": "Dismiss",
+    "menuTitle": "Actions",
+    "select": "Select…"
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search...",
+    "clear": "Clear search",
+    "noMatch": "No {{entity}} match \"{{query}}\".",
+    "noMatchFallback": "No {{entity}} match your search.",
+    "unable": "Unable to search {{entity}}.",
+    "noResults": "No results found.",
+    "searchEntity": "Search {{entity}}..."
+  },
+  "empty": {
+    "emDash": "—",
+    "notSet": "Not set",
+    "none": "None",
+    "noneScheduled": "None scheduled",
+    "noNote": "No note",
+    "noNotes": "No notes",
+    "noPhone": "No phone",
+    "noEmail": "No email",
+    "noAddress": "No address",
+    "loadingEllipsis": "Loading…"
+  },
+  "brand": {
+    "markA11y": "Dentrooper 360 mark",
+    "wordmarkA11y": "Dentrooper 360",
+    "from": "From",
+    "company": "Sol-T Solutions"
+  },
+  "confirm": {
+    "deleteTitle": "Delete",
+    "deleteMessage": "Are you sure you want to delete this.",
+    "yesDelete": "Yes, delete",
+    "deleting": "Deleting..."
+  },
+  "labels": {
+    "note": "Note",
+    "date": "Date",
+    "time": "Time",
+    "method": "Method",
+    "type": "Type",
+    "payment": "Payment"
+  },
+  "vip": {
+    "vip": "VIP",
+    "normal": "Normal",
+    "status": "VIP status"
+  },
+  "patient": {
+    "unnamed": "Unnamed patient",
+    "unknown": "Unknown patient",
+    "thisPatient": "this patient",
+    "newPatient": "New patient"
+  },
+  "pleaseTryAgain": "Please try again.",
+  "days": {
+    "oneDay": "1 day",
+    "nDays": "{{count}} days"
+  }
+}

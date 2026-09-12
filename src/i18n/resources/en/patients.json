@@ -1,0 +1,117 @@
+{
+  "list": {
+    "title": "Patients",
+    "empty": "No patients",
+    "loadError": "Unable to load patients.",
+    "add": "Add patient"
+  },
+  "search": {
+    "placeholder": "Search patients...",
+    "entityLabel": "patients"
+  },
+  "kpis": {
+    "total": "Total Patients",
+    "newThisMonth": "New this month",
+    "upcomingVisits": "Upcoming visits",
+    "outstandingBalance": "Outstanding balance",
+    "newBadge": "New"
+  },
+  "card": {
+    "nextVisit": "Next visit",
+    "balance": "Balance",
+    "nextVisitNone": "None",
+    "balanceEmpty": "---"
+  },
+  "form": {
+    "addTitle": "Add Patient",
+    "editTitle": "Edit Patient",
+    "firstName": "First name",
+    "fatherName": "Father name",
+    "lastName": "Last name",
+    "zip": "Zip",
+    "phoneNumber": "Phone number",
+    "age": "Age",
+    "selectGender": "Select gender",
+    "searchGender": "Search gender...",
+    "email": "Email",
+    "referralSource": "Referral source",
+    "address": "Address",
+    "vipPatient": "VIP patient",
+    "addAppointment": "Add appointment",
+    "gender": {
+      "male": "Male",
+      "female": "Female"
+    },
+    "nameIssues": "Name issues",
+    "phoneIssues": "Phone issues",
+    "duplicate": "A patient named {{name}} with this phone number already exists.",
+    "error": {
+      "load": "Unable to load patient.",
+      "selectLocation": "Select a location for the appointment.",
+      "unableAdd": "Unable to add patient",
+      "unableUpdate": "Unable to update patient"
+    }
+  },
+  "details": {
+    "tabs": {
+      "overview": "Overview",
+      "appointments": "Appointments",
+      "services": "Services",
+      "payments": "Payments"
+    },
+    "information": "Patient Information",
+    "timeline": "Patient Timeline",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "balance": "Balance",
+    "noBalance": "No balance",
+    "noReferral": "No referral",
+    "referralSource": "Referral source",
+    "birthDate": "Birth date",
+    "fileDate": "File date",
+    "nextAppointment": "Next appointment",
+    "cta": {
+      "message": "Message",
+      "call": "Call",
+      "appointment": "Appointment"
+    },
+    "emptyTitle": "No patient",
+    "backToPatients": "Back to patients",
+    "loadError": "Unable to load this patient.",
+    "notFound": "This patient could not be found.",
+    "deleteTitle": "Delete patient",
+    "deleteMessage": "Are you sure you want to delete {{name}}?",
+    "deletingTitle": "Deleting...",
+    "deletingMessage": "Removing this patient and related records.",
+    "deletedTitle": "Patient deleted",
+    "deletedMessage": "The patient and related records were removed.",
+    "unableDelete": "Unable to delete"
+  },
+  "tabs": {
+    "noAppointments": "No appointments",
+    "appointmentsError": "Unable to load appointments for this patient.",
+    "noServices": "No services",
+    "servicesError": "Unable to load services for this patient.",
+    "noPayments": "No payments",
+    "paymentsError": "Unable to load payments for this patient."
+  },
+  "service": {
+    "fee": "Fee",
+    "posted": "Posted",
+    "notPosted": "Not posted",
+    "fallbackName": "Service"
+  },
+  "menu": {
+    "addAppointment": "Add appointment"
+  },
+  "contact": {
+    "noPhoneTitle": "No phone number",
+    "noPhoneMessage": "Add a phone number for this patient to use this action.",
+    "whatsappError": "Unable to open WhatsApp",
+    "callError": "Unable to place call"
+  },
+  "delete": {
+    "outstandingBalance": "This patient has an outstanding balance and cannot be deleted until it is cleared."
+  }
+}

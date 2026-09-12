@@ -2,11 +2,16 @@ import { Q } from "@nozbe/watermelondb";
 import { useDatabase } from "@nozbe/watermelondb/react";
 
 import type Service from "@/database/models/Service";
+import { pickLocalizedName } from "@/helpers/i18n/pickLocalizedName";
 import { useObservedQuery } from "@/hooks/data/useObservedQuery";
+import { t } from "@/i18n";
 import { useAuthUser } from "@/stores/authStore";
+import { useResolvedLocale } from "@/stores";
 
 const SERVICE_COLUMNS = [
   "name_en",
+  "name_ar",
+  "name_fr",
   "date",
   "fee",
   "status",
@@ -38,25 +43,11 @@ export type UsePatientServicesResult = {
   error: Error | null;
 };
 
-function mapService(record: Service): PatientServiceItem {
-  return {
-    id: record.id,
-    name: record.nameEn?.trim() || record.code?.trim() || "Service",
-    date: record.date,
-    fee: record.fee,
-    status: record.status,
-    color: record.color ?? record.statusColor ?? null,
-    code: record.code,
-    note: record.note,
-    isPosted: record.isPosted,
-    postedDate: record.postedDate,
-  };
-}
-
 export function usePatientServices(
   patientId: string | undefined,
 ): UsePatientServicesResult {
   const database = useDatabase();
+  const locale = useResolvedLocale();
   const providerId = useAuthUser()?.id ?? null;
   const enabled = Boolean(patientId && providerId);
 
@@ -65,7 +56,7 @@ export function usePatientServices(
     PatientServiceItem[]
   >({
     enabled,
-    deps: [patientId, providerId],
+    deps: [patientId, providerId, locale],
     columns: SERVICE_COLUMNS,
     emptyData: EMPTY_SERVICES,
     getQuery: () =>
@@ -74,7 +65,22 @@ export function usePatientServices(
         Q.where("provider_id", providerId!),
         Q.sortBy("date", Q.desc),
       ),
-    mapRecords: (records) => records.map(mapService),
+    mapRecords: (records) =>
+      records.map((record) => ({
+        id: record.id,
+        name:
+          pickLocalizedName(record, locale) ||
+          record.code?.trim() ||
+          t("patients:service.fallbackName"),
+        date: record.date,
+        fee: record.fee,
+        status: record.status,
+        color: record.color ?? record.statusColor ?? null,
+        code: record.code,
+        note: record.note,
+        isPosted: record.isPosted,
+        postedDate: record.postedDate,
+      })),
   });
 
   return { services: data, isLoading, error };

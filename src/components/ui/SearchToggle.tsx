@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/Button";
 import { ThemedIcon } from "@/components/ui/ThemedIcon";
@@ -12,11 +13,12 @@ export type SearchToggleProps = {
 
 function SearchToggleComponent({
   openSearch,
-  accessibilityLabel = "Search",
+  accessibilityLabel,
 }: SearchToggleProps) {
+  const { t } = useTranslation("a11y");
   return (
     <Button
-      accessibilityLabel={accessibilityLabel}
+      accessibilityLabel={accessibilityLabel ?? t("search")}
       hitSlop={8}
       onPress={openSearch}
       size="none"

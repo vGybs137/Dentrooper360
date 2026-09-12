@@ -1,5 +1,6 @@
 import { Image } from "expo-image";
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, View } from "react-native";
 import Animated, {
   cancelAnimation,
@@ -11,9 +12,9 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
+import { cn } from "@/helpers/ui/cn";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
-import { cn } from "@/helpers/ui/cn";
 
 const markLogo = require("../../assets/no-text-logo.svg");
 const wordmarkLogo = require("../../assets/text-logo.svg");
@@ -56,11 +57,14 @@ export function FeedbackOverlay({
   isRetrying = false,
   autoContinueMs = 1800,
   autoDismissMs = autoContinueMs,
-  continueLabel = "Continue",
-  retryLabel = "Try again",
+  continueLabel,
+  retryLabel,
 }: FeedbackOverlayProps) {
+  const { t } = useTranslation(["common", "a11y"]);
   const native = useNativeColors();
   const didAutoActionRef = useRef(false);
+  const resolvedContinueLabel = continueLabel ?? t("common:actions.continue");
+  const resolvedRetryLabel = retryLabel ?? t("common:actions.tryAgain");
 
   const isSuccess = stage === "success";
   const isError = stage === "error";
@@ -98,14 +102,14 @@ export function FeedbackOverlay({
     }
 
     didAutoActionRef.current = false;
-    const t = setTimeout(() => {
+    const timeout = setTimeout(() => {
       if (!didAutoActionRef.current) {
         didAutoActionRef.current = true;
         onContinue();
       }
     }, autoContinueMs);
 
-    return () => clearTimeout(t);
+    return () => clearTimeout(timeout);
   }, [autoContinueMs, isSuccess, onContinue]);
 
   useEffect(() => {
@@ -114,14 +118,14 @@ export function FeedbackOverlay({
     }
 
     didAutoActionRef.current = false;
-    const t = setTimeout(() => {
+    const timeout = setTimeout(() => {
       if (!didAutoActionRef.current) {
         didAutoActionRef.current = true;
         onDismiss();
       }
     }, autoDismissMs);
 
-    return () => clearTimeout(t);
+    return () => clearTimeout(timeout);
   }, [autoDismissMs, isError, onDismiss]);
 
   function handleContinue() {
@@ -218,7 +222,9 @@ export function FeedbackOverlay({
           {isError ? (
             <Button
               disabled={isRetrying}
-              label={isRetrying ? "Retrying..." : retryLabel}
+              label={
+                isRetrying ? t("common:actions.retrying") : resolvedRetryLabel
+              }
               onPress={handleRetry}
               size="md"
               style={{ minWidth: 130 }}
@@ -226,7 +232,7 @@ export function FeedbackOverlay({
             />
           ) : isSuccess ? (
             <Button
-              label={continueLabel}
+              label={resolvedContinueLabel}
               onPress={handleContinue}
               size="md"
               style={{ minWidth: 130 }}
@@ -236,13 +242,13 @@ export function FeedbackOverlay({
 
         <View className="items-center">
           <Image
-            accessibilityLabel="Dentrooper 360"
+            accessibilityLabel={t("a11y:brandWordmark")}
             contentFit="contain"
             source={wordmarkLogo}
             style={{ width: 150, height: 22 }}
           />
           <Image
-            accessibilityLabel="Dentrooper 360 mark"
+            accessibilityLabel={t("a11y:brandMark")}
             contentFit="contain"
             source={markLogo}
             style={{

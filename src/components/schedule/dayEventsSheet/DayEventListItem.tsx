@@ -1,5 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { memo, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { useNativeColors } from "@/theme";
 import { primitives, semantic } from "@/tokens";
@@ -18,6 +19,7 @@ export type DayEventListItemProps = {
 
 /** Day-events sheet row — title, type color rail, and time range. */
 function DayEventListItemComponent({ event }: DayEventListItemProps) {
+  const { t } = useTranslation("schedule");
   const native = useNativeColors();
   const hourFormat = useHourFormat();
   const router = useRouter();
@@ -96,7 +98,7 @@ function DayEventListItemComponent({ event }: DayEventListItemProps) {
         <View style={bodyStyle}>
           <Text numberOfLines={1} style={titleStyle}>
             <Text style={{ color: native.foreground.default }}>
-              {event.title.trim() || "Appointment"}
+              {event.title.trim() || t("schedule:add.defaultSubject")}
             </Text>
             {event.typeName ? (
               <Text style={{ color: native.foreground.default }}> - </Text>

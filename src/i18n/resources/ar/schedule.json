@@ -1,0 +1,86 @@
+{
+  "add": {
+    "title": "إضافة موعد",
+    "searchPatients": "البحث عن مرضى...",
+    "noPatientsMatch": "لا يوجد مرضى يطابقون بحثك.",
+    "unableLoadPatients": "تعذّر تحميل المرضى.",
+    "subjectPlaceholder": "موضوع الموعد",
+    "selectType": "اختر النوع",
+    "selectLocation": "اختر الموقع",
+    "notesPlaceholder": "إضافة ملاحظات",
+    "subjectIssues": "مشكلات الموضوع",
+    "defaultSubject": "موعد"
+  },
+  "edit": {
+    "title": "تعديل الموعد"
+  },
+  "quickAdd": {
+    "placeholder": "إضافة موعد...",
+    "error": {
+      "enterSubject": "أدخل موضوع الموعد.",
+      "noLocations": "لا توجد مواقع متاحة. أضف موقعًا أولاً.",
+      "outsideDay": "هذا اليوم خارج أيام عملك.",
+      "outsideHours": "هذا الوقت خارج ساعات عملك لهذا اليوم.",
+      "unableAdd": "تعذّرت إضافة الموعد"
+    }
+  },
+  "daySheet": {
+    "addAppointment": "إضافة موعد",
+    "empty": "لا توجد مواعيد"
+  },
+  "details": {
+    "title": "تفاصيل الموعد",
+    "subject": "الموضوع",
+    "location": "الموقع",
+    "noType": "لا يوجد نوع",
+    "noLocation": "لا يوجد موقع",
+    "noPatientLinked": "لا يوجد مريض مرتبط",
+    "emptyTitle": "لا يوجد موعد",
+    "backToSchedule": "العودة إلى الجدول",
+    "loadError": "تعذّر تحميل هذا الموعد.",
+    "notFound": "تعذّر العثور على هذا الموعد.",
+    "deletingTitle": "جارٍ الحذف...",
+    "deletingMessage": "إزالة هذا الموعد.",
+    "deletedTitle": "تم حذف الموعد",
+    "deletedMessage": "تمت إزالة الموعد."
+  },
+  "search": {
+    "placeholder": "البحث حسب الموضوع...",
+    "error": "تعذّر البحث عن المواعيد.",
+    "noMatch": "لا توجد مواعيد تطابق \"{{query}}\".",
+    "noMatchFilters": "لا توجد مواعيد تطابق عوامل التصفية المحددة.",
+    "noTypes": "لا تتوفر أنواع مواعيد.",
+    "time": {
+      "all": "كل الأوقات",
+      "pastWeek": "الأسبوع الماضي",
+      "nextWeek": "الأسبوع القادم",
+      "past3Months": "آخر 3 أشهر",
+      "next3Months": "الـ 3 أشهر القادمة",
+      "custom": "مخصص"
+    }
+  },
+  "freeHours": {
+    "loading": "جارٍ تحميل الساعات المتاحة...",
+    "loadError": "تعذّر تحميل الساعات المتاحة.",
+    "noWorkingHours": "لا توجد ساعات عمل لهذا اليوم.",
+    "noFreeTime": "لا يوجد وقت متاح ضمن ساعات عملك.",
+    "outsideTitle": "خارج ساعات العمل",
+    "overlapTitle": "مواعيد متداخلة",
+    "title": "ساعات متاحة · {{date}}"
+  },
+  "form": {
+    "error": {
+      "signInCreate": "يجب تسجيل الدخول لإنشاء موعد.",
+      "signInUpdate": "يجب تسجيل الدخول لتحديث هذا الموعد.",
+      "outsideHours": "هذا الوقت خارج ساعات عملك. اختر وقتًا ضمن جدولك.",
+      "selectLocation": "اختر موقعًا.",
+      "ownOnly": "يمكنك تعديل مواعيدك فقط.",
+      "unableAdd": "تعذّرت إضافة الموعد",
+      "unableUpdate": "تعذّر تحديث الموعد"
+    }
+  },
+  "calendar": {
+    "today": "اليوم",
+    "moreEvents": "+{{count}} المزيد"
+  }
+}

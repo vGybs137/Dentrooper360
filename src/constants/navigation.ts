@@ -14,9 +14,16 @@ export function getWebTabBarInset(rootSegment: string | undefined) {
     : 0;
 }
 
+export type AppTabName =
+  | "schedule"
+  | "patients"
+  | "payments"
+  | "recalls"
+  | "settings";
+
 export type AppTabDefinition = {
-  name: string;
-  label: string;
+  name: AppTabName;
+  labelKey: `navigation:tabs.${AppTabName}`;
   href: `/(tabs)/${string}`;
   sf: { default: string; selected: string };
   md: string;
@@ -25,35 +32,35 @@ export type AppTabDefinition = {
 export const APP_TABS = [
   {
     name: "schedule",
-    label: "Schedule",
+    labelKey: "navigation:tabs.schedule",
     href: "/(tabs)/schedule",
     sf: { default: "calendar", selected: "calendar" },
     md: "event",
   },
   {
     name: "patients",
-    label: "Patients",
+    labelKey: "navigation:tabs.patients",
     href: "/(tabs)/patients",
     sf: { default: "person.2", selected: "person.2.fill" },
     md: "group",
   },
   {
     name: "payments",
-    label: "Payments",
+    labelKey: "navigation:tabs.payments",
     href: "/(tabs)/payments",
     sf: { default: "creditcard", selected: "creditcard.fill" },
     md: "payments",
   },
   {
     name: "recalls",
-    label: "Recalls",
+    labelKey: "navigation:tabs.recalls",
     href: "/(tabs)/recalls",
     sf: { default: "phone", selected: "phone.fill" },
     md: "phone",
   },
   {
     name: "settings",
-    label: "Settings",
+    labelKey: "navigation:tabs.settings",
     href: "/(tabs)/settings",
     sf: { default: "gearshape", selected: "gearshape.fill" },
     md: "settings",

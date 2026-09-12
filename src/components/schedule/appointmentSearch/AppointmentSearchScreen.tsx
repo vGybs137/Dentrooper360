@@ -1,5 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useWindowDimensions, View } from "react-native";
 import Animated, {
   runOnJS,
@@ -60,14 +61,17 @@ function groupResultsByDay(results: MonthDayEventPreview[]): SearchDayGroup[] {
   return groups;
 }
 
-const APPOINTMENT_SEARCH_EMPTY_COPY = {
-  error: "Unable to search appointments.",
-  noMatch: (trimmedQuery: string) =>
-    `No appointments match "${trimmedQuery}".`,
-  noMatchFallback: "No appointments match the selected filters.",
-} as const;
-
 export function AppointmentSearchScreen() {
+  const { t } = useTranslation(["schedule", "common", "a11y"]);
+  const emptyCopy = useMemo(
+    () => ({
+      error: t("schedule:search.error"),
+      noMatch: (trimmedQuery: string) =>
+        t("schedule:search.noMatch", { query: trimmedQuery }),
+      noMatchFallback: t("schedule:search.noMatchFilters"),
+    }),
+    [t],
+  );
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const router = useRouter();
@@ -374,7 +378,7 @@ export function AppointmentSearchScreen() {
   const listEmptyComponent = useMemo(
     () => (
       <EntitySearchEmptyContent
-        copy={APPOINTMENT_SEARCH_EMPTY_COPY}
+        copy={emptyCopy}
         error={error}
         hasQuery={hasActiveFilters}
         isLoading={isLoading}
@@ -433,10 +437,10 @@ export function AppointmentSearchScreen() {
       />
 
       <SearchBar
-        accessibilityLabel="Search appointments"
+        accessibilityLabel={t("a11y:searchAppointments")}
         autoFocus
         onChangeText={setQuery}
-        placeholder="Search by subject..."
+        placeholder={t("schedule:search.placeholder")}
         value={query}
       />
     </ThemedView>

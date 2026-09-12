@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { memo, useMemo, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
 import { ThemedText, ThemedView } from "@/components/ui";
@@ -27,6 +28,7 @@ function AppointmentSearchDayGroupComponent<T extends { id: string }>({
   items,
   renderItem,
 }: AppointmentSearchDayGroupProps<T>) {
+  const { t } = useTranslation("schedule");
   const dayLabel = useMemo(() => formatSearchDayLabel(dayKey), [dayKey]);
   const isToday = useMemo(
     () => sameDay(parseDayKey(dayKey), todayCalendarDate()),
@@ -39,7 +41,7 @@ function AppointmentSearchDayGroupComponent<T extends { id: string }>({
         {isToday ? (
           <ThemedView className="rounded-control bg-surface-inverse px-inline-compact py-stack-compact">
             <ThemedText className="font-bold" tone="inverse" variant="label">
-              Today
+              {t("calendar.today")}
             </ThemedText>
           </ThemedView>
         ) : null}

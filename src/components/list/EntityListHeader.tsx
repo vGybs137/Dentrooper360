@@ -1,4 +1,5 @@
 import { memo, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
 import {
@@ -21,13 +22,14 @@ export type EntityListHeaderProps = {
 };
 
 function EntityListHeaderComponent({
-  addAccessibilityLabel = "Add",
+  addAccessibilityLabel,
   addIcon,
   onAdd,
   openSearch,
   searchAccessibilityLabel,
   title,
 }: EntityListHeaderProps) {
+  const { t } = useTranslation(["common", "a11y"]);
   const rootStyle = useMemo(
     () => ({
       flexDirection: "row" as const,
@@ -47,7 +49,9 @@ function EntityListHeaderComponent({
       <View className="flex-row items-center gap-1">
         {onAdd && addIcon ? (
           <Button
-            accessibilityLabel={addAccessibilityLabel}
+            accessibilityLabel={
+              addAccessibilityLabel ?? t("common:actions.add")
+            }
             hitSlop={8}
             onPress={onAdd}
             size="sm"
@@ -64,7 +68,10 @@ function EntityListHeaderComponent({
           </Button>
         ) : null}
         <SearchToggle
-          accessibilityLabel={searchAccessibilityLabel ?? `Search ${title.toLowerCase()}`}
+          accessibilityLabel={
+            searchAccessibilityLabel ??
+            t("a11y:searchEntity", { title })
+          }
           openSearch={openSearch}
         />
       </View>

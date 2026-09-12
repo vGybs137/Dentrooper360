@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import Animated from "react-native-reanimated";
 
@@ -38,6 +39,7 @@ export function SettingsSelectRow<T extends string | number>({
   last?: boolean;
   instantCollapse?: boolean;
 }) {
+  const { t } = useTranslation("common");
   const optionGap = semantic.space.gap.compact;
   const contentHeight =
     options.length * OPTION_ROW_HEIGHT +
@@ -88,7 +90,7 @@ export function SettingsSelectRow<T extends string | number>({
             }}
           >
             <ThemedText className="font-semibold" tone="brand" variant="label">
-              {selected?.label ?? "—"}
+              {selected?.label ?? t("empty.emDash")}
             </ThemedText>
             <Animated.View style={chevronStyle}>
               <ThemedIcon

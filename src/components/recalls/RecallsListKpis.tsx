@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { KpiCard } from "@/components/ui";
 import {
@@ -13,6 +14,7 @@ import {
   weekStartIcon,
 } from "@/constants";
 import type { RecallListKpis } from "@/helpers/recalls/recallKpis";
+import { useResolvedLocale } from "@/stores";
 
 type RecallsListKpisProps = {
   kpis: RecallListKpis;
@@ -26,9 +28,11 @@ const KPI_THEMES = {
 } as const;
 
 function RecallsListKpisComponent({ kpis }: RecallsListKpisProps) {
+  const { t } = useTranslation(["recalls", "common"]);
+  const locale = useResolvedLocale();
   const ratioValue =
     kpis.overdueRatioPercent == null
-      ? "—"
+      ? t("common:empty.emDash")
       : `${kpis.overdueRatioPercent}`;
 
   return (
@@ -37,14 +41,14 @@ function RecallsListKpisComponent({ kpis }: RecallsListKpisProps) {
         <KpiCard
           accent={KPI_THEMES.overdue.accent}
           icon={KPI_THEMES.overdue.icon}
-          label="Overdue"
-          value={kpis.overdue.toLocaleString()}
+          label={t("recalls:kpis.overdue")}
+          value={kpis.overdue.toLocaleString(locale)}
         />
         <KpiCard
           accent={KPI_THEMES.dueToday.accent}
           icon={KPI_THEMES.dueToday.icon}
-          label="Due today"
-          value={kpis.dueToday.toLocaleString()}
+          label={t("recalls:kpis.dueToday")}
+          value={kpis.dueToday.toLocaleString(locale)}
         />
       </View>
 
@@ -52,13 +56,13 @@ function RecallsListKpisComponent({ kpis }: RecallsListKpisProps) {
         <KpiCard
           accent={KPI_THEMES.dueThisWeek.accent}
           icon={KPI_THEMES.dueThisWeek.icon}
-          label="Due this week"
-          value={kpis.dueThisWeek.toLocaleString()}
+          label={t("recalls:kpis.dueThisWeek")}
+          value={kpis.dueThisWeek.toLocaleString(locale)}
         />
         <KpiCard
           accent={KPI_THEMES.overdueRatio.accent}
           icon={KPI_THEMES.overdueRatio.icon}
-          label="Overdue ratio"
+          label={t("recalls:kpis.overdueRatio")}
           value={ratioValue}
           valueSuffix={kpis.overdueRatioPercent == null ? undefined : "%"}
         />

@@ -1,5 +1,6 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { KpiCard, type KpiTrend } from "@/components/ui";
 import {
@@ -17,6 +18,7 @@ import {
   resolveProviderCurrencySymbol,
 } from "@/helpers/payments/currency";
 import type { PatientListKpis } from "@/helpers/patients/patientKpis";
+import { useResolvedLocale } from "@/stores";
 
 type PatientsListKpisProps = {
   kpis: PatientListKpis;
@@ -30,12 +32,15 @@ const KPI_THEMES = {
   outstandingBalance: { accent: accentYellow, icon: balanceIcon },
 } as const;
 
-function buildNewPatientsTrend(kpis: PatientListKpis): KpiTrend | null {
+function buildNewPatientsTrend(
+  kpis: PatientListKpis,
+  newBadgeLabel: string,
+): KpiTrend | null {
   const { newPatientsMoMGrowth, newThisMonth } = kpis;
 
   if (newPatientsMoMGrowth == null) {
     if (newThisMonth > 0) {
-      return { label: "New", tone: "success" };
+      return { label: newBadgeLabel, tone: "success" };
     }
 
     return null;
@@ -64,7 +69,12 @@ function PatientsListKpisComponent({
   currencySymbol,
   kpis,
 }: PatientsListKpisProps) {
-  const newPatientsTrend = buildNewPatientsTrend(kpis);
+  const { t } = useTranslation("patients");
+  const locale = useResolvedLocale();
+  const newPatientsTrend = useMemo(
+    () => buildNewPatientsTrend(kpis, t("kpis.newBadge")),
+    [kpis, t],
+  );
   const resolvedCurrencySymbol = resolveProviderCurrencySymbol(currencySymbol);
 
   return (
@@ -73,15 +83,15 @@ function PatientsListKpisComponent({
         <KpiCard
           accent={KPI_THEMES.totalPatients.accent}
           icon={KPI_THEMES.totalPatients.icon}
-          label="Total Patients"
-          value={kpis.totalPatients.toLocaleString()}
+          label={t("kpis.total")}
+          value={kpis.totalPatients.toLocaleString(locale)}
         />
         <KpiCard
           accent={KPI_THEMES.newThisMonth.accent}
           icon={KPI_THEMES.newThisMonth.icon}
-          label="New this month"
+          label={t("kpis.newThisMonth")}
           trend={newPatientsTrend}
-          value={kpis.newThisMonth.toLocaleString()}
+          value={kpis.newThisMonth.toLocaleString(locale)}
         />
       </View>
 
@@ -89,14 +99,16 @@ function PatientsListKpisComponent({
         <KpiCard
           accent={KPI_THEMES.upcomingVisits.accent}
           icon={KPI_THEMES.upcomingVisits.icon}
-          label="Upcoming visits"
-          value={kpis.upcomingVisits.toLocaleString()}
+          label={t("kpis.upcomingVisits")}
+          value={kpis.upcomingVisits.toLocaleString(locale)}
         />
         <KpiCard
           accent={KPI_THEMES.outstandingBalance.accent}
           icon={KPI_THEMES.outstandingBalance.icon}
-          label="Outstanding balance"
-          value={formatProviderCurrencyAmount(kpis.totalOutstandingBalance)}
+          label={t("kpis.outstandingBalance")}
+          value={formatProviderCurrencyAmount(kpis.totalOutstandingBalance, {
+            locale,
+          })}
           valueSuffix={resolvedCurrencySymbol}
         />
       </View>

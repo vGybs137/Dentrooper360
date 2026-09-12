@@ -1,6 +1,7 @@
 import { DatabaseProvider } from "@nozbe/watermelondb/react";
 import { useSegments } from "expo-router";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 import { ThemedText } from "@/components/ui";
@@ -71,11 +72,12 @@ function ClinicSessionSubtree({ children }: { children: ReactNode }) {
 }
 
 function ClinicSessionOpening() {
+  const { t } = useTranslation(["auth", "a11y"]);
   const native = useNativeColors();
 
   return (
     <View
-      accessibilityLabel="Opening clinic"
+      accessibilityLabel={t("a11y:openingClinic")}
       accessibilityViewIsModal
       style={[
         StyleSheet.absoluteFill,
@@ -90,7 +92,7 @@ function ClinicSessionOpening() {
     >
       <ActivityIndicator color={native.brand.default} size="large" />
       <ThemedText align="center" className="font-semibold" variant="body">
-        Opening clinic…
+        {t("auth:clinic.opening")}
       </ThemedText>
     </View>
   );

@@ -2,6 +2,7 @@ import { useRouter, type Href } from "expo-router";
 import { useCallback, useMemo } from "react";
 import { ActivityIndicator, ScrollView, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
+import { useTranslation } from "react-i18next";
 
 import type { PatientOverviewField } from "@/components/patients/patientDetails/PatientOverviewTab";
 import { PatientOverviewTab } from "@/components/patients/patientDetails/PatientOverviewTab";
@@ -21,7 +22,8 @@ import {
   useRecallDetails,
   type RecallDetailsData,
 } from "@/hooks/recalls/useRecallDetails";
-import { useAddAppointmentStore } from "@/stores";
+import { t as translate } from "@/i18n";
+import { useAddAppointmentStore, useResolvedLocale } from "@/stores";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
@@ -31,30 +33,36 @@ export type RecallDetailsScreenProps = {
 
 function formatIntervalDays(value: number): string {
   if (!Number.isFinite(value)) {
-    return "—";
+    return translate("common:empty.emDash");
   }
 
   if (value === 1) {
-    return "1 day";
+    return translate("common:days.oneDay");
   }
 
-  return `${value} days`;
+  return translate("common:days.nDays", { count: value });
 }
 
 function buildRecallInformationFields(
   recall: RecallDetailsData,
 ): PatientOverviewField[] {
-  const serviceCode = displayOrEmpty(recall.serviceCode, "No code");
+  const serviceCode = displayOrEmpty(
+    recall.serviceCode,
+    translate("recalls:details.noCode"),
+  );
 
   return [
-    { label: "Service", value: recall.serviceName },
-    { label: "Service code", ...serviceCode },
-    { label: "Status", value: recallStatusLabel(recall) },
+    { label: translate("recalls:details.service"), value: recall.serviceName },
+    { label: translate("recalls:details.serviceCode"), ...serviceCode },
+    {
+      label: translate("recalls:details.status"),
+      value: recallStatusLabel(recall),
+    },
   ];
 }
 
 function buildRecallNote(recall: RecallDetailsData) {
-  const note = displayOrEmpty(recall.note, "No note");
+  const note = displayOrEmpty(recall.note, translate("common:empty.noNote"));
   return {
     value: note.value,
     empty: note.empty,
@@ -69,29 +77,30 @@ function buildRecallTimelineFields(
   const appointmentDate = formatDisplayDate(recall.appointmentStartTime);
   const appointmentStatus = displayOrEmpty(
     recall.appointmentStatus,
-    "No appointment",
+    translate("recalls:details.noAppointment"),
   );
 
   return [
-    { label: "Due date", ...dueDate },
-    { label: "Recall date", ...recallDate },
+    { label: translate("recalls:details.dueDate"), ...dueDate },
+    { label: translate("recalls:details.recallDate"), ...recallDate },
     {
-      label: "Interval",
+      label: translate("recalls:details.interval"),
       value: formatIntervalDays(recall.interval),
     },
     {
-      label: "Reminder",
+      label: translate("recalls:details.reminder"),
       value: formatIntervalDays(recall.reminderInterval),
     },
     {
-      label: "Appointment",
+      label: translate("recalls:details.appointment"),
       value: hasRecallAppointment(recall.appointmentId)
         ? appointmentDate.value
-        : "Not linked",
-      empty: !hasRecallAppointment(recall.appointmentId) || appointmentDate.empty,
+        : translate("recalls:details.notLinked"),
+      empty:
+        !hasRecallAppointment(recall.appointmentId) || appointmentDate.empty,
     },
     {
-      label: "Appt status",
+      label: translate("recalls:details.apptStatus"),
       ...appointmentStatus,
       empty:
         !hasRecallAppointment(recall.appointmentId) || appointmentStatus.empty,
@@ -104,23 +113,32 @@ function buildPatientContactFields(
 ): PatientOverviewField[] {
   const phone = displayOrEmpty(
     formatPatientPhone(patient.countryCode, patient.phoneNumber),
-    "No phone",
+    translate("common:empty.noPhone"),
   );
-  const email = displayOrEmpty(patient.emailAddress, "No email");
-  const address = displayOrEmpty(patient.address, "No address");
+  const email = displayOrEmpty(
+    patient.emailAddress,
+    translate("common:empty.noEmail"),
+  );
+  const address = displayOrEmpty(
+    patient.address,
+    translate("common:empty.noAddress"),
+  );
 
   return [
-    { label: "Phone", ...phone },
-    { label: "Email", ...email },
-    { label: "Address", ...address },
+    { label: translate("patients:details.phone"), ...phone },
+    { label: translate("patients:details.email"), ...email },
+    { label: translate("patients:details.address"), ...address },
     {
-      label: "VIP status",
-      value: patient.isVip ? "VIP" : "Normal",
+      label: translate("common:vip.status"),
+      value: patient.isVip
+        ? translate("common:vip.vip")
+        : translate("common:vip.normal"),
     },
   ];
 }
 
 export function RecallDetailsScreen({ recallId }: RecallDetailsScreenProps) {
+  const { t } = useTranslation(["recalls", "patients", "common"]);
   const native = useNativeColors();
   const router = useRouter();
   const slideDuration = getAuthSlideDuration();
@@ -128,25 +146,26 @@ export function RecallDetailsScreen({ recallId }: RecallDetailsScreenProps) {
     (state) => state.openWithPatient,
   );
   const { recall, patient, isLoading, error } = useRecallDetails(recallId);
+  const locale = useResolvedLocale();
 
   const recallInformation = useMemo(
     () => (recall ? buildRecallInformationFields(recall) : []),
-    [recall],
+    [locale, recall],
   );
 
   const recallNote = useMemo(
     () => (recall ? buildRecallNote(recall) : null),
-    [recall],
+    [locale, recall],
   );
 
   const recallTimeline = useMemo(
     () => (recall ? buildRecallTimelineFields(recall) : []),
-    [recall],
+    [locale, recall],
   );
 
   const patientContact = useMemo(
     () => (patient ? buildPatientContactFields(patient) : []),
-    [patient],
+    [locale, patient],
   );
 
   const goBack = useCallback(() => {
@@ -211,14 +230,14 @@ export function RecallDetailsScreen({ recallId }: RecallDetailsScreenProps) {
         variant="screen"
       >
         <EmptyState
-          action={{ label: "Back to recalls", onPress: goBack }}
+          action={{ label: t("recalls:details.backToRecalls"), onPress: goBack }}
           description={
             error
-              ? "Unable to load this recall."
-              : "This recall could not be found."
+              ? t("recalls:details.loadError")
+              : t("recalls:details.notFound")
           }
           icon={clockIcon}
-          title="No recall"
+          title={t("recalls:details.emptyTitle")}
         />
       </ThemedView>
     );
@@ -260,14 +279,14 @@ export function RecallDetailsScreen({ recallId }: RecallDetailsScreenProps) {
           >
             <PatientOverviewTab
               information={recallInformation}
-              informationTitle="Recall Information"
+              informationTitle={t("recalls:details.information")}
               note={recallNote}
               timeline={recallTimeline}
-              timelineTitle="Recall Timeline"
+              timelineTitle={t("recalls:details.timeline")}
             />
             <PatientOverviewTab
               information={patientContact}
-              informationTitle="Patient Information"
+              informationTitle={t("recalls:details.patientInformation")}
               timeline={[]}
             />
           </ScrollView>

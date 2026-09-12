@@ -1,4 +1,5 @@
 import { memo, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { View, type StyleProp, type ViewStyle } from "react-native";
 import Animated, {
   Extrapolation,
@@ -70,6 +71,7 @@ function DayCellChips({
   events: MonthDayEventPreview[];
   availableHeight: number;
 }) {
+  const { t } = useTranslation("schedule");
   const { visibleEvents, overflowCount, chipsGapStyle } = useVisibleChips(
     events,
     availableHeight,
@@ -86,7 +88,7 @@ function DayCellChips({
           numberOfLines={1}
           style={{ fontSize: 9, lineHeight: MONTH_VIEW_CHIP_LINE_HEIGHT }}
         >
-          +{overflowCount} more
+          {t("calendar.moreEvents", { count: overflowCount })}
         </ThemedText>
       ) : null}
     </View>
@@ -112,6 +114,7 @@ function DayCellEventsCrossfade({
   events: MonthDayEventPreview[];
   availableHeight: number;
 }) {
+  const { t } = useTranslation("schedule");
   const openProgress = useSheetOpenProgress();
   const { visibleEvents, overflowCount, chipsGapStyle } = useVisibleChips(
     events,
@@ -154,7 +157,7 @@ function DayCellEventsCrossfade({
             numberOfLines={1}
             style={{ fontSize: 9, lineHeight: MONTH_VIEW_CHIP_LINE_HEIGHT }}
           >
-            +{overflowCount} more
+            {t("calendar.moreEvents", { count: overflowCount })}
           </ThemedText>
         ) : null}
       </Animated.View>
@@ -178,10 +181,30 @@ function DayCellComponent({
   onDayPress,
   style,
 }: DayCellProps) {
+  const { t } = useTranslation(["a11y"]);
   const native = useNativeColors();
   const selected = useIsCalendarDaySelected(cell.dayKey);
   const muted = !cell.inCurrentMonth;
   const isSunday = weekdayIndex(cell.date) === 0;
+
+  const accessibilityLabel = useMemo(() => {
+    if (cell.isToday && events.length > 0) {
+      return t("a11y:dayCellTodayEvents", {
+        dayKey: cell.dayKey,
+        count: events.length,
+      });
+    }
+    if (cell.isToday) {
+      return t("a11y:dayCellToday", { dayKey: cell.dayKey });
+    }
+    if (events.length > 0) {
+      return t("a11y:dayCellEvents", {
+        dayKey: cell.dayKey,
+        count: events.length,
+      });
+    }
+    return cell.dayKey;
+  }, [cell.dayKey, cell.isToday, events.length, t]);
 
   const dayNumberStyle = useMemo(
     () => ({
@@ -239,9 +262,7 @@ function DayCellComponent({
 
   return (
     <Button
-      accessibilityLabel={`${cell.dayKey}${cell.isToday ? ", today" : ""}${
-        events.length ? `, ${events.length} events` : ""
-      }`}
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ selected }}
       nestedScroll
       onPress={() => {

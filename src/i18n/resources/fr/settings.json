@@ -1,0 +1,99 @@
+{
+  "title": "Paramètres",
+  "profile": {
+    "signedIn": "Connecté",
+    "noEmail": "Pas d'e-mail",
+    "signingOut": "Déconnexion…",
+    "noLocation": "Pas de lieu",
+    "logoutTitle": "Se déconnecter",
+    "logoutConfirm": "Oui, se déconnecter",
+    "logoutMessage": "Voulez-vous vraiment vous déconnecter de cet appareil ?",
+    "logoutMessageUnsynced": "Des modifications locales n'ont pas encore été synchronisées. La déconnexion tentera d'abord une synchronisation, puis effacera cet appareil même en cas d'échec.",
+    "logoutError": "Impossible de terminer la déconnexion. Veuillez réessayer."
+  },
+  "clinics": {
+    "section": "Cliniques",
+    "loading": "Chargement des cliniques…",
+    "empty": "Aucune appartenance à une clinique pour ce compte.",
+    "fallbackName": "Clinique {{idPrefix}}…",
+    "currentDescription": "Connecté sur cet appareil",
+    "switchDescription": "Appuyez pour changer et synchroniser cette clinique",
+    "inactiveDescription": "Adhésion inactive — changement indisponible",
+    "switchTitle": "Changer de clinique",
+    "switchConfirm": "Oui, changer de clinique",
+    "switchMessage": "Passer à {{clinic}} ? Les modifications locales sont d'abord synchronisées. Le téléchargement des données peut prendre un moment.",
+    "switchMessageFallback": "Changer de clinique ?",
+    "switchErrorGeneric": "Impossible de changer de clinique. Veuillez réessayer.",
+    "error": {
+      "noActive": "Aucune clinique active n'est associée à cet appareil.",
+      "disabled": "Le changement de clinique est désactivé sur cette version.",
+      "notMember": "Vous n'êtes pas membre de la clinique demandée.",
+      "syncBeforeSwitch": "Synchronisez la clinique actuelle avant de changer. Les modifications locales n'ont pas pu être envoyées.",
+      "stillPending": "Synchronisez la clinique actuelle avant de changer. Des modifications locales sont encore en attente.",
+      "coldNeedsOnline": "Les données locales de cette clinique ont été effacées pour libérer de l'espace. Connectez-vous pour les télécharger à nouveau."
+    }
+  },
+  "preferences": {
+    "section": "Préférences utilisateur",
+    "appearance": {
+      "label": "Apparence",
+      "system": "Système",
+      "light": "Clair",
+      "dark": "Sombre"
+    },
+    "appearanceDesc": "Thème de couleurs de l'application",
+    "defaultView": {
+      "label": "Vue calendrier par défaut",
+      "lastUsed": "Dernière utilisée"
+    },
+    "defaultViewDesc": "S'ouvre au lancement de l'agenda",
+    "hourFormat": {
+      "label": "Format de l'heure",
+      "12h": "12 heures",
+      "24h": "24 heures"
+    },
+    "hourFormatDesc": "Horaires du calendrier et des rendez-vous",
+    "weekStartsOn": {
+      "label": "La semaine commence le",
+      "sunday": "Dimanche",
+      "monday": "Lundi"
+    },
+    "weekStartsOnDesc": "Calendriers mois et semaine",
+    "language": {
+      "label": "Langue",
+      "system": "Système",
+      "en": "English",
+      "fr": "Français",
+      "ar": "العربية"
+    },
+    "languageDesc": "Langue d'affichage de l'application"
+  },
+  "sync": {
+    "section": "Sync & données",
+    "connection": "Connexion",
+    "connectionOfflineDesc": "Hors réseau — les modifications restent sur cet appareil",
+    "connectionOnlineDesc": "L'appareil est connecté",
+    "localChanges": "Modifications locales",
+    "localChangesPendingDesc": "Les modifications en attente se synchroniseront une fois en ligne",
+    "localChangesUpToDateDesc": "Toutes les données sont à jour",
+    "pending": "En attente",
+    "upToDate": "À jour",
+    "lastSynced": "Dernière sync",
+    "lastSyncedDesc": "Dernière synchronisation réussie",
+    "wifiOnly": "Sync Wi-Fi uniquement",
+    "wifiOnlyOnDesc": "La sync via données mobiles est bloquée",
+    "wifiOnlyOffDesc": "Autoriser la sync via Wi-Fi et données mobiles",
+    "syncData": "Synchroniser les données",
+    "unavailableOffline": "Indisponible hors ligne",
+    "connectWifi": "Connectez-vous au Wi-Fi ou autorisez les données mobiles",
+    "forceSyncDesc": "Forcer la synchronisation des données",
+    "syncButton": "Synchroniser",
+    "syncing": "Synchronisation…",
+    "clearData": "Effacer les données de l'application",
+    "clearDataDesc": "Temporaire — efface les données locales et revient à la configuration",
+    "clearButton": "Effacer",
+    "clearing": "Effacement…",
+    "clearConfirm": "Oui, effacer les données",
+    "clearMessage": "Cela supprime définitivement les données locales de la clinique, les préférences et la connexion sur cet appareil. Les modifications non synchronisées seront perdues."
+  }
+}

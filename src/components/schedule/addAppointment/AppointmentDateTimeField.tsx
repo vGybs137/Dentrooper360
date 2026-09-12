@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
 import { Button, ThemedIcon, ThemedText } from "@/components/ui";
@@ -64,6 +65,7 @@ export function AppointmentDateTimeField({
   expanded,
   onExpandedChange,
 }: AppointmentDateTimeFieldProps) {
+  const { t } = useTranslation("a11y");
   const hourFormat = useHourFormat();
   const timePattern = dayjsTimePattern(hourFormat);
 
@@ -82,7 +84,7 @@ export function AppointmentDateTimeField({
             <ThemedIcon dimension={20} name={clockIcon} tone="muted" />
 
             <SelectionPill
-              accessibilityLabel="Change appointment date"
+              accessibilityLabel={t("a11y:changeAppointmentDate")}
               active={expanded === "calendar"}
               onPress={() => toggle("calendar")}
             >
@@ -92,7 +94,7 @@ export function AppointmentDateTimeField({
 
           <View className="ml-8 flex-row items-center gap-2">
             <SelectionPill
-              accessibilityLabel="Change start time"
+              accessibilityLabel={t("a11y:changeStartTime")}
               active={expanded === "start"}
               onPress={() => toggle("start")}
             >
@@ -110,7 +112,7 @@ export function AppointmentDateTimeField({
             />
 
             <SelectionPill
-              accessibilityLabel="Change end time"
+              accessibilityLabel={t("a11y:changeEndTime")}
               active={expanded === "end"}
               onPress={() => toggle("end")}
             >

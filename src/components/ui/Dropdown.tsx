@@ -1,4 +1,5 @@
 import { useRef, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, View, type LayoutRectangle } from "react-native";
 
 import { chevronDisclosureIcon } from "@/constants";
@@ -30,15 +31,17 @@ export function Dropdown({
   value,
   options,
   onChange,
-  placeholder = "Select…",
+  placeholder,
   label,
   leading,
   borderless = false,
   showChevron = true,
 }: DropdownProps) {
+  const { t } = useTranslation(["common", "a11y"]);
   const triggerRef = useRef<View>(null);
   const [open, setOpen] = useState(false);
   const [menuLayout, setMenuLayout] = useState<LayoutRectangle | null>(null);
+  const resolvedPlaceholder = placeholder ?? t("common:actions.select");
 
   const selected = options.find((option) => option.value === value);
   const hasValue = value !== "";
@@ -82,7 +85,9 @@ export function Dropdown({
               tone={hasValue ? "default" : "muted"}
               variant="body"
             >
-              {hasValue ? (selected?.label ?? placeholder) : placeholder}
+              {hasValue
+                ? (selected?.label ?? resolvedPlaceholder)
+                : resolvedPlaceholder}
             </ThemedText>
             {showChevron ? (
               <ThemedIcon
@@ -102,7 +107,7 @@ export function Dropdown({
         visible={open}
       >
         <Button
-          accessibilityLabel="Dismiss menu"
+          accessibilityLabel={t("a11y:dismissMenu")}
           className="flex-1 rounded-none"
           onPress={closeMenu}
           ripple={false}

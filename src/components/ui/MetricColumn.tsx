@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/ThemedIcon";
 import { ThemedText } from "@/components/ui/ThemedText";
 
-export type MetricColumnAlign = "left" | "center" | "right";
+export type MetricColumnAlign = "start" | "center" | "end" | "left" | "right";
 
 export type MetricColumnProps = {
   align?: MetricColumnAlign;
@@ -17,20 +17,27 @@ export type MetricColumnProps = {
 };
 
 const ALIGN_CLASS: Record<MetricColumnAlign, string> = {
+  start: "items-start",
   left: "items-start",
   center: "items-center",
+  end: "items-end",
   right: "items-end",
 };
 
-const VALUE_ALIGN: Record<MetricColumnAlign, "left" | "center" | "right"> = {
-  left: "left",
+const VALUE_ALIGN: Record<
+  MetricColumnAlign,
+  "start" | "center" | "end" | "left" | "right"
+> = {
+  start: "start",
+  left: "start",
   center: "center",
-  right: "right",
+  end: "end",
+  right: "end",
 };
 
 /** Compact icon + label + value column used in list rows. */
 export function MetricColumn({
-  align = "left",
+  align = "start",
   icon,
   iconSize = 14,
   label,

@@ -1,0 +1,11 @@
+{
+  "patients": {
+    "firstNameRequired": "Le prénom est obligatoire",
+    "lastNameRequired": "Le nom de famille est obligatoire",
+    "countryCodeRequired": "L'indicatif est obligatoire",
+    "phoneRequired": "Le numéro de téléphone est obligatoire"
+  },
+  "schedule": {
+    "subjectRequired": "L'objet du rendez-vous est obligatoire."
+  }
+}

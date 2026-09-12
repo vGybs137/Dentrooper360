@@ -1,4 +1,6 @@
+import { useSegments } from "expo-router";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, View } from "react-native";
 import Animated, {
   Easing,
@@ -7,7 +9,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useSegments } from "expo-router";
 
 import { ThemedIcon } from "@/components/ui/ThemedIcon";
 import { ThemedText } from "@/components/ui/ThemedText";
@@ -32,6 +33,7 @@ export function Snackbar({
   variant,
   onDismiss,
 }: SnackbarProps) {
+  const { t } = useTranslation(["a11y", "sync"]);
   const native = useNativeColors();
   const insets = useSafeAreaInsets();
   const segments = useSegments();
@@ -80,7 +82,9 @@ export function Snackbar({
         ]}
       >
         <ThemedIcon
-          accessibilityLabel={isOffline ? "Offline" : "Online"}
+          accessibilityLabel={
+            isOffline ? t("a11y:offline") : t("a11y:online")
+          }
           name={isOffline ? wifiOffIcon : wifiIcon}
           tone={isOffline ? "alert" : "success"}
         />
@@ -90,7 +94,7 @@ export function Snackbar({
         </ThemedText>
 
         <Pressable
-          accessibilityLabel="Dismiss"
+          accessibilityLabel={t("a11y:dismiss")}
           accessibilityRole="button"
           hitSlop={12}
           onPress={onDismiss}

@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Keyboard, Platform, View, type View as RNView } from "react-native";
 import Animated, {
   Easing,
@@ -41,9 +42,10 @@ function SearchBarComponent({
   value,
   onChangeText,
   autoFocus = false,
-  placeholder = "Search...",
-  accessibilityLabel = "Search",
+  placeholder,
+  accessibilityLabel,
 }: SearchBarProps) {
+  const { t } = useTranslation(["common", "a11y"]);
   const native = useNativeColors();
   const insets = useSafeAreaInsets();
   const reservedRef = useRef<RNView>(null);
@@ -52,6 +54,9 @@ function SearchBarComponent({
   const [focused, setFocused] = useState(autoFocus);
   const focusProgress = useSharedValue(0);
   const liftSV = useSharedValue(0);
+  const resolvedPlaceholder = placeholder ?? t("common:search.placeholder");
+  const resolvedAccessibilityLabel =
+    accessibilityLabel ?? t("a11y:search");
 
   const verticalPad = semantic.space.stack.compact;
   const bottomPad = verticalPad + insets.bottom;
@@ -191,7 +196,7 @@ function SearchBarComponent({
           />
           <ThemedText
             as="input"
-            accessibilityLabel={accessibilityLabel}
+            accessibilityLabel={resolvedAccessibilityLabel}
             autoCapitalize="none"
             autoCorrect={false}
             autoFocus={autoFocus}
@@ -201,14 +206,14 @@ function SearchBarComponent({
             onBlur={() => setFocused(false)}
             onChangeText={onChangeText}
             onFocus={() => setFocused(true)}
-            placeholder={placeholder}
+            placeholder={resolvedPlaceholder}
             returnKeyType="search"
             style={inputChromeStyle}
             value={value}
           />
           {canClear ? (
             <Button
-              accessibilityLabel="Clear search"
+              accessibilityLabel={t("a11y:clearSearch")}
               hitSlop={8}
               onPress={handleClear}
               size="none"

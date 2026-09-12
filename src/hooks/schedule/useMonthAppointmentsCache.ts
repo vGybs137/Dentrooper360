@@ -22,6 +22,7 @@ import {
   APPOINTMENTS_CACHE_LOADER_DELAY_MS,
 } from "@/hooks/schedule/appointmentsWindowCacheShared";
 import { useAuthUser } from "@/stores/authStore";
+import { useResolvedLocale } from "@/stores";
 import {
   addMonths,
   parseMonthKey,
@@ -98,6 +99,7 @@ export function useMonthAppointmentsCache({
   isDragging,
 }: UseMonthAppointmentsCacheOptions): UseMonthAppointmentsCacheResult {
   const database = useDatabase();
+  const locale = useResolvedLocale();
   const providerId = useAuthUser()?.id ?? null;
   const initialSeedRef = useRef<ReturnType<typeof seedFromPrefetch> | null>(
     null,
@@ -289,7 +291,7 @@ export function useMonthAppointmentsCache({
       .observe()
       .subscribe({
         next: (types) => {
-          typesRef.current = buildAppointmentTypesMap(types);
+          typesRef.current = buildAppointmentTypesMap(types, locale);
           if (appointmentsByMonthRef.current.size > 0) {
             republishAllMonths();
           }
@@ -297,7 +299,7 @@ export function useMonthAppointmentsCache({
       });
 
     return () => subscription.unsubscribe();
-  }, [republishAllMonths]);
+  }, [database, locale, republishAllMonths]);
 
   useEffect(() => {
     if (isDragging) {

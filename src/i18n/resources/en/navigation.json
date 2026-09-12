@@ -1,0 +1,17 @@
+{
+  "tabs": {
+    "schedule": "Schedule",
+    "patients": "Patients",
+    "payments": "Payments",
+    "recalls": "Recalls",
+    "settings": "Settings"
+  },
+  "schedule": {
+    "calendar": "Calendar",
+    "view": {
+      "month": "Month",
+      "week": "Week",
+      "day": "Day"
+    }
+  }
+}

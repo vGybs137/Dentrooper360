@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useFormState, useWatch } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
 import {
@@ -23,8 +24,6 @@ import {
   AppointmentDateTimeField,
   type AppointmentDateTimeExpanded,
 } from "./AppointmentDateTimeField";
-
-const SUBJECT_REQUIRED_MESSAGE = "Appointment subject is required.";
 
 function fieldErrorMessage(message: unknown): string | null {
   return typeof message === "string" && message.trim().length > 0
@@ -55,6 +54,7 @@ function AddAppointmentDetailsStepComponent({
   onNotesFocus,
   onNotesBlur,
 }: AddAppointmentDetailsStepProps) {
+  const { t } = useTranslation(["schedule", "common", "validation", "a11y"]);
   const handleInputFocus = onInputFocus ?? onNotesFocus;
   const handleInputBlur = onInputBlur ?? onNotesBlur;
   const [expandedField, setExpandedField] = useState<ExpandedField>(null);
@@ -108,14 +108,14 @@ function AddAppointmentDetailsStepComponent({
 
   const typeOptions: DropdownOption[] = useMemo(
     () => [
-      { value: "", label: "None" },
+      { value: "", label: t("common:empty.none") },
       ...options.types.map((type) => ({
         value: type.id,
         label: type.name,
         color: type.color,
       })),
     ],
-    [options.types],
+    [options.types, t],
   );
 
   const selectedType = typeOptions.find((option) => option.value === typeId);
@@ -159,8 +159,8 @@ function AddAppointmentDetailsStepComponent({
   return (
     <ThemedView space="default" variant="stack">
       <PatientFormSection
-        errorAccessibilityLabel="Show subject errors"
-        errorTitle="Subject issues"
+        errorAccessibilityLabel={t("a11y:showSubjectErrors")}
+        errorTitle={t("schedule:add.subjectIssues")}
         errors={subjectSectionErrors}
         showErrors={showSubjectErrors}
       >
@@ -175,11 +175,11 @@ function AddAppointmentDetailsStepComponent({
             name="subject"
             onBlur={subjectFocus.handleBlur}
             onFocus={subjectFocus.handleFocus}
-            placeholder="Appointment subject"
+            placeholder={t("schedule:add.subjectPlaceholder")}
             rules={
               selectedPatient
                 ? undefined
-                : { required: SUBJECT_REQUIRED_MESSAGE }
+                : { required: t("validation:schedule.subjectRequired") }
             }
             value={patientSubject ?? undefined}
           />
@@ -210,7 +210,7 @@ function AddAppointmentDetailsStepComponent({
         }
         onToggle={() => togglePanel("type")}
         options={typeOptions}
-        placeholder="Select type"
+        placeholder={t("schedule:add.selectType")}
         value={typeId}
         visible={expandedField === "type"}
       />
@@ -227,7 +227,7 @@ function AddAppointmentDetailsStepComponent({
         }
         onToggle={() => togglePanel("location")}
         options={locationOptions}
-        placeholder="Select location"
+        placeholder={t("schedule:add.selectLocation")}
         value={locationId}
         visible={expandedField === "location"}
       />
@@ -253,7 +253,7 @@ function AddAppointmentDetailsStepComponent({
             numberOfLines={4}
             onBlur={notesFocus.handleBlur}
             onFocus={notesFocus.handleFocus}
-            placeholder="Add notes"
+            placeholder={t("schedule:add.notesPlaceholder")}
           />
         </View>
       </View>

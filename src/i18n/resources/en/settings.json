@@ -1,0 +1,99 @@
+{
+  "title": "Settings",
+  "profile": {
+    "signedIn": "Signed in",
+    "noEmail": "No Email",
+    "signingOut": "Signing out…",
+    "noLocation": "No location",
+    "logoutTitle": "Log out",
+    "logoutConfirm": "Yes, log out",
+    "logoutMessage": "Are you sure you want to log out of this device.",
+    "logoutMessageUnsynced": "You have local changes that haven't synced yet. Logging out will try to sync first, then clear this device even if sync fails.",
+    "logoutError": "Unable to finish logging out. Please try again."
+  },
+  "clinics": {
+    "section": "Clinics",
+    "loading": "Loading clinics…",
+    "empty": "No clinic memberships found for this account.",
+    "fallbackName": "Clinic {{idPrefix}}…",
+    "currentDescription": "Signed in on this device",
+    "switchDescription": "Tap to switch and sync this clinic",
+    "inactiveDescription": "Membership inactive — switching unavailable",
+    "switchTitle": "Switch clinic",
+    "switchConfirm": "Yes, switch clinic",
+    "switchMessage": "Switch to {{clinic}}? Local changes sync first. Downloading clinic data may take a moment.",
+    "switchMessageFallback": "Switch clinics?",
+    "switchErrorGeneric": "Unable to switch clinics. Please try again.",
+    "error": {
+      "noActive": "No active clinic is paired on this device.",
+      "disabled": "Clinic switching is disabled on this build.",
+      "notMember": "You are not a member of the requested clinic.",
+      "syncBeforeSwitch": "Sync the current clinic before switching. Local changes could not be uploaded.",
+      "stillPending": "Sync the current clinic before switching. Local changes are still pending.",
+      "coldNeedsOnline": "This clinic’s local data was cleared to free space. Connect online to download it again."
+    }
+  },
+  "preferences": {
+    "section": "User preferences",
+    "appearance": {
+      "label": "Appearance",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "appearanceDesc": "App color scheme",
+    "defaultView": {
+      "label": "Default calendar view",
+      "lastUsed": "Last used"
+    },
+    "defaultViewDesc": "Opens when you launch Schedule",
+    "hourFormat": {
+      "label": "Hour format",
+      "12h": "12-hour",
+      "24h": "24-hour"
+    },
+    "hourFormatDesc": "Calendar and appointment times",
+    "weekStartsOn": {
+      "label": "Week starts on",
+      "sunday": "Sunday",
+      "monday": "Monday"
+    },
+    "weekStartsOnDesc": "Month and week calendars",
+    "language": {
+      "label": "Language",
+      "system": "System",
+      "en": "English",
+      "fr": "Français",
+      "ar": "العربية"
+    },
+    "languageDesc": "App display language"
+  },
+  "sync": {
+    "section": "Sync & data",
+    "connection": "Connection",
+    "connectionOfflineDesc": "No network — changes stay on this device",
+    "connectionOnlineDesc": "Device is connected",
+    "localChanges": "Local changes",
+    "localChangesPendingDesc": "Pending changes will sync when you're online",
+    "localChangesUpToDateDesc": "All data is up to date",
+    "pending": "Pending",
+    "upToDate": "Up to date",
+    "lastSynced": "Last synced",
+    "lastSyncedDesc": "Last successful sync",
+    "wifiOnly": "Sync on Wi-Fi only",
+    "wifiOnlyOnDesc": "Mobile data sync is blocked",
+    "wifiOnlyOffDesc": "Allow sync over Wi-Fi and mobile data",
+    "syncData": "Sync data",
+    "unavailableOffline": "Unavailable while offline",
+    "connectWifi": "Connect to Wi-Fi or allow mobile data",
+    "forceSyncDesc": "Force sync application data",
+    "syncButton": "Sync",
+    "syncing": "Syncing…",
+    "clearData": "Clear application data",
+    "clearDataDesc": "Temporary — wipe local data and return to setup",
+    "clearButton": "Clear",
+    "clearing": "Clearing…",
+    "clearConfirm": "Yes, clear data",
+    "clearMessage": "This permanently deletes local clinic data, preferences, and sign-in on this device. Unsynced changes will be lost."
+  }
+}

@@ -45,6 +45,7 @@ export {
   addressIcon,
   ageIcon,
   appearanceIcon,
+  languageIcon,
   addAppointmentIcon,
   balanceIcon,
   calendarIcon,
@@ -52,6 +53,7 @@ export {
   chevronDisclosureIcon,
   chevronDownIcon,
   chevronLeftIcon,
+  chevronRightIcon,
   chevronUpIcon,
   clockIcon,
   closeIcon,
@@ -83,8 +85,10 @@ export {
 } from "./icons";
 export {
   DEFAULT_PATIENT_COUNTRY_CODE,
+  PATIENT_FORM_VALIDATION_KEYS,
   PATIENT_FORM_VALIDATION_MESSAGES,
   PATIENT_GENDER_OPTIONS,
+  PATIENT_GENDER_VALUES,
 } from "./patientForm";
 export type { PatientGenderValue } from "./patientForm";
 export {
@@ -107,6 +111,7 @@ export {
 } from "./schedule";
 export {
   AUTH_STORE_KEY,
+  LOCALE_PREFERENCES_STORE_KEY,
   SCHEDULE_PREFERENCES_STORE_KEY,
   THEME_PREFERENCES_STORE_KEY,
 } from "./storage";

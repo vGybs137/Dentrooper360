@@ -1,0 +1,11 @@
+{
+  "patients": {
+    "firstNameRequired": "الاسم الأول مطلوب",
+    "lastNameRequired": "اسم العائلة مطلوب",
+    "countryCodeRequired": "الرمز مطلوب",
+    "phoneRequired": "رقم الهاتف مطلوب"
+  },
+  "schedule": {
+    "subjectRequired": "موضوع الموعد مطلوب."
+  }
+}

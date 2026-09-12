@@ -74,7 +74,7 @@ function AppointmentSearchResultItemComponent({
   return (
     <Button
       accessibilityLabel={`${event.title}${event.typeName ? ` - ${event.typeName}` : ""}, ${timeRange}`}
-      className="flex-row items-stretch gap-stack-compact overflow-hidden py-stack pl-inline"
+      className="flex-row items-stretch gap-stack-compact overflow-hidden py-stack ps-inline"
       onPress={() => router.push(`/appointments/${event.id}` as Href)}
       ripple={false}
       size="none"

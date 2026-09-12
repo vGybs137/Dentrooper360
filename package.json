@@ -27,6 +27,7 @@
     "expo-image": "~57.0.3",
     "expo-linear-gradient": "~57.0.1",
     "expo-linking": "~57.0.7",
+    "expo-localization": "^57.0.1",
     "expo-router": "~57.0.15",
     "expo-secure-store": "~57.0.1",
     "expo-splash-screen": "~57.0.7",
@@ -34,11 +35,13 @@
     "expo-symbols": "~57.0.2",
     "expo-system-ui": "~57.0.2",
     "expo-web-browser": "~57.0.2",
+    "i18next": "^26.4.2",
     "nativewind": "^4.2.6",
     "prettier-plugin-tailwindcss": "^0.5.14",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.85.0",
+    "react-i18next": "^17.0.13",
     "react-native": "0.86.2",
     "react-native-calendars": "^1.1314.0",
     "react-native-date-picker": "^5.0.13",
@@ -73,7 +76,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "test:hardening": "npx --yes tsx scripts/run-hardening-tests.mts"
+    "test:hardening": "npx --yes tsx scripts/run-hardening-tests.mts",
+    "i18n:check": "npx --yes tsx scripts/check-i18n-keys.mts"
   },
   "private": true
 }

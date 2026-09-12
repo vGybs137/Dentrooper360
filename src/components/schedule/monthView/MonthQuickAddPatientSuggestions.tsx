@@ -1,4 +1,5 @@
 import { memo, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 import { SearchHighlightText } from "@/components/ui";
@@ -61,6 +62,7 @@ function MonthQuickAddPatientSuggestionsComponent({
   searchQuery,
   onSelect,
 }: MonthQuickAddPatientSuggestionsProps) {
+  const { t } = useTranslation(["common", "a11y"]);
   const native = useNativeColors();
   const maxHeight = ROW_MIN_HEIGHT * Math.min(patients.length, MAX_VISIBLE_ROWS);
 
@@ -85,7 +87,7 @@ function MonthQuickAddPatientSuggestionsComponent({
         {patients.map((patient, index) => {
           const phone =
             formatPatientPhone(patient.countryCode, patient.phoneNumber) ??
-            "No phone";
+            t("common:empty.noPhone");
 
           return (
             <View key={patient.id}>
@@ -93,7 +95,7 @@ function MonthQuickAddPatientSuggestionsComponent({
                 <View className="h-px w-full bg-border-subtle" />
               ) : null}
               <Pressable
-                accessibilityLabel={`Select ${patient.displayName}, ${phone}`}
+                accessibilityLabel={t("a11y:selectPatientSuggestion", { name: patient.displayName, phone })}
                 accessibilityRole="button"
                 onPress={() => onSelect(patient)}
                 style={({ pressed }) => ({

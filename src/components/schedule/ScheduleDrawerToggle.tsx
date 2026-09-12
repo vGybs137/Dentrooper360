@@ -1,5 +1,6 @@
 import { memo, useCallback } from "react";
 import { useNavigation } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 import { Button, ThemedIcon } from "@/components/ui";
 import { semantic } from "@/tokens";
@@ -11,6 +12,7 @@ const menuIcon = {
 } as const;
 
 function ScheduleDrawerToggleComponent() {
+  const { t } = useTranslation("a11y");
   const navigation = useNavigation();
 
   const openDrawer = useCallback(() => {
@@ -19,7 +21,7 @@ function ScheduleDrawerToggleComponent() {
 
   return (
     <Button
-      accessibilityLabel="Open calendar views"
+      accessibilityLabel={t("a11y:openCalendarViews")}
       hitSlop={8}
       onPress={openDrawer}
       size="none"

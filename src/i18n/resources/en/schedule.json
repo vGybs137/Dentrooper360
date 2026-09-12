@@ -1,0 +1,86 @@
+{
+  "add": {
+    "title": "Add Appointment",
+    "searchPatients": "Search patients...",
+    "noPatientsMatch": "No patients match your search.",
+    "unableLoadPatients": "Unable to load patients.",
+    "subjectPlaceholder": "Appointment subject",
+    "selectType": "Select type",
+    "selectLocation": "Select location",
+    "notesPlaceholder": "Add notes",
+    "subjectIssues": "Subject issues",
+    "defaultSubject": "Appointment"
+  },
+  "edit": {
+    "title": "Edit Appointment"
+  },
+  "quickAdd": {
+    "placeholder": "Add appointment...",
+    "error": {
+      "enterSubject": "Enter an appointment subject.",
+      "noLocations": "No locations are available. Add a location first.",
+      "outsideDay": "This day is outside your working days.",
+      "outsideHours": "This time is outside your working hours for this day.",
+      "unableAdd": "Unable to add appointment"
+    }
+  },
+  "daySheet": {
+    "addAppointment": "Add appointment",
+    "empty": "No appointments"
+  },
+  "details": {
+    "title": "Appointment Details",
+    "subject": "Subject",
+    "location": "Location",
+    "noType": "No type",
+    "noLocation": "No location",
+    "noPatientLinked": "No patient linked",
+    "emptyTitle": "No appointment",
+    "backToSchedule": "Back to schedule",
+    "loadError": "Unable to load this appointment.",
+    "notFound": "This appointment could not be found.",
+    "deletingTitle": "Deleting...",
+    "deletingMessage": "Removing this appointment.",
+    "deletedTitle": "Appointment deleted",
+    "deletedMessage": "The appointment was removed."
+  },
+  "search": {
+    "placeholder": "Search by subject...",
+    "error": "Unable to search appointments.",
+    "noMatch": "No appointments match \"{{query}}\".",
+    "noMatchFilters": "No appointments match the selected filters.",
+    "noTypes": "No appointment types available.",
+    "time": {
+      "all": "All time",
+      "pastWeek": "Past week",
+      "nextWeek": "Next week",
+      "past3Months": "Past 3 months",
+      "next3Months": "Next 3 months",
+      "custom": "Custom"
+    }
+  },
+  "freeHours": {
+    "loading": "Loading free hours...",
+    "loadError": "Unable to load free hours.",
+    "noWorkingHours": "No working hours for this day.",
+    "noFreeTime": "No free time in your working hours.",
+    "outsideTitle": "Outside working hours",
+    "overlapTitle": "Overlapping appointments",
+    "title": "Free hours · {{date}}"
+  },
+  "form": {
+    "error": {
+      "signInCreate": "You must be signed in to create an appointment.",
+      "signInUpdate": "You must be signed in to update this appointment.",
+      "outsideHours": "This time is outside your working hours. Choose a time within your schedule.",
+      "selectLocation": "Select a location.",
+      "ownOnly": "You can only edit your own appointments.",
+      "unableAdd": "Unable to add appointment",
+      "unableUpdate": "Unable to update appointment"
+    }
+  },
+  "calendar": {
+    "today": "Today",
+    "moreEvents": "+{{count}} more"
+  }
+}

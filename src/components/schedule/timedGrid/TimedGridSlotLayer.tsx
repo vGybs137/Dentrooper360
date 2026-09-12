@@ -1,4 +1,5 @@
 import { memo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import type { GestureResponderEvent } from "react-native";
 
@@ -144,6 +145,7 @@ function TimedGridSlotLayerComponent({
   variant = "day",
   interactive = true,
 }: TimedGridSlotLayerProps) {
+  const { t } = useTranslation("a11y");
   const slot = useAddAppointmentSlot();
   const selectSlot = useAddAppointmentStore((state) => state.selectSlot);
 
@@ -192,7 +194,7 @@ function TimedGridSlotLayerComponent({
         startHour={startHour}
       />
       <Button
-        accessibilityLabel="Select time slot"
+        accessibilityLabel={t("a11y:selectTimeSlot")}
         disabled={!interactive}
         nestedScroll
         onPress={handleGridPress}

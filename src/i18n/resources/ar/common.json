@@ -1,0 +1,84 @@
+{
+  "actions": {
+    "cancel": "إلغاء",
+    "continue": "متابعة",
+    "tryAgain": "حاول مرة أخرى",
+    "retry": "إعادة المحاولة",
+    "retrying": "جارٍ إعادة المحاولة…",
+    "done": "تم",
+    "ok": "موافق",
+    "back": "رجوع",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "next": "التالي",
+    "save": "حفظ",
+    "add": "إضافة",
+    "saving": "جارٍ الحفظ...",
+    "adding": "جارٍ الإضافة...",
+    "scrollToTop": "الانتقال إلى الأعلى",
+    "openMenu": "فتح القائمة",
+    "dismissMenu": "إغلاق القائمة",
+    "dismissConfirmation": "إغلاق التأكيد",
+    "dismiss": "تجاهل",
+    "menuTitle": "إجراءات",
+    "select": "اختر…"
+  },
+  "search": {
+    "title": "بحث",
+    "placeholder": "بحث...",
+    "clear": "مسح البحث",
+    "noMatch": "لا توجد نتائج لـ {{entity}} تطابق \"{{query}}\".",
+    "noMatchFallback": "لا توجد نتائج لـ {{entity}} تطابق بحثك.",
+    "unable": "تعذّر البحث في {{entity}}.",
+    "noResults": "لا توجد نتائج.",
+    "searchEntity": "بحث {{entity}}..."
+  },
+  "empty": {
+    "emDash": "—",
+    "notSet": "غير محدد",
+    "none": "لا يوجد",
+    "noneScheduled": "لا مواعيد مجدولة",
+    "noNote": "لا توجد ملاحظة",
+    "noNotes": "لا توجد ملاحظات",
+    "noPhone": "لا يوجد هاتف",
+    "noEmail": "لا يوجد بريد إلكتروني",
+    "noAddress": "لا يوجد عنوان",
+    "loadingEllipsis": "جارٍ التحميل…"
+  },
+  "brand": {
+    "markA11y": "شعار Dentrooper 360",
+    "wordmarkA11y": "Dentrooper 360",
+    "from": "من",
+    "company": "Sol-T Solutions"
+  },
+  "confirm": {
+    "deleteTitle": "حذف",
+    "deleteMessage": "هل أنت متأكد من رغبتك في حذف هذا؟",
+    "yesDelete": "نعم، احذف",
+    "deleting": "جارٍ الحذف..."
+  },
+  "labels": {
+    "note": "ملاحظة",
+    "date": "التاريخ",
+    "time": "الوقت",
+    "method": "الطريقة",
+    "type": "النوع",
+    "payment": "دفعة"
+  },
+  "vip": {
+    "vip": "VIP",
+    "normal": "عادي",
+    "status": "حالة VIP"
+  },
+  "patient": {
+    "unnamed": "مريض بلا اسم",
+    "unknown": "مريض غير معروف",
+    "thisPatient": "هذا المريض",
+    "newPatient": "مريض جديد"
+  },
+  "pleaseTryAgain": "يرجى المحاولة مرة أخرى.",
+  "days": {
+    "oneDay": "يوم واحد",
+    "nDays": "{{count}} أيام"
+  }
+}

@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 
 import {
   DetailsHeroAvatar,
@@ -35,8 +36,10 @@ export function RecallDetailsHero({
   onAppointment,
   onMessage,
 }: RecallDetailsHeroProps) {
+  const { t } = useTranslation(["recalls", "patients", "a11y", "common"]);
   const insets = useSafeAreaInsets();
-  const displayName = formatPatientName(patient) || "Unnamed patient";
+  const displayName =
+    formatPatientName(patient) || t("common:patient.unnamed");
   const hasPhone = Boolean(
     patientPhoneDigits(patient.countryCode, patient.phoneNumber),
   );
@@ -77,24 +80,26 @@ export function RecallDetailsHero({
 
       <View className="w-full flex-row items-start justify-between gap-1 px-inline">
         <DetailsHeroCta
-          accessibilityLabel="View patient"
+          accessibilityLabel={t("a11y:viewPatient")}
           icon={personIcon}
-          label="Patient"
+          label={t("recalls:hero.patient")}
           onPress={onViewPatient}
         />
         <DetailsHeroCta
           accessibilityLabel={
-            hasAppointment ? "View appointment" : "Add appointment"
+            hasAppointment
+              ? t("a11y:viewAppointment")
+              : t("a11y:addAppointment")
           }
           icon={hasAppointment ? calendarIcon : addAppointmentIcon}
-          label={"Appointment"}
+          label={t("patients:details.cta.appointment")}
           onPress={onAppointment}
         />
         <DetailsHeroCta
-          accessibilityLabel="Message patient"
+          accessibilityLabel={t("a11y:messagePatient")}
           disabled={!hasPhone}
           icon={messageIcon}
-          label="Message"
+          label={t("recalls:hero.message")}
           onPress={handleMessage}
         />
       </View>

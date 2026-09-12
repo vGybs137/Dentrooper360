@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
 import {
@@ -19,21 +20,22 @@ type PatientOverviewTabProps = {
 export function PatientOverviewTab({
   information,
   timeline,
-  informationTitle = "Patient Information",
-  timelineTitle = "Patient Timeline",
+  informationTitle,
+  timelineTitle,
   note,
 }: PatientOverviewTabProps) {
+  const { t } = useTranslation("patients");
   return (
     <View className="gap-section px-page">
       {information.length > 0 || note ? (
         <DetailsSection
           fields={information}
           note={note}
-          title={informationTitle}
+          title={informationTitle ?? t("patients:details.information")}
         />
       ) : null}
       {timeline.length > 0 ? (
-        <DetailsSection fields={timeline} title={timelineTitle} />
+        <DetailsSection fields={timeline} title={timelineTitle ?? t("patients:details.timeline")} />
       ) : null}
     </View>
   );

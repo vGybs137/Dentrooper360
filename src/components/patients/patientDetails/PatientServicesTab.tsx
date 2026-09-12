@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
@@ -35,6 +36,7 @@ export function PatientServicesTab({
   isLoading,
   error = null,
 }: PatientServicesTabProps) {
+  const { t } = useTranslation("patients");
   const native = useNativeColors();
   const user = useAuthUser();
   const listRef = useRef<FlatListType<PatientServiceDayGroup>>(null);
@@ -76,13 +78,13 @@ export function PatientServicesTab({
   if (error) {
     return (
       <ThemedText className="px-page py-stack" tone="alert" variant="body">
-        Unable to load services for this patient.
+        {t("patients:tabs.servicesError")}
       </ThemedText>
     );
   }
 
   if (services.length === 0) {
-    return <EmptyState icon={notesIcon} title="No services" />;
+    return <EmptyState icon={notesIcon} title={t("patients:tabs.noServices")} />;
   }
 
   return (

@@ -11,6 +11,7 @@ import {
   type DayBusyInterval,
 } from "@/helpers/schedule/dayFreeHours";
 import { useUserScheduleHours } from "@/hooks/schedule/useUserScheduleHours";
+import { t } from "@/i18n";
 import { useAuthUser } from "@/stores";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
 import { parseDayKey, toDayKey, toLocalDate } from "@/helpers/schedule/calendar";
@@ -110,19 +111,19 @@ export function useDayFreeHours(
 
   const labels = useMemo(() => {
     if (isLoading) {
-      return ["Loading free hours..."];
+      return [t("schedule:freeHours.loading")];
     }
 
     if (error) {
-      return ["Unable to load free hours."];
+      return [t("schedule:freeHours.loadError")];
     }
 
     if (!dayHours) {
-      return ["No working hours for this day."];
+      return [t("schedule:freeHours.noWorkingHours")];
     }
 
     if (freeIntervals.length === 0) {
-      return ["No free time in your working hours."];
+      return [t("schedule:freeHours.noFreeTime")];
     }
 
     return formatDayFreeHourLabels(freeIntervals, dayStartMs, hourFormat);

@@ -1,5 +1,7 @@
 import { Alert, Linking } from "react-native";
 
+import { t } from "@/i18n";
+
 /** Digits-only E.164-style number (country code + national number, no +). */
 export function patientPhoneDigits(
   countryCode: string | null | undefined,
@@ -35,8 +37,8 @@ export function patientCallUrl(
 
 function alertMissingPhone() {
   Alert.alert(
-    "No phone number",
-    "Add a phone number for this patient to use this action.",
+    t("patients:contact.noPhoneTitle"),
+    t("patients:contact.noPhoneMessage"),
   );
 }
 
@@ -53,7 +55,10 @@ export async function openPatientWhatsApp(
   try {
     await Linking.openURL(url);
   } catch {
-    Alert.alert("Unable to open WhatsApp", "Please try again.");
+    Alert.alert(
+      t("patients:contact.whatsappError"),
+      t("errors:generic.pleaseTryAgain"),
+    );
   }
 }
 
@@ -70,6 +75,9 @@ export async function openPatientPhoneCall(
   try {
     await Linking.openURL(url);
   } catch {
-    Alert.alert("Unable to place call", "Please try again.");
+    Alert.alert(
+      t("patients:contact.callError"),
+      t("errors:generic.pleaseTryAgain"),
+    );
   }
 }

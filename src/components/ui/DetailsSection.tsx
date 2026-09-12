@@ -1,4 +1,5 @@
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { ThemedText } from "@/components/ui/ThemedText";
 import { cn } from "@/helpers/ui/cn";
@@ -59,11 +60,14 @@ function DetailsRow({ label, value, empty }: DetailsField) {
   );
 }
 
-function DetailsNoteBlock({ label = "Note", value, empty }: DetailsNote) {
+function DetailsNoteBlock({ label, value, empty }: DetailsNote) {
+  const { t } = useTranslation("common");
+  const resolvedLabel = label ?? t("labels.note");
+
   return (
     <View className="gap-stack-compact pt-stack">
       <ThemedText tone="muted" variant="body">
-        {label}
+        {resolvedLabel}
       </ThemedText>
       <View className="rounded-card border border-border-subtle bg-surface-sunken px-inline py-stack">
         <ThemedText

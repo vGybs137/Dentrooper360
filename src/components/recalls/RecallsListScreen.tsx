@@ -1,5 +1,6 @@
 import { type Href, useRouter } from "expo-router";
 import { useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 import { EntityListScreen } from "@/components/list";
 import { RecallListItem } from "@/components/recalls/RecallListItem";
@@ -11,6 +12,7 @@ import {
 } from "@/hooks/recalls/useProviderRecalls";
 
 export function RecallsListScreen() {
+  const { t } = useTranslation(["recalls", "a11y"]);
   const router = useRouter();
   const { recalls, kpis, isLoading, error } = useProviderRecalls();
 
@@ -43,16 +45,16 @@ export function RecallsListScreen() {
     <EntityListScreen
       data={recalls}
       emptyIcon={clockIcon}
-      emptyTitle="No recalls"
+      emptyTitle={t("recalls:list.empty")}
       error={error}
-      errorMessage="Unable to load recalls."
+      errorMessage={t("recalls:list.loadError")}
       isLoading={isLoading}
       keyExtractor={keyExtractor}
       listHeader={listHeader}
       openSearch={openSearch}
       renderItem={renderItem}
-      searchAccessibilityLabel="Search recalls"
-      title="Recalls"
+      searchAccessibilityLabel={t("a11y:searchRecalls")}
+      title={t("recalls:list.title")}
     />
   );
 }

@@ -10,6 +10,7 @@ import {
 import { persistSession } from "@/helpers/auth/auth";
 import { toDayKey, todayCalendarDate } from "@/helpers/schedule/calendar";
 import { clearScheduleAppointmentsPrefetch } from "@/helpers/schedule/prefetchScheduleAppointments";
+import { t } from "@/i18n";
 import { stopConnectivitySync } from "@/services/connectivitySync";
 import { stopPeriodicSync } from "@/services/periodicSync";
 import {
@@ -51,13 +52,11 @@ export async function switchClinic({
   const switchUi = useClinicSwitchStore.getState();
 
   if (!activeCustomerId) {
-    throw new ClinicSwitchError("No active clinic is paired on this device.");
+    throw new ClinicSwitchError(t("settings:clinics.error.noActive"));
   }
 
   if (!isClinicSwitchEnabled()) {
-    throw new ClinicSwitchError(
-      "Clinic switching is disabled on this build.",
-    );
+    throw new ClinicSwitchError(t("settings:clinics.error.disabled"));
   }
 
   if (activeCustomerId === targetCustomerId) {
@@ -76,7 +75,7 @@ export async function switchClinic({
       (clinic) => clinic.customerId === targetCustomerId && clinic.isActive,
     );
     if (!allowed) {
-      throw new ClinicSwitchError("You are not a member of the requested clinic.");
+      throw new ClinicSwitchError(t("settings:clinics.error.notMember"));
     }
 
     await waitForClinicSyncIdle(activeCustomerId);
@@ -86,17 +85,13 @@ export async function switchClinic({
       try {
         await synchronize(activeCustomerId);
       } catch {
-        throw new ClinicSwitchError(
-          "Sync the current clinic before switching. Local changes could not be uploaded.",
-        );
+        throw new ClinicSwitchError(t("settings:clinics.error.syncBeforeSwitch"));
       }
 
       const stillUnsynced =
         await clinicDatabaseManager.hasUnsyncedChanges(activeCustomerId);
       if (stillUnsynced) {
-        throw new ClinicSwitchError(
-          "Sync the current clinic before switching. Local changes are still pending.",
-        );
+        throw new ClinicSwitchError(t("settings:clinics.error.stillPending"));
       }
     }
 
@@ -106,9 +101,7 @@ export async function switchClinic({
       await clinicDatabaseManager.wasColdBeforeOpen(targetCustomerId);
 
     if (wasCold && skipSync) {
-      throw new ClinicSwitchError(
-        "This clinic’s local data was cleared to free space. Connect online to download it again.",
-      );
+      throw new ClinicSwitchError(t("settings:clinics.error.coldNeedsOnline"));
     }
 
     const session = await switchClinicSession({
@@ -157,7 +150,7 @@ export async function switchClinic({
         ? error.message
         : error instanceof Error && error.message.trim()
           ? error.message
-          : "Unable to switch clinics. Please try again.";
+          : t("settings:clinics.switchErrorGeneric");
     switchUi.failSwitch(message);
     throw error;
   }

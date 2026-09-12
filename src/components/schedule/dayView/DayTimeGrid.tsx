@@ -6,6 +6,7 @@ import {
 } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import type { ScrollView as ScrollViewType } from "react-native-gesture-handler";
+import { useTranslation } from "react-i18next";
 
 import {
   buildHalfHourLineTops,
@@ -75,6 +76,7 @@ function DayTimeGridComponent({
   onVerticalScrollBegin,
   onVerticalScrollEnd,
 }: DayTimeGridProps) {
+  const { t } = useTranslation("schedule");
   const native = useNativeColors();
   const { hoursForDayKey } = useUserScheduleHours();
   const dayHours = useMemo(
@@ -251,7 +253,7 @@ function DayTimeGridComponent({
     return (
       <View className="flex-1 items-center justify-center px-page">
         <ThemedText align="center" tone="muted" variant="body">
-          No working hours for this day.
+          {t("freeHours.noWorkingHours")}
         </ThemedText>
       </View>
     );

@@ -7,7 +7,9 @@ import {
   patientMatchesSearch,
 } from "@/helpers/patients/patientDisplay";
 import { useObservedQuery } from "@/hooks/data/useObservedQuery";
+import { t } from "@/i18n";
 import { useAuthUser } from "@/stores/authStore";
+import { useResolvedLocale } from "@/stores";
 
 const PAYMENT_COLUMNS = [
   "patient_id",
@@ -44,14 +46,15 @@ export type UseProviderPaymentsResult = {
 
 async function mapPayment(record: Payment): Promise<ProviderPaymentItem> {
   let patientId = "";
-  let patientName = "Unknown patient";
+  let patientName = t("common:patient.unknown");
   let countryCode: string | null = null;
   let phoneNumber: string | null = null;
 
   try {
     const patient = await record.patient.fetch();
     patientId = patient.id;
-    patientName = formatPatientName(patient) || "Unnamed patient";
+    patientName =
+      formatPatientName(patient) || t("common:patient.unnamed");
     countryCode = patient.countryCode?.trim() || null;
     phoneNumber = patient.phoneNumber?.trim() || null;
   } catch {
@@ -79,6 +82,7 @@ export function useProviderPayments(
 ): UseProviderPaymentsResult {
   const database = useDatabase();
   const providerId = useAuthUser()?.id ?? null;
+  const locale = useResolvedLocale();
   const isEnabled = Boolean(enabled && providerId);
 
   const { data, isLoading, error } = useObservedQuery<
@@ -86,7 +90,7 @@ export function useProviderPayments(
     ProviderPaymentItem[]
   >({
     enabled: isEnabled,
-    deps: [enabled, providerId],
+    deps: [enabled, providerId, locale],
     columns: PAYMENT_COLUMNS,
     emptyData: EMPTY_PAYMENTS,
     getQuery: () =>

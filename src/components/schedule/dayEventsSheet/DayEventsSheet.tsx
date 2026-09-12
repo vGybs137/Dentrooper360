@@ -5,6 +5,7 @@ import {
   useImperativeHandle,
   useMemo,
 } from "react";
+import { useTranslation } from "react-i18next";
 import {
   View,
   type ListRenderItem,
@@ -71,6 +72,7 @@ const DayEventsSheetInner = forwardRef<
   },
   ref,
 ) {
+  const { t } = useTranslation(["schedule"]);
   const native = useNativeColors();
   const selectSlot = useAddAppointmentStore((state) => state.selectSlot);
   const openAddAppointment = useAddAppointmentStore((state) => state.open);
@@ -161,15 +163,15 @@ const DayEventsSheetInner = forwardRef<
     () => (
       <EmptyState
         action={{
-          label: "Add appointment",
+          label: t("schedule:daySheet.addAppointment"),
           onPress: handleAddAppointment,
         }}
         className="py-stack"
         icon={calendarIcon}
-        title="No appointments"
+        title={t("schedule:daySheet.empty")}
       />
     ),
-    [handleAddAppointment],
+    [handleAddAppointment, t],
   );
 
   const ItemSeparator = useCallback(

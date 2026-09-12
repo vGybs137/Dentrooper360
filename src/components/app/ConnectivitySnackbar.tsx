@@ -1,5 +1,6 @@
 import NetInfo from "@react-native-community/netinfo";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Snackbar,
@@ -20,6 +21,7 @@ type SnackbarState = {
  * Skips the initial NetInfo reading so launch does not flash a toast.
  */
 export function ConnectivitySnackbar() {
+  const { t } = useTranslation("sync");
   const [snackbar, setSnackbar] = useState<SnackbarState | null>(null);
   const [visible, setVisible] = useState(false);
   const wasOnlineRef = useRef<boolean | null>(null);
@@ -56,14 +58,14 @@ export function ConnectivitySnackbar() {
 
       if (!isOnline) {
         show({
-          message: "You're offline. Please check your connection.",
+          message: t("snackbar.offline"),
           variant: "offline",
         });
         return;
       }
 
       show({
-        message: "You're back online.",
+        message: t("snackbar.online"),
         variant: "online",
       });
     }
@@ -82,7 +84,7 @@ export function ConnectivitySnackbar() {
         clearTimeout(hideTimeoutRef.current);
       }
     };
-  }, []);
+  }, [t]);
 
   if (!snackbar) {
     return null;

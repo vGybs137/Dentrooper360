@@ -16,6 +16,7 @@ import { buildAppointmentSubjectFromPatient } from "@/helpers/schedule/appointme
 import { applyNewAppointmentFields } from "@/helpers/schedule/createAppointment";
 import { requestSync } from "@/helpers/sync/requestSync";
 import { useDayFreeHours } from "@/hooks/schedule/useDayFreeHours";
+import { t } from "@/i18n";
 import {
   ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
   resolveDefaultLocationId,
@@ -309,14 +310,14 @@ export function useAddAppointmentForm() {
       if (!user?.id) {
         setSubmitError(
           isEditing
-            ? "You must be signed in to update this appointment."
-            : "You must be signed in to create an appointment.",
+            ? t("schedule:form.error.signInUpdate")
+            : t("schedule:form.error.signInCreate"),
         );
         return;
       }
 
       if (!dayjs(data.endTime).isAfter(dayjs(data.startTime))) {
-        setSubmitError("End time must be after start time.");
+        setSubmitError(t("errors:form.endAfterStart"));
         return;
       }
 
@@ -328,20 +329,18 @@ export function useAddAppointmentForm() {
       }
 
       if (outsideWorkingHours) {
-        setSubmitError(
-          "This time is outside your working hours. Choose a time within your schedule.",
-        );
+        setSubmitError(t("schedule:form.error.outsideHours"));
         return;
       }
 
       if (!data.locationId) {
-        setSubmitError("Select a location.");
+        setSubmitError(t("schedule:form.error.selectLocation"));
         return;
       }
 
       const nextSubject = selectedPatient
         ? buildAppointmentSubjectFromPatient(selectedPatient)
-        : data.subject.trim() || "Appointment";
+        : data.subject.trim() || t("schedule:add.defaultSubject");
 
       setIsSubmitting(true);
       setSubmitError(null);
@@ -353,7 +352,7 @@ export function useAddAppointmentForm() {
               .get<Appointment>("appointments")
               .find(editingAppointmentId);
             if (appointment.providerId !== user.id) {
-              throw new Error("You can only edit your own appointments.");
+              throw new Error(t("schedule:form.error.ownOnly"));
             }
             await appointment.update((record) => {
               record.patientId = data.patientId || null;
@@ -385,9 +384,11 @@ export function useAddAppointmentForm() {
       } catch (error) {
         Alert.alert(
           isEditing
-            ? "Unable to update appointment"
-            : "Unable to add appointment",
-          error instanceof Error ? error.message : "Please try again.",
+            ? t("schedule:form.error.unableUpdate")
+            : t("schedule:form.error.unableAdd"),
+          error instanceof Error
+            ? error.message
+            : t("errors:generic.pleaseTryAgain"),
         );
       } finally {
         setIsSubmitting(false);

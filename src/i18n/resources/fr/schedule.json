@@ -1,0 +1,86 @@
+{
+  "add": {
+    "title": "Ajouter un rendez-vous",
+    "searchPatients": "Rechercher des patients...",
+    "noPatientsMatch": "Aucun patient ne correspond à votre recherche.",
+    "unableLoadPatients": "Impossible de charger les patients.",
+    "subjectPlaceholder": "Objet du rendez-vous",
+    "selectType": "Sélectionner le type",
+    "selectLocation": "Sélectionner le lieu",
+    "notesPlaceholder": "Ajouter des notes",
+    "subjectIssues": "Problèmes d'objet",
+    "defaultSubject": "Rendez-vous"
+  },
+  "edit": {
+    "title": "Modifier le rendez-vous"
+  },
+  "quickAdd": {
+    "placeholder": "Ajouter un rendez-vous...",
+    "error": {
+      "enterSubject": "Saisissez l'objet du rendez-vous.",
+      "noLocations": "Aucun lieu disponible. Ajoutez d'abord un lieu.",
+      "outsideDay": "Ce jour est hors de vos jours de travail.",
+      "outsideHours": "Cette heure est hors de vos horaires de travail pour ce jour.",
+      "unableAdd": "Impossible d'ajouter le rendez-vous"
+    }
+  },
+  "daySheet": {
+    "addAppointment": "Ajouter un rendez-vous",
+    "empty": "Aucun rendez-vous"
+  },
+  "details": {
+    "title": "Détails du rendez-vous",
+    "subject": "Objet",
+    "location": "Lieu",
+    "noType": "Pas de type",
+    "noLocation": "Pas de lieu",
+    "noPatientLinked": "Aucun patient lié",
+    "emptyTitle": "Aucun rendez-vous",
+    "backToSchedule": "Retour à l'agenda",
+    "loadError": "Impossible de charger ce rendez-vous.",
+    "notFound": "Ce rendez-vous est introuvable.",
+    "deletingTitle": "Suppression...",
+    "deletingMessage": "Suppression de ce rendez-vous.",
+    "deletedTitle": "Rendez-vous supprimé",
+    "deletedMessage": "Le rendez-vous a été supprimé."
+  },
+  "search": {
+    "placeholder": "Rechercher par objet...",
+    "error": "Impossible de rechercher des rendez-vous.",
+    "noMatch": "Aucun rendez-vous ne correspond à « {{query}} ».",
+    "noMatchFilters": "Aucun rendez-vous ne correspond aux filtres sélectionnés.",
+    "noTypes": "Aucun type de rendez-vous disponible.",
+    "time": {
+      "all": "Tout",
+      "pastWeek": "Semaine passée",
+      "nextWeek": "Semaine prochaine",
+      "past3Months": "3 derniers mois",
+      "next3Months": "3 prochains mois",
+      "custom": "Personnalisé"
+    }
+  },
+  "freeHours": {
+    "loading": "Chargement des heures libres...",
+    "loadError": "Impossible de charger les heures libres.",
+    "noWorkingHours": "Pas d'horaires de travail pour ce jour.",
+    "noFreeTime": "Pas de créneau libre dans vos horaires de travail.",
+    "outsideTitle": "Hors horaires de travail",
+    "overlapTitle": "Rendez-vous qui se chevauchent",
+    "title": "Heures libres · {{date}}"
+  },
+  "form": {
+    "error": {
+      "signInCreate": "Vous devez être connecté pour créer un rendez-vous.",
+      "signInUpdate": "Vous devez être connecté pour modifier ce rendez-vous.",
+      "outsideHours": "Cette heure est hors de vos horaires. Choisissez un créneau dans votre planning.",
+      "selectLocation": "Sélectionnez un lieu.",
+      "ownOnly": "Vous ne pouvez modifier que vos propres rendez-vous.",
+      "unableAdd": "Impossible d'ajouter le rendez-vous",
+      "unableUpdate": "Impossible de mettre à jour le rendez-vous"
+    }
+  },
+  "calendar": {
+    "today": "Aujourd'hui",
+    "moreEvents": "+{{count}} de plus"
+  }
+}

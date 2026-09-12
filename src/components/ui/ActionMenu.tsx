@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, useWindowDimensions, View, type LayoutRectangle } from "react-native";
 
 import { useNativeColors } from "@/theme";
@@ -163,16 +164,17 @@ function computeMenuPlacement(
 }
 
 export function ActionMenu({
-  accessibilityLabel = "Open menu",
+  accessibilityLabel,
   align = "end",
   items,
   itemVariant = "action",
   open: openProp,
   onOpenChange,
-  title = "Actions",
+  title,
   titleTone = "muted",
   trigger,
 }: ActionMenuProps) {
+  const { t } = useTranslation(["common", "a11y"]);
   const native = useNativeColors();
   const { width: windowWidth } = useWindowDimensions();
   const triggerRef = useRef<View>(null);
@@ -180,6 +182,9 @@ export function ActionMenu({
   const [menuPlacement, setMenuPlacement] = useState<MenuPlacement | null>(null);
   const isControlled = openProp !== undefined;
   const open = isControlled ? openProp : internalOpen;
+  const resolvedAccessibilityLabel =
+    accessibilityLabel ?? t("a11y:openMenu");
+  const resolvedTitle = title ?? t("common:actions.menuTitle");
 
   const setOpen = (next: boolean) => {
     if (!isControlled) {
@@ -257,7 +262,7 @@ export function ActionMenu({
           }
           variant="label"
         >
-          {title}
+          {resolvedTitle}
         </ThemedText>
       </View>
 
@@ -308,7 +313,7 @@ export function ActionMenu({
     <>
       <View ref={triggerRef} className="shrink-0" collapsable={false}>
         <Button
-          accessibilityLabel={accessibilityLabel}
+          accessibilityLabel={resolvedAccessibilityLabel}
           accessibilityState={{ expanded: open }}
           hitSlop={8}
           onPress={openMenu}
@@ -328,7 +333,7 @@ export function ActionMenu({
         visible={open}
       >
         <Button
-          accessibilityLabel="Dismiss menu"
+          accessibilityLabel={t("a11y:dismissMenu")}
           className="flex-1 rounded-none"
           onPress={closeMenu}
           ripple={false}

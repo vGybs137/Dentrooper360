@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Switch } from "react-native";
 
 import { Button, DeleteConfirmationDialog, ThemedText } from "@/components/ui";
@@ -13,16 +14,18 @@ import {
 } from "@/constants";
 import { synchronize } from "@/database/synchronize";
 import { clearApplicationData } from "@/helpers/sync/clearApplicationData";
+import { formatLastSyncedAt } from "@/helpers/sync/formatLastSyncedAt";
 import { useIsOnCellular } from "@/hooks/sync/useIsOnCellular";
 import { useSyncStatus } from "@/hooks/sync/useSyncStatus";
+import { t as translate } from "@/i18n";
 import { useCustomerId, useSyncStatusStore, useSyncWifiOnly } from "@/stores";
 import { useNativeColors } from "@/theme";
 import { ApiError } from "@/types/api";
 
-import { formatLastSyncedAt } from "@/helpers/sync/formatLastSyncedAt";
 import { SettingsRow, SettingsSection } from "./SettingsSection";
 
 export function SettingsSyncSection() {
+  const { t } = useTranslation(["settings", "sync", "a11y"]);
   const router = useRouter();
   const queryClient = useQueryClient();
   const native = useNativeColors();
@@ -37,13 +40,10 @@ export function SettingsSyncSection() {
   const syncMutation = useMutation({
     mutationFn: async () => {
       if (!customerId) {
-        throw new ApiError("No clinic is paired on this device.", 400);
+        throw new ApiError(translate("sync:error.noClinicPaired"), 400);
       }
       if (isOffline) {
-        throw new ApiError(
-          "You're offline. Sync will run automatically when you're back online.",
-          0,
-        );
+        throw new ApiError(translate("sync:error.offlineAuto"), 0);
       }
       await synchronize(customerId);
     },
@@ -65,7 +65,7 @@ export function SettingsSyncSection() {
     syncMutation.error instanceof ApiError
       ? syncMutation.error.message
       : syncMutation.isError
-        ? "Unable to sync clinic data. Check your connection and try again."
+        ? t("sync:error.unableSync")
         : undefined;
 
   const clearDataError =
@@ -74,7 +74,7 @@ export function SettingsSyncSection() {
       : clearDataMutation.isError
         ? clearDataMutation.error instanceof Error
           ? clearDataMutation.error.message
-          : "Unable to clear application data."
+          : t("sync:error.unableClear")
         : undefined;
 
   const blockedByWifiOnly = syncWifiOnly && onCellular && !isOffline;
@@ -117,38 +117,40 @@ export function SettingsSyncSection() {
 
   return (
     <>
-      <SettingsSection label="Sync & data">
+      <SettingsSection label={t("settings:sync.section")}>
         <SettingsRow
-          title="Connection"
+          title={t("settings:sync.connection")}
           description={
             isOffline
-              ? "No network — changes stay on this device"
-              : "Device is connected"
+              ? t("settings:sync.connectionOfflineDesc")
+              : t("settings:sync.connectionOnlineDesc")
           }
           icon={wifiIcon}
           trailing={
             <ThemedText tone={isOffline ? "alert" : "success"} variant="label">
-              {isOffline ? "Offline" : "Online"}
+              {isOffline ? t("sync:status.offline") : t("sync:status.online")}
             </ThemedText>
           }
         />
         <SettingsRow
-          title="Local changes"
+          title={t("settings:sync.localChanges")}
           description={
             hasUnsynced
-              ? "Pending changes will sync when you're online"
-              : "All data is up to date"
+              ? t("settings:sync.localChangesPendingDesc")
+              : t("settings:sync.localChangesUpToDateDesc")
           }
           icon={pendingChangesIcon}
           trailing={
             <ThemedText tone={hasUnsynced ? "brand" : "muted"} variant="label">
-              {hasUnsynced ? "Pending" : "Up to date"}
+              {hasUnsynced
+                ? t("settings:sync.pending")
+                : t("settings:sync.upToDate")}
             </ThemedText>
           }
         />
         <SettingsRow
-          title="Last synced"
-          description="Last successful sync"
+          title={t("settings:sync.lastSynced")}
+          description={t("settings:sync.lastSyncedDesc")}
           icon={clockIcon}
           trailing={
             <ThemedText tone="muted" variant="label">
@@ -157,16 +159,16 @@ export function SettingsSyncSection() {
           }
         />
         <SettingsRow
-          title="Sync on Wi-Fi only"
+          title={t("settings:sync.wifiOnly")}
           description={
             syncWifiOnly
-              ? "Mobile data sync is blocked"
-              : "Allow sync over Wi-Fi and mobile data"
+              ? t("settings:sync.wifiOnlyOnDesc")
+              : t("settings:sync.wifiOnlyOffDesc")
           }
           icon={wifiIcon}
           trailing={
             <Switch
-              accessibilityLabel="Sync on Wi-Fi only"
+              accessibilityLabel={t("a11y:syncWifiOnly")}
               onValueChange={setSyncWifiOnly}
               trackColor={{
                 false: native.border.subtle,
@@ -178,20 +180,24 @@ export function SettingsSyncSection() {
           }
         />
         <SettingsRow
-          title="Sync data"
+          title={t("settings:sync.syncData")}
           description={
             isOffline
-              ? "Unavailable while offline"
+              ? t("settings:sync.unavailableOffline")
               : blockedByWifiOnly
-                ? "Connect to Wi-Fi or allow mobile data"
-                : "Force sync application data"
+                ? t("settings:sync.connectWifi")
+                : t("settings:sync.forceSyncDesc")
           }
           icon={syncIcon}
           trailing={
             <Button
               disabled={!canSyncNow}
               hitSlop={8}
-              label={syncMutation.isPending ? "Syncing…" : "Sync"}
+              label={
+                syncMutation.isPending
+                  ? t("settings:sync.syncing")
+                  : t("settings:sync.syncButton")
+              }
               onPress={requestSyncNow}
               size="sm"
               textClassName="font-semibold"
@@ -211,15 +217,19 @@ export function SettingsSyncSection() {
         ) : null}
         {/* Temporary: remove once no longer needed for local wipe / support. */}
         <SettingsRow
-          title="Clear application data"
-          description="Temporary — wipe local data and return to setup"
+          title={t("settings:sync.clearData")}
+          description={t("settings:sync.clearDataDesc")}
           icon={deleteIcon}
           last
           trailing={
             <Button
               disabled={!canClearData}
               hitSlop={8}
-              label={clearDataMutation.isPending ? "Clearing…" : "Clear"}
+              label={
+                clearDataMutation.isPending
+                  ? t("settings:sync.clearing")
+                  : t("settings:sync.clearButton")
+              }
               onPress={requestClearData}
               size="sm"
               textClassName="font-semibold"
@@ -241,12 +251,12 @@ export function SettingsSyncSection() {
 
       <DeleteConfirmationDialog
         confirming={clearDataMutation.isPending}
-        confirmingLabel="Clearing…"
-        confirmLabel="Yes, clear data"
-        message="This permanently deletes local clinic data, preferences, and sign-in on this device. Unsynced changes will be lost."
+        confirmingLabel={t("settings:sync.clearing")}
+        confirmLabel={t("settings:sync.clearConfirm")}
+        message={t("settings:sync.clearMessage")}
         onCancel={handleCancelClearData}
         onConfirm={handleConfirmClearData}
-        title="Clear application data"
+        title={t("settings:sync.clearData")}
         visible={clearDataVisible}
       />
     </>

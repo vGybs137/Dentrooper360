@@ -1,6 +1,7 @@
 import { useRouter, type Href } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { RecallListItem } from "@/components/recalls/RecallListItem";
 import { EntitySearchScreen } from "@/components/search";
@@ -11,6 +12,7 @@ import {
 } from "@/hooks/recalls/useProviderRecalls";
 
 export function RecallsSearchScreen() {
+  const { t } = useTranslation(["recalls", "a11y"]);
   const router = useRouter();
   const [query, setQuery] = useState("");
   const hasQuery = query.trim().length > 0;
@@ -47,7 +49,7 @@ export function RecallsSearchScreen() {
   return (
     <EntitySearchScreen
       data={visibleRecalls}
-      entityLabel="recalls"
+      entityLabel={t("recalls:search.entityLabel")}
       error={error}
       fallbackHref={"/(tabs)/recalls" as Href}
       hasQuery={hasQuery}
@@ -56,8 +58,8 @@ export function RecallsSearchScreen() {
       onChangeQuery={setQuery}
       query={query}
       renderItem={renderItem}
-      searchAccessibilityLabel="Search recalls"
-      searchPlaceholder="Search recalls..."
+      searchAccessibilityLabel={t("a11y:searchRecalls")}
+      searchPlaceholder={t("recalls:search.placeholder")}
     />
   );
 }

@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 
 import type Patient from "@/database/models/Patient";
 import { dayjsDateTimePattern } from "@/helpers/ui/timeFormat";
+import { t } from "@/i18n";
 import type { HourFormat } from "@/stores/schedulePreferencesStore";
 import { useSchedulePreferencesStore } from "@/stores/schedulePreferencesStore";
 
@@ -91,7 +92,7 @@ export function formatPatientBalance(
   currency: string | null | undefined,
 ): string {
   if (balance == null || balance === 0) {
-    return "---";
+    return t("patients:card.balanceEmpty");
   }
 
   const prefix = currency ?? "$";
@@ -101,7 +102,7 @@ export function formatPatientBalance(
 export function formatPatientNextVisit(
   nextVisit: string | null | undefined,
 ): string {
-  return nextVisit?.trim() || "None";
+  return nextVisit?.trim() || t("patients:card.nextVisitNone");
 }
 
 /** Compact label for patient cards, e.g. "23 Aug, 2:00 PM". */
@@ -124,7 +125,7 @@ export function mapPatientToCardData(
 ): PatientCardData {
   return {
     id: patient.id,
-    displayName: formatPatientName(patient) || "Unnamed patient",
+    displayName: formatPatientName(patient) || t("common:patient.unnamed"),
     countryCode: patient.countryCode?.trim() || null,
     phoneNumber: patient.phoneNumber?.trim() || null,
     isVip: patient.isVip,

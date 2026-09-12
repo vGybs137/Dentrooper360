@@ -1,0 +1,117 @@
+{
+  "list": {
+    "title": "المرضى",
+    "empty": "لا يوجد مرضى",
+    "loadError": "تعذّر تحميل المرضى.",
+    "add": "إضافة مريض"
+  },
+  "search": {
+    "placeholder": "البحث عن مرضى...",
+    "entityLabel": "مرضى"
+  },
+  "kpis": {
+    "total": "إجمالي المرضى",
+    "newThisMonth": "جدد هذا الشهر",
+    "upcomingVisits": "الزيارات القادمة",
+    "outstandingBalance": "الرصيد المستحق",
+    "newBadge": "جديد"
+  },
+  "card": {
+    "nextVisit": "الزيارة التالية",
+    "balance": "الرصيد",
+    "nextVisitNone": "لا يوجد",
+    "balanceEmpty": "---"
+  },
+  "form": {
+    "addTitle": "إضافة مريض",
+    "editTitle": "تعديل المريض",
+    "firstName": "الاسم الأول",
+    "fatherName": "اسم الأب",
+    "lastName": "اسم العائلة",
+    "zip": "الرمز",
+    "phoneNumber": "رقم الهاتف",
+    "age": "العمر",
+    "selectGender": "اختر الجنس",
+    "searchGender": "البحث عن الجنس...",
+    "email": "البريد الإلكتروني",
+    "referralSource": "مصدر الإحالة",
+    "address": "العنوان",
+    "vipPatient": "مريض VIP",
+    "addAppointment": "إضافة موعد",
+    "gender": {
+      "male": "ذكر",
+      "female": "أنثى"
+    },
+    "nameIssues": "مشكلات الاسم",
+    "phoneIssues": "مشكلات الهاتف",
+    "duplicate": "يوجد بالفعل مريض باسم {{name}} بهذا الرقم.",
+    "error": {
+      "load": "تعذّر تحميل المريض.",
+      "selectLocation": "اختر موقعًا للموعد.",
+      "unableAdd": "تعذّرت إضافة المريض",
+      "unableUpdate": "تعذّر تحديث المريض"
+    }
+  },
+  "details": {
+    "tabs": {
+      "overview": "نظرة عامة",
+      "appointments": "المواعيد",
+      "services": "الخدمات",
+      "payments": "المدفوعات"
+    },
+    "information": "معلومات المريض",
+    "timeline": "الجدول الزمني للمريض",
+    "phone": "الهاتف",
+    "email": "البريد الإلكتروني",
+    "address": "العنوان",
+    "balance": "الرصيد",
+    "noBalance": "لا يوجد رصيد",
+    "noReferral": "لا توجد إحالة",
+    "referralSource": "مصدر الإحالة",
+    "birthDate": "تاريخ الميلاد",
+    "fileDate": "تاريخ الملف",
+    "nextAppointment": "الموعد التالي",
+    "cta": {
+      "message": "رسالة",
+      "call": "اتصال",
+      "appointment": "موعد"
+    },
+    "emptyTitle": "لا يوجد مريض",
+    "backToPatients": "العودة إلى المرضى",
+    "loadError": "تعذّر تحميل هذا المريض.",
+    "notFound": "تعذّر العثور على هذا المريض.",
+    "deleteTitle": "حذف المريض",
+    "deleteMessage": "هل أنت متأكد من رغبتك في حذف {{name}}؟",
+    "deletingTitle": "جارٍ الحذف...",
+    "deletingMessage": "إزالة هذا المريض والسجلات المرتبطة.",
+    "deletedTitle": "تم حذف المريض",
+    "deletedMessage": "تمت إزالة المريض والسجلات المرتبطة.",
+    "unableDelete": "تعذّر الحذف"
+  },
+  "tabs": {
+    "noAppointments": "لا توجد مواعيد",
+    "appointmentsError": "تعذّر تحميل مواعيد هذا المريض.",
+    "noServices": "لا توجد خدمات",
+    "servicesError": "تعذّر تحميل خدمات هذا المريض.",
+    "noPayments": "لا توجد مدفوعات",
+    "paymentsError": "تعذّر تحميل مدفوعات هذا المريض."
+  },
+  "service": {
+    "fee": "الرسوم",
+    "posted": "مرحَّل",
+    "notPosted": "غير مرحَّل",
+    "fallbackName": "خدمة"
+  },
+  "menu": {
+    "addAppointment": "إضافة موعد"
+  },
+  "contact": {
+    "noPhoneTitle": "لا يوجد رقم هاتف",
+    "noPhoneMessage": "أضف رقم هاتف لهذا المريض لاستخدام هذا الإجراء.",
+    "whatsappError": "تعذّر فتح واتساب",
+    "callError": "تعذّر إجراء المكالمة"
+  },
+  "delete": {
+    "outstandingBalance": "لدى هذا المريض رصيد مستحق ولا يمكن حذفه حتى يتم تسويته."
+  }
+}

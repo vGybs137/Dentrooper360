@@ -1,4 +1,5 @@
 import { memo, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, type ViewStyle } from "react-native";
 import { useNativeColors } from "@/theme";
 import { primitives, semantic } from "@/tokens";
@@ -23,6 +24,7 @@ function TimedGridOverflowChipComponent({
   left,
   width,
 }: TimedGridOverflowChipProps) {
+  const { t } = useTranslation("a11y");
   const native = useNativeColors();
 
   const style = useMemo(
@@ -53,7 +55,7 @@ function TimedGridOverflowChipComponent({
 
   return (
     <Button
-      accessibilityLabel={`${count} more overlapping appointments`}
+      accessibilityLabel={t("a11y:moreOverlapping", { count })}
       nestedScroll
       ripple={false}
       size="none"

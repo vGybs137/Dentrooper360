@@ -1,4 +1,5 @@
 import { memo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
 import { Button, ColorSwatch, ThemedText, ThemedView } from "@/components/ui";
@@ -41,6 +42,7 @@ function AppointmentSearchFiltersCardComponent({
   customCalendarOpen,
   onCustomDayPressResult,
 }: AppointmentSearchFiltersCardProps) {
+  const { t } = useTranslation(["schedule", "a11y"]);
   const customSelected = timeWindow === "custom";
 
   const handleSelectTimeWindow = useCallback(
@@ -61,11 +63,12 @@ function AppointmentSearchFiltersCardComponent({
         <View className="flex-row flex-wrap gap-gap-compact">
           {APPOINTMENT_SEARCH_TIME_WINDOWS.map((option) => {
             const isSelected = timeWindow === option.id;
+            const label = t(option.labelKey);
 
             return (
               <Button
                 key={option.id}
-                accessibilityLabel={`Filter by ${option.label}`}
+                accessibilityLabel={t("a11y:filterBy", { label })}
                 accessibilityState={{ selected: isSelected }}
                 className={cn(
                   "flex-row items-center gap-gap-compact rounded-pill border border-foreground-default px-inline py-stack-compact",
@@ -77,7 +80,7 @@ function AppointmentSearchFiltersCardComponent({
                 tone="neutral"
                 variant="ghost"
               >
-                <ThemedText variant="label">{option.label}</ThemedText>
+                <ThemedText variant="label">{label}</ThemedText>
               </Button>
             );
           })}
@@ -96,7 +99,7 @@ function AppointmentSearchFiltersCardComponent({
       <ThemedView surface="sunken" variant="card">
         {types.length === 0 ? (
           <ThemedText tone="muted" variant="body">
-            No appointment types available.
+            {t("schedule:search.noTypes")}
           </ThemedText>
         ) : (
           <View className="flex-row flex-wrap gap-gap-compact">
@@ -106,7 +109,7 @@ function AppointmentSearchFiltersCardComponent({
               return (
                 <Button
                   key={type.id}
-                  accessibilityLabel={`Filter by ${type.name}`}
+                  accessibilityLabel={t("a11y:filterBy", { label: type.name })}
                   accessibilityState={{ selected: isSelected }}
                   className={cn(
                     "flex-row items-center gap-gap-compact rounded-pill border border-foreground-default px-inline py-stack-compact",

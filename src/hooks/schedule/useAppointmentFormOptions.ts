@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 
 import type AppointmentType from "@/database/models/AppointmentType";
 import type Location from "@/database/models/Location";
+import { pickLocalizedName } from "@/helpers/i18n/pickLocalizedName";
 import type { PatientCardData } from "@/helpers/patients/patientDisplay";
-
 import { useActivePatients } from "@/hooks/patients/useActivePatients";
+import { useResolvedLocale } from "@/stores";
 
 export type AppointmentPatientOption = PatientCardData;
 
@@ -33,6 +34,7 @@ export function useAppointmentFormOptions({
   enabled = true,
 }: UseAppointmentFormOptionsArgs = {}) {
   const database = useDatabase();
+  const locale = useResolvedLocale();
   const {
     patients,
     allPatients,
@@ -70,7 +72,7 @@ export function useAppointmentFormOptions({
           records
             .map((type) => ({
               id: type.id,
-              name: type.nameEn,
+              name: pickLocalizedName(type, locale),
               color: type.color,
             }))
             .sort((a, b) => a.name.localeCompare(b.name)),
@@ -90,7 +92,7 @@ export function useAppointmentFormOptions({
           records
             .map((location) => ({
               id: location.id,
-              name: location.nameEn,
+              name: pickLocalizedName(location, locale),
             }))
             .sort((a, b) => a.name.localeCompare(b.name)),
         );
@@ -107,7 +109,7 @@ export function useAppointmentFormOptions({
       typesSub.unsubscribe();
       locationsSub.unsubscribe();
     };
-  }, [database, enabled]);
+  }, [database, enabled, locale]);
 
   return {
     patients,
@@ -120,5 +122,3 @@ export function useAppointmentFormOptions({
     error: patientsError ?? optionsError,
   };
 }
-
-export type AppointmentFormOptions = ReturnType<typeof useAppointmentFormOptions>;

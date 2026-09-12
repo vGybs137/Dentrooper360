@@ -1,5 +1,6 @@
 import { memo, useCallback } from "react";
 import { useWatch } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, View } from "react-native";
 
 import { PatientCard } from "@/components/patients";
@@ -19,6 +20,7 @@ function PatientSearchDivider() {
 function AddAppointmentPatientStepComponent({
   formState,
 }: AddAppointmentPatientStepProps) {
+  const { t } = useTranslation(["schedule"]);
   const native = useNativeColors();
   const { control, options, patientSearch, setPatientSearch, selectPatient } =
     formState;
@@ -44,7 +46,7 @@ function AddAppointmentPatientStepComponent({
           containerClassName="w-full"
           fieldVariant="bare"
           onChangeText={setPatientSearch}
-          placeholder="Search patients..."
+          placeholder={t("schedule:add.searchPatients")}
           returnKeyType="search"
           value={patientSearch}
         />
@@ -57,11 +59,11 @@ function AddAppointmentPatientStepComponent({
         </View>
       ) : options.error ? (
         <ThemedText tone="alert" variant="body">
-          Unable to load patients.
+          {t("schedule:add.unableLoadPatients")}
         </ThemedText>
       ) : options.patients.length === 0 ? (
         <ThemedText align="center" tone="muted" variant="body">
-          No patients match your search.
+          {t("schedule:add.noPatientsMatch")}
         </ThemedText>
       ) : (
         <ThemedView space="compact" variant="stack">

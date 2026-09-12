@@ -4,6 +4,7 @@ import {
   type DrawerContentComponentProps,
 } from "expo-router/drawer";
 import { memo, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -19,6 +20,7 @@ import { semantic } from "@/tokens";
 
 function ScheduleDrawerContentComponent(props: DrawerContentComponentProps) {
   const { navigation } = props;
+  const { t } = useTranslation(["navigation"]);
   const native = useNativeColors();
   const insets = useSafeAreaInsets();
   const viewMode = useScheduleViewModeStore((state) => state.viewMode);
@@ -57,9 +59,9 @@ function ScheduleDrawerContentComponent(props: DrawerContentComponentProps) {
       contentContainerStyle={contentContainerStyle}
     >
       <View style={headerStyle}>
-        <ThemedText variant="title">Calendar</ThemedText>
+        <ThemedText variant="title">{t("navigation:schedule.calendar")}</ThemedText>
       </View>
-      {SCHEDULE_VIEW_MODES.map(({ mode, label, icon }) => (
+      {SCHEDULE_VIEW_MODES.map(({ mode, labelKey, icon }) => (
         <DrawerItem
           key={mode}
           activeBackgroundColor={native.brand.subtle}
@@ -73,7 +75,7 @@ function ScheduleDrawerContentComponent(props: DrawerContentComponentProps) {
             />
           )}
           inactiveTintColor={native.foreground.muted}
-          label={label}
+          label={t(labelKey)}
           style={drawerItemStyle}
           onPress={() => {
             clearOrCloseAddAppointment();

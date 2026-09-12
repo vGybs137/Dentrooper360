@@ -1,0 +1,117 @@
+{
+  "list": {
+    "title": "Patients",
+    "empty": "Aucun patient",
+    "loadError": "Impossible de charger les patients.",
+    "add": "Ajouter un patient"
+  },
+  "search": {
+    "placeholder": "Rechercher des patients...",
+    "entityLabel": "patients"
+  },
+  "kpis": {
+    "total": "Total des patients",
+    "newThisMonth": "Nouveaux ce mois-ci",
+    "upcomingVisits": "Visites à venir",
+    "outstandingBalance": "Solde impayé",
+    "newBadge": "Nouveau"
+  },
+  "card": {
+    "nextVisit": "Prochaine visite",
+    "balance": "Solde",
+    "nextVisitNone": "Aucune",
+    "balanceEmpty": "---"
+  },
+  "form": {
+    "addTitle": "Ajouter un patient",
+    "editTitle": "Modifier le patient",
+    "firstName": "Prénom",
+    "fatherName": "Nom du père",
+    "lastName": "Nom de famille",
+    "zip": "Indicatif",
+    "phoneNumber": "Numéro de téléphone",
+    "age": "Âge",
+    "selectGender": "Sélectionner le sexe",
+    "searchGender": "Rechercher le sexe...",
+    "email": "E-mail",
+    "referralSource": "Source de recommandation",
+    "address": "Adresse",
+    "vipPatient": "Patient VIP",
+    "addAppointment": "Ajouter un rendez-vous",
+    "gender": {
+      "male": "Homme",
+      "female": "Femme"
+    },
+    "nameIssues": "Problèmes de nom",
+    "phoneIssues": "Problèmes de téléphone",
+    "duplicate": "Un patient nommé {{name}} avec ce numéro de téléphone existe déjà.",
+    "error": {
+      "load": "Impossible de charger le patient.",
+      "selectLocation": "Sélectionnez un lieu pour le rendez-vous.",
+      "unableAdd": "Impossible d'ajouter le patient",
+      "unableUpdate": "Impossible de mettre à jour le patient"
+    }
+  },
+  "details": {
+    "tabs": {
+      "overview": "Aperçu",
+      "appointments": "Rendez-vous",
+      "services": "Services",
+      "payments": "Paiements"
+    },
+    "information": "Informations du patient",
+    "timeline": "Chronologie du patient",
+    "phone": "Téléphone",
+    "email": "E-mail",
+    "address": "Adresse",
+    "balance": "Solde",
+    "noBalance": "Pas de solde",
+    "noReferral": "Pas de recommandation",
+    "referralSource": "Source de recommandation",
+    "birthDate": "Date de naissance",
+    "fileDate": "Date du dossier",
+    "nextAppointment": "Prochain rendez-vous",
+    "cta": {
+      "message": "Message",
+      "call": "Appeler",
+      "appointment": "Rendez-vous"
+    },
+    "emptyTitle": "Aucun patient",
+    "backToPatients": "Retour aux patients",
+    "loadError": "Impossible de charger ce patient.",
+    "notFound": "Ce patient est introuvable.",
+    "deleteTitle": "Supprimer le patient",
+    "deleteMessage": "Voulez-vous vraiment supprimer {{name}} ?",
+    "deletingTitle": "Suppression...",
+    "deletingMessage": "Suppression de ce patient et des enregistrements associés.",
+    "deletedTitle": "Patient supprimé",
+    "deletedMessage": "Le patient et les enregistrements associés ont été supprimés.",
+    "unableDelete": "Impossible de supprimer"
+  },
+  "tabs": {
+    "noAppointments": "Aucun rendez-vous",
+    "appointmentsError": "Impossible de charger les rendez-vous de ce patient.",
+    "noServices": "Aucun service",
+    "servicesError": "Impossible de charger les services de ce patient.",
+    "noPayments": "Aucun paiement",
+    "paymentsError": "Impossible de charger les paiements de ce patient."
+  },
+  "service": {
+    "fee": "Honoraires",
+    "posted": "Comptabilisé",
+    "notPosted": "Non comptabilisé",
+    "fallbackName": "Service"
+  },
+  "menu": {
+    "addAppointment": "Ajouter un rendez-vous"
+  },
+  "contact": {
+    "noPhoneTitle": "Pas de numéro de téléphone",
+    "noPhoneMessage": "Ajoutez un numéro de téléphone pour ce patient afin d'utiliser cette action.",
+    "whatsappError": "Impossible d'ouvrir WhatsApp",
+    "callError": "Impossible de passer l'appel"
+  },
+  "delete": {
+    "outstandingBalance": "Ce patient a un solde impayé et ne peut pas être supprimé tant qu'il n'est pas réglé."
+  }
+}

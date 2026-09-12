@@ -2,6 +2,7 @@ import { useDatabase } from "@nozbe/watermelondb/react";
 import type Appointment from "@/database/models/Appointment";
 import type Patient from "@/database/models/Patient";
 import type Recall from "@/database/models/Recall";
+import { pickLocalizedServiceName } from "@/helpers/i18n/pickLocalizedName";
 import {
   formatPatientName,
   type PatientCardData,
@@ -11,6 +12,8 @@ import {
   type PatientDetailsData,
 } from "@/hooks/patients/usePatientDetails";
 import { useObservedRecord } from "@/hooks/data/useObservedQuery";
+import { t } from "@/i18n";
+import { getResolvedLocale, useResolvedLocale } from "@/stores";
 
 export type RecallDetailsData = {
   id: string;
@@ -53,7 +56,11 @@ function snapshotRecall(
     patientId: rawPatientId ?? "",
     appointmentId: record.appointmentId?.trim() || null,
     serviceCode: record.serviceCode,
-    serviceName: record.serviceNameEn?.trim() || "Service",
+    serviceName: pickLocalizedServiceName(
+      record,
+      getResolvedLocale(),
+      t("recalls:service.fallback"),
+    ),
     interval: record.interval,
     reminderInterval: record.reminderInterval,
     date: record.date,
@@ -72,7 +79,7 @@ export function toAppointmentPatientDraft(
 ): PatientCardData {
   return {
     id: patient.id,
-    displayName: formatPatientName(patient) || "Unnamed patient",
+    displayName: formatPatientName(patient) || t("common:patient.unnamed"),
     countryCode: patient.countryCode?.trim() || null,
     phoneNumber: patient.phoneNumber?.trim() || null,
     isVip: patient.isVip,
@@ -112,9 +119,10 @@ export function useRecallDetails(
   recallId: string | undefined,
 ): UseRecallDetailsResult {
   const database = useDatabase();
+  const locale = useResolvedLocale();
   const { data, isLoading, error } = useObservedRecord({
     enabled: Boolean(recallId),
-    deps: [recallId],
+    deps: [recallId, locale],
     getObserve: () =>
       database.get<Recall>("recalls").findAndObserve(recallId!),
     map: mapRecallRecord,

@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 
 import {
   FeedbackOverlay,
@@ -31,11 +32,12 @@ import {
 } from "@/components/ui";
 import {
   calendarIcon,
-  chevronLeftIcon,
   deleteIcon,
   editIcon,
 } from "@/constants";
 import { AUTH_SLIDE_EASING, getAuthSlideDuration } from "@/helpers/auth/motion";
+import { navBackChevronIcon, navForwardChevronIcon } from "@/helpers/i18n/navBackChevron";
+import { pickLocalizedName } from "@/helpers/i18n/pickLocalizedName";
 import {
   formatPatientName,
   mapPatientToCardData,
@@ -47,18 +49,12 @@ import {
 import { requestSync } from "@/helpers/sync/requestSync";
 import { dayjsTimePattern } from "@/helpers/ui/timeFormat";
 import { useAppointmentDetails } from "@/hooks/schedule/useAppointmentDetails";
-import { useAddAppointmentStore } from "@/stores";
+import { useAddAppointmentStore, useResolvedLocale } from "@/stores";
 import { useHourFormat } from "@/stores/schedulePreferencesStore";
 import { useNativeColors, useResolvedTheme } from "@/theme";
 import { semantic } from "@/tokens";
 
 const AVATAR_SIZE = 80;
-
-const CHEVRON_RIGHT_ICON = {
-  ios: "chevron.right",
-  android: "chevron_right",
-  web: "chevron_right",
-} as const;
 
 function PatientAvatar({
   displayName,
@@ -157,7 +153,7 @@ function PatientHero({
         {onPress ? (
           <ThemedIcon
             dimension={chevronSize}
-            name={CHEVRON_RIGHT_ICON}
+            name={navForwardChevronIcon()}
             tone="muted"
           />
         ) : null}
@@ -190,10 +186,12 @@ export type AppointmentDetailsScreenProps = {
 export function AppointmentDetailsScreen({
   appointmentId,
 }: AppointmentDetailsScreenProps) {
+  const { t } = useTranslation(["schedule", "common", "errors", "a11y"]);
   const database = useDatabase();
   const native = useNativeColors();
   const router = useRouter();
   const hourFormat = useHourFormat();
+  const locale = useResolvedLocale();
   const { details, isLoading, error } = useAppointmentDetails(appointmentId);
   const openForEdit = useAddAppointmentStore((state) => state.openForEdit);
   const slideDuration = getAuthSlideDuration();
@@ -261,8 +259,8 @@ export function AppointmentDetailsScreen({
     setDeleteVisible(false);
     setDeleteFeedback({
       stage: "loading",
-      title: "Deleting...",
-      message: "Removing this appointment.",
+      title: t("schedule:details.deletingTitle"),
+      message: t("schedule:details.deletingMessage"),
     });
 
     void (async () => {
@@ -273,9 +271,9 @@ export function AppointmentDetailsScreen({
         requestSync();
         setDeleteFeedback({
           stage: "success",
-          title: "Appointment deleted",
-          message: "The appointment was removed.",
-          continueLabel: "Done",
+          title: t("schedule:details.deletedTitle"),
+          message: t("schedule:details.deletedMessage"),
+          continueLabel: t("common:actions.done"),
           onContinue: () => {
             setDeleteFeedback(null);
             goBack();
@@ -285,25 +283,32 @@ export function AppointmentDetailsScreen({
         setIsDeleting(false);
         setDeleteFeedback({
           stage: "error",
-          title: "Unable to delete",
+          title: t("errors:delete.unable"),
           message:
-            err instanceof Error ? err.message : "Please try again.",
-          retryLabel: "OK",
+            err instanceof Error
+              ? err.message
+              : t("errors:generic.pleaseTryAgain"),
+          retryLabel: t("common:actions.ok"),
           onRetry: dismissDeleteFeedback,
           onDismiss: dismissDeleteFeedback,
         });
       }
     })();
-  }, [details, dismissDeleteFeedback, goBack, isDeleting]);
+  }, [database, details, dismissDeleteFeedback, goBack, isDeleting, t]);
 
-  const subject = details?.appointment.subject?.trim() || "Appointment";
-  const typeName = details?.type?.nameEn?.trim() || null;
-  const locationName = details?.location?.nameEn?.trim() || null;
+  const subject =
+    details?.appointment.subject?.trim() || t("schedule:add.defaultSubject");
+  const typeName = details?.type
+    ? pickLocalizedName(details.type, locale) || null
+    : null;
+  const locationName = details?.location
+    ? pickLocalizedName(details.location, locale) || null
+    : null;
   const notes = details?.appointment.description?.trim() || null;
 
   const patientName = details?.patient
-    ? formatPatientName(details.patient) || "Unnamed patient"
-    : "No patient linked";
+    ? formatPatientName(details.patient) || t("common:patient.unnamed")
+    : t("schedule:details.noPatientLinked");
   const profilePhoto = details?.patient?.profilePhoto ?? null;
   const patientId = details?.patient?.id;
 
@@ -320,21 +325,21 @@ export function AppointmentDetailsScreen({
     const endLabel = dayjs(details.appointment.endTime).format(timePattern);
 
     return [
-      { label: "Subject", value: subject },
-      { label: "Date", value: dateLabel },
-      { label: "Time", value: `${startLabel} – ${endLabel}` },
+      { label: t("schedule:details.subject"), value: subject },
+      { label: t("common:labels.date"), value: dateLabel },
+      { label: t("common:labels.time"), value: `${startLabel} – ${endLabel}` },
       {
-        label: "Type",
-        value: typeName ?? "No type",
+        label: t("common:labels.type"),
+        value: typeName ?? t("schedule:details.noType"),
         empty: !typeName,
       },
       {
-        label: "Location",
-        value: locationName ?? "No location",
+        label: t("schedule:details.location"),
+        value: locationName ?? t("schedule:details.noLocation"),
         empty: !locationName,
       },
     ];
-  }, [details, hourFormat, locationName, subject, typeName]);
+  }, [details, hourFormat, locationName, subject, t, typeName]);
 
   if (isLoading) {
     return (
@@ -360,14 +365,17 @@ export function AppointmentDetailsScreen({
         variant="screen"
       >
         <EmptyState
-          action={{ label: "Back to schedule", onPress: goBack }}
+          action={{
+            label: t("schedule:details.backToSchedule"),
+            onPress: goBack,
+          }}
           description={
             error
-              ? "Unable to load this appointment."
-              : "This appointment could not be found."
+              ? t("schedule:details.loadError")
+              : t("schedule:details.notFound")
           }
           icon={calendarIcon}
-          title="No appointment"
+          title={t("schedule:details.emptyTitle")}
         />
       </ThemedView>
     );
@@ -410,10 +418,10 @@ export function AppointmentDetailsScreen({
             <DetailsSection
               fields={appointmentFields}
               note={{
-                value: notes ?? "No notes",
+                value: notes ?? t("common:empty.noNotes"),
                 empty: !notes,
               }}
-              title="Appointment Details"
+              title={t("schedule:details.title")}
             />
           </View>
         </Animated.View>
@@ -421,11 +429,19 @@ export function AppointmentDetailsScreen({
 
       <DetailsActionBar
         items={[
-          { icon: chevronLeftIcon, label: "Back", onPress: goBack },
-          { icon: editIcon, label: "Edit", onPress: handleEdit },
+          {
+            icon: navBackChevronIcon(),
+            label: t("common:actions.back"),
+            onPress: goBack,
+          },
+          {
+            icon: editIcon,
+            label: t("common:actions.edit"),
+            onPress: handleEdit,
+          },
           {
             icon: deleteIcon,
-            label: "Delete",
+            label: t("common:actions.delete"),
             onPress: handleDelete,
             tone: "alert",
           },

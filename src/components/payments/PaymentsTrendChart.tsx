@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import { memo, useCallback, useMemo, useState } from "react";
 import { View, type LayoutChangeEvent } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
+import { useTranslation } from "react-i18next";
 
 import { ThemedText } from "@/components/ui";
 import {
@@ -10,6 +11,7 @@ import {
 } from "@/helpers/payments/currency";
 import { buildPaymentMonthDailyTotals } from "@/helpers/payments/paymentDailyTotals";
 import type { ProviderPaymentItem } from "@/hooks/payments/useProviderPayments";
+import { useResolvedLocale } from "@/stores";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
@@ -29,6 +31,8 @@ function PaymentsTrendChartComponent({
   payments,
   currencySymbol,
 }: PaymentsTrendChartProps) {
+  const { t } = useTranslation("payments");
+  const locale = useResolvedLocale();
   const native = useNativeColors();
   const [chartWidth, setChartWidth] = useState(0);
   const symbol = resolveProviderCurrencySymbol(currencySymbol);
@@ -126,7 +130,10 @@ function PaymentsTrendChartComponent({
           className="text-[28px] font-bold leading-8"
           variant="display"
         >
-          {formatProviderCurrencyAmount(rangeTotal, { decimals: 2 })}
+          {formatProviderCurrencyAmount(rangeTotal, {
+            decimals: 2,
+            locale,
+          })}
         </ThemedText>
 
         <ThemedText className="text-body" tone="muted" variant="label">
@@ -176,7 +183,7 @@ function PaymentsTrendChartComponent({
           tone="muted"
           variant="label"
         >
-          No payments this month.
+          {t("chart.emptyMonth")}
         </ThemedText>
       ) : null}
     </View>

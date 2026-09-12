@@ -1,0 +1,11 @@
+{
+  "patients": {
+    "firstNameRequired": "First name is required",
+    "lastNameRequired": "Last name is required",
+    "countryCodeRequired": "Zip is required",
+    "phoneRequired": "Phone number is required"
+  },
+  "schedule": {
+    "subjectRequired": "Appointment subject is required."
+  }
+}

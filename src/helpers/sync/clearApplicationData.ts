@@ -2,12 +2,16 @@ import { clearDeviceId } from "@/helpers/auth/deviceId";
 import { toDayKey, todayCalendarDate } from "@/helpers/schedule/calendar";
 import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import { waitForAllClinicSyncsIdle } from "@/database/synchronize";
+import { applyRtlForLocale } from "@/helpers/i18n/applyRtl";
+import { changeAppLanguage } from "@/i18n";
+import { DEFAULT_LOCALE } from "@/i18n/locales";
 import {
   applyThemeColorScheme,
   useAddAppointmentStore,
   useAddPatientStore,
   useAuthStore,
   useCalendarSelectionStore,
+  useLocalePreferencesStore,
   useSchedulePreferencesStore,
   useScheduleViewModeStore,
   useSyncStatusStore,
@@ -50,6 +54,14 @@ export async function clearApplicationData(): Promise<void> {
   });
   applyThemeColorScheme("system");
   await useThemePreferencesStore.persist.clearStorage();
+
+  useLocalePreferencesStore.setState({
+    mode: "system",
+    resolvedLocale: DEFAULT_LOCALE,
+  });
+  await changeAppLanguage(DEFAULT_LOCALE);
+  applyRtlForLocale(DEFAULT_LOCALE);
+  await useLocalePreferencesStore.persist.clearStorage();
 
   useAddAppointmentStore.getState().dismissImmediately();
   useAddPatientStore.setState({

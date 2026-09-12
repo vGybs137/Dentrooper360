@@ -1,0 +1,23 @@
+{
+  "status": {
+    "offline": "Hors ligne",
+    "online": "En ligne"
+  },
+  "lastSynced": {
+    "never": "Jamais"
+  },
+  "snackbar": {
+    "offline": "Vous êtes hors ligne. Vérifiez votre connexion.",
+    "online": "Vous êtes de nouveau en ligne."
+  },
+  "error": {
+    "noClinicPaired": "Aucune clinique n'est associée à cet appareil.",
+    "offlineAuto": "Vous êtes hors ligne. La synchronisation se lancera automatiquement une fois reconnecté.",
+    "unableSync": "Impossible de synchroniser les données de la clinique. Vérifiez votre connexion et réessayez.",
+    "unableClear": "Impossible d'effacer les données de l'application."
+  },
+  "network": {
+    "unableReach": "Impossible de joindre le serveur.",
+    "requestFailed": "Échec de la requête."
+  }
+}

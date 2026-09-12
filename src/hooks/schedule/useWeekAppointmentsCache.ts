@@ -18,6 +18,7 @@ import {
   APPOINTMENTS_CACHE_LOADER_DELAY_MS,
 } from "@/hooks/schedule/appointmentsWindowCacheShared";
 import { useAuthUser } from "@/stores/authStore";
+import { useResolvedLocale } from "@/stores";
 import {
   addWeeks,
   parseDayKey,
@@ -72,6 +73,7 @@ export function useWeekAppointmentsCache({
   isDragging,
 }: UseWeekAppointmentsCacheOptions): UseWeekAppointmentsCacheResult {
   const database = useDatabase();
+  const locale = useResolvedLocale();
   const providerId = useAuthUser()?.id ?? null;
   const initialSeedRef = useRef<ReturnType<typeof seedFromPrefetch> | null>(
     null,
@@ -205,7 +207,7 @@ export function useWeekAppointmentsCache({
       .observe()
       .subscribe({
         next: (types) => {
-          typesRef.current = buildAppointmentTypesMap(types);
+          typesRef.current = buildAppointmentTypesMap(types, locale);
           if (appointmentsByWeekRef.current.size > 0) {
             republishAllWeeks();
           }
@@ -213,7 +215,7 @@ export function useWeekAppointmentsCache({
       });
 
     return () => subscription.unsubscribe();
-  }, [republishAllWeeks]);
+  }, [database, locale, republishAllWeeks]);
 
   useEffect(() => {
     if (isDragging) {

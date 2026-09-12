@@ -4,6 +4,7 @@ import {
   StyleSheet,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { ThemedText } from "@/components/ui";
 import { useIsSwitchingClinic } from "@/stores";
@@ -12,6 +13,7 @@ import { semantic } from "@/tokens";
 
 /** Survives ClinicSessionProvider remounts during switchClinic. */
 export function ClinicSwitchOverlay() {
+  const { t } = useTranslation(["auth", "a11y"]);
   const isSwitching = useIsSwitchingClinic();
   const native = useNativeColors();
 
@@ -27,7 +29,7 @@ export function ClinicSwitchOverlay() {
       visible
     >
       <View
-        accessibilityLabel="Switching clinic"
+        accessibilityLabel={t("a11y:switchingClinic")}
         accessibilityViewIsModal
         pointerEvents="auto"
         style={[
@@ -49,10 +51,10 @@ export function ClinicSwitchOverlay() {
           tone="inverse"
           variant="body"
         >
-          Switching clinic…
+          {t("auth:clinic.switching")}
         </ThemedText>
         <ThemedText align="center" tone="inverse" variant="label">
-          Syncing and preparing local data
+          {t("auth:clinic.switchingSubtitle")}
         </ThemedText>
       </View>
     </Modal>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { View, type LayoutChangeEvent } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -30,15 +31,23 @@ type TabLayout = {
 
 type TabDefinition = {
   id: PatientDetailsTab;
-  label: string;
+  labelKey: string;
   icon: NonNullable<ThemedIconProps["name"]>;
 };
 
 const TABS: readonly TabDefinition[] = [
-  { id: "overview", label: "Overview", icon: personIcon },
-  { id: "appointments", label: "Appointments", icon: calendarIcon },
-  { id: "services", label: "Services", icon: notesIcon },
-  { id: "payments", label: "Payments", icon: balanceIcon },
+  { id: "overview", labelKey: "patients:details.tabs.overview", icon: personIcon },
+  {
+    id: "appointments",
+    labelKey: "patients:details.tabs.appointments",
+    icon: calendarIcon,
+  },
+  { id: "services", labelKey: "patients:details.tabs.services", icon: notesIcon },
+  {
+    id: "payments",
+    labelKey: "patients:details.tabs.payments",
+    icon: balanceIcon,
+  },
 ];
 
 const INDICATOR_DURATION_MS = 220;
@@ -52,6 +61,7 @@ export function PatientDetailsTabs({
   activeTab,
   onSelectTab,
 }: PatientDetailsTabsProps) {
+  const { t } = useTranslation("patients");
   const native = useNativeColors();
   const tabLayouts = useRef<Partial<Record<PatientDetailsTab, TabLayout>>>({});
   const hasAnimated = useRef(false);
@@ -136,7 +146,7 @@ export function PatientDetailsTabs({
                 onLayout={handleTabLayout(tab.id)}
               >
                 <Button
-                  accessibilityLabel={tab.label}
+                  accessibilityLabel={t(tab.labelKey)}
                   accessibilityState={{ selected: isSelected }}
                   className="w-full items-center gap-1 px-stack-compact py-stack-compact"
                   onPress={() => onSelectTab(tab.id)}
@@ -156,7 +166,7 @@ export function PatientDetailsTabs({
                     tone={isSelected ? "brand" : "muted"}
                     variant="label"
                   >
-                    {tab.label}
+                    {t(tab.labelKey)}
                   </ThemedText>
                 </Button>
               </View>

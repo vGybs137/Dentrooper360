@@ -2,7 +2,7 @@ import type { ScheduleViewMode } from "@/stores/scheduleViewModeStore";
 
 export type ScheduleViewModeDefinition = {
   mode: ScheduleViewMode;
-  label: string;
+  labelKey: string;
   icon: {
     ios: string;
     android: string;
@@ -13,7 +13,7 @@ export type ScheduleViewModeDefinition = {
 export const SCHEDULE_VIEW_MODES = [
   {
     mode: "month",
-    label: "Month",
+    labelKey: "navigation:schedule.view.month",
     icon: {
       ios: "calendar",
       android: "calendar_month",
@@ -22,7 +22,7 @@ export const SCHEDULE_VIEW_MODES = [
   },
   {
     mode: "week",
-    label: "Week",
+    labelKey: "navigation:schedule.view.week",
     icon: {
       ios: "calendar.day.timeline.left",
       android: "view_week",
@@ -31,7 +31,7 @@ export const SCHEDULE_VIEW_MODES = [
   },
   {
     mode: "day",
-    label: "Day",
+    labelKey: "navigation:schedule.view.day",
     icon: {
       ios: "calendar.day.timeline.leading",
       android: "today",

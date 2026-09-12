@@ -1,0 +1,14 @@
+{
+  "list": {
+    "title": "Paiements",
+    "empty": "Aucun paiement",
+    "loadError": "Impossible de charger les paiements."
+  },
+  "search": {
+    "placeholder": "Rechercher des paiements...",
+    "entityLabel": "paiements"
+  },
+  "chart": {
+    "emptyMonth": "Aucun paiement ce mois-ci."
+  }
+}

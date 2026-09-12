@@ -1,5 +1,6 @@
 import { type Href, useRouter } from "expo-router";
 import { useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 import { EntityListScreen } from "@/components/list";
 import { PaymentListItem } from "@/components/payments/PaymentListItem";
@@ -12,6 +13,7 @@ import {
 import { useAuthUser } from "@/stores";
 
 export function PaymentsListScreen() {
+  const { t } = useTranslation(["payments", "a11y"]);
   const router = useRouter();
   const user = useAuthUser();
   const { payments, isLoading, error } = useProviderPayments();
@@ -45,16 +47,16 @@ export function PaymentsListScreen() {
     <EntityListScreen
       data={payments}
       emptyIcon={balanceIcon}
-      emptyTitle="No payments"
+      emptyTitle={t("payments:list.empty")}
       error={error}
-      errorMessage="Unable to load payments."
+      errorMessage={t("payments:list.loadError")}
       isLoading={isLoading}
       keyExtractor={keyExtractor}
       listHeader={listHeader}
       openSearch={openSearch}
       renderItem={renderItem}
-      searchAccessibilityLabel="Search payments"
-      title="Payments"
+      searchAccessibilityLabel={t("a11y:searchPayments")}
+      title={t("payments:list.title")}
     />
   );
 }

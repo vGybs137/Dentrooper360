@@ -1,4 +1,5 @@
 import { type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { View, type StyleProp, type ViewStyle } from "react-native";
 import Animated, { type AnimatedStyle } from "react-native-reanimated";
 
@@ -71,6 +72,7 @@ export function QrViewfinder({
   onCancel,
   onRequestCamera,
 }: QrViewfinderProps) {
+  const { t } = useTranslation(["common", "a11y"]);
   const cornerSize = semantic.size["icon-lg"];
   const cornerRadius = semantic.radius.overlay;
   const cornerThickness = semantic.borderWidth.strong;
@@ -89,7 +91,7 @@ export function QrViewfinder({
           <>
             {cameraPreview ?? (
               <Button
-                accessibilityLabel="Enable camera"
+                accessibilityLabel={t("a11y:enableCamera")}
                 className="absolute inset-0 items-center justify-center rounded-none"
                 onPress={onRequestCamera}
                 ripple={false}
@@ -125,7 +127,7 @@ export function QrViewfinder({
       <Button
         className="rounded-card"
         disabled={status !== "ready"}
-        label="Cancel"
+        label={t("common:actions.cancel")}
         onPress={onCancel}
         size="lg"
         style={{

@@ -1,4 +1,5 @@
 import { useSegments } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { useWindowDimensions } from "react-native";
 import Animated, {
   Extrapolation,
@@ -19,6 +20,7 @@ import { SettingsProfileCard } from "./SettingsProfileCard";
 import { SettingsSyncSection } from "./SettingsSyncSection";
 
 export function SettingsScreen() {
+  const { t } = useTranslation("settings");
   const segments = useSegments();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -83,7 +85,7 @@ export function SettingsScreen() {
             ]}
           >
             <ThemedText align="center" variant="display">
-              Settings
+              {t("title")}
             </ThemedText>
           </Animated.View>
 

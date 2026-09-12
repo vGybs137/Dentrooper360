@@ -2,8 +2,11 @@ import { Q } from "@nozbe/watermelondb";
 import { useDatabase } from "@nozbe/watermelondb/react";
 
 import type Appointment from "@/database/models/Appointment";
+import { pickLocalizedName } from "@/helpers/i18n/pickLocalizedName";
 import { useObservedQuery } from "@/hooks/data/useObservedQuery";
+import { t } from "@/i18n";
 import { useAuthUser } from "@/stores/authStore";
+import { useResolvedLocale } from "@/stores";
 
 const APPOINTMENT_COLUMNS = [
   "subject",
@@ -31,37 +34,11 @@ export type UsePatientAppointmentsResult = {
   error: Error | null;
 };
 
-async function mapAppointment(
-  record: Appointment,
-): Promise<PatientAppointmentItem> {
-  let typeName: string | null = null;
-  let typeColor: string | null = null;
-
-  if (record.typeId) {
-    try {
-      const type = await record.type.fetch();
-      typeName = type.nameEn?.trim() || null;
-      typeColor = type.color ?? null;
-    } catch {
-      // Type may have been deleted.
-    }
-  }
-
-  return {
-    id: record.id,
-    subject: record.subject?.trim() || "Appointment",
-    status: record.status,
-    startTime: record.startTime,
-    endTime: record.endTime,
-    typeName,
-    typeColor,
-  };
-}
-
 export function usePatientAppointments(
   patientId: string | undefined,
 ): UsePatientAppointmentsResult {
   const database = useDatabase();
+  const locale = useResolvedLocale();
   const providerId = useAuthUser()?.id ?? null;
   const enabled = Boolean(patientId && providerId);
 
@@ -70,7 +47,7 @@ export function usePatientAppointments(
     PatientAppointmentItem[]
   >({
     enabled,
-    deps: [patientId, providerId],
+    deps: [patientId, providerId, locale],
     columns: APPOINTMENT_COLUMNS,
     emptyData: EMPTY_APPOINTMENTS,
     getQuery: () =>
@@ -79,7 +56,34 @@ export function usePatientAppointments(
         Q.where("provider_id", providerId!),
         Q.sortBy("start_time", Q.desc),
       ),
-    mapRecords: (records) => Promise.all(records.map(mapAppointment)),
+    mapRecords: (records) =>
+      Promise.all(
+        records.map(async (record) => {
+          let typeName: string | null = null;
+          let typeColor: string | null = null;
+
+          if (record.typeId) {
+            try {
+              const type = await record.type.fetch();
+              typeName = pickLocalizedName(type, locale) || null;
+              typeColor = type.color ?? null;
+            } catch {
+              // Type may have been deleted.
+            }
+          }
+
+          return {
+            id: record.id,
+            subject:
+              record.subject?.trim() || t("schedule:add.defaultSubject"),
+            status: record.status,
+            startTime: record.startTime,
+            endTime: record.endTime,
+            typeName,
+            typeColor,
+          };
+        }),
+      ),
   });
 
   return { appointments: data, isLoading, error };

@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
+
 import { DetailsActionBar } from "@/components/ui";
-import { chevronLeftIcon, deleteIcon, editIcon } from "@/constants";
+import { deleteIcon, editIcon } from "@/constants";
+import { navBackChevronIcon } from "@/helpers/i18n/navBackChevron";
 
 type PatientDetailsActionBarProps = {
   onBack: () => void;
@@ -12,14 +15,20 @@ export function PatientDetailsActionBar({
   onEdit,
   onDelete,
 }: PatientDetailsActionBarProps) {
+  const { t } = useTranslation("common");
+
   return (
     <DetailsActionBar
       items={[
-        { icon: chevronLeftIcon, label: "Back", onPress: onBack },
-        { icon: editIcon, label: "Edit", onPress: onEdit },
+        {
+          icon: navBackChevronIcon(),
+          label: t("actions.back"),
+          onPress: onBack,
+        },
+        { icon: editIcon, label: t("actions.edit"), onPress: onEdit },
         {
           icon: deleteIcon,
-          label: "Delete",
+          label: t("actions.delete"),
           onPress: onDelete,
           tone: "alert",
         },

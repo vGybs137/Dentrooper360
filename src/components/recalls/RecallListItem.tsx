@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import { memo, useMemo } from "react";
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import {
   Button,
@@ -27,6 +28,7 @@ import {
   type RecallDueBucket,
 } from "@/helpers/recalls/recallKpis";
 import type { ProviderRecallItem } from "@/hooks/recalls/useProviderRecalls";
+import { t as translate } from "@/i18n";
 import { useWeekStartsOn } from "@/stores/schedulePreferencesStore";
 import { useNativeColors } from "@/theme";
 
@@ -85,27 +87,27 @@ function formatDueInPill(
     if (doneDays != null) {
       return formatRelativeDayLabel(
         doneDays,
-        "Done 1 day ago",
-        (n) => `Done ${n} days ago`,
-        "Done today",
-        "Due in 1 day",
-        (n) => `Due in ${n} days`,
+        translate("recalls:pill.doneOneDayAgo"),
+        (n) => translate("recalls:pill.doneNDaysAgo", { count: n }),
+        translate("recalls:pill.doneToday"),
+        translate("recalls:pill.dueInOneDay"),
+        (n) => translate("recalls:pill.dueInNDays", { count: n }),
       );
     }
   }
 
   const days = daysFromToday(dueDate);
   if (days == null) {
-    return "—";
+    return translate("common:empty.emDash");
   }
 
   return formatRelativeDayLabel(
     days,
-    "Due 1 day ago",
-    (n) => `Due ${n} days ago`,
-    "Due today",
-    "Due in 1 day",
-    (n) => `Due in ${n} days`,
+    translate("recalls:pill.dueOneDayAgo"),
+    (n) => translate("recalls:pill.dueNDaysAgo", { count: n }),
+    translate("recalls:kpis.dueToday"),
+    translate("recalls:pill.dueInOneDay"),
+    (n) => translate("recalls:pill.dueInNDays", { count: n }),
   );
 }
 
@@ -163,6 +165,7 @@ function RecallListItemComponent({
   onPress,
   searchQuery,
 }: RecallListItemProps) {
+  const { t } = useTranslation(["recalls", "common", "a11y"]);
   const native = useNativeColors();
   const weekStartsOn = useWeekStartsOn();
   const bounds = useMemo(
@@ -191,16 +194,22 @@ function RecallListItemComponent({
     item.appointmentStartTime,
   );
   const phone =
-    formatPatientPhone(item.countryCode, item.phoneNumber) ?? "No phone";
+    formatPatientPhone(item.countryCode, item.phoneNumber) ??
+    t("common:empty.noPhone");
 
   const content = (
     <View
-      accessibilityLabel={`Recall for ${item.patientName}, ${phone}, ${item.serviceName}, ${duePillLabel}`}
-      className="flex-row items-stretch gap-stack overflow-hidden rounded-card border border-border-subtle bg-surface-sunken py-stack pl-inline"
+      accessibilityLabel={t("a11y:recallItem", {
+        patient: item.patientName,
+        phone,
+        service: item.serviceName,
+        due: duePillLabel,
+      })}
+      className="flex-row items-stretch gap-stack overflow-hidden rounded-card border border-border-subtle bg-surface-sunken py-stack ps-inline"
     >
       <EventRail color={railColor} />
 
-      <View className="min-w-0 flex-1 justify-center gap-inset-compact pr-inline">
+      <View className="min-w-0 flex-1 justify-center gap-inset-compact pe-inline">
         <View className="min-w-0 flex-row items-center gap-2">
           <SearchHighlightText
             className="min-w-0 shrink font-semibold"
@@ -224,7 +233,7 @@ function RecallListItemComponent({
             <View className="flex-row items-center gap-1">
               <ThemedIcon dimension={16} name={notesIcon} tone="muted" />
               <ThemedText className="text-xs" tone="muted" variant="label">
-                Service
+                {t("recalls:details.service")}
               </ThemedText>
             </View>
             <SearchHighlightText

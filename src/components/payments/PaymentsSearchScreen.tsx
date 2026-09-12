@@ -1,6 +1,7 @@
 import { useRouter, type Href } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { PaymentListItem } from "@/components/payments/PaymentListItem";
 import { EntitySearchScreen } from "@/components/search";
@@ -11,6 +12,7 @@ import {
 } from "@/hooks/payments/useProviderPayments";
 
 export function PaymentsSearchScreen() {
+  const { t } = useTranslation(["payments", "a11y"]);
   const router = useRouter();
   const [query, setQuery] = useState("");
   const hasQuery = query.trim().length > 0;
@@ -51,7 +53,7 @@ export function PaymentsSearchScreen() {
   return (
     <EntitySearchScreen
       data={visiblePayments}
-      entityLabel="payments"
+      entityLabel={t("payments:search.entityLabel")}
       error={error}
       fallbackHref={"/(tabs)/payments" as Href}
       hasQuery={hasQuery}
@@ -60,8 +62,8 @@ export function PaymentsSearchScreen() {
       onChangeQuery={setQuery}
       query={query}
       renderItem={renderItem}
-      searchAccessibilityLabel="Search payments"
-      searchPlaceholder="Search payments..."
+      searchAccessibilityLabel={t("a11y:searchPayments")}
+      searchPlaceholder={t("payments:search.placeholder")}
     />
   );
 }

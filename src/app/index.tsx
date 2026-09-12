@@ -1,5 +1,6 @@
 import { type Href, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { BrandedSplash } from "@/components/app/BrandLogo";
 import { Button, ThemedText, ThemedView } from "@/components/ui";
@@ -19,6 +20,7 @@ import {
 } from "@/stores";
 
 export default function Index() {
+  const { t } = useTranslation("auth");
   const router = useRouter();
   const customerId = useCustomerId();
   const hasHydrated = useHasHydrated();
@@ -157,17 +159,20 @@ export default function Index() {
 
   const showSyncRetry = isSyncFailed && !canEnterOffline;
   const showContinueOffline = isSyncFailed && canEnterOffline;
+  const retrySyncLabel = isRetryingSync
+    ? t("splash.retryingSync")
+    : t("splash.retrySync");
 
   return (
     <BrandedSplash>
       {showSyncRetry ? (
         <ThemedView align="center" space="compact" variant="stack">
           <ThemedText align="center" tone="muted">
-            Unable to sync clinic data. Check your connection and try again.
+            {t("splash.unableSync")}
           </ThemedText>
           <Button
             disabled={isRetryingSync || isEntering}
-            label={isRetryingSync ? "Retrying sync..." : "Retry sync"}
+            label={retrySyncLabel}
             onPress={() => {
               void retrySync();
             }}
@@ -178,12 +183,11 @@ export default function Index() {
       {showContinueOffline ? (
         <ThemedView align="center" space="compact" variant="stack">
           <ThemedText align="center" tone="muted">
-            Unable to sync right now. You can continue with previously synced
-            clinic data.
+            {t("splash.unableSyncContinue")}
           </ThemedText>
           <Button
             disabled={isEntering}
-            label={isEntering ? "Opening..." : "Continue offline"}
+            label={isEntering ? t("splash.opening") : t("splash.continueOffline")}
             onPress={() => {
               void enterSchedule(true);
             }}
@@ -191,7 +195,7 @@ export default function Index() {
           />
           <Button
             disabled={isRetryingSync || isEntering}
-            label={isRetryingSync ? "Retrying sync..." : "Retry sync"}
+            label={retrySyncLabel}
             onPress={() => {
               void retrySync();
             }}

@@ -6,6 +6,7 @@ import { prepareScheduleAppointments } from "@/helpers/schedule/prefetchSchedule
 import { useIsOnline } from "@/hooks/sync/useIsOnline";
 import { useLoginMutation } from "@/hooks/auth/useLoginMutation";
 import { useStartupSync } from "@/hooks/auth/useStartupSync";
+import { t } from "@/i18n";
 import { useCustomerId } from "@/stores";
 import { ApiError } from "@/types/api";
 
@@ -46,7 +47,7 @@ export function useLoginForm() {
     loginMutation.error instanceof ApiError
       ? loginMutation.error.message
       : loginMutation.isError
-        ? "Unable to sign in. Check your credentials and try again."
+        ? t("auth:login.error.generic")
         : undefined;
 
   useEffect(() => {

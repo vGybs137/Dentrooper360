@@ -1,0 +1,59 @@
+{
+  "list": {
+    "title": "Recalls",
+    "empty": "No recalls",
+    "loadError": "Unable to load recalls."
+  },
+  "search": {
+    "placeholder": "Search recalls...",
+    "entityLabel": "recalls"
+  },
+  "kpis": {
+    "overdue": "Overdue",
+    "dueToday": "Due today",
+    "dueThisWeek": "Due this week",
+    "overdueRatio": "Overdue ratio"
+  },
+  "status": {
+    "done": "Done",
+    "scheduled": "Scheduled",
+    "upcoming": "Upcoming"
+  },
+  "pill": {
+    "doneToday": "Done today",
+    "doneOneDayAgo": "Done 1 day ago",
+    "doneNDaysAgo": "Done {{count}} days ago",
+    "dueOneDayAgo": "Due 1 day ago",
+    "dueNDaysAgo": "Due {{count}} days ago",
+    "dueInOneDay": "Due in 1 day",
+    "dueInNDays": "Due in {{count}} days"
+  },
+  "service": {
+    "fallback": "Service"
+  },
+  "details": {
+    "service": "Service",
+    "serviceCode": "Service code",
+    "noCode": "No code",
+    "status": "Status",
+    "dueDate": "Due date",
+    "recallDate": "Recall date",
+    "interval": "Interval",
+    "reminder": "Reminder",
+    "appointment": "Appointment",
+    "notLinked": "Not linked",
+    "apptStatus": "Appt status",
+    "noAppointment": "No appointment",
+    "information": "Recall Information",
+    "timeline": "Recall Timeline",
+    "patientInformation": "Patient Information",
+    "emptyTitle": "No recall",
+    "backToRecalls": "Back to recalls",
+    "loadError": "Unable to load this recall.",
+    "notFound": "This recall could not be found."
+  },
+  "hero": {
+    "patient": "Patient",
+    "message": "Message"
+  }
+}

@@ -1,4 +1,5 @@
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/Button";
 import { ThemedIcon } from "@/components/ui/ThemedIcon";
@@ -13,6 +14,7 @@ export type ScrollToTopButtonProps = {
 
 /** Floating pill used on entity list screens after scrolling past threshold. */
 export function ScrollToTopButton({ onPress, visible }: ScrollToTopButtonProps) {
+  const { t } = useTranslation(["common", "a11y"]);
   const native = useNativeColors();
 
   if (!visible) {
@@ -26,7 +28,7 @@ export function ScrollToTopButton({ onPress, visible }: ScrollToTopButtonProps) 
       style={{ top: semantic.space.stack.compact }}
     >
       <Button
-        accessibilityLabel="Scroll to top"
+        accessibilityLabel={t("a11y:scrollToTop")}
         className="size-control-lg items-center justify-center rounded-pill shadow-sm"
         onPress={onPress}
         size="none"

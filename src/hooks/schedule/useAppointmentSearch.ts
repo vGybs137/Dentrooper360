@@ -10,7 +10,10 @@ import {
 } from "@/constants/appointmentSearch";
 import type Appointment from "@/database/models/Appointment";
 import type AppointmentType from "@/database/models/AppointmentType";
+import { pickLocalizedName } from "@/helpers/i18n/pickLocalizedName";
+import { t } from "@/i18n";
 import { useAuthUser } from "@/stores/authStore";
+import { useResolvedLocale } from "@/stores";
 import type { MonthDayEventPreview } from "@/types/schedule";
 
 function matchesSubjectSearch(subject: string, query: string): boolean {
@@ -30,7 +33,8 @@ function toPreview(
 
   return {
     id: appointment.id,
-    title: appointment.subject?.trim() || "Appointment",
+    title:
+      appointment.subject?.trim() || t("schedule:add.defaultSubject"),
     color: type?.color ?? null,
     typeName: type?.name ?? null,
     startTime: appointment.startTime.getTime(),
@@ -59,6 +63,7 @@ export function useAppointmentSearch(
   customRange: AppointmentSearchCustomRange | null = null,
 ): UseAppointmentSearchResult {
   const database = useDatabase();
+  const locale = useResolvedLocale();
   const providerId = useAuthUser()?.id ?? null;
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [types, setTypes] = useState(
@@ -132,7 +137,7 @@ export function useAppointmentSearch(
           for (const type of records) {
             next.set(type.id, {
               color: type.color ?? null,
-              name: type.nameEn?.trim() || type.nameAr?.trim() || "",
+              name: pickLocalizedName(type, locale),
             });
           }
           setTypes(next);
@@ -147,7 +152,7 @@ export function useAppointmentSearch(
       appointmentsSubscription.unsubscribe();
       typesSubscription.unsubscribe();
     };
-  }, [providerId, rangeEndMs, rangeStartMs]);
+  }, [database, locale, providerId, rangeEndMs, rangeStartMs]);
 
   const typeOptions = useMemo<AppointmentSearchTypeOption[]>(
     () =>

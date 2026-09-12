@@ -64,6 +64,22 @@ const twMerge = extendTailwindMerge<"tint">({
       "min-h": [{ "min-h": ["control", "control-sm", "control-lg", "touch"] }],
       "p": [{ p: ["inset", "inset-compact", "inset-comfortable"] }],
       "px": [{ px: ["inline", "inline-compact", "inline-comfortable"] }],
+      "ps": [
+        {
+          ps: ["inline", "inline-compact", "inline-comfortable", "gap"],
+        },
+      ],
+      "pe": [
+        {
+          pe: [
+            "inline",
+            "inline-compact",
+            "inline-comfortable",
+            "stack-compact",
+            "gap",
+          ],
+        },
+      ],
       gap: [{ gap: ["gap", "gap-compact", "gap-comfortable"] }],
       tint: [
         {

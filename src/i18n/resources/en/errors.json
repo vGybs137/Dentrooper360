@@ -1,0 +1,14 @@
+{
+  "generic": {
+    "pleaseTryAgain": "Please try again."
+  },
+  "auth": {
+    "sessionRefresh": "No refresh token is stored."
+  },
+  "delete": {
+    "unable": "Unable to delete"
+  },
+  "form": {
+    "endAfterStart": "End time must be after start time."
+  }
+}

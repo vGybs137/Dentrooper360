@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { memo, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
 import { ActionMenu, ThemedIcon } from "@/components/ui";
@@ -13,14 +14,12 @@ type AppointmentDayFreeHoursInfoProps = {
   endTime: Date;
 };
 
-const OUTSIDE_HOURS_TITLE = "Outside working hours";
-const OVERLAP_TITLE = "Overlapping appointments";
-
 function AppointmentDayFreeHoursInfoComponent({
   date,
   startTime,
   endTime,
 }: AppointmentDayFreeHoursInfoProps) {
+  const { t } = useTranslation(["schedule", "a11y"]);
   const editingAppointmentId = useAddAppointmentStore(
     (state) => state.editingAppointmentId,
   );
@@ -42,15 +41,17 @@ function AppointmentDayFreeHoursInfoComponent({
 
   const title = useMemo(() => {
     if (outsideWorkingHours) {
-      return OUTSIDE_HOURS_TITLE;
+      return t("schedule:freeHours.outsideTitle");
     }
 
     if (overlapsSelection) {
-      return OVERLAP_TITLE;
+      return t("schedule:freeHours.overlapTitle");
     }
 
-    return `Free hours · ${dayjs(date).format("D MMM, YYYY")}`;
-  }, [date, overlapsSelection, outsideWorkingHours]);
+    return t("schedule:freeHours.title", {
+      date: dayjs(date).format("D MMM, YYYY"),
+    });
+  }, [date, overlapsSelection, outsideWorkingHours, t]);
 
   const titleTone = outsideWorkingHours
     ? "alert"
@@ -81,10 +82,10 @@ function AppointmentDayFreeHoursInfoComponent({
     <ActionMenu
       accessibilityLabel={
         outsideWorkingHours
-          ? "Show working hours warning"
+          ? t("a11y:freeHours.outsideWarning")
           : overlapsSelection
-            ? "Show overlapping appointments warning"
-            : "Show free hours for this day"
+            ? t("a11y:freeHours.overlapWarning")
+            : t("a11y:freeHours.info")
       }
       align="left"
       itemVariant="message"

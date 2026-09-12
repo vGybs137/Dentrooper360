@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Text, View } from "react-native";
 import Animated from "react-native-reanimated";
+import { useTranslation } from "react-i18next";
 
 import {
   Button,
@@ -185,15 +186,16 @@ export function InlineSelect({
   onSearchFocus,
   onSearchBlur,
 }: InlineSelectProps) {
+  const { t } = useTranslation(["common", "a11y"]);
   const [searchQuery, setSearchQuery] = useState("");
   const hasLeading = leading != null;
   const isBare = fieldVariant === "bare";
   const optionGap = semantic.space.stack.compact;
   const listPadTop = semantic.space.gap.compact;
   const searchRowHeight = semantic.size.control;
+  const entity = placeholder.replace(/^Select\s+/i, "").toLowerCase();
   const resolvedSearchPlaceholder =
-    searchPlaceholder ??
-    `Search ${placeholder.replace(/^Select\s+/i, "").toLowerCase()}...`;
+    searchPlaceholder ?? t("common:search.searchEntity", { entity });
 
   useEffect(() => {
     if (!visible) {
@@ -343,7 +345,7 @@ export function InlineSelect({
                     style={{ height: OPTION_ROW_HEIGHT }}
                   >
                     <ThemedText tone="muted" variant="body">
-                      No results found.
+                      {t("common:search.noResults")}
                     </ThemedText>
                   </View>
                 )}

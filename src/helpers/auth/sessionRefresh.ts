@@ -1,4 +1,5 @@
 import { refreshSession } from "@/api/functions/auth";
+import { t } from "@/i18n";
 import { hydrateAuthStore, useAuthStore } from "@/stores";
 import { ApiError } from "@/types/api";
 import type { AuthSession } from "@/types/auth";
@@ -25,7 +26,7 @@ async function performSessionRefresh(): Promise<AuthSession> {
   await hydrateAuthStore();
 
   if (!useAuthStore.getState().refreshToken) {
-    throw new ApiError("No refresh token is stored.", 401);
+    throw new ApiError(t("errors:auth.sessionRefresh"), 401);
   }
 
   try {

@@ -84,6 +84,12 @@ export const chevronLeftIcon = {
   web: "chevron_left",
 } as const;
 
+export const chevronRightIcon = {
+  ios: "chevron.right",
+  android: "chevron_right",
+  web: "chevron_right",
+} as const;
+
 export const chevronUpIcon = {
   ios: "chevron.up",
   android: "expand_less",
@@ -170,6 +176,12 @@ export const appearanceIcon = {
   ios: "circle.lefthalf.filled",
   android: "contrast",
   web: "contrast",
+} as const;
+
+export const languageIcon = {
+  ios: "globe",
+  android: "language",
+  web: "language",
 } as const;
 
 export const logoutIcon = {

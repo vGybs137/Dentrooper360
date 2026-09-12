@@ -1,0 +1,14 @@
+{
+  "list": {
+    "title": "Payments",
+    "empty": "No payments",
+    "loadError": "Unable to load payments."
+  },
+  "search": {
+    "placeholder": "Search payments...",
+    "entityLabel": "payments"
+  },
+  "chart": {
+    "emptyMonth": "No payments this month."
+  }
+}

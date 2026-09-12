@@ -1,0 +1,14 @@
+{
+  "generic": {
+    "pleaseTryAgain": "Veuillez réessayer."
+  },
+  "auth": {
+    "sessionRefresh": "Aucun jeton d'actualisation n'est enregistré."
+  },
+  "delete": {
+    "unable": "Impossible de supprimer"
+  },
+  "form": {
+    "endAfterStart": "L'heure de fin doit être après l'heure de début."
+  }
+}

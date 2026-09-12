@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Keyboard,
   Modal,
@@ -68,8 +69,11 @@ export type MonthQuickAddFieldProps = {
 function MonthQuickAddFieldComponent({
   dayKey,
   events,
-  placeholder = "Add appointment...",
+  placeholder: placeholderProp,
 }: MonthQuickAddFieldProps) {
+  const { t } = useTranslation(["schedule", "common", "a11y"]);
+  const placeholder =
+    placeholderProp ?? t("schedule:quickAdd.placeholder");
   const native = useNativeColors();
   const user = useAuthUser();
   const { hoursForDayKey, envelope } = useUserScheduleHours();
@@ -118,7 +122,7 @@ function MonthQuickAddFieldComponent({
         stage: "error",
         title,
         message,
-        retryLabel: "Dismiss",
+        retryLabel: t("common:actions.dismiss"),
         onRetry: dismissFeedback,
         onDismiss: dismissFeedback,
       });
@@ -239,8 +243,8 @@ function MonthQuickAddFieldComponent({
 
     if (!user?.id) {
       showErrorFeedback(
-        "Unable to add appointment",
-        "You must be signed in to create an appointment.",
+        t("schedule:quickAdd.error.unableAdd"),
+        t("schedule:form.error.signInCreate"),
       );
       return;
     }
@@ -390,7 +394,7 @@ function MonthQuickAddFieldComponent({
             <View style={pillStaticStyle}>
               <ThemedText
                 as="input"
-                accessibilityLabel="Quick add appointment"
+                accessibilityLabel={t("a11y:quickAddAppointment")}
                 blurOnSubmit
                 className="py-0"
                 containerClassName="min-h-0 flex-1 gap-0"
@@ -408,7 +412,7 @@ function MonthQuickAddFieldComponent({
                 value={text}
               />
               <Button
-                accessibilityLabel="Add appointment"
+                accessibilityLabel={t("a11y:addAppointment")}
                 accessibilityState={{ disabled: !canSubmit }}
                 disabled={!canSubmit}
                 hitSlop={8}

@@ -1,5 +1,6 @@
 import type { HourFormat } from "@/stores/schedulePreferencesStore";
 import { useSchedulePreferencesStore } from "@/stores/schedulePreferencesStore";
+import { getResolvedLocale } from "@/stores/localePreferencesStore";
 
 function resolveHourFormat(hourFormat?: HourFormat): HourFormat {
   return hourFormat ?? useSchedulePreferencesStore.getState().hourFormat;
@@ -8,6 +9,11 @@ function resolveHourFormat(hourFormat?: HourFormat): HourFormat {
 /** Locale that matches the preferred clock cycle for native pickers. */
 export function hourFormatLocale(hourFormat?: HourFormat): string {
   return resolveHourFormat(hourFormat) === "24h" ? "en-GB" : "en-US";
+}
+
+/** BCP-47 tag for Intl when an explicit locale is omitted. */
+function resolveIntlLocale(locale?: string): string {
+  return locale ?? getResolvedLocale();
 }
 
 /** dayjs pattern for a clock time (no date). */
@@ -29,7 +35,7 @@ export function formatClockTime(
 ): string {
   const format = resolveHourFormat(hourFormat);
   const date = typeof value === "number" ? new Date(value) : value;
-  return new Intl.DateTimeFormat(locale ?? hourFormatLocale(format), {
+  return new Intl.DateTimeFormat(resolveIntlLocale(locale), {
     hour: "numeric",
     minute: "2-digit",
     hour12: format === "12h",
@@ -44,7 +50,7 @@ export function formatHourLabel(
 ): string {
   const format = resolveHourFormat(hourFormat);
   const anchor = new Date(2000, 0, 1, hour, 0, 0, 0);
-  return new Intl.DateTimeFormat(locale ?? hourFormatLocale(format), {
+  return new Intl.DateTimeFormat(resolveIntlLocale(locale), {
     hour: "numeric",
     hour12: format === "12h",
   })
@@ -59,7 +65,7 @@ export function formatTimeRange(
   locale?: string,
 ): string {
   const format = resolveHourFormat(hourFormat);
-  const resolvedLocale = locale ?? hourFormatLocale(format);
+  const resolvedLocale = resolveIntlLocale(locale);
   const formatter = new Intl.DateTimeFormat(resolvedLocale, {
     hour: "numeric",
     minute: "2-digit",

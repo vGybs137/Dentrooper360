@@ -1,4 +1,5 @@
 import { memo, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
 import { ActionMenu, ThemedIcon } from "@/components/ui";
@@ -13,8 +14,11 @@ type PatientFormSectionErrorTriggerProps = {
 function PatientFormSectionErrorTriggerComponent({
   errors,
   title,
-  accessibilityLabel = "Show section errors",
+  accessibilityLabel,
 }: PatientFormSectionErrorTriggerProps) {
+  const { t } = useTranslation("a11y");
+  const resolvedAccessibilityLabel =
+    accessibilityLabel ?? t("a11y:showSectionErrors");
   const items = useMemo(
     () =>
       errors.map((label, index) => ({
@@ -28,7 +32,7 @@ function PatientFormSectionErrorTriggerComponent({
 
   return (
     <ActionMenu
-      accessibilityLabel={accessibilityLabel}
+      accessibilityLabel={resolvedAccessibilityLabel}
       align="left"
       itemVariant="message"
       items={items}

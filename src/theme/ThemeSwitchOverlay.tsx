@@ -7,6 +7,7 @@ import {
   View,
   type View as RNView,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { useNativeColors } from "@/theme/themeHooks";
 import {
@@ -20,6 +21,7 @@ export function ThemeSwitchOverlay({
 }: {
   blurTargetRef: RefObject<RNView | null>;
 }) {
+  const { t } = useTranslation("a11y");
   const isSwitching = useIsSwitchingTheme();
   const resolved = useResolvedTheme();
   const native = useNativeColors();
@@ -30,7 +32,7 @@ export function ThemeSwitchOverlay({
 
   return (
     <BlurView
-      accessibilityLabel="Switching appearance"
+      accessibilityLabel={t("switchingAppearance")}
       accessibilityViewIsModal
       blurMethod={
         Platform.OS === "android" ? "dimezisBlurViewSdk31Plus" : undefined
