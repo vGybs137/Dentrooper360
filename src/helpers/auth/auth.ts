@@ -33,6 +33,8 @@ export type WirePairResponse = {
   device_id: string;
   customer_id: string;
   paired_at: string;
+  pair_kind: "first" | "additional";
+  device_api_key: string;
 };
 
 export type WireClinicMembership = {
@@ -78,6 +80,8 @@ export function mapPairResponse(response: WirePairResponse): PairResponse {
     deviceId: response.device_id,
     customerId: response.customer_id,
     pairedAt: new Date(response.paired_at),
+    pairKind: response.pair_kind,
+    deviceApiKey: response.device_api_key,
   };
 }
 

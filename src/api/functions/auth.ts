@@ -12,6 +12,7 @@ import type {
 import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import { synchronize } from "@/database/synchronize";
 import { getOrCreateDeviceId } from "@/helpers/auth/deviceId";
+import { storeDeviceApiKey } from "@/security/pairing/pairingVault";
 
 import {
   mapAuthSession,
@@ -110,6 +111,7 @@ export async function pairDevice(request: PairRequest): Promise<PairResponse> {
 
   const pairResponse = mapPairResponse(response.data);
   useAuthStore.getState().setCustomerId(pairResponse.customerId);
+  await storeDeviceApiKey(pairResponse.customerId, pairResponse.deviceApiKey);
   await clinicDatabaseManager.ensureActive(pairResponse.customerId);
   return pairResponse;
 }
