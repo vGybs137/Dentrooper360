@@ -11,6 +11,7 @@ import type {
 } from "@/types/auth";
 import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import { synchronize } from "@/database/synchronize";
+import { getOrCreateDeviceId } from "@/helpers/auth/deviceId";
 
 import {
   mapAuthSession,
@@ -57,9 +58,11 @@ export async function refreshSession(): Promise<AuthSession> {
     throw new ApiError("No refresh token is stored.", 401);
   }
 
+  const deviceId = await getOrCreateDeviceId();
+
   const response = await httpClient.post<WireAuthSession>(
     AUTH_REFRESH_PATH,
-    { refresh_token: refreshToken },
+    { refresh_token: refreshToken, device_id: deviceId },
     { skipAuth: true },
   );
 

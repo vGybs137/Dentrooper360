@@ -105,6 +105,7 @@ export function toLoginPayload(request: LoginRequest) {
     customer_id: request.customerId,
     username: request.username,
     password: request.password,
+    device_id: request.deviceId ?? undefined,
   };
 }
 
@@ -124,6 +125,7 @@ export function toSwitchClinicPayload(request: SwitchClinicRequest) {
   return {
     customer_id: request.customerId,
     refresh_token: request.refreshToken ?? undefined,
+    device_id: request.deviceId ?? undefined,
   };
 }
 

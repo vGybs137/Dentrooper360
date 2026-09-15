@@ -6,7 +6,7 @@ export const AUTH_ME_PATH = "/api/auth/me";
 export const AUTH_CLINICS_PATH = "/api/auth/clinics";
 export const AUTH_SWITCH_CLINIC_PATH = "/api/auth/switch-clinic";
 
-export const ACCESS_TOKEN_LIFETIME_MS = 15 * 60 * 1000;
+export const ACCESS_TOKEN_LIFETIME_MS = 10 * 60 * 1000;
 export const TOKEN_REFRESH_LEAD_MS = 2 * 60 * 1000;
 export const TOKEN_REFRESH_CHECK_INTERVAL_MS = 60 * 1000;
 

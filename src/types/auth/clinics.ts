@@ -16,4 +16,5 @@ export type ClinicsList = {
 export type SwitchClinicRequest = {
   customerId: string;
   refreshToken?: string | null;
+  deviceId?: string | null;
 };
