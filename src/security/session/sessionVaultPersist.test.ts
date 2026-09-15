@@ -1,9 +1,8 @@
 import assert from "node:assert/strict";
 
 /**
- * Documents Phase 5 persistence rules for the auth store blob.
- * Runtime SecureStore/biometric APIs are native-only; this test locks the
- * shape of what is allowed in the persisted JSON.
+ * Persist blob must never contain access/refresh tokens.
+ * Embedded tokens from older builds are discarded (re-login).
  */
 
 type PersistedAuthState = {
@@ -27,26 +26,29 @@ function partialize(state: PersistedAuthState & {
   };
 }
 
-function migrateLegacy(raw: {
+function sanitizeEmbeddedTokens(raw: {
   user: { id: string } | null;
   customerId: string | null;
   expiresAt: string | null;
   accessToken: string | null;
   refreshToken: string | null;
-}): PersistedAuthState & { _legacyRefreshToken?: string } {
-  const next: PersistedAuthState & { _legacyRefreshToken?: string } = {
+  hasRefreshCredential?: boolean;
+  refreshBoundToBiometrics?: boolean;
+}): PersistedAuthState {
+  const hadEmbeddedTokens =
+    typeof raw.accessToken === "string" || typeof raw.refreshToken === "string";
+
+  return {
     user: raw.user,
     customerId: raw.customerId,
     expiresAt: raw.expiresAt,
-    hasRefreshCredential: Boolean(raw.refreshToken),
-    refreshBoundToBiometrics: false,
+    hasRefreshCredential: hadEmbeddedTokens
+      ? false
+      : Boolean(raw.hasRefreshCredential),
+    refreshBoundToBiometrics: hadEmbeddedTokens
+      ? false
+      : Boolean(raw.refreshBoundToBiometrics),
   };
-
-  if (raw.refreshToken) {
-    next._legacyRefreshToken = raw.refreshToken;
-  }
-
-  return next;
 }
 
 const persisted = partialize({
@@ -62,19 +64,20 @@ const persisted = partialize({
 assert.equal("accessToken" in persisted, false);
 assert.equal("refreshToken" in persisted, false);
 assert.equal(persisted.hasRefreshCredential, true);
-assert.equal(persisted.refreshBoundToBiometrics, true);
 
-const migrated = migrateLegacy({
+const sanitized = sanitizeEmbeddedTokens({
   user: { id: "p1" },
   customerId: "clinic-a",
   expiresAt: null,
   accessToken: "old-at",
   refreshToken: "old-rt",
+  hasRefreshCredential: true,
+  refreshBoundToBiometrics: true,
 });
 
-assert.equal(migrated.hasRefreshCredential, true);
-assert.equal(migrated._legacyRefreshToken, "old-rt");
-assert.equal("accessToken" in migrated, false);
-assert.equal("refreshToken" in migrated, false);
+assert.equal(sanitized.hasRefreshCredential, false);
+assert.equal(sanitized.refreshBoundToBiometrics, false);
+assert.equal("accessToken" in sanitized, false);
+assert.equal("refreshToken" in sanitized, false);
 
 console.log("sessionVaultPersist: all assertions passed");

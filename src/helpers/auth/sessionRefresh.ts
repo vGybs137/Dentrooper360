@@ -1,8 +1,6 @@
 import { refreshSession } from "@/api/functions/auth";
-import {
-  clearRefreshTokenSecurely,
-  unlockWithBiometrics,
-} from "@/security/biometric/biometricUnlock";
+import { unlockWithBiometrics } from "@/security/biometric/biometricUnlock";
+import { clearSession } from "@/security/session/sessionVault";
 import { t } from "@/i18n";
 import { hydrateAuthStore, useAuthStore } from "@/stores";
 import { ApiError } from "@/types/api";
@@ -49,8 +47,7 @@ async function performSessionRefresh(): Promise<AuthSession> {
     return await refreshSession();
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
-      await clearRefreshTokenSecurely();
-      useAuthStore.getState().clearSession();
+      await clearSession();
     }
 
     throw error;
@@ -73,7 +70,6 @@ export async function unlockSessionWithBiometrics(
     await hydrateAuthStore();
 
     if (useAuthStore.getState().accessToken && useAuthStore.getState().user) {
-      // Already unlocked in this process.
       return {
         accessToken: useAuthStore.getState().accessToken!,
         refreshToken: useAuthStore.getState().refreshToken ?? "",
@@ -89,8 +85,7 @@ export async function unlockSessionWithBiometrics(
     const unlock = await unlockWithBiometrics(promptMessage);
     if (unlock.status !== "unlocked") {
       if (unlock.status === "missing" || unlock.status === "unavailable") {
-        await clearRefreshTokenSecurely();
-        useAuthStore.getState().clearSession();
+        await clearSession();
       }
       return null;
     }
@@ -98,8 +93,7 @@ export async function unlockSessionWithBiometrics(
     try {
       return await refreshSession();
     } catch {
-      await clearRefreshTokenSecurely();
-      useAuthStore.getState().clearSession();
+      await clearSession();
       return null;
     }
   })().finally(() => {

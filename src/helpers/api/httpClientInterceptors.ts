@@ -113,11 +113,8 @@ export async function retryUnauthorizedRequest(
     const next = await attachAccessToken(config);
     return client.request(next);
   } catch {
-    const { clearRefreshTokenSecurely } = await import(
-      "@/security/biometric/biometricUnlock"
-    );
-    await clearRefreshTokenSecurely();
-    useAuthStore.getState().clearSession();
+    const { clearSession } = await import("@/security/session/sessionVault");
+    await clearSession();
     return Promise.reject(await toRejectedError(error));
   }
 }

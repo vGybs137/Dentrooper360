@@ -11,7 +11,8 @@ export {
   pairDevice,
   refreshSession,
   switchClinicSession,
-} from "@/security/api/authApi";
+  unpairClinic,
+} from "@/api/functions/auth";
 export {
   clearRefreshTokenSecurely,
   ensureRefreshTokenInMemory,
@@ -25,7 +26,7 @@ export {
   ClinicSwitchError,
   switchClinic,
   type SwitchClinicOptions,
-} from "@/security/clinicSwitch/switchClinic";
+} from "@/session/switchClinic";
 export {
   RemoveClinicError,
   removeClinic,
@@ -69,10 +70,6 @@ export {
   recycleTokens,
   unlockSessionWithBiometrics,
 } from "@/security/session/tokenRecycle";
-export {
-  MobileSyncMode,
-  resolveMobileSyncMode,
-} from "@/security/sync/syncModes";
 export { getItem, setItem } from "@/security/vault/secureStorage";
 export {
   AUTH_REFRESH_TOKEN_KEY,

@@ -125,11 +125,8 @@ export default function Index() {
 
     if (isSessionInvalid) {
       void (async () => {
-        const { clearRefreshTokenSecurely } = await import(
-          "@/security/biometric/biometricUnlock"
-        );
-        await clearRefreshTokenSecurely();
-        useAuthStore.getState().clearSession();
+        const { clearSession } = await import("@/security/session/sessionVault");
+        await clearSession();
         if (!cancelled) {
           router.replace("/(auth)/login?intro=1" as Href);
         }

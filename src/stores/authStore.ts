@@ -6,7 +6,7 @@ import {
 } from "zustand/middleware";
 
 import { AUTH_STORE_KEY } from "@/constants/storage";
-import { getItem, setItem } from "@/helpers/auth/secureStorage";
+import { getItem, setItem } from "@/security/vault/secureStorage";
 import type { AuthSession, AuthUser } from "@/types/auth";
 
 type PersistedAuthState = {
@@ -37,41 +37,40 @@ type AuthStoreState = PersistedAuthState & {
   clearAll: () => void;
 };
 
-type LegacyPersistedBlob = PersistedAuthState & {
-  accessToken?: string | null;
-  refreshToken?: string | null;
-};
-
-/** Captured during persist rehydrate; moved into biometric vault after. */
-let pendingLegacyRefreshToken: string | null = null;
-
-function migrateLegacyPersistedState(raw: string | null): string | null {
+/**
+ * Ensures the persist blob never contains access/refresh tokens.
+ * Pre-vault blobs that still embed tokens are discarded (re-login required).
+ */
+function sanitizePersistedAuthBlob(raw: string | null): string | null {
   if (!raw) {
     return raw;
   }
 
   try {
     const parsed = JSON.parse(raw) as {
-      state?: LegacyPersistedBlob;
+      state?: Record<string, unknown>;
       version?: number;
     };
 
-    if (!parsed.state) {
+    if (!parsed.state || typeof parsed.state !== "object") {
       return raw;
     }
 
-    const legacyRefresh = parsed.state.refreshToken ?? null;
-    if (legacyRefresh && !pendingLegacyRefreshToken) {
-      pendingLegacyRefreshToken = legacyRefresh;
-    }
+    const state = parsed.state;
+    const hadEmbeddedTokens =
+      typeof state.accessToken === "string" ||
+      typeof state.refreshToken === "string";
 
     const nextState: PersistedAuthState = {
-      user: parsed.state.user ?? null,
-      customerId: parsed.state.customerId ?? null,
-      expiresAt: parsed.state.expiresAt ?? null,
-      hasRefreshCredential:
-        parsed.state.hasRefreshCredential ?? Boolean(legacyRefresh),
-      refreshBoundToBiometrics: parsed.state.refreshBoundToBiometrics ?? false,
+      user: (state.user as AuthUser | null) ?? null,
+      customerId: (state.customerId as string | null) ?? null,
+      expiresAt: (state.expiresAt as string | null) ?? null,
+      hasRefreshCredential: hadEmbeddedTokens
+        ? false
+        : Boolean(state.hasRefreshCredential),
+      refreshBoundToBiometrics: hadEmbeddedTokens
+        ? false
+        : Boolean(state.refreshBoundToBiometrics),
     };
 
     return JSON.stringify({
@@ -86,7 +85,7 @@ function migrateLegacyPersistedState(raw: string | null): string | null {
 
 const securePersistStorage: PersistStorage<PersistedAuthState> =
   createJSONStorage<PersistedAuthState>(() => ({
-    getItem: async (name) => migrateLegacyPersistedState(await getItem(name)),
+    getItem: async (name) => sanitizePersistedAuthBlob(await getItem(name)),
     setItem: (name, value) => setItem(name, value),
     removeItem: (name) => setItem(name, null),
   }))!;
@@ -166,22 +165,7 @@ export async function hydrateAuthStore(): Promise<void> {
 
   if (!hydrationPromise) {
     hydrationPromise = Promise.resolve(useAuthStore.persist.rehydrate())
-      .then(async () => {
-        const legacy = pendingLegacyRefreshToken;
-        pendingLegacyRefreshToken = null;
-        if (!legacy) {
-          return;
-        }
-
-        try {
-          const { persistRefreshTokenSecurely } = await import(
-            "@/security/biometric/biometricUnlock"
-          );
-          await persistRefreshTokenSecurely(legacy);
-        } catch {
-          useAuthStore.getState().setHasRefreshCredential(false);
-        }
-      })
+      .then(() => undefined)
       .finally(() => {
         hydrationPromise = null;
       });

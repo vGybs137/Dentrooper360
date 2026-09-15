@@ -7,7 +7,7 @@ import {
 
 import { SYNC_STATUS_STORE_KEY } from "@/constants/storage";
 import { getClinicLastSuccessfulSyncAt } from "@/database/ClinicRegistry";
-import { getItem, setItem } from "@/helpers/auth/secureStorage";
+import { getItem, setItem } from "@/security/vault/secureStorage";
 
 type PersistedSyncStatusState = {
   lastSuccessfulSyncAt: number | null;

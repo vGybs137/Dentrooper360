@@ -108,11 +108,8 @@ export async function logout(): Promise<void> {
   } catch {
     // Server logout is best-effort; local session still clears.
   } finally {
-    const { clearRefreshTokenSecurely } = await import(
-      "@/security/biometric/biometricUnlock"
-    );
-    await clearRefreshTokenSecurely();
-    store.clearSession();
+    const { clearSession } = await import("@/security/session/sessionVault");
+    await clearSession();
   }
 }
 

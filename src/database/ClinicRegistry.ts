@@ -1,5 +1,5 @@
 import { CLINIC_REGISTRY_KEY } from "@/constants/storage";
-import { getItem, setItem } from "@/helpers/auth/secureStorage";
+import { getItem, setItem } from "@/security/vault/secureStorage";
 
 import { clinicDbNameForCustomer, LEGACY_CLINIC_DB_NAME } from "./clinicDbNames";
 import { sortClinicsByLru } from "./clinicLru";
