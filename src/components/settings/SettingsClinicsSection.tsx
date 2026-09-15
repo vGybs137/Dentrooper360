@@ -1,3 +1,4 @@
+import { type Href, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
@@ -12,6 +13,10 @@ import { checkCircleIcon, locationIcon } from "@/constants";
 import { isClinicSwitchEnabled } from "@/constants/multiClinicFlags";
 import { cn } from "@/helpers/ui/cn";
 import { useClinicsList } from "@/hooks/auth/useClinicsList";
+import {
+  removeClinicErrorMessage,
+  useRemoveClinicMutation,
+} from "@/hooks/auth/useRemoveClinicMutation";
 import {
   switchClinicErrorMessage,
   useSwitchClinicMutation,
@@ -43,13 +48,18 @@ function clinicLabel(
 
 export function SettingsClinicsSection() {
   const { t } = useTranslation(["settings", "common"]);
+  const router = useRouter();
   const activeCustomerId = useCustomerId();
   const clinicsQuery = useClinicsList();
   const switchMutation = useSwitchClinicMutation();
+  const removeMutation = useRemoveClinicMutation();
   const isSwitching = useIsSwitchingClinic();
   const switchStoreError = useClinicSwitchError();
   const clearSwitchError = useClinicSwitchStore((state) => state.clearError);
   const [pendingClinic, setPendingClinic] = useState<ClinicMembership | null>(
+    null,
+  );
+  const [pendingRemove, setPendingRemove] = useState<ClinicMembership | null>(
     null,
   );
 
@@ -69,18 +79,22 @@ export function SettingsClinicsSection() {
     return null;
   }
 
+  const busy = isSwitching || removeMutation.isPending;
   const switchError =
     switchStoreError ??
     (switchMutation.isError
       ? switchClinicErrorMessage(switchMutation.error)
       : undefined);
+  const removeError = removeMutation.isError
+    ? removeClinicErrorMessage(removeMutation.error)
+    : undefined;
   const listError =
     clinicsQuery.isError && !clinicsQuery.data
       ? switchClinicErrorMessage(clinicsQuery.error)
       : undefined;
 
   function requestSwitch(clinic: ClinicMembership) {
-    if (isSwitching) {
+    if (busy) {
       return;
     }
     if (!clinic.isActive || clinic.customerId === activeCustomerId) {
@@ -92,19 +106,28 @@ export function SettingsClinicsSection() {
   }
 
   function handleCancelSwitch() {
-    if (isSwitching) {
+    if (busy) {
       return;
     }
     setPendingClinic(null);
   }
 
   function handleConfirmSwitch() {
-    if (!pendingClinic || isSwitching) {
+    if (!pendingClinic || busy) {
       return;
     }
     const targetCustomerId = pendingClinic.customerId;
     setPendingClinic(null);
     switchMutation.mutate(targetCustomerId);
+  }
+
+  function handleConfirmRemove() {
+    if (!pendingRemove || busy) {
+      return;
+    }
+    const targetCustomerId = pendingRemove.customerId;
+    setPendingRemove(null);
+    removeMutation.mutate(targetCustomerId);
   }
 
   return (
@@ -170,13 +193,16 @@ export function SettingsClinicsSection() {
 
         {sortedClinics.map((clinic, index) => {
           const isCurrent = clinic.customerId === activeCustomerId;
-          const canSwitch = clinic.isActive && !isCurrent && !isSwitching;
+          const canSwitch = clinic.isActive && !isCurrent && !busy;
           const description = isCurrent
             ? t("settings:clinics.currentDescription")
             : clinic.isActive
               ? t("settings:clinics.switchDescription")
               : t("settings:clinics.inactiveDescription");
-          const isLast = index === sortedClinics.length - 1 && !switchError;
+          const isLast =
+            index === sortedClinics.length - 1 &&
+            !switchError &&
+            !removeError;
           const label = clinicLabel(clinic, t);
 
           return (
@@ -221,17 +247,65 @@ export function SettingsClinicsSection() {
                   ) : null}
                 </View>
               </Button>
+              <View
+                style={{
+                  paddingHorizontal: semantic.space.inline.comfortable,
+                  paddingBottom: semantic.space.stack.compact,
+                }}
+              >
+                <Button
+                  disabled={busy}
+                  hitSlop={8}
+                  label={t("settings:clinics.removeTitle")}
+                  onPress={() => {
+                    removeMutation.reset();
+                    setPendingRemove(clinic);
+                  }}
+                  size="sm"
+                  textClassName="font-semibold"
+                  tone="alert"
+                  variant="ghost"
+                />
+              </View>
             </View>
           );
         })}
 
-        {switchError ? (
+        <View
+          style={{
+            paddingHorizontal: semantic.space.inline.comfortable,
+            paddingVertical: semantic.space.stack.default,
+            borderTopWidth: sortedClinics.length > 0 ? 1 : 0,
+            borderTopColor: "transparent",
+          }}
+          className={cn(sortedClinics.length > 0 && "border-t border-border-subtle")}
+        >
+          <Button
+            disabled={busy}
+            label={t("settings:clinics.addClinic")}
+            onPress={() => {
+              router.push({
+                pathname: "/(auth)/qr-scanner",
+                params: { mode: "add" },
+              } as Href);
+            }}
+            size="sm"
+            textClassName="font-semibold"
+            tone="brand"
+            variant="ghost"
+          />
+          <ThemedText className="mt-1" tone="muted" variant="label">
+            {t("settings:clinics.addClinicDescription")}
+          </ThemedText>
+        </View>
+
+        {switchError || removeError ? (
           <ThemedText
             className="px-inline-comfortable pb-stack-compact"
             tone="alert"
             variant="label"
           >
-            {switchError}
+            {removeError ?? switchError}
           </ThemedText>
         ) : null}
       </SettingsSection>
@@ -250,6 +324,26 @@ export function SettingsClinicsSection() {
         onConfirm={handleConfirmSwitch}
         title={t("settings:clinics.switchTitle")}
         visible={pendingClinic != null}
+      />
+
+      <DeleteConfirmationDialog
+        confirming={removeMutation.isPending}
+        confirmLabel={t("settings:clinics.removeConfirm")}
+        message={
+          pendingRemove
+            ? t("settings:clinics.removeMessage", {
+                clinic: clinicLabel(pendingRemove, t),
+              })
+            : t("settings:clinics.removeMessageFallback")
+        }
+        onCancel={() => {
+          if (!removeMutation.isPending) {
+            setPendingRemove(null);
+          }
+        }}
+        onConfirm={handleConfirmRemove}
+        title={t("settings:clinics.removeTitle")}
+        visible={pendingRemove != null}
       />
     </>
   );

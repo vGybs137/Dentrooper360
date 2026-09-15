@@ -27,8 +27,13 @@ const VIEWFINDER_MAX = 280;
 export default function QrScannerScreen() {
   const { t } = useTranslation(["auth", "common"]);
   const router = useRouter();
-  const { from } = useLocalSearchParams<{ from?: string | string[] }>();
+  const { from, mode } = useLocalSearchParams<{
+    from?: string | string[];
+    mode?: string | string[];
+  }>();
   const fromOnboarding = isFromOnboarding(from);
+  const isAddClinic =
+    (Array.isArray(mode) ? mode[0] : mode)?.toLowerCase() === "add";
   const native = useNativeColors();
   const restoreOnboarding = useRestoreOnboarding();
   const { width: windowWidth } = useWindowDimensions();
@@ -185,15 +190,25 @@ export default function QrScannerScreen() {
           platform,
           version,
           xApiKey: validated.xApiKey,
+          activate: !isAddClinic,
         });
 
         setScanFeedback({
           stage: "success",
           title: t("auth:qr.pairedTitle"),
-          message: t("auth:qr.pairedMessage"),
+          message: isAddClinic
+            ? t("auth:qr.pairedAddClinicMessage")
+            : t("auth:qr.pairedMessage"),
           autoContinueMs: 1500,
           onContinue: () => {
             setScanFeedback(null);
+            if (isAddClinic) {
+              router.replace({
+                pathname: "/(auth)/login",
+                params: { customerId: validated.customerId, from: "add-clinic" },
+              } as Href);
+              return;
+            }
             simulateScan();
           },
         });
@@ -209,7 +224,7 @@ export default function QrScannerScreen() {
         });
       }
     },
-    [dismissFeedback, pairMutation, simulateScan, status, t],
+    [dismissFeedback, isAddClinic, pairMutation, router, simulateScan, status, t],
   );
 
   const frameColor =

@@ -8,6 +8,7 @@ import type {
   PairRequest,
   PairResponse,
   SwitchClinicRequest,
+  UnpairClinicRequest,
 } from "@/types/auth";
 
 export type WireAuthUser = {
@@ -130,6 +131,14 @@ export function toSwitchClinicPayload(request: SwitchClinicRequest) {
     customer_id: request.customerId,
     refresh_token: request.refreshToken ?? undefined,
     device_id: request.deviceId ?? undefined,
+  };
+}
+
+export function toUnpairClinicPayload(request: UnpairClinicRequest) {
+  return {
+    customer_id: request.customerId,
+    device_id: request.deviceId,
+    refresh_token: request.refreshToken ?? undefined,
   };
 }
 

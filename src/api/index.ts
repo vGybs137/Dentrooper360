@@ -8,6 +8,7 @@ export {
   pushChanges,
   refreshSession,
   switchClinicSession,
+  unpairClinic,
 } from "./functions";
 export { API_BASE_URL, API_TIMEOUT_MS } from "@/constants/api";
 export { httpClient } from "./httpClient";
@@ -19,6 +20,7 @@ export {
   AUTH_PAIR_PATH,
   AUTH_REFRESH_PATH,
   AUTH_SWITCH_CLINIC_PATH,
+  AUTH_UNPAIR_CLINIC_PATH,
 } from "@/constants/auth";
 export { SYNC_MOBILE_PULL_PATH, SYNC_MOBILE_PUSH_PATH } from "@/constants/sync";
 export { ApiError, type ApiResponse, type ApiResponseError } from "@/types/api";

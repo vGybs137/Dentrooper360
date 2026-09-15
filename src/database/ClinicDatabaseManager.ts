@@ -283,17 +283,24 @@ class ClinicDatabaseManager {
   async deleteClinicData(customerId: string): Promise<void> {
     await waitForClinicSyncIdle(customerId);
 
-    const entry = await getOrCreateClinicRegistryEntry(customerId);
-    const database = await this.getOrOpen(customerId);
-    const unsynced = await watermelonHasUnsyncedChanges({ database });
-    if (unsynced) {
-      throw new Error(
-        "Cannot remove clinic data while there are unsynced local changes. Sync first.",
-      );
+    const openDb = this.openDatabases.get(customerId);
+    if (openDb) {
+      const unsynced = await watermelonHasUnsyncedChanges({ database: openDb });
+      if (unsynced) {
+        throw new Error(
+          "Cannot remove clinic data while there are unsynced local changes. Sync first.",
+        );
+      }
     }
 
+    // Close + delete SQLite files only. Never synchronize here: wiping rows via
+    // Watermelon then pushing would tombstone server PHI.
+    const registry = await loadClinicRegistry();
+    const entry = registry.clinics[customerId];
     await this.closeOpenHandle(customerId);
-    await deleteClinicSqliteFiles(entry.dbName);
+    if (entry?.dbName) {
+      await deleteClinicSqliteFiles(entry.dbName);
+    }
 
     if (this.activeCustomerId === customerId) {
       this.activeCustomerId = null;

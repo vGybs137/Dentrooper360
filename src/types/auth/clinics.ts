@@ -18,3 +18,9 @@ export type SwitchClinicRequest = {
   refreshToken?: string | null;
   deviceId?: string | null;
 };
+
+export type UnpairClinicRequest = {
+  customerId: string;
+  deviceId: string;
+  refreshToken?: string | null;
+};

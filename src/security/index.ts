@@ -23,6 +23,11 @@ export {
   type SwitchClinicOptions,
 } from "@/security/clinicSwitch/switchClinic";
 export {
+  RemoveClinicError,
+  removeClinic,
+  type RemoveClinicResult,
+} from "@/session/removeClinic";
+export {
   canEnterApp,
   isDevicePaired,
   isSessionAuthenticated,
