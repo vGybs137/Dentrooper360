@@ -12,6 +12,7 @@ const tests = [
   "src/constants/multiClinicFlags.test.ts",
   "src/security/gates/authGate.test.ts",
   "src/security/session/sessionVaultPersist.test.ts",
+  "src/security/rbac/authRole.test.ts",
 ];
 
 let failed = false;

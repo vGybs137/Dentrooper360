@@ -70,6 +70,13 @@ export {
   recycleTokens,
   unlockSessionWithBiometrics,
 } from "@/security/session/tokenRecycle";
+export {
+  hasUiRole,
+  matchUiRole,
+  useAuthRole,
+  useScopeVersion,
+  useSyncScope,
+} from "@/security/rbac/authRole";
 export { getItem, setItem } from "@/security/vault/secureStorage";
 export {
   AUTH_REFRESH_TOKEN_KEY,

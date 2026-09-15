@@ -22,3 +22,9 @@ Auth HTTP lives in `api/functions/auth.ts`. Session mappers/persist helpers live
 - Refresh token: SecureStore with biometric when enrolled; memory-cached after unlock
 - Pairing API key: device-bound SecureStore
 - Persist blob never stores access or refresh tokens
+
+## RBAC (Phase 8)
+
+- JWT carries `role`, `sync_scope`, `scope_version` (and `account_id` when known)
+- `rbac/authRole.ts` exposes UI helpers (`useAuthRole`, `useSyncScope`, `matchUiRole`) — presentation only
+- Server membership + `ISyncAuthorizationService` remain the source of truth for sync/authz
