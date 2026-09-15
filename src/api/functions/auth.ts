@@ -8,9 +8,13 @@ import type {
   PairRequest,
   PairResponse,
   SwitchClinicRequest,
+  UnpairClinicRequest,
 } from "@/types/auth";
 import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
+import { getOrCreateClinicRegistryEntry } from "@/database/ClinicRegistry";
 import { synchronize } from "@/database/synchronize";
+import { getOrCreateDeviceId } from "@/helpers/auth/deviceId";
+import { storeDeviceApiKey } from "@/security/pairing/pairingVault";
 
 import {
   mapAuthSession,
@@ -21,6 +25,7 @@ import {
   toLoginPayload,
   toPairPayload,
   toSwitchClinicPayload,
+  toUnpairClinicPayload,
   type WireAuthSession,
   type WireAuthUser,
   type WireClinicsResponse,
@@ -35,6 +40,7 @@ import {
   AUTH_PAIR_PATH,
   AUTH_REFRESH_PATH,
   AUTH_SWITCH_CLINIC_PATH,
+  AUTH_UNPAIR_CLINIC_PATH,
 } from "@/constants/auth";
 
 export async function login(request: LoginRequest): Promise<AuthSession> {
@@ -51,20 +57,28 @@ export async function login(request: LoginRequest): Promise<AuthSession> {
 
 export async function refreshSession(): Promise<AuthSession> {
   await hydrateAuthStore();
-  const refreshToken = useAuthStore.getState().refreshToken;
+
+  const { ensureRefreshTokenInMemory } = await import(
+    "@/security/biometric/biometricUnlock"
+  );
+  const refreshToken = await ensureRefreshTokenInMemory(
+    "Unlock Dentrooper to refresh your session",
+  );
 
   if (!refreshToken) {
     throw new ApiError("No refresh token is stored.", 401);
   }
 
+  const deviceId = await getOrCreateDeviceId();
+
   const response = await httpClient.post<WireAuthSession>(
     AUTH_REFRESH_PATH,
-    { refresh_token: refreshToken },
+    { refresh_token: refreshToken, device_id: deviceId },
     { skipAuth: true },
   );
 
   const session = mapAuthSession(response.data);
-  await persistSession(session);
+  await persistSession(session, undefined, { deferRefreshVault: true });
   return session;
 }
 
@@ -94,11 +108,15 @@ export async function logout(): Promise<void> {
   } catch {
     // Server logout is best-effort; local session still clears.
   } finally {
-    store.clearSession();
+    const { clearSession } = await import("@/security/session/sessionVault");
+    await clearSession();
   }
 }
 
-export async function pairDevice(request: PairRequest): Promise<PairResponse> {
+export async function pairDevice(
+  request: PairRequest,
+  options?: { activate?: boolean },
+): Promise<PairResponse> {
   const response = await httpClient.post<WirePairResponse>(
     AUTH_PAIR_PATH,
     toPairPayload(request),
@@ -106,8 +124,17 @@ export async function pairDevice(request: PairRequest): Promise<PairResponse> {
   );
 
   const pairResponse = mapPairResponse(response.data);
-  useAuthStore.getState().setCustomerId(pairResponse.customerId);
-  await clinicDatabaseManager.ensureActive(pairResponse.customerId);
+  await storeDeviceApiKey(pairResponse.customerId, pairResponse.deviceApiKey);
+
+  const activate = options?.activate !== false;
+  if (activate) {
+    useAuthStore.getState().setCustomerId(pairResponse.customerId);
+    await clinicDatabaseManager.ensureActive(pairResponse.customerId);
+  } else {
+    // Add-clinic: register local DB slot without clobbering the active session.
+    await getOrCreateClinicRegistryEntry(pairResponse.customerId);
+  }
+
   return pairResponse;
 }
 
@@ -117,7 +144,10 @@ export async function getCurrentUser(): Promise<AuthUser> {
 }
 
 export async function listClinics(): Promise<ClinicsList> {
-  const response = await httpClient.get<WireClinicsResponse>(AUTH_CLINICS_PATH);
+  const deviceId = await getOrCreateDeviceId();
+  const response = await httpClient.get<WireClinicsResponse>(AUTH_CLINICS_PATH, {
+    params: { device_id: deviceId },
+  });
   return mapClinicsResponse(response.data);
 }
 
@@ -130,4 +160,11 @@ export async function switchClinicSession(
   );
 
   return mapAuthSession(response.data);
+}
+
+export async function unpairClinic(request: UnpairClinicRequest): Promise<void> {
+  await httpClient.post(
+    AUTH_UNPAIR_CLINIC_PATH,
+    toUnpairClinicPayload(request),
+  );
 }

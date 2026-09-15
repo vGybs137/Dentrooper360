@@ -14,8 +14,8 @@ let appStateSubscription: NativeEventSubscription | null = null;
 let isTickInFlight = false;
 
 export function shouldRefreshAccessToken(now = Date.now()): boolean {
-  const { refreshToken } = useAuthStore.getState();
-  if (!refreshToken) {
+  const { refreshToken, hasRefreshCredential } = useAuthStore.getState();
+  if (!refreshToken && !hasRefreshCredential) {
     return false;
   }
 

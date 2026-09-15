@@ -24,6 +24,13 @@
     "switchMessage": "Passer à {{clinic}} ? Les modifications locales sont d'abord synchronisées. Le téléchargement des données peut prendre un moment.",
     "switchMessageFallback": "Changer de clinique ?",
     "switchErrorGeneric": "Impossible de changer de clinique. Veuillez réessayer.",
+    "addClinic": "Ajouter une clinique",
+    "addClinicDescription": "Scanner le QR d’une autre clinique",
+    "removeTitle": "Retirer la clinique",
+    "removeConfirm": "Oui, retirer",
+    "removeMessage": "Retirer {{clinic}} de cet appareil ? Les données locales sont effacées sans envoyer de suppressions au serveur.",
+    "removeMessageFallback": "Retirer cette clinique de l’appareil ?",
+    "removeErrorGeneric": "Impossible de retirer cette clinique. Synchronisez d’abord, puis réessayez.",
     "error": {
       "noActive": "Aucune clinique active n'est associée à cet appareil.",
       "disabled": "Le changement de clinique est désactivé sur cette version.",

@@ -24,6 +24,13 @@
     "switchMessage": "Switch to {{clinic}}? Local changes sync first. Downloading clinic data may take a moment.",
     "switchMessageFallback": "Switch clinics?",
     "switchErrorGeneric": "Unable to switch clinics. Please try again.",
+    "addClinic": "Add clinic",
+    "addClinicDescription": "Scan another clinic QR code",
+    "removeTitle": "Remove clinic",
+    "removeConfirm": "Yes, remove clinic",
+    "removeMessage": "Remove {{clinic}} from this device? Local data is wiped without uploading deletes to the server.",
+    "removeMessageFallback": "Remove this clinic from the device?",
+    "removeErrorGeneric": "Unable to remove this clinic. Sync pending changes first, then try again.",
     "error": {
       "noActive": "No active clinic is paired on this device.",
       "disabled": "Clinic switching is disabled on this build.",

@@ -41,12 +41,16 @@ export async function assertClinicSyncBinding(
   }
 
   const accessToken = useAuthStore.getState().accessToken;
+  if (!accessToken) {
+    throw new ApiError("Authentication is required before sync.", 401);
+  }
+
   const jwtCustomerId = readAccessTokenCustomerId(accessToken);
-  if (
-    jwtCustomerId &&
-    !options.allowBackgroundClinic &&
-    jwtCustomerId !== normalized
-  ) {
+  if (!jwtCustomerId) {
+    throw new ApiError("Session token is missing a clinic claim.", 401);
+  }
+
+  if (!options.allowBackgroundClinic && jwtCustomerId !== normalized) {
     throw new ApiError(
       "Session token clinic does not match the sync target.",
       403,

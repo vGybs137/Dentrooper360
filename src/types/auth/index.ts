@@ -4,6 +4,7 @@ export type {
   ClinicMembership,
   ClinicsList,
   SwitchClinicRequest,
+  UnpairClinicRequest,
 } from "./clinics";
 export type { LoginRequest } from "./loginRequest";
 export type { LogoutRequest } from "./logoutRequest";

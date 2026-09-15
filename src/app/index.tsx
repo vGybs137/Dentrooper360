@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { BrandedSplash } from "@/components/app/BrandLogo";
 import { Button, ThemedText, ThemedView } from "@/components/ui";
 import { hideNativeSplash } from "@/helpers/auth/nativeSplash";
+import { unlockSessionWithBiometrics } from "@/helpers/auth/sessionRefresh";
 import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import { prepareScheduleAppointments } from "@/helpers/schedule/prefetchScheduleAppointments";
 import { useStartupSessionCheck } from "@/hooks/auth/useStartupSessionCheck";
@@ -13,6 +14,7 @@ import {
   setOfflineMode,
   useAuthStore,
   useCanEnterOffline,
+  useCanUnlockSession,
   useCustomerId,
   useHasHydrated,
   useIsAuthenticated,
@@ -26,9 +28,12 @@ export default function Index() {
   const hasHydrated = useHasHydrated();
   const syncStatusHydrated = useSyncStatusHasHydrated();
   const isAuthenticated = useIsAuthenticated();
+  const canUnlock = useCanUnlockSession();
   const canEnterOffline = useCanEnterOffline();
   const isEnteringRef = useRef(false);
+  const unlockAttemptedRef = useRef(false);
   const [isEntering, setIsEntering] = useState(false);
+  const [isUnlocking, setIsUnlocking] = useState(false);
   const {
     isPending: isValidatingSession,
     isSuccess: isSessionValid,
@@ -83,6 +88,28 @@ export default function Index() {
       };
     }
 
+    if (!isAuthenticated && canUnlock && !unlockAttemptedRef.current) {
+      unlockAttemptedRef.current = true;
+      setIsUnlocking(true);
+      void unlockSessionWithBiometrics(t("splash.unlockPrompt"))
+        .then((session) => {
+          if (cancelled) {
+            return;
+          }
+          if (!session) {
+            router.replace("/(auth)/login?intro=1" as Href);
+          }
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setIsUnlocking(false);
+          }
+        });
+      return () => {
+        cancelled = true;
+      };
+    }
+
     if (!isAuthenticated) {
       router.replace("/(auth)/login?intro=1" as Href);
       return () => {
@@ -90,15 +117,20 @@ export default function Index() {
       };
     }
 
-    if (isValidatingSession) {
+    if (isValidatingSession || isUnlocking) {
       return () => {
         cancelled = true;
       };
     }
 
     if (isSessionInvalid) {
-      useAuthStore.getState().clearSession();
-      router.replace("/(auth)/login?intro=1" as Href);
+      void (async () => {
+        const { clearSession } = await import("@/security/session/sessionVault");
+        await clearSession();
+        if (!cancelled) {
+          router.replace("/(auth)/login?intro=1" as Href);
+        }
+      })();
       return () => {
         cancelled = true;
       };
@@ -143,6 +175,7 @@ export default function Index() {
     };
   }, [
     canEnterOffline,
+    canUnlock,
     customerId,
     enterSchedule,
     hasHydrated,
@@ -152,9 +185,11 @@ export default function Index() {
     hasSyncedThisVisit,
     isSyncComplete,
     isSyncFailed,
+    isUnlocking,
     isValidatingSession,
     router,
     syncStatusHydrated,
+    t,
   ]);
 
   const showSyncRetry = isSyncFailed && !canEnterOffline;

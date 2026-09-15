@@ -8,7 +8,7 @@ import {
 
 import { LOCALE_PREFERENCES_STORE_KEY } from "@/constants/storage";
 import { applyRtlForLocale } from "@/helpers/i18n/applyRtl";
-import { getItem, setItem } from "@/helpers/auth/secureStorage";
+import { getItem, setItem } from "@/security/vault/secureStorage";
 import { changeAppLanguage } from "@/i18n";
 import {
   DEFAULT_LOCALE,

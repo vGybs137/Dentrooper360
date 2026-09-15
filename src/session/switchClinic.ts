@@ -8,6 +8,7 @@ import {
   waitForClinicSyncIdle,
 } from "@/database/synchronize";
 import { persistSession } from "@/helpers/auth/auth";
+import { getOrCreateDeviceId } from "@/helpers/auth/deviceId";
 import { toDayKey, todayCalendarDate } from "@/helpers/schedule/calendar";
 import { clearScheduleAppointmentsPrefetch } from "@/helpers/schedule/prefetchScheduleAppointments";
 import { t } from "@/i18n";
@@ -104,9 +105,11 @@ export async function switchClinic({
       throw new ClinicSwitchError(t("settings:clinics.error.coldNeedsOnline"));
     }
 
+    const deviceId = await getOrCreateDeviceId();
     const session = await switchClinicSession({
       customerId: targetCustomerId,
       refreshToken,
+      deviceId,
     });
 
     useAddAppointmentStore.getState().dismissImmediately();

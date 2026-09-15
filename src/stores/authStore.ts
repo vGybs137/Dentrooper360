@@ -6,32 +6,86 @@ import {
 } from "zustand/middleware";
 
 import { AUTH_STORE_KEY } from "@/constants/storage";
-import { getItem, setItem } from "@/helpers/auth/secureStorage";
+import { getItem, setItem } from "@/security/vault/secureStorage";
 import type { AuthSession, AuthUser } from "@/types/auth";
 
 type PersistedAuthState = {
   user: AuthUser | null;
   customerId: string | null;
-  accessToken: string | null;
-  refreshToken: string | null;
   expiresAt: string | null;
+  /** True when a refresh token exists in the biometric SecureStore vault. */
+  hasRefreshCredential: boolean;
+  /** Whether the vault entry was written with requireAuthentication. */
+  refreshBoundToBiometrics: boolean;
 };
 
 type AuthStoreState = PersistedAuthState & {
+  /** Memory-only access JWT — never persisted. */
+  accessToken: string | null;
+  /** Memory-cached refresh after unlock/login — never persisted. */
+  refreshToken: string | null;
   hasHydrated: boolean;
   setHasHydrated: (value: boolean) => void;
   setCustomerId: (customerId: string | null) => void;
   setUser: (user: AuthUser | null) => void;
   setAccessToken: (accessToken: string | null) => void;
   setRefreshToken: (refreshToken: string | null) => void;
+  setHasRefreshCredential: (value: boolean) => void;
+  setRefreshBoundToBiometrics: (value: boolean) => void;
   setSession: (session: AuthSession) => void;
   clearSession: () => void;
   clearAll: () => void;
 };
 
+/**
+ * Ensures the persist blob never contains access/refresh tokens.
+ * Pre-vault blobs that still embed tokens are discarded (re-login required).
+ */
+function sanitizePersistedAuthBlob(raw: string | null): string | null {
+  if (!raw) {
+    return raw;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as {
+      state?: Record<string, unknown>;
+      version?: number;
+    };
+
+    if (!parsed.state || typeof parsed.state !== "object") {
+      return raw;
+    }
+
+    const state = parsed.state;
+    const hadEmbeddedTokens =
+      typeof state.accessToken === "string" ||
+      typeof state.refreshToken === "string";
+
+    const nextState: PersistedAuthState = {
+      user: (state.user as AuthUser | null) ?? null,
+      customerId: (state.customerId as string | null) ?? null,
+      expiresAt: (state.expiresAt as string | null) ?? null,
+      hasRefreshCredential: hadEmbeddedTokens
+        ? false
+        : Boolean(state.hasRefreshCredential),
+      refreshBoundToBiometrics: hadEmbeddedTokens
+        ? false
+        : Boolean(state.refreshBoundToBiometrics),
+    };
+
+    return JSON.stringify({
+      ...parsed,
+      state: nextState,
+      version: 2,
+    });
+  } catch {
+    return raw;
+  }
+}
+
 const securePersistStorage: PersistStorage<PersistedAuthState> =
   createJSONStorage<PersistedAuthState>(() => ({
-    getItem: (name) => getItem(name),
+    getItem: async (name) => sanitizePersistedAuthBlob(await getItem(name)),
     setItem: (name, value) => setItem(name, value),
     removeItem: (name) => setItem(name, null),
   }))!;
@@ -44,18 +98,25 @@ export const useAuthStore = create<AuthStoreState>()(
       accessToken: null,
       refreshToken: null,
       expiresAt: null,
+      hasRefreshCredential: false,
+      refreshBoundToBiometrics: false,
       hasHydrated: false,
       setHasHydrated: (value) => set({ hasHydrated: value }),
       setCustomerId: (customerId) => set({ customerId }),
       setUser: (user) => set({ user }),
       setAccessToken: (accessToken) => set({ accessToken }),
       setRefreshToken: (refreshToken) => set({ refreshToken }),
+      setHasRefreshCredential: (hasRefreshCredential) =>
+        set({ hasRefreshCredential }),
+      setRefreshBoundToBiometrics: (refreshBoundToBiometrics) =>
+        set({ refreshBoundToBiometrics }),
       setSession: (session) =>
         set({
           user: session.user,
           accessToken: session.accessToken,
           refreshToken: session.refreshToken,
           expiresAt: session.expiresAt.toISOString(),
+          hasRefreshCredential: Boolean(session.refreshToken),
         }),
       clearSession: () =>
         set({
@@ -63,6 +124,8 @@ export const useAuthStore = create<AuthStoreState>()(
           accessToken: null,
           refreshToken: null,
           expiresAt: null,
+          hasRefreshCredential: false,
+          refreshBoundToBiometrics: false,
         }),
       clearAll: () =>
         set({
@@ -71,23 +134,26 @@ export const useAuthStore = create<AuthStoreState>()(
           accessToken: null,
           refreshToken: null,
           expiresAt: null,
+          hasRefreshCredential: false,
+          refreshBoundToBiometrics: false,
         }),
     }),
     {
       name: AUTH_STORE_KEY,
+      version: 2,
       storage: securePersistStorage,
-      partialize: ({ user, customerId, accessToken, refreshToken, expiresAt }) => ({
-        user,
-        customerId,
-        accessToken,
-        refreshToken,
-        expiresAt,
+      partialize: (state) => ({
+        user: state.user,
+        customerId: state.customerId,
+        expiresAt: state.expiresAt,
+        hasRefreshCredential: state.hasRefreshCredential,
+        refreshBoundToBiometrics: state.refreshBoundToBiometrics,
       }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },
-    }
-  )
+    },
+  ),
 );
 
 let hydrationPromise: Promise<void> | null = null;
@@ -138,8 +204,19 @@ export function useHasHydrated() {
   return useAuthStore((state) => state.hasHydrated);
 }
 
+export function useHasRefreshCredential() {
+  return useAuthStore((state) => state.hasRefreshCredential);
+}
+
 export function useIsAuthenticated() {
+  return useAuthStore((state) => Boolean(state.accessToken && state.user));
+}
+
+/** Session can be restored via biometric unlock (cold start). */
+export function useCanUnlockSession() {
   return useAuthStore(
-    (state) => Boolean(state.accessToken && state.refreshToken && state.user),
+    (state) =>
+      Boolean(state.hasRefreshCredential && state.user && state.customerId) &&
+      !state.accessToken,
   );
 }

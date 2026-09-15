@@ -28,7 +28,8 @@ export async function clearApplicationData(): Promise<void> {
   await waitForAllClinicSyncsIdle();
   await clinicDatabaseManager.resetAll();
 
-  useAuthStore.getState().clearAll();
+  const { clearAllSecurityState } = await import("@/security/session/sessionVault");
+  await clearAllSecurityState();
   await useAuthStore.persist.clearStorage();
 
   useSyncStatusStore.setState({

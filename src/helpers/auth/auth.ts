@@ -8,6 +8,7 @@ import type {
   PairRequest,
   PairResponse,
   SwitchClinicRequest,
+  UnpairClinicRequest,
 } from "@/types/auth";
 
 export type WireAuthUser = {
@@ -33,6 +34,8 @@ export type WirePairResponse = {
   device_id: string;
   customer_id: string;
   paired_at: string;
+  pair_kind: "first" | "additional";
+  device_api_key: string;
 };
 
 export type WireClinicMembership = {
@@ -78,6 +81,8 @@ export function mapPairResponse(response: WirePairResponse): PairResponse {
     deviceId: response.device_id,
     customerId: response.customer_id,
     pairedAt: new Date(response.paired_at),
+    pairKind: response.pair_kind,
+    deviceApiKey: response.device_api_key,
   };
 }
 
@@ -105,6 +110,7 @@ export function toLoginPayload(request: LoginRequest) {
     customer_id: request.customerId,
     username: request.username,
     password: request.password,
+    device_id: request.deviceId ?? undefined,
   };
 }
 
@@ -124,12 +130,22 @@ export function toSwitchClinicPayload(request: SwitchClinicRequest) {
   return {
     customer_id: request.customerId,
     refresh_token: request.refreshToken ?? undefined,
+    device_id: request.deviceId ?? undefined,
+  };
+}
+
+export function toUnpairClinicPayload(request: UnpairClinicRequest) {
+  return {
+    customer_id: request.customerId,
+    device_id: request.deviceId,
+    refresh_token: request.refreshToken ?? undefined,
   };
 }
 
 export async function persistSession(
   session: AuthSession,
   customerId?: string | null,
+  options?: { deferRefreshVault?: boolean },
 ): Promise<void> {
   await hydrateAuthStore();
 
@@ -139,4 +155,11 @@ export async function persistSession(
   }
 
   store.setSession(session);
+
+  const { persistRefreshTokenSecurely } = await import(
+    "@/security/biometric/biometricUnlock"
+  );
+  await persistRefreshTokenSecurely(session.refreshToken, {
+    deferVaultWrite: options?.deferRefreshVault === true,
+  });
 }

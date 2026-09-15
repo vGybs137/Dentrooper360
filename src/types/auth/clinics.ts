@@ -16,4 +16,11 @@ export type ClinicsList = {
 export type SwitchClinicRequest = {
   customerId: string;
   refreshToken?: string | null;
+  deviceId?: string | null;
+};
+
+export type UnpairClinicRequest = {
+  customerId: string;
+  deviceId: string;
+  refreshToken?: string | null;
 };

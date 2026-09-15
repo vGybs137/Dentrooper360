@@ -18,10 +18,12 @@ import {
   useLoginLogoRestLayout,
 } from "@/hooks/auth/useAuthLogoRestOffset";
 import { useSplashIntro } from "@/hooks/auth/useSplashIntro";
+import { useAuthStore } from "@/stores";
 
 export default function LoginScreen() {
-  const { intro } = useLocalSearchParams<{
+  const { intro, customerId: customerIdParam } = useLocalSearchParams<{
     intro?: string | string[];
+    customerId?: string | string[];
   }>();
   const animateFromSplash = isIntroFromSplash(intro);
   const { height: windowHeight } = useWindowDimensions();
@@ -34,6 +36,15 @@ export default function LoginScreen() {
     splashIntro.progress,
     logoHeight,
   );
+
+  useEffect(() => {
+    const nextCustomerId = Array.isArray(customerIdParam)
+      ? customerIdParam[0]
+      : customerIdParam;
+    if (nextCustomerId?.trim()) {
+      useAuthStore.getState().setCustomerId(nextCustomerId.trim());
+    }
+  }, [customerIdParam]);
 
   useEffect(() => {
     void hideNativeSplash();
