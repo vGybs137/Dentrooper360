@@ -4,9 +4,11 @@ export {
   useAccessTokenExpiresAt,
   useAuthStore,
   useAuthUser,
+  useCanUnlockSession,
   useCustomerId,
   getAccessTokenExpiresAt,
   useHasHydrated,
+  useHasRefreshCredential,
   useIsAuthenticated,
   useRefreshToken,
 } from "./authStore";

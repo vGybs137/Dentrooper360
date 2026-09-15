@@ -3,16 +3,21 @@ import {
   useAccessToken,
   useAuthStore,
   useAuthUser,
+  useCanUnlockSession,
   useCustomerId,
+  useHasRefreshCredential,
   useIsAuthenticated,
   useRefreshToken,
 } from "@/stores/authStore";
+import {
+  clearRefreshTokenSecurely,
+  persistRefreshTokenSecurely,
+} from "@/security/biometric/biometricUnlock";
 import type { AuthSession, AuthUser } from "@/types/auth";
 
 /**
  * Session vault facade.
- * Phase 5 splits access (memory) vs refresh (biometric SecureStore).
- * Phase 0 keeps the existing Zustand + SecureStore persistence model.
+ * Access token: memory only. Refresh: biometric SecureStore + memory cache.
  */
 export function getSessionSnapshot() {
   const state = useAuthStore.getState();
@@ -22,18 +27,23 @@ export function getSessionSnapshot() {
     accessToken: state.accessToken,
     refreshToken: state.refreshToken,
     expiresAt: state.expiresAt,
+    hasRefreshCredential: state.hasRefreshCredential,
+    refreshBoundToBiometrics: state.refreshBoundToBiometrics,
   };
 }
 
-export function setSession(session: AuthSession): void {
+export async function setSession(session: AuthSession): Promise<void> {
   useAuthStore.getState().setSession(session);
+  await persistRefreshTokenSecurely(session.refreshToken);
 }
 
-export function clearSession(): void {
+export async function clearSession(): Promise<void> {
+  await clearRefreshTokenSecurely();
   useAuthStore.getState().clearSession();
 }
 
-export function clearAllSecurityState(): void {
+export async function clearAllSecurityState(): Promise<void> {
+  await clearRefreshTokenSecurely();
   useAuthStore.getState().clearAll();
 }
 
@@ -46,7 +56,9 @@ export {
   useAccessToken,
   useAuthStore,
   useAuthUser,
+  useCanUnlockSession,
   useCustomerId,
+  useHasRefreshCredential,
   useIsAuthenticated,
   useRefreshToken,
 };

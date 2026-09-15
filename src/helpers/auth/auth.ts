@@ -145,6 +145,7 @@ export function toUnpairClinicPayload(request: UnpairClinicRequest) {
 export async function persistSession(
   session: AuthSession,
   customerId?: string | null,
+  options?: { deferRefreshVault?: boolean },
 ): Promise<void> {
   await hydrateAuthStore();
 
@@ -154,4 +155,11 @@ export async function persistSession(
   }
 
   store.setSession(session);
+
+  const { persistRefreshTokenSecurely } = await import(
+    "@/security/biometric/biometricUnlock"
+  );
+  await persistRefreshTokenSecurely(session.refreshToken, {
+    deferVaultWrite: options?.deferRefreshVault === true,
+  });
 }

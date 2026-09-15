@@ -75,7 +75,18 @@
           }
         }
       ],
-      "expo-secure-store"
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Allow Dentrooper to use Face ID to unlock your clinic session."
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow Dentrooper to use Face ID to unlock your clinic session."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

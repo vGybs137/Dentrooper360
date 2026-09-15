@@ -10,6 +10,8 @@ const tests = [
   "src/database/readAccessTokenCustomerId.test.ts",
   "src/database/sortClinicsByLru.test.ts",
   "src/constants/multiClinicFlags.test.ts",
+  "src/security/gates/authGate.test.ts",
+  "src/security/session/sessionVaultPersist.test.ts",
 ];
 
 let failed = false;

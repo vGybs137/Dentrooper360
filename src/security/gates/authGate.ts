@@ -1,15 +1,25 @@
 import { useAuthStore } from "@/stores/authStore";
 
 /**
- * Route/auth gate predicates. Phase 5 wires these into tab/detail layouts.
+ * Route/auth gate predicates for tabs and detail layouts.
  */
-export function isDevicePaired(customerId = useAuthStore.getState().customerId): boolean {
+export function isDevicePaired(
+  customerId = useAuthStore.getState().customerId,
+): boolean {
   return Boolean(customerId);
 }
 
 export function isSessionAuthenticated(): boolean {
-  const { accessToken, refreshToken, user } = useAuthStore.getState();
-  return Boolean(accessToken && refreshToken && user);
+  const { accessToken, user } = useAuthStore.getState();
+  return Boolean(accessToken && user);
+}
+
+export function canUnlockSession(): boolean {
+  const { hasRefreshCredential, user, customerId, accessToken } =
+    useAuthStore.getState();
+  return (
+    Boolean(hasRefreshCredential && user && customerId) && !accessToken
+  );
 }
 
 export function canEnterApp(): boolean {
@@ -19,6 +29,7 @@ export function canEnterApp(): boolean {
 export type AuthGateState =
   | "needs_pairing"
   | "needs_login"
+  | "needs_unlock"
   | "authenticated";
 
 export function resolveAuthGateState(): AuthGateState {
@@ -26,9 +37,13 @@ export function resolveAuthGateState(): AuthGateState {
     return "needs_pairing";
   }
 
-  if (!isSessionAuthenticated()) {
-    return "needs_login";
+  if (isSessionAuthenticated()) {
+    return "authenticated";
   }
 
-  return "authenticated";
+  if (canUnlockSession()) {
+    return "needs_unlock";
+  }
+
+  return "needs_login";
 }

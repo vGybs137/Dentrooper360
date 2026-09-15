@@ -78,6 +78,10 @@ export async function removeClinic(customerId: string): Promise<RemoveClinicResu
 
   let clearedActiveSession = false;
   if (isActive) {
+    const { clearRefreshTokenSecurely } = await import(
+      "@/security/biometric/biometricUnlock"
+    );
+    await clearRefreshTokenSecurely();
     useAuthStore.getState().clearSession();
     clearedActiveSession = true;
   }

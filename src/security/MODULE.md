@@ -9,19 +9,25 @@ imports keep working while later phases move implementations in.
 
 | Path | Responsibility |
 |------|----------------|
-| `vault/` | SecureStore wrappers (Phase 5: biometric-bound refresh) |
-| `session/` | Session vault facade over auth store + token recycle |
+| `vault/` | SecureStore wrappers + biometric-bound refresh token vault |
+| `session/` | Session vault facade over auth store + token recycle/unlock |
 | `pairing/` | Device id + paired `customerId` helpers |
-| `gates/` | Auth gate predicates for route protection (Phase 5) |
-| `biometric/` | Biometric unlock seam (Phase 5) |
+| `gates/` | Auth gate predicates for route protection |
+| `biometric/` | Biometric unlock + vault flush |
 | `clinicSwitch/` | Multi-clinic switch orchestrator entry |
 | `api/` | Auth HTTP API client |
-| `sync/` | Bootstrap vs full clinical sync modes |
+| `sync/` | Mobile sync modes (JWT full clinical only) |
 
-## Token policy (target)
+## Token policy
 
-- Access token: memory only (Phase 5)
-- Refresh token: SecureStore + biometric (Phase 5)
+- Access token: **memory only** (never in SecureStore / persist blob)
+- Refresh token: SecureStore with `requireAuthentication` + `WHEN_UNLOCKED_THIS_DEVICE_ONLY` when biometrics are enrolled; memory-cached after unlock/login
 - Pairing API key: device-bound SecureStore
+- Production web: token/secret storage unsupported
 
-Until Phase 5, session vault still persists both tokens via the existing auth store.
+## Cold start
+
+1. Hydrate paired `customerId` + user metadata (no tokens)
+2. If `hasRefreshCredential` → biometric SecureStore read → refresh access JWT
+3. Else → password login
+4. Protected `(tabs)` / detail layouts use `AuthGate`

@@ -13,7 +13,11 @@ export {
   switchClinicSession,
 } from "@/security/api/authApi";
 export {
+  clearRefreshTokenSecurely,
+  ensureRefreshTokenInMemory,
+  flushRefreshTokenVault,
   isBiometricUnlockAvailable,
+  persistRefreshTokenSecurely,
   unlockWithBiometrics,
   type BiometricUnlockResult,
 } from "@/security/biometric/biometricUnlock";
@@ -29,6 +33,7 @@ export {
 } from "@/session/removeClinic";
 export {
   canEnterApp,
+  canUnlockSession,
   isDevicePaired,
   isSessionAuthenticated,
   resolveAuthGateState,
@@ -53,13 +58,25 @@ export {
   useAccessToken,
   useAuthStore,
   useAuthUser,
+  useCanUnlockSession,
   useCustomerId,
+  useHasRefreshCredential,
   useIsAuthenticated,
   useRefreshToken,
 } from "@/security/session/sessionVault";
-export { isRecyclingTokens, recycleTokens } from "@/security/session/tokenRecycle";
+export {
+  isRecyclingTokens,
+  recycleTokens,
+  unlockSessionWithBiometrics,
+} from "@/security/session/tokenRecycle";
 export {
   MobileSyncMode,
   resolveMobileSyncMode,
 } from "@/security/sync/syncModes";
 export { getItem, setItem } from "@/security/vault/secureStorage";
+export {
+  AUTH_REFRESH_TOKEN_KEY,
+  clearBiometricRefreshToken,
+  getBiometricRefreshToken,
+  setBiometricRefreshToken,
+} from "@/security/vault/refreshTokenVault";

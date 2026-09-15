@@ -28,6 +28,10 @@ export async function clearApplicationData(): Promise<void> {
   await waitForAllClinicSyncsIdle();
   await clinicDatabaseManager.resetAll();
 
+  const { clearRefreshTokenSecurely } = await import(
+    "@/security/biometric/biometricUnlock"
+  );
+  await clearRefreshTokenSecurely();
   useAuthStore.getState().clearAll();
   await useAuthStore.persist.clearStorage();
 
