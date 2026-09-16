@@ -1,5 +1,6 @@
 import * as SecureStore from "expo-secure-store";
 
+import { useAuthStore } from "@/stores/authStore";
 import {
   getItem,
   setItem,
@@ -8,49 +9,42 @@ import {
 
 export const AUTH_REFRESH_TOKEN_KEY = "auth.refreshToken.v1";
 
+/** Leftover from biometric login. Deleted, never read (a read would prompt). */
+const LEGACY_BIOMETRIC_KEY = "auth.biometricKey.v1";
+const WRAPPED_REFRESH_PREFIX = "enc.v1:";
+
 const DEVICE_ONLY_OPTIONS: SecureStorageOptions = {
   keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
 };
 
-function biometricOptions(authenticationPrompt: string): SecureStorageOptions {
-  return {
-    requireAuthentication: true,
-    authenticationPrompt,
-    keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
-  };
+async function deleteLegacyBiometricKey(): Promise<void> {
+  try {
+    await setItem(LEGACY_BIOMETRIC_KEY, null);
+  } catch {
+    // Already gone, or stored behind a prompt we must not trigger.
+  }
 }
 
-/**
- * Biometric-bound refresh token vault.
- * Access JWTs stay in memory only; this store never holds access tokens.
- */
-export async function getBiometricRefreshToken(
-  authenticationPrompt = "Unlock Dentrooper to continue",
-  options?: { requireAuthentication?: boolean },
-): Promise<string | null> {
-  const requireAuthentication = options?.requireAuthentication !== false;
-  return getItem(
-    AUTH_REFRESH_TOKEN_KEY,
-    requireAuthentication
-      ? biometricOptions(authenticationPrompt)
-      : DEVICE_ONLY_OPTIONS,
-  );
+export async function readStoredRefreshToken(): Promise<string | null> {
+  const value = await getItem(AUTH_REFRESH_TOKEN_KEY, DEVICE_ONLY_OPTIONS);
+  if (!value || value.startsWith(WRAPPED_REFRESH_PREFIX)) {
+    return null;
+  }
+
+  return value;
 }
 
-export async function setBiometricRefreshToken(
-  token: string,
-  options?: { requireAuthentication?: boolean },
-): Promise<void> {
-  const requireAuthentication = options?.requireAuthentication !== false;
-  await setItem(
-    AUTH_REFRESH_TOKEN_KEY,
-    token,
-    requireAuthentication
-      ? biometricOptions("Unlock Dentrooper to continue")
-      : DEVICE_ONLY_OPTIONS,
-  );
-}
-
-export async function clearBiometricRefreshToken(): Promise<void> {
+export async function persistRefreshTokenSecurely(token: string): Promise<void> {
+  useAuthStore.getState().setRefreshToken(token);
+  useAuthStore.getState().setHasRefreshCredential(true);
   await setItem(AUTH_REFRESH_TOKEN_KEY, null);
+  await setItem(AUTH_REFRESH_TOKEN_KEY, token, DEVICE_ONLY_OPTIONS);
+  await deleteLegacyBiometricKey();
+}
+
+export async function clearRefreshTokenSecurely(): Promise<void> {
+  await setItem(AUTH_REFRESH_TOKEN_KEY, null);
+  await deleteLegacyBiometricKey();
+  useAuthStore.getState().setRefreshToken(null);
+  useAuthStore.getState().setHasRefreshCredential(false);
 }

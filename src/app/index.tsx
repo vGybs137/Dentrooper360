@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { BrandedSplash } from "@/components/app/BrandLogo";
 import { Button, ThemedText, ThemedView } from "@/components/ui";
 import { hideNativeSplash } from "@/helpers/auth/nativeSplash";
-import { unlockSessionWithBiometrics } from "@/helpers/auth/sessionRefresh";
+import { restoreSavedSession } from "@/helpers/auth/sessionRefresh";
 import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import { prepareScheduleAppointments } from "@/helpers/schedule/prefetchScheduleAppointments";
 import { useStartupSessionCheck } from "@/hooks/auth/useStartupSessionCheck";
@@ -31,9 +31,10 @@ export default function Index() {
   const canUnlock = useCanUnlockSession();
   const canEnterOffline = useCanEnterOffline();
   const isEnteringRef = useRef(false);
-  const unlockAttemptedRef = useRef(false);
+  const restoreAttemptedRef = useRef(false);
+  const isMountedRef = useRef(true);
   const [isEntering, setIsEntering] = useState(false);
-  const [isUnlocking, setIsUnlocking] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
   const {
     isPending: isValidatingSession,
     isSuccess: isSessionValid,
@@ -73,6 +74,13 @@ export default function Index() {
   );
 
   useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
 
     if (!hasHydrated || !syncStatusHydrated) {
@@ -88,23 +96,20 @@ export default function Index() {
       };
     }
 
-    if (!isAuthenticated && canUnlock && !unlockAttemptedRef.current) {
-      unlockAttemptedRef.current = true;
-      setIsUnlocking(true);
-      void unlockSessionWithBiometrics(t("splash.unlockPrompt"))
-        .then((session) => {
-          if (cancelled) {
-            return;
-          }
-          if (!session) {
-            router.replace("/(auth)/login?intro=1" as Href);
-          }
-        })
-        .finally(() => {
-          if (!cancelled) {
-            setIsUnlocking(false);
-          }
-        });
+    if (isRestoring) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (!isAuthenticated && canUnlock && !restoreAttemptedRef.current) {
+      restoreAttemptedRef.current = true;
+      setIsRestoring(true);
+      void restoreSavedSession().finally(() => {
+        if (isMountedRef.current) {
+          setIsRestoring(false);
+        }
+      });
       return () => {
         cancelled = true;
       };
@@ -117,7 +122,7 @@ export default function Index() {
       };
     }
 
-    if (isValidatingSession || isUnlocking) {
+    if (isValidatingSession || isRestoring) {
       return () => {
         cancelled = true;
       };
@@ -185,11 +190,10 @@ export default function Index() {
     hasSyncedThisVisit,
     isSyncComplete,
     isSyncFailed,
-    isUnlocking,
+    isRestoring,
     isValidatingSession,
     router,
     syncStatusHydrated,
-    t,
   ]);
 
   const showSyncRetry = isSyncFailed && !canEnterOffline;

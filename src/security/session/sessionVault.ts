@@ -12,12 +12,12 @@ import {
 import {
   clearRefreshTokenSecurely,
   persistRefreshTokenSecurely,
-} from "@/security/biometric/biometricUnlock";
+} from "@/security/vault/refreshTokenVault";
 import type { AuthSession, AuthUser } from "@/types/auth";
 
 /**
  * Session vault facade.
- * Access token: memory only. Refresh: biometric SecureStore + memory cache.
+ * Access token: memory only. Refresh: device-only SecureStore, cached in memory after login.
  */
 export function getSessionSnapshot() {
   const state = useAuthStore.getState();
@@ -28,7 +28,6 @@ export function getSessionSnapshot() {
     refreshToken: state.refreshToken,
     expiresAt: state.expiresAt,
     hasRefreshCredential: state.hasRefreshCredential,
-    refreshBoundToBiometrics: state.refreshBoundToBiometrics,
   };
 }
 

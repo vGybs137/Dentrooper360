@@ -15,13 +15,8 @@ export {
 } from "@/api/functions/auth";
 export {
   clearRefreshTokenSecurely,
-  ensureRefreshTokenInMemory,
-  flushRefreshTokenVault,
-  isBiometricUnlockAvailable,
   persistRefreshTokenSecurely,
-  unlockWithBiometrics,
-  type BiometricUnlockResult,
-} from "@/security/biometric/biometricUnlock";
+} from "@/security/vault/refreshTokenVault";
 export {
   ClinicSwitchError,
   switchClinic,
@@ -68,7 +63,7 @@ export {
 export {
   isRecyclingTokens,
   recycleTokens,
-  unlockSessionWithBiometrics,
+  restoreSavedSession,
 } from "@/security/session/tokenRecycle";
 export {
   hasUiRole,
@@ -78,9 +73,4 @@ export {
   useSyncScope,
 } from "@/security/rbac/authRole";
 export { getItem, setItem } from "@/security/vault/secureStorage";
-export {
-  AUTH_REFRESH_TOKEN_KEY,
-  clearBiometricRefreshToken,
-  getBiometricRefreshToken,
-  setBiometricRefreshToken,
-} from "@/security/vault/refreshTokenVault";
+export { AUTH_REFRESH_TOKEN_KEY } from "@/security/vault/refreshTokenVault";
