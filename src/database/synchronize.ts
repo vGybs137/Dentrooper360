@@ -16,6 +16,7 @@ import {
   markSyncSucceeded,
   useSyncStatusStore,
 } from "@/stores";
+import { canonicalCustomerId } from "@/helpers/auth/customerId";
 import { ApiError } from "@/types/api";
 import type { MobilePushRequest } from "@/types/sync";
 
@@ -139,7 +140,10 @@ export async function synchronize(
   customerId: string,
   options: SynchronizeOptions = {},
 ): Promise<void> {
-  const normalized = customerId.trim();
+  const normalized = canonicalCustomerId(customerId);
+  if (!normalized) {
+    throw new ApiError("customerId is required for sync.", 400);
+  }
 
   await assertClinicSyncBinding(normalized, options);
 

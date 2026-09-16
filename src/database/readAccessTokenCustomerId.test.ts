@@ -22,4 +22,12 @@ const other = encodePayload({ customer_id: "clinic-b" });
 assert.equal(readAccessTokenCustomerId(other), "clinic-b");
 assert.notEqual(readAccessTokenCustomerId(other), "clinic-a");
 
+const upperGuid = encodePayload({
+  customer_id: "01A08792-E890-750C-BE6D-A93B2ABF43DB",
+});
+assert.equal(
+  readAccessTokenCustomerId(upperGuid),
+  "01a08792-e890-750c-be6d-a93b2abf43db",
+);
+
 console.log("readAccessTokenCustomerId: all assertions passed");

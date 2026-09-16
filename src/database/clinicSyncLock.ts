@@ -1,3 +1,5 @@
+import { canonicalCustomerId } from "@/helpers/auth/customerId";
+
 /**
  * Tracks in-flight clinic syncs so setActive / switch cannot race a push/pull.
  * Kept separate from ClinicDatabaseManager and synchronize to avoid import cycles.
@@ -5,30 +7,50 @@
 
 const inFlightByCustomerId = new Map<string, Promise<void>>();
 
+function lockKey(customerId: string | null | undefined): string | null {
+  return canonicalCustomerId(customerId);
+}
+
 export function getClinicSyncInFlight(
   customerId: string,
 ): Promise<void> | undefined {
-  return inFlightByCustomerId.get(customerId);
+  const key = lockKey(customerId);
+  if (!key) {
+    return undefined;
+  }
+
+  return inFlightByCustomerId.get(key);
 }
 
 export function setClinicSyncInFlight(
   customerId: string,
   promise: Promise<void>,
 ): void {
-  inFlightByCustomerId.set(customerId, promise);
+  const key = lockKey(customerId);
+  if (!key) {
+    return;
+  }
+
+  inFlightByCustomerId.set(key, promise);
 }
 
 export function clearClinicSyncInFlight(
   customerId: string,
   promise: Promise<void>,
 ): void {
-  if (inFlightByCustomerId.get(customerId) === promise) {
-    inFlightByCustomerId.delete(customerId);
+  const key = lockKey(customerId);
+  if (!key) {
+    return;
+  }
+
+  if (inFlightByCustomerId.get(key) === promise) {
+    inFlightByCustomerId.delete(key);
   }
 }
 
 export function isClinicSyncInFlight(customerId: string): boolean {
-  return inFlightByCustomerId.has(customerId);
+  const key = lockKey(customerId);
+  return key !== null && inFlightByCustomerId.has(key);
 }
 
 export async function waitForClinicSyncIdle(
@@ -38,7 +60,12 @@ export async function waitForClinicSyncIdle(
     return;
   }
 
-  const pending = inFlightByCustomerId.get(customerId);
+  const key = lockKey(customerId);
+  if (!key) {
+    return;
+  }
+
+  const pending = inFlightByCustomerId.get(key);
   if (!pending) {
     return;
   }

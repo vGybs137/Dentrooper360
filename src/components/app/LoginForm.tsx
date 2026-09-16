@@ -99,13 +99,16 @@ function getLoginFeedbackOverlay(
     };
   }
 
-  if (form.isSyncFailed) {
+  if (form.hasSignedIn && form.isSyncFailed) {
     return {
       stage: "error",
       title: t("auth:login.feedback.syncFailedTitle"),
       message: t("auth:login.feedback.syncFailedMessage"),
       onRetry: form.retrySync,
       isRetrying: form.isRetryingSync,
+      onDismiss: form.backToSignIn,
+      autoDismissMs: 0,
+      dismissLabel: t("common:actions.back"),
     };
   }
 
@@ -140,7 +143,7 @@ export function LoginForm({
   contentStyle,
   onFieldsLayout,
 }: LoginFormProps) {
-  const { t } = useTranslation(["auth", "a11y"]);
+  const { t } = useTranslation(["auth", "a11y", "common"]);
   const insets = useSafeAreaInsets();
   const footerOffset = useSplashFooterOffset();
   const login = useLoginForm();

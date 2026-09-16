@@ -1,4 +1,5 @@
 import { CLINIC_REGISTRY_KEY } from "@/constants/storage";
+import { canonicalCustomerId } from "@/helpers/auth/customerId";
 import { getItem, setItem } from "@/security/vault/secureStorage";
 
 import { clinicDbNameForCustomer, LEGACY_CLINIC_DB_NAME } from "./clinicDbNames";
@@ -43,6 +44,54 @@ function isRegistryState(value: unknown): value is ClinicRegistryState {
   );
 }
 
+function preferRegistryEntry(
+  current: ClinicRegistryEntry,
+  incoming: ClinicRegistryEntry,
+): ClinicRegistryEntry {
+  const currentSynced = Date.parse(current.lastSuccessfulSyncAt ?? "");
+  const incomingSynced = Date.parse(incoming.lastSuccessfulSyncAt ?? "");
+  const incomingIsNewer =
+    Number.isFinite(incomingSynced) &&
+    (!Number.isFinite(currentSynced) || incomingSynced > currentSynced);
+
+  return {
+    ...current,
+    customerId: incoming.customerId,
+    isWarm: current.isWarm || incoming.isWarm,
+    lastOpenedAt: incoming.lastOpenedAt ?? current.lastOpenedAt,
+    lastSuccessfulSyncAt: incomingIsNewer
+      ? incoming.lastSuccessfulSyncAt
+      : current.lastSuccessfulSyncAt,
+    syncScope: incoming.syncScope ?? current.syncScope,
+    scopeVersion: incoming.scopeVersion ?? current.scopeVersion,
+    dbName: current.dbName || incoming.dbName,
+  };
+}
+
+/** Collapses QR uppercase and server lowercase ids onto one registry row. */
+export function canonicalizeClinicRegistry(
+  state: ClinicRegistryState,
+): ClinicRegistryState {
+  const clinics: Record<string, ClinicRegistryEntry> = {};
+
+  for (const [key, entry] of Object.entries(state.clinics)) {
+    const id = canonicalCustomerId(entry.customerId) ?? canonicalCustomerId(key);
+    if (!id) {
+      continue;
+    }
+
+    const next = { ...entry, customerId: id };
+    const existing = clinics[id];
+    clinics[id] = existing ? preferRegistryEntry(existing, next) : next;
+  }
+
+  return {
+    ...state,
+    activeCustomerId: canonicalCustomerId(state.activeCustomerId),
+    clinics,
+  };
+}
+
 export async function loadClinicRegistry(): Promise<ClinicRegistryState> {
   const raw = await getItem(CLINIC_REGISTRY_KEY);
   if (!raw) {
@@ -55,12 +104,12 @@ export async function loadClinicRegistry(): Promise<ClinicRegistryState> {
       return { ...EMPTY_REGISTRY, clinics: {} };
     }
 
-    return {
+    return canonicalizeClinicRegistry({
       version: 1,
       legacyClaimed: parsed.legacyClaimed,
       activeCustomerId: parsed.activeCustomerId ?? null,
       clinics: { ...parsed.clinics },
-    };
+    });
   } catch {
     return { ...EMPTY_REGISTRY, clinics: {} };
   }
@@ -82,16 +131,21 @@ export async function clearClinicRegistry(): Promise<void> {
 export async function getOrCreateClinicRegistryEntry(
   customerId: string,
 ): Promise<ClinicRegistryEntry> {
+  const id = canonicalCustomerId(customerId);
+  if (!id) {
+    throw new Error("customerId is required to register a clinic database.");
+  }
+
   const state = await loadClinicRegistry();
-  const existing = state.clinics[customerId];
+  const existing = state.clinics[id];
   if (existing) {
     return existing;
   }
 
   const claimLegacy = !state.legacyClaimed;
   const entry: ClinicRegistryEntry = {
-    customerId,
-    dbName: claimLegacy ? LEGACY_CLINIC_DB_NAME : clinicDbNameForCustomer(customerId),
+    customerId: id,
+    dbName: claimLegacy ? LEGACY_CLINIC_DB_NAME : clinicDbNameForCustomer(id),
     isWarm: true,
     lastOpenedAt: null,
     lastSuccessfulSyncAt: null,
@@ -99,7 +153,7 @@ export async function getOrCreateClinicRegistryEntry(
     scopeVersion: null,
   };
 
-  state.clinics[customerId] = entry;
+  state.clinics[id] = entry;
   if (claimLegacy) {
     state.legacyClaimed = true;
   }
@@ -109,16 +163,21 @@ export async function getOrCreateClinicRegistryEntry(
 }
 
 export async function markClinicOpened(customerId: string): Promise<void> {
+  const id = canonicalCustomerId(customerId);
+  if (!id) {
+    return;
+  }
+
   const state = await loadClinicRegistry();
-  const entry = state.clinics[customerId];
+  const entry = state.clinics[id];
   if (!entry) {
     return;
   }
 
   entry.lastOpenedAt = new Date().toISOString();
   entry.isWarm = true;
-  state.activeCustomerId = customerId;
-  state.clinics[customerId] = entry;
+  state.activeCustomerId = id;
+  state.clinics[id] = entry;
   await saveClinicRegistry(state);
 }
 
@@ -128,8 +187,13 @@ export async function markClinicSynced(
   syncScope?: string | null,
   scopeVersion?: number | null,
 ): Promise<void> {
+  const id = canonicalCustomerId(customerId);
+  if (!id) {
+    return;
+  }
+
   const state = await loadClinicRegistry();
-  const entry = state.clinics[customerId];
+  const entry = state.clinics[id];
   if (!entry) {
     return;
   }
@@ -141,14 +205,19 @@ export async function markClinicSynced(
   if (scopeVersion !== undefined) {
     entry.scopeVersion = scopeVersion;
   }
-  state.clinics[customerId] = entry;
+  state.clinics[id] = entry;
   await saveClinicRegistry(state);
 }
 
 export async function removeClinicRegistryEntry(customerId: string): Promise<void> {
+  const id = canonicalCustomerId(customerId);
+  if (!id) {
+    return;
+  }
+
   const state = await loadClinicRegistry();
-  delete state.clinics[customerId];
-  if (state.activeCustomerId === customerId) {
+  delete state.clinics[id];
+  if (state.activeCustomerId === id) {
     state.activeCustomerId = null;
   }
   await saveClinicRegistry(state);
@@ -171,8 +240,13 @@ export async function listWarmClinicsByLru(): Promise<ClinicRegistryEntry[]> {
 }
 
 export async function isClinicWarm(customerId: string): Promise<boolean> {
+  const id = canonicalCustomerId(customerId);
+  if (!id) {
+    return false;
+  }
+
   const state = await loadClinicRegistry();
-  return state.clinics[customerId]?.isWarm === true;
+  return state.clinics[id]?.isWarm === true;
 }
 
 /**
@@ -180,16 +254,21 @@ export async function isClinicWarm(customerId: string): Promise<boolean> {
  * enter requires a fresh online first-sync into the recreated file.
  */
 export async function markClinicCold(customerId: string): Promise<void> {
+  const id = canonicalCustomerId(customerId);
+  if (!id) {
+    return;
+  }
+
   const state = await loadClinicRegistry();
-  const entry = state.clinics[customerId];
+  const entry = state.clinics[id];
   if (!entry) {
     return;
   }
 
   entry.isWarm = false;
   entry.lastSuccessfulSyncAt = null;
-  state.clinics[customerId] = entry;
-  if (state.activeCustomerId === customerId) {
+  state.clinics[id] = entry;
+  if (state.activeCustomerId === id) {
     state.activeCustomerId = null;
   }
   await saveClinicRegistry(state);
@@ -199,8 +278,13 @@ export async function markClinicCold(customerId: string): Promise<void> {
 export async function getClinicLastSuccessfulSyncAt(
   customerId: string,
 ): Promise<number | null> {
+  const id = canonicalCustomerId(customerId);
+  if (!id) {
+    return null;
+  }
+
   const state = await loadClinicRegistry();
-  const raw = state.clinics[customerId]?.lastSuccessfulSyncAt;
+  const raw = state.clinics[id]?.lastSuccessfulSyncAt;
   if (!raw) {
     return null;
   }

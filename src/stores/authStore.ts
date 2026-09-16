@@ -6,6 +6,7 @@ import {
 } from "zustand/middleware";
 
 import { AUTH_STORE_KEY } from "@/constants/storage";
+import { canonicalCustomerId } from "@/helpers/auth/customerId";
 import { getItem, setItem } from "@/security/vault/secureStorage";
 import type { AuthSession, AuthUser } from "@/types/auth";
 
@@ -102,7 +103,8 @@ export const useAuthStore = create<AuthStoreState>()(
       refreshBoundToBiometrics: false,
       hasHydrated: false,
       setHasHydrated: (value) => set({ hasHydrated: value }),
-      setCustomerId: (customerId) => set({ customerId }),
+      setCustomerId: (customerId) =>
+        set({ customerId: canonicalCustomerId(customerId) }),
       setUser: (user) => set({ user }),
       setAccessToken: (accessToken) => set({ accessToken }),
       setRefreshToken: (refreshToken) => set({ refreshToken }),
@@ -112,7 +114,12 @@ export const useAuthStore = create<AuthStoreState>()(
         set({ refreshBoundToBiometrics }),
       setSession: (session) =>
         set({
-          user: session.user,
+          user: session.user
+            ? {
+                ...session.user,
+                customerId: canonicalCustomerId(session.user.customerId),
+              }
+            : session.user,
           accessToken: session.accessToken,
           refreshToken: session.refreshToken,
           expiresAt: session.expiresAt.toISOString(),
@@ -150,6 +157,11 @@ export const useAuthStore = create<AuthStoreState>()(
         refreshBoundToBiometrics: state.refreshBoundToBiometrics,
       }),
       onRehydrateStorage: () => (state) => {
+        const storedCustomerId = state?.customerId;
+        const canonical = canonicalCustomerId(storedCustomerId);
+        if (canonical && storedCustomerId !== canonical) {
+          state?.setCustomerId(canonical);
+        }
         state?.setHasHydrated(true);
       },
     },

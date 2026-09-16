@@ -1,10 +1,13 @@
-export {
+import { canonicalCustomerId } from "@/helpers/auth/customerId";
+import {
   clearDeviceId,
   getDeviceInfo,
   getOrCreateDeviceId,
 } from "@/helpers/auth/deviceId";
 
 import { getSessionSnapshot, setPairedCustomerId } from "@/security/session/sessionVault";
+
+export { clearDeviceId, getDeviceInfo, getOrCreateDeviceId };
 import * as SecureStore from "expo-secure-store";
 
 const DEVICE_API_KEY_PREFIX = "dentrooper.deviceApiKey.";
@@ -16,17 +19,41 @@ export function getPairedCustomerId(): string | null {
 
 export { setPairedCustomerId };
 
+function deviceApiKeyName(customerId: string): string | null {
+  const id = canonicalCustomerId(customerId);
+  if (!id) {
+    return null;
+  }
+
+  return `${DEVICE_API_KEY_PREFIX}${id}`;
+}
+
 export async function storeDeviceApiKey(
   customerId: string,
   deviceApiKey: string,
 ): Promise<void> {
-  await SecureStore.setItemAsync(`${DEVICE_API_KEY_PREFIX}${customerId}`, deviceApiKey);
+  const name = deviceApiKeyName(customerId);
+  if (!name) {
+    return;
+  }
+
+  await SecureStore.setItemAsync(name, deviceApiKey);
 }
 
 export async function getDeviceApiKey(customerId: string): Promise<string | null> {
-  return SecureStore.getItemAsync(`${DEVICE_API_KEY_PREFIX}${customerId}`);
+  const name = deviceApiKeyName(customerId);
+  if (!name) {
+    return null;
+  }
+
+  return SecureStore.getItemAsync(name);
 }
 
 export async function clearDeviceApiKey(customerId: string): Promise<void> {
-  await SecureStore.deleteItemAsync(`${DEVICE_API_KEY_PREFIX}${customerId}`);
+  const name = deviceApiKeyName(customerId);
+  if (!name) {
+    return;
+  }
+
+  await SecureStore.deleteItemAsync(name);
 }

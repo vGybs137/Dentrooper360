@@ -1,3 +1,4 @@
+import { canonicalCustomerId } from "@/helpers/auth/customerId";
 import { hydrateAuthStore, useAuthStore } from "@/stores";
 import type {
   AuthSession,
@@ -56,7 +57,7 @@ export type WireClinicsResponse = {
 export function mapAuthUser(user: WireAuthUser): AuthUser {
   return {
     id: user.id,
-    customerId: user.customer_id ?? null,
+    customerId: canonicalCustomerId(user.customer_id),
     fullName: user.full_name,
     email: user.email ?? null,
     currencySymbol: user.currency_symbol ?? null,
@@ -79,7 +80,7 @@ export function mapAuthSession(session: WireAuthSession): AuthSession {
 export function mapPairResponse(response: WirePairResponse): PairResponse {
   return {
     deviceId: response.device_id,
-    customerId: response.customer_id,
+    customerId: canonicalCustomerId(response.customer_id) ?? response.customer_id,
     pairedAt: new Date(response.paired_at),
     pairKind: response.pair_kind,
     deviceApiKey: response.device_api_key,
@@ -88,7 +89,7 @@ export function mapPairResponse(response: WirePairResponse): PairResponse {
 
 export function mapClinicMembership(clinic: WireClinicMembership): ClinicMembership {
   return {
-    customerId: clinic.customer_id,
+    customerId: canonicalCustomerId(clinic.customer_id) ?? clinic.customer_id,
     providerId: clinic.provider_id,
     clinicDisplayName: clinic.clinic_display_name,
     syncScope: clinic.sync_scope,
@@ -100,7 +101,9 @@ export function mapClinicMembership(clinic: WireClinicMembership): ClinicMembers
 
 export function mapClinicsResponse(response: WireClinicsResponse): ClinicsList {
   return {
-    activeCustomerId: response.active_customer_id,
+    activeCustomerId:
+      canonicalCustomerId(response.active_customer_id) ??
+      response.active_customer_id,
     clinics: response.clinics.map(mapClinicMembership),
   };
 }
@@ -150,7 +153,12 @@ export async function persistSession(
   await hydrateAuthStore();
 
   const store = useAuthStore.getState();
-  if (customerId !== undefined) {
+  const resolvedCustomerId =
+    canonicalCustomerId(session.user.customerId) ??
+    canonicalCustomerId(customerId);
+  if (resolvedCustomerId) {
+    store.setCustomerId(resolvedCustomerId);
+  } else if (customerId !== undefined) {
     store.setCustomerId(customerId);
   }
 

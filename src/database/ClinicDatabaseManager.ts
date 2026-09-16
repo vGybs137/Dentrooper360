@@ -2,6 +2,7 @@ import { Database } from "@nozbe/watermelondb";
 import { hasUnsyncedChanges as watermelonHasUnsyncedChanges } from "@nozbe/watermelondb/sync";
 
 import { isWarmLruDemoteEnabled } from "@/constants/multiClinicFlags";
+import { canonicalCustomerId } from "@/helpers/auth/customerId";
 import { useAuthStore } from "@/stores";
 
 import { closeClinicDatabase } from "./closeClinicDatabase";
@@ -51,6 +52,47 @@ class ClinicDatabaseManager {
     return this.activeCustomerId;
   }
 
+  /** Map handles opened under a differently cased id onto the canonical key. */
+  private adoptId(customerId: string): string {
+    const id = canonicalCustomerId(customerId);
+    if (!id) {
+      throw new Error("customerId is required to open a clinic database.");
+    }
+
+    if (
+      this.activeCustomerId &&
+      canonicalCustomerId(this.activeCustomerId) === id
+    ) {
+      this.activeCustomerId = id;
+    }
+
+    for (const key of [...this.openDatabases.keys()]) {
+      if (canonicalCustomerId(key) !== id || key === id) {
+        continue;
+      }
+
+      const database = this.openDatabases.get(key);
+      this.openDatabases.delete(key);
+      if (database && !this.openDatabases.has(id)) {
+        this.openDatabases.set(id, database);
+      }
+    }
+
+    for (const key of [...this.inFlightOpens.keys()]) {
+      if (canonicalCustomerId(key) !== id || key === id) {
+        continue;
+      }
+
+      const opening = this.inFlightOpens.get(key);
+      this.inFlightOpens.delete(key);
+      if (opening && !this.inFlightOpens.has(id)) {
+        this.inFlightOpens.set(id, opening);
+      }
+    }
+
+    return id;
+  }
+
   requireActive(): Database {
     if (!this.activeCustomerId) {
       throw new Error(
@@ -77,10 +119,7 @@ class ClinicDatabaseManager {
   }
 
   async ensureActive(customerId: string): Promise<Database> {
-    const normalized = customerId.trim();
-    if (!normalized) {
-      throw new Error("customerId is required to open a clinic database.");
-    }
+    const normalized = this.adoptId(customerId);
 
     if (this.activeCustomerId === normalized && this.openDatabases.has(normalized)) {
       return this.openDatabases.get(normalized)!;
@@ -94,42 +133,44 @@ class ClinicDatabaseManager {
    * then demotes LRU victims until under budget.
    */
   async setActive(customerId: string): Promise<Database> {
+    const id = this.adoptId(customerId);
     const previous = this.activeCustomerId;
-    if (previous && previous !== customerId) {
+    if (previous && previous !== id) {
       await waitForClinicSyncIdle(previous);
     }
-    await waitForClinicSyncIdle(customerId);
+    await waitForClinicSyncIdle(id);
 
-    const database = await this.getOrOpen(customerId);
-    this.activeCustomerId = customerId;
-    await markClinicOpened(customerId);
-    await this.enforceWarmBudget(customerId);
+    const database = await this.getOrOpen(id);
+    this.activeCustomerId = id;
+    await markClinicOpened(id);
+    await this.enforceWarmBudget(id);
     return database;
   }
 
   async getOrOpen(customerId: string): Promise<Database> {
-    const existing = this.openDatabases.get(customerId);
+    const id = this.adoptId(customerId);
+    const existing = this.openDatabases.get(id);
     if (existing) {
       return existing;
     }
 
-    const inFlight = this.inFlightOpens.get(customerId);
+    const inFlight = this.inFlightOpens.get(id);
     if (inFlight) {
       return inFlight;
     }
 
     const openPromise = (async () => {
-      const entry = await getOrCreateClinicRegistryEntry(customerId);
+      const entry = await getOrCreateClinicRegistryEntry(id);
       const database = createClinicDatabase(entry.dbName);
-      this.openDatabases.set(customerId, database);
+      this.openDatabases.set(id, database);
       return database;
     })().finally(() => {
-      if (this.inFlightOpens.get(customerId) === openPromise) {
-        this.inFlightOpens.delete(customerId);
+      if (this.inFlightOpens.get(id) === openPromise) {
+        this.inFlightOpens.delete(id);
       }
     });
 
-    this.inFlightOpens.set(customerId, openPromise);
+    this.inFlightOpens.set(id, openPromise);
     return openPromise;
   }
 
@@ -148,8 +189,13 @@ class ClinicDatabaseManager {
    * Call before setActive — opening marks the clinic warm again.
    */
   async wasColdBeforeOpen(customerId: string): Promise<boolean> {
+    const id = canonicalCustomerId(customerId);
+    if (!id) {
+      return false;
+    }
+
     const state = await loadClinicRegistry();
-    const entry = state.clinics[customerId.trim()];
+    const entry = state.clinics[id];
     if (!entry) {
       return false;
     }
@@ -161,11 +207,12 @@ class ClinicDatabaseManager {
    * SQLite files and mark cold in the registry.
    */
   async demoteClinic(customerId: string): Promise<DemoteClinicResult> {
-    const normalized = customerId.trim();
+    const normalized = canonicalCustomerId(customerId);
     if (!normalized) {
       return "not_warm";
     }
 
+    this.adoptId(normalized);
     if (this.activeCustomerId === normalized) {
       recordDemoteSkippedActive();
       return "skipped_active";
@@ -184,7 +231,9 @@ class ClinicDatabaseManager {
     if (unsynced) {
       // Cannot sync another clinic's outbox under the active JWT (Phase 3 binding).
       // Only attempt drain when the session still matches this clinic.
-      const sessionCustomerId = useAuthStore.getState().customerId;
+      const sessionCustomerId = canonicalCustomerId(
+        useAuthStore.getState().customerId,
+      );
       if (sessionCustomerId === normalized) {
         try {
           const { synchronize } = await import("./synchronize");
@@ -281,9 +330,10 @@ class ClinicDatabaseManager {
   }
 
   async deleteClinicData(customerId: string): Promise<void> {
-    await waitForClinicSyncIdle(customerId);
+    const id = this.adoptId(customerId);
+    await waitForClinicSyncIdle(id);
 
-    const openDb = this.openDatabases.get(customerId);
+    const openDb = this.openDatabases.get(id);
     if (openDb) {
       const unsynced = await watermelonHasUnsyncedChanges({ database: openDb });
       if (unsynced) {
@@ -296,17 +346,17 @@ class ClinicDatabaseManager {
     // Close + delete SQLite files only. Never synchronize here: wiping rows via
     // Watermelon then pushing would tombstone server PHI.
     const registry = await loadClinicRegistry();
-    const entry = registry.clinics[customerId];
-    await this.closeOpenHandle(customerId);
+    const entry = registry.clinics[id];
+    await this.closeOpenHandle(id);
     if (entry?.dbName) {
       await deleteClinicSqliteFiles(entry.dbName);
     }
 
-    if (this.activeCustomerId === customerId) {
+    if (this.activeCustomerId === id) {
       this.activeCustomerId = null;
     }
 
-    await removeClinicRegistryEntry(customerId);
+    await removeClinicRegistryEntry(id);
   }
 
   /**

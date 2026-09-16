@@ -2,12 +2,13 @@ import { type Href, useRouter } from "expo-router";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 
+import { canonicalCustomerId } from "@/helpers/auth/customerId";
 import { prepareScheduleAppointments } from "@/helpers/schedule/prefetchScheduleAppointments";
 import { useIsOnline } from "@/hooks/sync/useIsOnline";
 import { useLoginMutation } from "@/hooks/auth/useLoginMutation";
 import { useStartupSync } from "@/hooks/auth/useStartupSync";
 import { t } from "@/i18n";
-import { useCustomerId } from "@/stores";
+import { useAuthStore, useCustomerId } from "@/stores";
 import { ApiError } from "@/types/api";
 
 type LoginFields = {
@@ -84,7 +85,15 @@ export function useLoginForm() {
       loginMutation.reset();
     },
     retrySync: () => {
+      const current = useAuthStore.getState().customerId;
+      const aligned = canonicalCustomerId(current);
+      if (aligned && current !== aligned) {
+        useAuthStore.getState().setCustomerId(aligned);
+      }
       void retrySync();
+    },
+    backToSignIn: () => {
+      setHasSignedIn(false);
     },
     continueToApp: () => {
       void (async () => {

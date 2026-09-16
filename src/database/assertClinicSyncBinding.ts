@@ -1,3 +1,7 @@
+import {
+  canonicalCustomerId,
+  sameCustomerId,
+} from "@/helpers/auth/customerId";
 import { useAuthStore } from "@/stores";
 import { ApiError } from "@/types/api";
 
@@ -23,12 +27,13 @@ export async function assertClinicSyncBinding(
   customerId: string,
   options: SynchronizeOptions = {},
 ): Promise<void> {
-  const normalized = customerId.trim();
+  const normalized = canonicalCustomerId(customerId);
   if (!normalized) {
     throw new ApiError("customerId is required for sync.", 400);
   }
 
-  const sessionCustomerId = useAuthStore.getState().customerId;
+  const store = useAuthStore.getState();
+  const sessionCustomerId = canonicalCustomerId(store.customerId);
   if (!sessionCustomerId) {
     throw new ApiError("No active clinic session.", 401);
   }
@@ -38,6 +43,14 @@ export async function assertClinicSyncBinding(
       "Refusing to sync a clinic that is not the active session.",
       403,
     );
+  }
+
+  if (
+    store.customerId &&
+    sameCustomerId(store.customerId, normalized) &&
+    store.customerId !== normalized
+  ) {
+    store.setCustomerId(normalized);
   }
 
   const accessToken = useAuthStore.getState().accessToken;

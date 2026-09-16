@@ -45,6 +45,7 @@ export type FeedbackOverlayProps = {
   autoDismissMs?: number;
   continueLabel?: string;
   retryLabel?: string;
+  dismissLabel?: string;
 };
 
 export function FeedbackOverlay({
@@ -59,6 +60,7 @@ export function FeedbackOverlay({
   autoDismissMs = autoContinueMs,
   continueLabel,
   retryLabel,
+  dismissLabel,
 }: FeedbackOverlayProps) {
   const { t } = useTranslation(["common", "a11y"]);
   const native = useNativeColors();
@@ -113,7 +115,7 @@ export function FeedbackOverlay({
   }, [autoContinueMs, isSuccess, onContinue]);
 
   useEffect(() => {
-    if (!isError || !onDismiss) {
+    if (!isError || !onDismiss || autoDismissMs <= 0) {
       return;
     }
 
@@ -136,6 +138,11 @@ export function FeedbackOverlay({
   function handleRetry() {
     didAutoActionRef.current = true;
     onRetry?.();
+  }
+
+  function handleDismiss() {
+    didAutoActionRef.current = true;
+    onDismiss?.();
   }
 
   return (
@@ -220,16 +227,29 @@ export function FeedbackOverlay({
           }}
         >
           {isError ? (
-            <Button
-              disabled={isRetrying}
-              label={
-                isRetrying ? t("common:actions.retrying") : resolvedRetryLabel
-              }
-              onPress={handleRetry}
-              size="md"
-              style={{ minWidth: 130 }}
-              tone="brand"
-            />
+            <ThemedView align="center" space="compact" variant="stack">
+              <Button
+                disabled={isRetrying}
+                label={
+                  isRetrying ? t("common:actions.retrying") : resolvedRetryLabel
+                }
+                onPress={handleRetry}
+                size="md"
+                style={{ minWidth: 130 }}
+                tone="brand"
+              />
+              {dismissLabel && onDismiss ? (
+                <Button
+                  disabled={isRetrying}
+                  label={dismissLabel}
+                  onPress={handleDismiss}
+                  size="md"
+                  style={{ minWidth: 130 }}
+                  tone="neutral"
+                  variant="ghost"
+                />
+              ) : null}
+            </ThemedView>
           ) : isSuccess ? (
             <Button
               label={resolvedContinueLabel}

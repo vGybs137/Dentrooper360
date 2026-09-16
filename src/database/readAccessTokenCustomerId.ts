@@ -1,3 +1,5 @@
+import { canonicalCustomerId } from "@/helpers/auth/customerId";
+
 /** Best-effort decode of JWT payload `customer_id` (signature already trusted by HTTP layer). */
 export function readAccessTokenCustomerId(
   accessToken: string | null | undefined,
@@ -36,7 +38,9 @@ export function readAccessTokenCustomerId(
     }
 
     const payload = JSON.parse(json) as { customer_id?: string };
-    return typeof payload.customer_id === "string" ? payload.customer_id : null;
+    return typeof payload.customer_id === "string"
+      ? canonicalCustomerId(payload.customer_id)
+      : null;
   } catch {
     return null;
   }
