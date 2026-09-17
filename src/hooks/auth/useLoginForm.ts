@@ -8,7 +8,7 @@ import { useIsOnline } from "@/hooks/sync/useIsOnline";
 import { useLoginMutation } from "@/hooks/auth/useLoginMutation";
 import { useStartupSync } from "@/hooks/auth/useStartupSync";
 import { t } from "@/i18n";
-import { canOfferBiometricLock, loginWithBiometrics, offerBiometricLogin } from "@/security";
+import { loginWithBiometrics, offerBiometricLogin } from "@/security";
 import {
   markAppUnlocked,
   useAppLockStore,
@@ -29,13 +29,7 @@ export function useLoginForm() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [hasSignedIn, setHasSignedIn] = useState(false);
   const [isBiometricSigningIn, setIsBiometricSigningIn] = useState(false);
-  const [biometricAvailable, setBiometricAvailable] = useState(false);
-  const biometricLoginEnabled = useAppLockStore(
-    (state) => state.biometricLoginEnabled,
-  );
-  const hasRefreshCredential = useAuthStore(
-    (state) => state.hasRefreshCredential,
-  );
+  const [biometricError, setBiometricError] = useState<string | undefined>();
 
   const form = useForm<LoginFields>({
     defaultValues: { username: "", password: "" },
@@ -59,28 +53,17 @@ export function useLoginForm() {
   const isAppReady =
     hasSignedIn && hasSyncedThisVisit && isSyncComplete && !isSyncFailed;
   const loginError =
-    loginMutation.error instanceof ApiError
+    biometricError ??
+    (loginMutation.error instanceof ApiError
       ? loginMutation.error.message
       : loginMutation.isError
         ? t("auth:login.error.generic")
-        : undefined;
+        : undefined);
 
   useEffect(() => {
     if (!isAppReady) return;
     void prepareScheduleAppointments();
   }, [isAppReady]);
-
-  useEffect(() => {
-    let cancelled = false;
-    void canOfferBiometricLock().then((available) => {
-      if (!cancelled) {
-        setBiometricAvailable(available);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   return {
     customerId,
@@ -95,11 +78,6 @@ export function useLoginForm() {
     isRetryingSync,
     loginError,
     isBiometricSigningIn,
-    canUseBiometricLogin:
-      biometricLoginEnabled &&
-      biometricAvailable &&
-      hasRefreshCredential &&
-      Boolean(customerId),
     togglePasswordVisibility: () => {
       setIsPasswordVisible((visible) => !visible);
     },
@@ -120,16 +98,28 @@ export function useLoginForm() {
       );
     }),
     signInWithBiometrics: () => {
-      if (isBiometricSigningIn || hasSignedIn) {
+      if (isBiometricSigningIn || hasSignedIn || isSigningIn) {
         return;
       }
 
+      setBiometricError(undefined);
       setIsBiometricSigningIn(true);
       void loginWithBiometrics()
-        .then((session) => {
-          if (session) {
+        .then((result) => {
+          if (result.status === "signed_in") {
+            useAppLockStore.getState().setBiometricLoginEnabled(true);
             markAppUnlocked();
             setHasSignedIn(true);
+            return;
+          }
+
+          if (result.status === "unavailable") {
+            setBiometricError(t("auth:login.error.biometricUnavailable"));
+            return;
+          }
+
+          if (result.status === "no_session") {
+            setBiometricError(t("auth:login.error.biometricNoSession"));
           }
         })
         .finally(() => {
@@ -137,6 +127,7 @@ export function useLoginForm() {
         });
     },
     dismissLoginError: () => {
+      setBiometricError(undefined);
       loginMutation.reset();
     },
     retrySync: () => {

@@ -281,12 +281,25 @@ export function LoginForm({
                 {t("auth:login.offlineHint")}
               </ThemedText>
             ) : null}
-            {login.canUseBiometricLogin ? (
+            <Button
+              disabled={!canSubmit}
+              label={
+                login.isSigningIn
+                  ? t("auth:login.signingInButton")
+                  : t("auth:login.button")
+              }
+              onPress={login.submit}
+              size="lg"
+            />
+            {login.customerId ? (
               <Button
-                disabled={login.isBiometricSigningIn || !login.isOnline}
-                icon={
-                  <ThemedIcon name={fingerprintIcon} tone="brand" />
+                accessibilityLabel={t("a11y:biometricLogin")}
+                disabled={
+                  login.isBiometricSigningIn ||
+                  login.isSigningIn ||
+                  !login.isOnline
                 }
+                icon={<ThemedIcon name={fingerprintIcon} tone="brand" />}
                 label={
                   login.isBiometricSigningIn
                     ? t("auth:login.biometricSigningIn")
@@ -298,16 +311,6 @@ export function LoginForm({
                 variant="outline"
               />
             ) : null}
-            <Button
-              disabled={!canSubmit}
-              label={
-                login.isSigningIn
-                  ? t("auth:login.signingInButton")
-                  : t("auth:login.button")
-              }
-              onPress={login.submit}
-              size="lg"
-            />
           </ThemedView>
         ) : null}
       </Animated.View>

@@ -5,17 +5,32 @@ import type { AuthSession } from "@/types/auth";
 
 import { authenticateDeviceOwner, canOfferBiometricLock } from "./deviceAuth";
 
+export type BiometricLoginResult =
+  | { status: "signed_in"; session: AuthSession }
+  | { status: "cancelled" }
+  | { status: "unavailable" }
+  | { status: "no_session" };
+
 /**
  * Fingerprint / Face ID gate, then the existing device-only session restore.
  * Cancelling does not clear the refresh token.
  */
-export async function loginWithBiometrics(): Promise<AuthSession | null> {
-  const unlocked = await authenticateDeviceOwner(t("auth:login.biometricPrompt"));
-  if (!unlocked) {
-    return null;
+export async function loginWithBiometrics(): Promise<BiometricLoginResult> {
+  if (!(await canOfferBiometricLock())) {
+    return { status: "unavailable" };
   }
 
-  return restoreSavedSession();
+  const unlocked = await authenticateDeviceOwner(t("auth:login.biometricPrompt"));
+  if (!unlocked) {
+    return { status: "cancelled" };
+  }
+
+  const session = await restoreSavedSession();
+  if (!session) {
+    return { status: "no_session" };
+  }
+
+  return { status: "signed_in", session };
 }
 
 /**
