@@ -30,6 +30,12 @@ export function useLoginForm() {
   const [hasSignedIn, setHasSignedIn] = useState(false);
   const [isBiometricSigningIn, setIsBiometricSigningIn] = useState(false);
   const [biometricError, setBiometricError] = useState<string | undefined>();
+  const hasRefreshCredential = useAuthStore(
+    (state) => state.hasRefreshCredential,
+  );
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
+  const canUseBiometricLogin =
+    hasHydrated && hasRefreshCredential && Boolean(customerId);
 
   const form = useForm<LoginFields>({
     defaultValues: { username: "", password: "" },
@@ -78,6 +84,7 @@ export function useLoginForm() {
     isRetryingSync,
     loginError,
     isBiometricSigningIn,
+    canUseBiometricLogin,
     togglePasswordVisibility: () => {
       setIsPasswordVisible((visible) => !visible);
     },
@@ -98,7 +105,12 @@ export function useLoginForm() {
       );
     }),
     signInWithBiometrics: () => {
-      if (isBiometricSigningIn || hasSignedIn || isSigningIn) {
+      if (
+        !canUseBiometricLogin ||
+        isBiometricSigningIn ||
+        hasSignedIn ||
+        isSigningIn
+      ) {
         return;
       }
 

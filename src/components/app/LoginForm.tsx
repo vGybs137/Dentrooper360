@@ -1,7 +1,7 @@
 import { type ComponentProps, type ReactNode, useEffect, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -146,6 +146,7 @@ export function LoginForm({
   const { t } = useTranslation(["auth", "a11y", "common"]);
   const insets = useSafeAreaInsets();
   const footerOffset = useSplashFooterOffset();
+  const native = useNativeColors();
   const login = useLoginForm();
   const { formState } = login.form;
   const [focusedField, setFocusedField] = useState<
@@ -292,24 +293,50 @@ export function LoginForm({
               size="lg"
             />
             {login.customerId ? (
-              <Button
-                accessibilityLabel={t("a11y:biometricLogin")}
-                disabled={
-                  login.isBiometricSigningIn ||
-                  login.isSigningIn ||
-                  !login.isOnline
-                }
-                icon={<ThemedIcon name={fingerprintIcon} tone="brand" />}
-                label={
-                  login.isBiometricSigningIn
-                    ? t("auth:login.biometricSigningIn")
-                    : t("auth:login.biometricButton")
-                }
-                onPress={login.signInWithBiometrics}
-                size="lg"
-                tone="brand"
-                variant="outline"
-              />
+              <>
+                <View
+                  accessibilityRole="none"
+                  className="flex-row items-center"
+                  style={{ gap: semantic.space.gap.default }}
+                >
+                  <View
+                    className="flex-1"
+                    style={{
+                      height: StyleSheet.hairlineWidth,
+                      backgroundColor: native.border.subtle,
+                    }}
+                  />
+                  <ThemedText tone="muted" variant="label">
+                    {t("auth:login.or")}
+                  </ThemedText>
+                  <View
+                    className="flex-1"
+                    style={{
+                      height: StyleSheet.hairlineWidth,
+                      backgroundColor: native.border.subtle,
+                    }}
+                  />
+                </View>
+                <Button
+                  accessibilityLabel={t("a11y:biometricLogin")}
+                  disabled={
+                    !login.canUseBiometricLogin ||
+                    login.isBiometricSigningIn ||
+                    login.isSigningIn ||
+                    !login.isOnline
+                  }
+                  icon={<ThemedIcon name={fingerprintIcon} tone="brand" />}
+                  label={
+                    login.isBiometricSigningIn
+                      ? t("auth:login.biometricSigningIn")
+                      : t("auth:login.biometricButton")
+                  }
+                  onPress={login.signInWithBiometrics}
+                  size="lg"
+                  tone="brand"
+                  variant="outline"
+                />
+              </>
             ) : null}
           </ThemedView>
         ) : null}
