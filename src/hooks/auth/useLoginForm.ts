@@ -8,7 +8,13 @@ import { useIsOnline } from "@/hooks/sync/useIsOnline";
 import { useLoginMutation } from "@/hooks/auth/useLoginMutation";
 import { useStartupSync } from "@/hooks/auth/useStartupSync";
 import { t } from "@/i18n";
-import { markAppUnlocked, useAuthStore, useCustomerId } from "@/stores";
+import { canOfferBiometricLock, loginWithBiometrics, offerBiometricLogin } from "@/security";
+import {
+  markAppUnlocked,
+  useAppLockStore,
+  useAuthStore,
+  useCustomerId,
+} from "@/stores";
 import { ApiError } from "@/types/api";
 
 type LoginFields = {
@@ -22,6 +28,14 @@ export function useLoginForm() {
   const isOnline = useIsOnline();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [hasSignedIn, setHasSignedIn] = useState(false);
+  const [isBiometricSigningIn, setIsBiometricSigningIn] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const biometricLoginEnabled = useAppLockStore(
+    (state) => state.biometricLoginEnabled,
+  );
+  const hasRefreshCredential = useAuthStore(
+    (state) => state.hasRefreshCredential,
+  );
 
   const form = useForm<LoginFields>({
     defaultValues: { username: "", password: "" },
@@ -56,6 +70,18 @@ export function useLoginForm() {
     void prepareScheduleAppointments();
   }, [isAppReady]);
 
+  useEffect(() => {
+    let cancelled = false;
+    void canOfferBiometricLock().then((available) => {
+      if (!cancelled) {
+        setBiometricAvailable(available);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return {
     customerId,
     form,
@@ -68,6 +94,12 @@ export function useLoginForm() {
     isSyncFailed,
     isRetryingSync,
     loginError,
+    isBiometricSigningIn,
+    canUseBiometricLogin:
+      biometricLoginEnabled &&
+      biometricAvailable &&
+      hasRefreshCredential &&
+      Boolean(customerId),
     togglePasswordVisibility: () => {
       setIsPasswordVisible((visible) => !visible);
     },
@@ -78,9 +110,32 @@ export function useLoginForm() {
 
       loginMutation.mutate(
         { username: data.username.trim(), password: data.password },
-        { onSuccess: () => setHasSignedIn(true) },
+        {
+          onSuccess: () => {
+            void offerBiometricLogin().finally(() => {
+              setHasSignedIn(true);
+            });
+          },
+        },
       );
     }),
+    signInWithBiometrics: () => {
+      if (isBiometricSigningIn || hasSignedIn) {
+        return;
+      }
+
+      setIsBiometricSigningIn(true);
+      void loginWithBiometrics()
+        .then((session) => {
+          if (session) {
+            markAppUnlocked();
+            setHasSignedIn(true);
+          }
+        })
+        .finally(() => {
+          setIsBiometricSigningIn(false);
+        });
+    },
     dismissLoginError: () => {
       loginMutation.reset();
     },

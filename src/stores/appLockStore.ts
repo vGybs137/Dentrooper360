@@ -16,6 +16,8 @@ import { getItem, setItem } from "@/security/vault/secureStorage";
 type PersistedAppLock = {
   enabled: boolean;
   timeoutMs: AppLockTimeoutMs;
+  biometricLoginEnabled: boolean;
+  biometricLoginDeclined: boolean;
 };
 
 type AppLockState = PersistedAppLock & {
@@ -27,6 +29,8 @@ type AppLockState = PersistedAppLock & {
   setHasHydrated: (value: boolean) => void;
   setEnabled: (enabled: boolean) => void;
   setTimeoutMs: (timeoutMs: AppLockTimeoutMs) => void;
+  setBiometricLoginEnabled: (enabled: boolean) => void;
+  setBiometricLoginDeclined: (declined: boolean) => void;
   lock: () => void;
   markUnlocked: () => void;
   setBackgroundedAt: (value: number | null) => void;
@@ -45,6 +49,8 @@ export const useAppLockStore = create<AppLockState>()(
     (set) => ({
       enabled: false,
       timeoutMs: DEFAULT_APP_LOCK_TIMEOUT_MS,
+      biometricLoginEnabled: false,
+      biometricLoginDeclined: false,
       hasHydrated: false,
       isLocked: false,
       lastUnlockedAt: null,
@@ -54,6 +60,14 @@ export const useAppLockStore = create<AppLockState>()(
       setEnabled: (enabled) =>
         set(enabled ? { enabled } : { enabled, isLocked: false }),
       setTimeoutMs: (timeoutMs) => set({ timeoutMs }),
+      setBiometricLoginEnabled: (biometricLoginEnabled) =>
+        set(
+          biometricLoginEnabled
+            ? { biometricLoginEnabled, biometricLoginDeclined: false }
+            : { biometricLoginEnabled },
+        ),
+      setBiometricLoginDeclined: (biometricLoginDeclined) =>
+        set({ biometricLoginDeclined }),
       lock: () => set({ isLocked: true, passwordFallback: false }),
       markUnlocked: () =>
         set({
@@ -68,11 +82,23 @@ export const useAppLockStore = create<AppLockState>()(
     {
       name: APP_LOCK_STORE_KEY,
       storage: securePersistStorage,
-      partialize: ({ enabled, timeoutMs }) => ({ enabled, timeoutMs }),
+      partialize: ({
+        enabled,
+        timeoutMs,
+        biometricLoginEnabled,
+        biometricLoginDeclined,
+      }) => ({
+        enabled,
+        timeoutMs,
+        biometricLoginEnabled,
+        biometricLoginDeclined,
+      }),
       onRehydrateStorage: () => (state) => {
         const timeoutMs = state?.timeoutMs;
         useAppLockStore.setState({
           hasHydrated: true,
+          biometricLoginEnabled: Boolean(state?.biometricLoginEnabled),
+          biometricLoginDeclined: Boolean(state?.biometricLoginDeclined),
           timeoutMs:
             timeoutMs != null && isAppLockTimeoutMs(timeoutMs)
               ? timeoutMs

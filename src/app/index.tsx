@@ -6,6 +6,7 @@ import { BrandedSplash } from "@/components/app/BrandLogo";
 import { Button, ThemedText, ThemedView } from "@/components/ui";
 import { hideNativeSplash } from "@/helpers/auth/nativeSplash";
 import { restoreSavedSession } from "@/helpers/auth/sessionRefresh";
+import { loginWithBiometrics } from "@/security";
 import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import { prepareScheduleAppointments } from "@/helpers/schedule/prefetchScheduleAppointments";
 import { useStartupSessionCheck } from "@/hooks/auth/useStartupSessionCheck";
@@ -37,6 +38,9 @@ export default function Index() {
   const isAppLocked = useAppLockStore((state) => state.isLocked);
   const lastUnlockedAt = useAppLockStore((state) => state.lastUnlockedAt);
   const passwordFallback = useAppLockStore((state) => state.passwordFallback);
+  const biometricLoginEnabled = useAppLockStore(
+    (state) => state.biometricLoginEnabled,
+  );
   const isEnteringRef = useRef(false);
   const restoreAttemptedRef = useRef(false);
   const isMountedRef = useRef(true);
@@ -120,9 +124,21 @@ export default function Index() {
     }
 
     if (!isAuthenticated && canUnlock && !restoreAttemptedRef.current) {
+      if (!appLockHydrated) {
+        return () => {
+          cancelled = true;
+        };
+      }
+
       restoreAttemptedRef.current = true;
       setIsRestoring(true);
-      void restoreSavedSession().finally(() => {
+      if (biometricLoginEnabled) {
+        void hideNativeSplash();
+      }
+      const restore = biometricLoginEnabled
+        ? loginWithBiometrics()
+        : restoreSavedSession();
+      void restore.finally(() => {
         if (isMountedRef.current) {
           setIsRestoring(false);
         }
@@ -214,6 +230,7 @@ export default function Index() {
   }, [
     appLockEnabled,
     appLockHydrated,
+    biometricLoginEnabled,
     canEnterOffline,
     canUnlock,
     isAppLocked,

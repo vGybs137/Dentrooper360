@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PatientFormFieldRow } from "@/components/patients/addPatient/PatientFormField";
 import { Button, ThemedIcon, ThemedText, ThemedView } from "@/components/ui";
-import { lockIcon, personIcon, visibilityIcon } from "@/constants";
+import { fingerprintIcon, lockIcon, personIcon, visibilityIcon } from "@/constants";
 import { useLoginForm, type LoginFormState } from "@/hooks/auth/useLoginForm";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
@@ -151,12 +151,14 @@ export function LoginForm({
   const [focusedField, setFocusedField] = useState<
     "username" | "password" | null
   >(null);
-  const fieldsEditable = !login.isSigningIn && !login.hasSignedIn;
+  const fieldsEditable =
+    !login.isSigningIn && !login.hasSignedIn && !login.isBiometricSigningIn;
   const canSubmit =
     Boolean(login.customerId) &&
     login.isOnline &&
     formState.isValid &&
     !login.isSigningIn &&
+    !login.isBiometricSigningIn &&
     !login.hasSignedIn;
 
   return (
@@ -278,6 +280,23 @@ export function LoginForm({
               <ThemedText align="center" tone="muted">
                 {t("auth:login.offlineHint")}
               </ThemedText>
+            ) : null}
+            {login.canUseBiometricLogin ? (
+              <Button
+                disabled={login.isBiometricSigningIn || !login.isOnline}
+                icon={
+                  <ThemedIcon name={fingerprintIcon} tone="brand" />
+                }
+                label={
+                  login.isBiometricSigningIn
+                    ? t("auth:login.biometricSigningIn")
+                    : t("auth:login.biometricButton")
+                }
+                onPress={login.signInWithBiometrics}
+                size="lg"
+                tone="brand"
+                variant="outline"
+              />
             ) : null}
             <Button
               disabled={!canSubmit}

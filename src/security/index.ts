@@ -78,6 +78,10 @@ export {
   canUseDeviceAuth,
 } from "@/security/biometric/deviceAuth";
 export {
+  loginWithBiometrics,
+  offerBiometricLogin,
+} from "@/security/biometric/biometricLogin";
+export {
   APP_LOCK_TIMEOUT_15_MIN_MS,
   APP_LOCK_TIMEOUT_5_MIN_MS,
   APP_LOCK_TIMEOUT_IMMEDIATE_MS,

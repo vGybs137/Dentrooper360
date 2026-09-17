@@ -61,6 +61,7 @@ export {
   editIcon,
   ellipsisIcon,
   emailIcon,
+  fingerprintIcon,
   genderIcon,
   infoIcon,
   locationIcon,

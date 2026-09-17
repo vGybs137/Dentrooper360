@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Switch } from "react-native";
 
-import { clockIcon, lockIcon } from "@/constants";
+import { clockIcon, fingerprintIcon, lockIcon } from "@/constants";
 import { authenticateDeviceOwner, canOfferBiometricLock } from "@/security";
 import {
   APP_LOCK_TIMEOUT_15_MIN_MS,
@@ -22,9 +22,16 @@ export function SettingsSecuritySection() {
   const timeoutMs = useAppLockStore((state) => state.timeoutMs);
   const setEnabled = useAppLockStore((state) => state.setEnabled);
   const setTimeoutMs = useAppLockStore((state) => state.setTimeoutMs);
+  const biometricLoginEnabled = useAppLockStore(
+    (state) => state.biometricLoginEnabled,
+  );
+  const setBiometricLoginEnabled = useAppLockStore(
+    (state) => state.setBiometricLoginEnabled,
+  );
   const [available, setAvailable] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [isEnabling, setIsEnabling] = useState(false);
+  const [isEnablingLogin, setIsEnablingLogin] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,7 +64,10 @@ export function SettingsSecuritySection() {
     [t],
   );
 
-  if (!available && !enabled) {
+  const showBiometricLogin = available || biometricLoginEnabled;
+  const showAppLock = available || enabled;
+
+  if (!showBiometricLogin && !showAppLock) {
     return null;
   }
 
@@ -80,8 +90,56 @@ export function SettingsSecuritySection() {
     }
   }
 
+  async function onBiometricLoginToggle(next: boolean) {
+    if (!next) {
+      setBiometricLoginEnabled(false);
+      return;
+    }
+
+    setIsEnablingLogin(true);
+    try {
+      const accepted = await authenticateDeviceOwner(
+        t("auth:login.biometricEnablePrompt"),
+      );
+      if (accepted) {
+        setBiometricLoginEnabled(true);
+      }
+    } finally {
+      setIsEnablingLogin(false);
+    }
+  }
+
   return (
     <SettingsSection label={t("settings:security.section")}>
+      {showBiometricLogin ? (
+        <SettingsRow
+          description={
+            biometricLoginEnabled
+              ? t("settings:security.biometricLoginOnDesc")
+              : t("settings:security.biometricLoginOffDesc")
+          }
+          icon={fingerprintIcon}
+          last={!showAppLock}
+          title={t("settings:security.biometricLogin")}
+          trailing={
+            <Switch
+              accessibilityLabel={t("a11y:biometricLogin")}
+              disabled={isEnablingLogin}
+              onValueChange={(next) => {
+                void onBiometricLoginToggle(next);
+              }}
+              thumbColor={native.surface.raised}
+              trackColor={{
+                false: native.border.subtle,
+                true: native.brand.default,
+              }}
+              value={biometricLoginEnabled}
+            />
+          }
+        />
+      ) : null}
+      {showAppLock ? (
+      <>
       <SettingsRow
         description={
           enabled
@@ -124,6 +182,8 @@ export function SettingsSecuritySection() {
           title={t("settings:security.timeout")}
           value={timeoutMs}
         />
+      ) : null}
+      </>
       ) : null}
     </SettingsSection>
   );

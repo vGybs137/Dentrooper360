@@ -42,6 +42,9 @@
   },
   "security": {
     "section": "Security",
+    "biometricLogin": "Sign in with fingerprint",
+    "biometricLoginOnDesc": "Next sign-in can use your fingerprint instead of your password",
+    "biometricLoginOffDesc": "Sign in with your username and password",
     "appLock": "Unlock with biometrics",
     "appLockOnDesc": "Require Face ID, fingerprint, or device passcode after you leave the app",
     "appLockOffDesc": "Clinic data opens without an extra unlock",
