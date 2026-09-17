@@ -40,6 +40,17 @@
       "coldNeedsOnline": "Les données locales de cette clinique ont été effacées pour libérer de l'espace. Connectez-vous pour les télécharger à nouveau."
     }
   },
+  "security": {
+    "section": "Sécurité",
+    "appLock": "Déverrouiller avec la biométrie",
+    "appLockOnDesc": "Exiger Face ID, l'empreinte ou le code de l'appareil après avoir quitté l'application",
+    "appLockOffDesc": "Les données de la clinique s'ouvrent sans déverrouillage supplémentaire",
+    "timeout": "Verrouiller après",
+    "timeoutDesc": "Durée pendant laquelle l'application peut rester en arrière-plan",
+    "immediately": "Immédiatement",
+    "fiveMinutes": "5 minutes",
+    "fifteenMinutes": "15 minutes"
+  },
   "preferences": {
     "section": "Préférences utilisateur",
     "appearance": {

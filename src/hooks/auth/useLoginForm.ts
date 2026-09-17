@@ -8,7 +8,7 @@ import { useIsOnline } from "@/hooks/sync/useIsOnline";
 import { useLoginMutation } from "@/hooks/auth/useLoginMutation";
 import { useStartupSync } from "@/hooks/auth/useStartupSync";
 import { t } from "@/i18n";
-import { useAuthStore, useCustomerId } from "@/stores";
+import { markAppUnlocked, useAuthStore, useCustomerId } from "@/stores";
 import { ApiError } from "@/types/api";
 
 type LoginFields = {
@@ -97,6 +97,7 @@ export function useLoginForm() {
     },
     continueToApp: () => {
       void (async () => {
+        markAppUnlocked();
         await prepareScheduleAppointments();
         router.replace("/(tabs)/schedule" as Href);
       })();

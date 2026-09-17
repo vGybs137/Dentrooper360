@@ -19,6 +19,8 @@
   "logOut": "تسجيل الخروج",
   "syncWifiOnly": "المزامنة عبر Wi-Fi فقط",
   "switchingClinic": "تبديل العيادة",
+  "unlockClinic": "فتح قفل العيادة",
+  "appLock": "الفتح بالبصمة",
   "switchingAppearance": "تبديل المظهر",
   "openingClinic": "فتح العيادة",
   "openCalendarViews": "فتح طرق عرض التقويم",

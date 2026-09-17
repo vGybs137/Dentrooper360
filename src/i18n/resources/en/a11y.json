@@ -19,6 +19,8 @@
   "logOut": "Log out",
   "syncWifiOnly": "Sync on Wi-Fi only",
   "switchingClinic": "Switching clinic",
+  "unlockClinic": "Unlock clinic",
+  "appLock": "Unlock with biometrics",
   "switchingAppearance": "Switching appearance",
   "openingClinic": "Opening clinic",
   "openCalendarViews": "Open calendar views",

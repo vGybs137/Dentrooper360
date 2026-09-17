@@ -11,8 +11,10 @@ import { prepareScheduleAppointments } from "@/helpers/schedule/prefetchSchedule
 import { useStartupSessionCheck } from "@/hooks/auth/useStartupSessionCheck";
 import { useStartupSync } from "@/hooks/auth/useStartupSync";
 import {
+  lockApp,
   setOfflineMode,
-  useAuthStore,
+  useAppLockHasHydrated,
+  useAppLockStore,
   useCanEnterOffline,
   useCanUnlockSession,
   useCustomerId,
@@ -30,6 +32,11 @@ export default function Index() {
   const isAuthenticated = useIsAuthenticated();
   const canUnlock = useCanUnlockSession();
   const canEnterOffline = useCanEnterOffline();
+  const appLockHydrated = useAppLockHasHydrated();
+  const appLockEnabled = useAppLockStore((state) => state.enabled);
+  const isAppLocked = useAppLockStore((state) => state.isLocked);
+  const lastUnlockedAt = useAppLockStore((state) => state.lastUnlockedAt);
+  const passwordFallback = useAppLockStore((state) => state.passwordFallback);
   const isEnteringRef = useRef(false);
   const restoreAttemptedRef = useRef(false);
   const isMountedRef = useRef(true);
@@ -50,6 +57,16 @@ export default function Index() {
 
   const enterSchedule = useCallback(
     async (offline: boolean) => {
+      const lock = useAppLockStore.getState();
+      if (
+        lock.enabled &&
+        !lock.passwordFallback &&
+        (lock.lastUnlockedAt == null || lock.isLocked)
+      ) {
+        lockApp();
+        return;
+      }
+
       if (isEnteringRef.current) {
         return;
       }
@@ -147,6 +164,22 @@ export default function Index() {
       };
     }
 
+    if (!appLockHydrated || passwordFallback) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (appLockEnabled && (lastUnlockedAt == null || isAppLocked)) {
+      if (!isAppLocked) {
+        lockApp();
+      }
+      void hideNativeSplash();
+      return () => {
+        cancelled = true;
+      };
+    }
+
     if (isSyncFailed) {
       if (canEnterOffline) {
         if (!cancelled) {
@@ -179,8 +212,13 @@ export default function Index() {
       cancelled = true;
     };
   }, [
+    appLockEnabled,
+    appLockHydrated,
     canEnterOffline,
     canUnlock,
+    isAppLocked,
+    lastUnlockedAt,
+    passwordFallback,
     customerId,
     enterSchedule,
     hasHydrated,

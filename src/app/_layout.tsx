@@ -11,9 +11,12 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AddAppointmentSheet } from "@/components/schedule/addAppointment";
 import { AddPatientSheet } from "@/components/patients/addPatient";
+import { AppLockOverlay } from "@/components/app/AppLockOverlay";
 import { ClinicSwitchOverlay } from "@/components/app/ClinicSwitchOverlay";
 import { ConnectivitySnackbar } from "@/components/app/ConnectivitySnackbar";
+import { PrivacyShield } from "@/components/app/PrivacyShield";
 import { keepNativeSplashVisible } from "@/helpers/auth/nativeSplash";
+import { useAppLockOnResume } from "@/hooks/auth/useAppLockOnResume";
 import { useConnectivitySync } from "@/hooks/sync/useConnectivitySync";
 import { usePeriodicSync } from "@/hooks/sync/usePeriodicSync";
 import { useTokenRefresh } from "@/hooks/auth/useTokenRefresh";
@@ -36,6 +39,7 @@ function RootLayout() {
   usePeriodicSync();
   useConnectivitySync();
   useTokenRefresh();
+  useAppLockOnResume();
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <I18nProvider>
@@ -56,11 +60,13 @@ function RootLayout() {
                 <ClinicReadySheets />
                 <ConnectivitySnackbar />
                 <ClinicSwitchOverlay />
+                <AppLockOverlay />
               </BottomSheetModalProvider>
             </ClinicSessionProvider>
           </QueryProvider>
         </BlurTargetView>
         <ThemeSwitchOverlay blurTargetRef={blurTargetRef} />
+        <PrivacyShield blurTargetRef={blurTargetRef} />
       </I18nProvider>
     </GestureHandlerRootView>
   );

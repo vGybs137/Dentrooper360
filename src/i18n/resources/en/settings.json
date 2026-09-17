@@ -40,6 +40,17 @@
       "coldNeedsOnline": "This clinic’s local data was cleared to free space. Connect online to download it again."
     }
   },
+  "security": {
+    "section": "Security",
+    "appLock": "Unlock with biometrics",
+    "appLockOnDesc": "Require Face ID, fingerprint, or device passcode after you leave the app",
+    "appLockOffDesc": "Clinic data opens without an extra unlock",
+    "timeout": "Lock after",
+    "timeoutDesc": "How long the app can stay in the background",
+    "immediately": "Immediately",
+    "fiveMinutes": "5 minutes",
+    "fifteenMinutes": "15 minutes"
+  },
   "preferences": {
     "section": "User preferences",
     "appearance": {

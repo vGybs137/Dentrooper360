@@ -19,6 +19,8 @@
   "logOut": "Se déconnecter",
   "syncWifiOnly": "Synchroniser en Wi-Fi uniquement",
   "switchingClinic": "Changement de clinique",
+  "unlockClinic": "Déverrouiller la clinique",
+  "appLock": "Déverrouiller avec la biométrie",
   "switchingAppearance": "Changement d'apparence",
   "openingClinic": "Ouverture de la clinique",
   "openCalendarViews": "Ouvrir les vues du calendrier",
