@@ -108,7 +108,6 @@ export function useLoginForm() {
         .then((result) => {
           if (result.status === "signed_in") {
             useAppLockStore.getState().setBiometricLoginEnabled(true);
-            markAppUnlocked();
             setHasSignedIn(true);
             return;
           }

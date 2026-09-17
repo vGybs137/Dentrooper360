@@ -1,6 +1,6 @@
 import { t } from "@/i18n";
 import { restoreSavedSession } from "@/helpers/auth/sessionRefresh";
-import { useAppLockStore } from "@/stores/appLockStore";
+import { markAppUnlocked, useAppLockStore } from "@/stores/appLockStore";
 import type { AuthSession } from "@/types/auth";
 
 import { authenticateDeviceOwner, canOfferBiometricLock } from "./deviceAuth";
@@ -13,6 +13,7 @@ export type BiometricLoginResult =
 
 /**
  * Fingerprint / Face ID gate, then the existing device-only session restore.
+ * A successful prompt also clears app lock so cold start does not ask twice.
  * Cancelling does not clear the refresh token.
  */
 export async function loginWithBiometrics(): Promise<BiometricLoginResult> {
@@ -30,6 +31,7 @@ export async function loginWithBiometrics(): Promise<BiometricLoginResult> {
     return { status: "no_session" };
   }
 
+  markAppUnlocked();
   return { status: "signed_in", session };
 }
 
