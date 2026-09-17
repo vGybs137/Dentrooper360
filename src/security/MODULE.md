@@ -22,6 +22,7 @@ Auth HTTP lives in `api/functions/auth.ts`. Session mappers/persist helpers live
 - Refresh token: device-only SecureStore; memory-cached after restore. Never behind `requireAuthentication` (a read would prompt on every token recycle).
 - App lock: local biometric or device-passcode gate over the UI. Cancelling does not clear the refresh token.
 - Fingerprint sign-in: after a password login, a later cold start can restore the saved session with a fingerprint. Cancelling falls back to the password form and does not clear the refresh token.
+- Privacy shield: native app-switcher protection for the whole app (`expo-screen-capture`), plus a full-screen cover while inactive.
 - Pairing API key: device-bound SecureStore
 - Persist blob never stores access or refresh tokens
 

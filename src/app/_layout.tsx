@@ -66,7 +66,7 @@ function RootLayout() {
           </QueryProvider>
         </BlurTargetView>
         <ThemeSwitchOverlay blurTargetRef={blurTargetRef} />
-        <PrivacyShield blurTargetRef={blurTargetRef} />
+        <PrivacyShield />
       </I18nProvider>
     </GestureHandlerRootView>
   );
