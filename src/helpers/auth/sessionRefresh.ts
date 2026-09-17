@@ -1,6 +1,6 @@
 import { refreshSession } from "@/api/functions/auth";
-import { unlockWithBiometrics } from "@/security/biometric/biometricUnlock";
 import { clearSession } from "@/security/session/sessionVault";
+import { readStoredRefreshToken } from "@/security/vault/refreshTokenVault";
 import { t } from "@/i18n";
 import { hydrateAuthStore, useAuthStore } from "@/stores";
 import { ApiError } from "@/types/api";
@@ -28,17 +28,7 @@ export async function recycleTokens(): Promise<AuthSession> {
 async function performSessionRefresh(): Promise<AuthSession> {
   await hydrateAuthStore();
 
-  let refreshToken = useAuthStore.getState().refreshToken;
-  if (!refreshToken && useAuthStore.getState().hasRefreshCredential) {
-    const unlock = await unlockWithBiometrics(
-      "Unlock Dentrooper to refresh your session",
-    );
-    if (unlock.status !== "unlocked") {
-      throw new ApiError(t("errors:auth.sessionRefresh"), 401);
-    }
-    refreshToken = unlock.refreshToken;
-  }
-
+  const refreshToken = useAuthStore.getState().refreshToken;
   if (!refreshToken) {
     throw new ApiError(t("errors:auth.sessionRefresh"), 401);
   }
@@ -55,13 +45,10 @@ async function performSessionRefresh(): Promise<AuthSession> {
 }
 
 /**
- * Cold-start unlock: biometric read of refresh → mint access JWT.
- * Returns null when unlock is unavailable/cancelled so the caller can fall
- * back to password login.
+ * Cold start: read the device-only refresh token and mint an access JWT.
+ * Returns null when nothing usable is stored so the caller can show password login.
  */
-export async function unlockSessionWithBiometrics(
-  promptMessage = "Unlock Dentrooper",
-): Promise<AuthSession | null> {
+export async function restoreSavedSession(): Promise<AuthSession | null> {
   if (unlockPromise) {
     return unlockPromise;
   }
@@ -82,13 +69,13 @@ export async function unlockSessionWithBiometrics(
       return null;
     }
 
-    const unlock = await unlockWithBiometrics(promptMessage);
-    if (unlock.status !== "unlocked") {
-      if (unlock.status === "missing" || unlock.status === "unavailable") {
-        await clearSession();
-      }
+    const refreshToken = await readStoredRefreshToken();
+    if (!refreshToken) {
+      await clearSession();
       return null;
     }
+
+    useAuthStore.getState().setRefreshToken(refreshToken);
 
     try {
       return await refreshSession();

@@ -2,17 +2,13 @@ import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
 export type SecureStorageOptions = {
-  requireAuthentication?: boolean;
-  authenticationPrompt?: string;
   /** iOS keychain accessibility; ignored on Android/web. */
   keychainAccessible?: SecureStore.KeychainAccessibilityConstant;
 };
 
 /**
  * Low-level secure key-value storage.
- * Auth refresh tokens use biometric `requireAuthentication` +
- * `WHEN_UNLOCKED_THIS_DEVICE_ONLY`. Other prefs may use plain SecureStore.
- *
+ * Secrets use `WHEN_UNLOCKED_THIS_DEVICE_ONLY` where noted.
  * Production web builds do not persist secrets (native-only product).
  */
 export function isNativeSecureStorageAvailable(): boolean {
@@ -27,22 +23,8 @@ function toSecureStoreOptions(
   }
 
   return {
-    requireAuthentication: options.requireAuthentication,
-    authenticationPrompt: options.authenticationPrompt,
     keychainAccessible: options.keychainAccessible,
   };
-}
-
-function assertNativeForSecrets(options?: SecureStorageOptions): void {
-  if (isNativeSecureStorageAvailable()) {
-    return;
-  }
-
-  // Token vault uses requireAuthentication; block that on web.
-  // Non-secret prefs may still use sessionStorage for local web tooling.
-  if (options?.requireAuthentication) {
-    throw new Error("Secure token storage is only supported on iOS and Android.");
-  }
 }
 
 export async function getItem(
@@ -50,7 +32,6 @@ export async function getItem(
   options?: SecureStorageOptions,
 ): Promise<string | null> {
   if (!isNativeSecureStorageAvailable()) {
-    assertNativeForSecrets(options);
     return sessionStorage.getItem(key);
   }
 
@@ -64,17 +45,15 @@ export async function setItem(
 ): Promise<void> {
   if (value === null) {
     if (!isNativeSecureStorageAvailable()) {
-      assertNativeForSecrets(options);
       sessionStorage.removeItem(key);
       return;
     }
 
-    await SecureStore.deleteItemAsync(key);
+    await SecureStore.deleteItemAsync(key, toSecureStoreOptions(options));
     return;
   }
 
   if (!isNativeSecureStorageAvailable()) {
-    assertNativeForSecrets(options);
     sessionStorage.setItem(key, value);
     return;
   }

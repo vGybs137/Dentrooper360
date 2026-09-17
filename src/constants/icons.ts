@@ -28,6 +28,12 @@ export const personIcon = {
   web: "account_circle",
 } as const;
 
+export const fingerprintIcon = {
+  ios: "touchid",
+  android: "fingerprint",
+  web: "fingerprint",
+} as const;
+
 export const lockIcon = {
   ios: "lock.fill",
   android: "lock",

@@ -20,7 +20,7 @@ function destinationForGate(state: AuthGateState): Href | null {
     case "needs_login":
     case "needs_unlock":
       // Unlock is handled on the splash/index route; protected layouts send
-      // unlockable sessions back through index so biometric can run once.
+      // restorably saved sessions back through index.
       return "/" as Href;
     case "authenticated":
       return null;

@@ -16,6 +16,7 @@ import { semantic } from "@/tokens";
 
 import { SettingsClinicsSection } from "./SettingsClinicsSection";
 import { SettingsPreferencesSection } from "./SettingsPreferencesSection";
+import { SettingsSecuritySection } from "./SettingsSecuritySection";
 import { SettingsProfileCard } from "./SettingsProfileCard";
 import { SettingsSyncSection } from "./SettingsSyncSection";
 
@@ -96,6 +97,7 @@ export function SettingsScreen() {
           >
             <SettingsProfileCard />
             <SettingsClinicsSection />
+            <SettingsSecuritySection />
             <SettingsPreferencesSection />
             <SettingsSyncSection />
           </ThemedView>

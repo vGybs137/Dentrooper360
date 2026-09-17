@@ -11,6 +11,7 @@ const tests = [
   "src/helpers/auth/customerId.test.ts",
   "src/database/sortClinicsByLru.test.ts",
   "src/constants/multiClinicFlags.test.ts",
+  "src/security/biometric/shouldLockSession.test.ts",
   "src/security/gates/authGate.test.ts",
   "src/security/session/sessionVaultPersist.test.ts",
   "src/security/rbac/authRole.test.ts",

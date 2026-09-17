@@ -8,7 +8,13 @@ import { useIsOnline } from "@/hooks/sync/useIsOnline";
 import { useLoginMutation } from "@/hooks/auth/useLoginMutation";
 import { useStartupSync } from "@/hooks/auth/useStartupSync";
 import { t } from "@/i18n";
-import { useAuthStore, useCustomerId } from "@/stores";
+import { loginWithBiometrics, offerBiometricLogin } from "@/security";
+import {
+  markAppUnlocked,
+  useAppLockStore,
+  useAuthStore,
+  useCustomerId,
+} from "@/stores";
 import { ApiError } from "@/types/api";
 
 type LoginFields = {
@@ -22,6 +28,14 @@ export function useLoginForm() {
   const isOnline = useIsOnline();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [hasSignedIn, setHasSignedIn] = useState(false);
+  const [isBiometricSigningIn, setIsBiometricSigningIn] = useState(false);
+  const [biometricError, setBiometricError] = useState<string | undefined>();
+  const hasRefreshCredential = useAuthStore(
+    (state) => state.hasRefreshCredential,
+  );
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
+  const canUseBiometricLogin =
+    hasHydrated && hasRefreshCredential && Boolean(customerId);
 
   const form = useForm<LoginFields>({
     defaultValues: { username: "", password: "" },
@@ -45,11 +59,12 @@ export function useLoginForm() {
   const isAppReady =
     hasSignedIn && hasSyncedThisVisit && isSyncComplete && !isSyncFailed;
   const loginError =
-    loginMutation.error instanceof ApiError
+    biometricError ??
+    (loginMutation.error instanceof ApiError
       ? loginMutation.error.message
       : loginMutation.isError
         ? t("auth:login.error.generic")
-        : undefined;
+        : undefined);
 
   useEffect(() => {
     if (!isAppReady) return;
@@ -68,6 +83,8 @@ export function useLoginForm() {
     isSyncFailed,
     isRetryingSync,
     loginError,
+    isBiometricSigningIn,
+    canUseBiometricLogin,
     togglePasswordVisibility: () => {
       setIsPasswordVisible((visible) => !visible);
     },
@@ -78,10 +95,50 @@ export function useLoginForm() {
 
       loginMutation.mutate(
         { username: data.username.trim(), password: data.password },
-        { onSuccess: () => setHasSignedIn(true) },
+        {
+          onSuccess: () => {
+            void offerBiometricLogin().finally(() => {
+              setHasSignedIn(true);
+            });
+          },
+        },
       );
     }),
+    signInWithBiometrics: () => {
+      if (
+        !canUseBiometricLogin ||
+        isBiometricSigningIn ||
+        hasSignedIn ||
+        isSigningIn
+      ) {
+        return;
+      }
+
+      setBiometricError(undefined);
+      setIsBiometricSigningIn(true);
+      void loginWithBiometrics()
+        .then((result) => {
+          if (result.status === "signed_in") {
+            useAppLockStore.getState().setBiometricLoginEnabled(true);
+            setHasSignedIn(true);
+            return;
+          }
+
+          if (result.status === "unavailable") {
+            setBiometricError(t("auth:login.error.biometricUnavailable"));
+            return;
+          }
+
+          if (result.status === "no_session") {
+            setBiometricError(t("auth:login.error.biometricNoSession"));
+          }
+        })
+        .finally(() => {
+          setIsBiometricSigningIn(false);
+        });
+    },
     dismissLoginError: () => {
+      setBiometricError(undefined);
       loginMutation.reset();
     },
     retrySync: () => {
@@ -97,6 +154,7 @@ export function useLoginForm() {
     },
     continueToApp: () => {
       void (async () => {
+        markAppUnlocked();
         await prepareScheduleAppointments();
         router.replace("/(tabs)/schedule" as Href);
       })();

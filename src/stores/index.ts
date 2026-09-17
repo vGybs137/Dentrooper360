@@ -56,6 +56,12 @@ export {
 } from "./themePreferencesStore";
 export type { ResolvedTheme, ThemeMode } from "./themePreferencesStore";
 export {
+  lockApp,
+  markAppUnlocked,
+  useAppLockHasHydrated,
+  useAppLockStore,
+} from "./appLockStore";
+export {
   getDeviceLocale,
   getResolvedLocale,
   resolveLocaleFromMode,

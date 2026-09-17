@@ -58,13 +58,7 @@ export async function login(request: LoginRequest): Promise<AuthSession> {
 export async function refreshSession(): Promise<AuthSession> {
   await hydrateAuthStore();
 
-  const { ensureRefreshTokenInMemory } = await import(
-    "@/security/biometric/biometricUnlock"
-  );
-  const refreshToken = await ensureRefreshTokenInMemory(
-    "Unlock Dentrooper to refresh your session",
-  );
-
+  const refreshToken = useAuthStore.getState().refreshToken;
   if (!refreshToken) {
     throw new ApiError("No refresh token is stored.", 401);
   }
@@ -78,7 +72,7 @@ export async function refreshSession(): Promise<AuthSession> {
   );
 
   const session = mapAuthSession(response.data);
-  await persistSession(session, undefined, { deferRefreshVault: true });
+  await persistSession(session);
   return session;
 }
 

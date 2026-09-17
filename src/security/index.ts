@@ -15,13 +15,8 @@ export {
 } from "@/api/functions/auth";
 export {
   clearRefreshTokenSecurely,
-  ensureRefreshTokenInMemory,
-  flushRefreshTokenVault,
-  isBiometricUnlockAvailable,
   persistRefreshTokenSecurely,
-  unlockWithBiometrics,
-  type BiometricUnlockResult,
-} from "@/security/biometric/biometricUnlock";
+} from "@/security/vault/refreshTokenVault";
 export {
   ClinicSwitchError,
   switchClinic,
@@ -68,7 +63,7 @@ export {
 export {
   isRecyclingTokens,
   recycleTokens,
-  unlockSessionWithBiometrics,
+  restoreSavedSession,
 } from "@/security/session/tokenRecycle";
 export {
   hasUiRole,
@@ -77,10 +72,21 @@ export {
   useScopeVersion,
   useSyncScope,
 } from "@/security/rbac/authRole";
-export { getItem, setItem } from "@/security/vault/secureStorage";
 export {
-  AUTH_REFRESH_TOKEN_KEY,
-  clearBiometricRefreshToken,
-  getBiometricRefreshToken,
-  setBiometricRefreshToken,
-} from "@/security/vault/refreshTokenVault";
+  authenticateDeviceOwner,
+  canOfferBiometricLock,
+  canUseDeviceAuth,
+} from "@/security/biometric/deviceAuth";
+export {
+  loginWithBiometrics,
+  offerBiometricLogin,
+} from "@/security/biometric/biometricLogin";
+export {
+  APP_LOCK_TIMEOUT_15_MIN_MS,
+  APP_LOCK_TIMEOUT_5_MIN_MS,
+  APP_LOCK_TIMEOUT_IMMEDIATE_MS,
+  DEFAULT_APP_LOCK_TIMEOUT_MS,
+  shouldLockSession,
+} from "@/security/biometric/shouldLockSession";
+export { getItem, setItem } from "@/security/vault/secureStorage";
+export { AUTH_REFRESH_TOKEN_KEY } from "@/security/vault/refreshTokenVault";

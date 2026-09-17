@@ -1,5 +1,5 @@
 export {
   isRecyclingTokens,
   recycleTokens,
-  unlockSessionWithBiometrics,
+  restoreSavedSession,
 } from "@/helpers/auth/sessionRefresh";

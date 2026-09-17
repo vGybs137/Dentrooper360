@@ -61,6 +61,7 @@ export {
   editIcon,
   ellipsisIcon,
   emailIcon,
+  fingerprintIcon,
   genderIcon,
   infoIcon,
   locationIcon,
@@ -110,6 +111,7 @@ export {
   MONTH_VIEW_UNTYPED_OPACITY,
 } from "./schedule";
 export {
+  APP_LOCK_STORE_KEY,
   AUTH_STORE_KEY,
   LOCALE_PREFERENCES_STORE_KEY,
   SCHEDULE_PREFERENCES_STORE_KEY,

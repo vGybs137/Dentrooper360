@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 
 /**
  * Persist blob must never contain access/refresh tokens.
- * Embedded tokens from older builds are discarded (re-login).
+ * Embedded tokens and biometric-bound sessions from older builds are discarded
+ * (re-login).
  */
 
 type PersistedAuthState = {
@@ -10,7 +11,6 @@ type PersistedAuthState = {
   customerId: string | null;
   expiresAt: string | null;
   hasRefreshCredential: boolean;
-  refreshBoundToBiometrics: boolean;
 };
 
 function partialize(state: PersistedAuthState & {
@@ -22,7 +22,6 @@ function partialize(state: PersistedAuthState & {
     customerId: state.customerId,
     expiresAt: state.expiresAt,
     hasRefreshCredential: state.hasRefreshCredential,
-    refreshBoundToBiometrics: state.refreshBoundToBiometrics,
   };
 }
 
@@ -37,17 +36,16 @@ function sanitizeEmbeddedTokens(raw: {
 }): PersistedAuthState {
   const hadEmbeddedTokens =
     typeof raw.accessToken === "string" || typeof raw.refreshToken === "string";
+  const wasBiometricBound = Boolean(raw.refreshBoundToBiometrics);
 
   return {
     user: raw.user,
     customerId: raw.customerId,
     expiresAt: raw.expiresAt,
-    hasRefreshCredential: hadEmbeddedTokens
-      ? false
-      : Boolean(raw.hasRefreshCredential),
-    refreshBoundToBiometrics: hadEmbeddedTokens
-      ? false
-      : Boolean(raw.refreshBoundToBiometrics),
+    hasRefreshCredential:
+      hadEmbeddedTokens || wasBiometricBound
+        ? false
+        : Boolean(raw.hasRefreshCredential),
   };
 }
 
@@ -56,13 +54,13 @@ const persisted = partialize({
   customerId: "clinic-a",
   expiresAt: "2026-01-01T00:00:00.000Z",
   hasRefreshCredential: true,
-  refreshBoundToBiometrics: true,
   accessToken: "must-not-persist",
   refreshToken: "must-not-persist",
 });
 
 assert.equal("accessToken" in persisted, false);
 assert.equal("refreshToken" in persisted, false);
+assert.equal("refreshBoundToBiometrics" in persisted, false);
 assert.equal(persisted.hasRefreshCredential, true);
 
 const sanitized = sanitizeEmbeddedTokens({
@@ -76,8 +74,20 @@ const sanitized = sanitizeEmbeddedTokens({
 });
 
 assert.equal(sanitized.hasRefreshCredential, false);
-assert.equal(sanitized.refreshBoundToBiometrics, false);
 assert.equal("accessToken" in sanitized, false);
 assert.equal("refreshToken" in sanitized, false);
+assert.equal("refreshBoundToBiometrics" in sanitized, false);
+
+const biometricOnly = sanitizeEmbeddedTokens({
+  user: { id: "p1" },
+  customerId: "clinic-a",
+  expiresAt: null,
+  accessToken: null,
+  refreshToken: null,
+  hasRefreshCredential: true,
+  refreshBoundToBiometrics: true,
+});
+
+assert.equal(biometricOnly.hasRefreshCredential, false);
 
 console.log("sessionVaultPersist: all assertions passed");
