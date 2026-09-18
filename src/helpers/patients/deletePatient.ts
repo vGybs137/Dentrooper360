@@ -4,6 +4,7 @@ import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import type Appointment from "@/database/models/Appointment";
 import type Patient from "@/database/models/Patient";
 import type Payment from "@/database/models/Payment";
+import type Recall from "@/database/models/Recall";
 import type Service from "@/database/models/Service";
 import { t } from "@/i18n";
 
@@ -15,8 +16,8 @@ export class PatientHasOutstandingBalanceError extends Error {
 }
 
 /**
- * Permanently deletes the patient and their appointments, payments, and
- * services (synced via WatermelonDB deleted marks).
+ * Soft-deletes the patient and all linked records (appointments, payments,
+ * services, recalls) via WatermelonDB deleted marks for sync push.
  * Throws if the patient has an outstanding (positive) balance.
  */
 export async function deletePatientAndRelated(
@@ -30,7 +31,7 @@ export async function deletePatientAndRelated(
   }
 
   await database.write(async () => {
-    const [appointments, payments, services] = await Promise.all([
+    const [appointments, payments, services, recalls] = await Promise.all([
       database
         .get<Appointment>("appointments")
         .query(Q.where("patient_id", patientId))
@@ -43,6 +44,10 @@ export async function deletePatientAndRelated(
         .get<Service>("services")
         .query(Q.where("patient_id", patientId))
         .fetch(),
+      database
+        .get<Recall>("recalls")
+        .query(Q.where("patient_id", patientId))
+        .fetch(),
     ]);
 
     await database.batch(
@@ -50,6 +55,7 @@ export async function deletePatientAndRelated(
       ...appointments.map((record) => record.prepareMarkAsDeleted()),
       ...payments.map((record) => record.prepareMarkAsDeleted()),
       ...services.map((record) => record.prepareMarkAsDeleted()),
+      ...recalls.map((record) => record.prepareMarkAsDeleted()),
     );
   });
 }
