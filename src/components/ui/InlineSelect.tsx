@@ -229,12 +229,18 @@ export function InlineSelect({
   };
 
   return (
-    <View className="w-full">
+    <View className="w-full self-stretch">
       <View
-        className={cn("w-full flex-row items-center", hasLeading && "gap-3")}
+        className={cn(
+          "w-full flex-row items-center self-stretch",
+          hasLeading && "gap-3",
+        )}
       >
         {hasLeading ? (
-          <View className="size-5 shrink-0 items-center justify-center">
+          <View
+            className="shrink-0 items-center justify-center"
+            style={{ width: LEADING_SLOT_SIZE, height: LEADING_SLOT_SIZE }}
+          >
             {leading}
           </View>
         ) : null}
@@ -245,7 +251,7 @@ export function InlineSelect({
             accessibilityState={{ expanded: visible }}
             bottomSheet
             className={cn(
-              "min-h-control w-full py-stack-compact",
+              "min-h-control w-full self-stretch py-stack-compact",
               isBare
                 ? "justify-start px-0"
                 : "justify-center rounded-pill px-inline",
@@ -254,7 +260,7 @@ export function InlineSelect({
             hitSlop={6}
             onPress={onToggle}
             size="none"
-            style={{ width: "100%" }}
+            style={{ alignSelf: "stretch", width: "100%" }}
             tone="neutral"
             variant="ghost"
           >
@@ -276,9 +282,17 @@ export function InlineSelect({
           style={containerStyle}
         >
           <View
-            className={cn("w-full flex-row items-start", hasLeading && "gap-3")}
+            className={cn(
+              "w-full flex-row items-start self-stretch",
+              hasLeading && "gap-3",
+            )}
           >
-            {hasLeading ? <View className="size-5 shrink-0" /> : null}
+            {hasLeading ? (
+              <View
+                className="shrink-0"
+                style={{ width: LEADING_SLOT_SIZE, height: LEADING_SLOT_SIZE }}
+              />
+            ) : null}
             <View className="min-w-0 flex-1">
               <ThemedText
                 as="input"

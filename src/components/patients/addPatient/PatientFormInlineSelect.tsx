@@ -19,7 +19,7 @@ function PatientFormInlineSelectComponent({
     usePatientFormFocusField();
 
   return (
-    <View ref={fieldRef} collapsable={false}>
+    <View ref={fieldRef} collapsable={false} className="w-full">
       <InlineSelect
         onSearchBlur={() => {
           contextBlur?.();

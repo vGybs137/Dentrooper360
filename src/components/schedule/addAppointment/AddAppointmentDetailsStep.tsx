@@ -200,37 +200,45 @@ function AddAppointmentDetailsStepComponent({
 
       <FormDivider />
 
-      <PatientFormInlineSelect
-        leading={<InlineSelectColorLeading color={typeColor} />}
-        onChange={(value) =>
-          setValue("typeId", value, {
-            shouldDirty: true,
-            shouldValidate: true,
-          })
-        }
-        onToggle={() => togglePanel("type")}
-        options={typeOptions}
-        placeholder={t("schedule:add.selectType")}
-        value={typeId}
-        visible={expandedField === "type"}
-      />
+      <View className="w-full flex-row items-center gap-3 self-stretch">
+        <InlineSelectColorLeading color={typeColor} />
+        <View className="min-w-0 flex-1 self-stretch">
+          <PatientFormInlineSelect
+            onChange={(value) =>
+              setValue("typeId", value, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
+            onToggle={() => togglePanel("type")}
+            options={typeOptions}
+            placeholder={t("schedule:add.selectType")}
+            value={typeId}
+            visible={expandedField === "type"}
+          />
+        </View>
+      </View>
 
       <FormDivider />
 
-      <PatientFormInlineSelect
-        leading={<InlineSelectSymbolLeading name={locationIcon} />}
-        onChange={(value) =>
-          setValue("locationId", value, {
-            shouldDirty: true,
-            shouldValidate: true,
-          })
-        }
-        onToggle={() => togglePanel("location")}
-        options={locationOptions}
-        placeholder={t("schedule:add.selectLocation")}
-        value={locationId}
-        visible={expandedField === "location"}
-      />
+      <View className="w-full flex-row items-center gap-3 self-stretch">
+        <InlineSelectSymbolLeading name={locationIcon} />
+        <View className="min-w-0 flex-1 self-stretch">
+          <PatientFormInlineSelect
+            onChange={(value) =>
+              setValue("locationId", value, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
+            onToggle={() => togglePanel("location")}
+            options={locationOptions}
+            placeholder={t("schedule:add.selectLocation")}
+            value={locationId}
+            visible={expandedField === "location"}
+          />
+        </View>
+      </View>
 
       <FormDivider />
 
