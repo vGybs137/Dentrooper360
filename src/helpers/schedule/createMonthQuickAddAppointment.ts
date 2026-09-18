@@ -18,7 +18,7 @@ import { formatPatientName } from "@/helpers/patients/patientDisplay";
 import { requestSync } from "@/helpers/sync/requestSync";
 import type { ScheduleHourRange } from "@/helpers/schedule/scheduleHours";
 import { t } from "@/i18n";
-import { ADD_APPOINTMENT_SLOT_DURATION_MINUTES } from "@/stores/addAppointmentStore";
+import { getDefaultAppointmentDurationMinutes } from "@/stores/schedulePreferencesStore";
 import { resolveDefaultLocationId } from "@/stores/schedulePreferencesStore";
 import type { MonthDayEventPreview } from "@/types/schedule";
 import {
@@ -204,19 +204,20 @@ export async function createMonthQuickAddAppointment({
       ? events
       : await loadDayEventTimes(resolvedDayKey, providerId);
 
+  const durationMinutes = getDefaultAppointmentDurationMinutes();
   const startMinutes =
     parsed.preferredStartMinutes ??
     findFirstFreeSlotMinutes(
       dayEvents,
       targetHours.startHour,
       targetHours.endHour,
-      ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
+      durationMinutes,
       dayStartMs,
     );
 
   const startTime = dateFromDayKeyAndMinutes(resolvedDayKey, startMinutes);
   const endTime = dayjs(startTime)
-    .add(ADD_APPOINTMENT_SLOT_DURATION_MINUTES, "minute")
+    .add(durationMinutes, "minute")
     .toDate();
 
   if (

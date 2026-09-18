@@ -9,7 +9,9 @@
     "logoutConfirm": "Yes, log out",
     "logoutMessage": "Are you sure you want to log out of this device.",
     "logoutMessageUnsynced": "You have local changes that haven't synced yet. Logging out will try to sync first, then clear this device even if sync fails.",
-    "logoutError": "Unable to finish logging out. Please try again."
+    "logoutError": "Unable to finish logging out. Please try again.",
+    "addAccount": "Add account",
+    "addAccountDescription": "Pair another clinic account on this device"
   },
   "clinics": {
     "section": "Clinics",
@@ -35,6 +37,7 @@
       "noActive": "No active clinic is paired on this device.",
       "disabled": "Clinic switching is disabled on this build.",
       "notMember": "You are not a member of the requested clinic.",
+      "sessionRequired": "Sign in to this account once to enable switching from Settings.",
       "syncBeforeSwitch": "Sync the current clinic before switching. Local changes could not be uploaded.",
       "stillPending": "Sync the current clinic before switching. Local changes are still pending.",
       "coldNeedsOnline": "This clinic’s local data was cleared to free space. Connect online to download it again."
@@ -55,7 +58,6 @@
     "fifteenMinutes": "15 minutes"
   },
   "preferences": {
-    "section": "User preferences",
     "appearance": {
       "label": "Appearance",
       "system": "System",
@@ -88,6 +90,47 @@
       "ar": "العربية"
     },
     "languageDesc": "App display language"
+  },
+  "appearance": {
+    "section": "Appearance"
+  },
+  "schedule": {
+    "section": "Schedule",
+    "defaultLocation": {
+      "label": "Default location",
+      "auto": "First available",
+      "desc": "Used for new appointments and patients"
+    },
+    "defaultDuration": {
+      "label": "Default duration",
+      "desc": "Length of new appointment slots",
+      "minutes": "{{count}} min"
+    }
+  },
+  "patients": {
+    "section": "Patients",
+    "defaultCountryCode": {
+      "label": "Default country code",
+      "desc": "Pre-filled when adding a patient"
+    }
+  },
+  "privacy": {
+    "section": "Privacy",
+    "hideInAppSwitcher": "Hide content in app switcher",
+    "hideInAppSwitcherOnDesc": "Blur clinic data when the app is in the background",
+    "hideInAppSwitcherOffDesc": "App content may appear in the app switcher"
+  },
+  "about": {
+    "section": "About",
+    "appName": "App",
+    "version": "Version",
+    "build": "Build"
+  },
+  "account": {
+    "section": "Account",
+    "logoutDesc": "Sign out of this device",
+    "removeClinicDesc": "Unpair this clinic and wipe local data on this device",
+    "removing": "Removing…"
   },
   "sync": {
     "section": "Sync & data",

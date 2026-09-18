@@ -33,8 +33,11 @@ export {
 } from "./scheduleViewModeStore";
 export type { ScheduleViewMode } from "./scheduleViewModeStore";
 export {
+  DEFAULT_APPOINTMENT_DURATION_OPTIONS,
+  getDefaultAppointmentDurationMinutes,
   resolveDefaultLocationId,
   resolveInitialScheduleViewMode,
+  useDefaultAppointmentDurationMinutes,
   useDefaultCalendarView,
   useDefaultLocationId,
   useHourFormat,
@@ -43,6 +46,7 @@ export {
   useWeekStartsOn,
 } from "./schedulePreferencesStore";
 export type {
+  DefaultAppointmentDurationMinutes,
   DefaultCalendarView,
   HourFormat,
 } from "./schedulePreferencesStore";
@@ -84,6 +88,17 @@ export type {
   AppointmentSlot,
   EditAppointmentDraft,
 } from "./addAppointmentStore";
+export {
+  getDefaultPatientCountryCode,
+  useDefaultPatientCountryCode,
+  usePatientPreferencesHasHydrated,
+  usePatientPreferencesStore,
+} from "./patientPreferencesStore";
+export {
+  useHideInAppSwitcher,
+  usePrivacyPreferencesHasHydrated,
+  usePrivacyPreferencesStore,
+} from "./privacyPreferencesStore";
 export {
   useAddPatientEditingId,
   useAddPatientIsPresented,

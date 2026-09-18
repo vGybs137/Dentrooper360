@@ -1,8 +1,10 @@
 import { type Href, useRouter } from "expo-router";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
-import { canonicalCustomerId } from "@/helpers/auth/customerId";
+import { queryKeys } from "@/constants/queryKeys";
+import { canonicalCustomerId, sameCustomerId } from "@/helpers/auth/customerId";
 import { prepareScheduleAppointments } from "@/helpers/schedule/prefetchScheduleAppointments";
 import { useIsOnline } from "@/hooks/sync/useIsOnline";
 import { useLoginMutation } from "@/hooks/auth/useLoginMutation";
@@ -22,9 +24,12 @@ type LoginFields = {
   password: string;
 };
 
-export function useLoginForm() {
+export function useLoginForm(options?: { customerId?: string | null }) {
   const router = useRouter();
-  const customerId = useCustomerId();
+  const queryClient = useQueryClient();
+  const storeCustomerId = useCustomerId();
+  const customerId =
+    canonicalCustomerId(options?.customerId) ?? storeCustomerId;
   const isOnline = useIsOnline();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [hasSignedIn, setHasSignedIn] = useState(false);
@@ -35,7 +40,10 @@ export function useLoginForm() {
   );
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const canUseBiometricLogin =
-    hasHydrated && hasRefreshCredential && Boolean(customerId);
+    hasHydrated &&
+    hasRefreshCredential &&
+    Boolean(customerId) &&
+    sameCustomerId(customerId, storeCustomerId);
 
   const form = useForm<LoginFields>({
     defaultValues: { username: "", password: "" },
@@ -97,6 +105,12 @@ export function useLoginForm() {
         { username: data.username.trim(), password: data.password },
         {
           onSuccess: () => {
+            void queryClient.invalidateQueries({
+              queryKey: queryKeys.auth.clinics,
+            });
+            void queryClient.invalidateQueries({
+              queryKey: queryKeys.auth.clinicRegistry,
+            });
             void offerBiometricLogin().finally(() => {
               setHasSignedIn(true);
             });
@@ -120,6 +134,12 @@ export function useLoginForm() {
         .then((result) => {
           if (result.status === "signed_in") {
             useAppLockStore.getState().setBiometricLoginEnabled(true);
+            void queryClient.invalidateQueries({
+              queryKey: queryKeys.auth.clinics,
+            });
+            void queryClient.invalidateQueries({
+              queryKey: queryKeys.auth.clinicRegistry,
+            });
             setHasSignedIn(true);
             return;
           }
@@ -155,6 +175,12 @@ export function useLoginForm() {
     continueToApp: () => {
       void (async () => {
         markAppUnlocked();
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.auth.clinics,
+        });
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.auth.clinicRegistry,
+        });
         await prepareScheduleAppointments();
         router.replace("/(tabs)/schedule" as Href);
       })();

@@ -1,5 +1,14 @@
 export const DEFAULT_PATIENT_COUNTRY_CODE = "+961";
 
+/** Curated dialing codes for Settings + new-patient defaults. */
+export const PATIENT_COUNTRY_CODE_OPTIONS = [
+  "+961",
+  "+1",
+  "+33",
+  "+971",
+  "+44",
+] as const;
+
 export const PATIENT_GENDER_VALUES = ["Male", "Female"] as const;
 
 export type PatientGenderValue = (typeof PATIENT_GENDER_VALUES)[number];

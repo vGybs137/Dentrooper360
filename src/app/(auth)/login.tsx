@@ -18,7 +18,6 @@ import {
   useLoginLogoRestLayout,
 } from "@/hooks/auth/useAuthLogoRestOffset";
 import { useSplashIntro } from "@/hooks/auth/useSplashIntro";
-import { useAuthStore } from "@/stores";
 
 export default function LoginScreen() {
   const { intro, customerId: customerIdParam } = useLocalSearchParams<{
@@ -26,6 +25,9 @@ export default function LoginScreen() {
     customerId?: string | string[];
   }>();
   const animateFromSplash = isIntroFromSplash(intro);
+  const loginCustomerId = Array.isArray(customerIdParam)
+    ? customerIdParam[0]
+    : customerIdParam;
   const { height: windowHeight } = useWindowDimensions();
   const splashIntro = useSplashIntro(animateFromSplash);
   const logoHeight = useSharedValue(0);
@@ -36,15 +38,6 @@ export default function LoginScreen() {
     splashIntro.progress,
     logoHeight,
   );
-
-  useEffect(() => {
-    const nextCustomerId = Array.isArray(customerIdParam)
-      ? customerIdParam[0]
-      : customerIdParam;
-    if (nextCustomerId?.trim()) {
-      useAuthStore.getState().setCustomerId(nextCustomerId.trim());
-    }
-  }, [customerIdParam]);
 
   useEffect(() => {
     void hideNativeSplash();
@@ -89,6 +82,7 @@ export default function LoginScreen() {
       <SplashFooter />
       <LoginForm
         contentStyle={incomingStyle}
+        customerId={loginCustomerId?.trim() ? loginCustomerId.trim() : undefined}
         logo={
           <Animated.View
             className="items-center"

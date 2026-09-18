@@ -74,6 +74,7 @@ export {
   personIcon,
   personsIcon,
   phoneIcon,
+  privacyShieldIcon,
   qrCodeIcon,
   searchIcon,
   starIcon,
@@ -86,6 +87,7 @@ export {
 } from "./icons";
 export {
   DEFAULT_PATIENT_COUNTRY_CODE,
+  PATIENT_COUNTRY_CODE_OPTIONS,
   PATIENT_FORM_VALIDATION_KEYS,
   PATIENT_FORM_VALIDATION_MESSAGES,
   PATIENT_GENDER_OPTIONS,
@@ -114,6 +116,8 @@ export {
   APP_LOCK_STORE_KEY,
   AUTH_STORE_KEY,
   LOCALE_PREFERENCES_STORE_KEY,
+  PATIENT_PREFERENCES_STORE_KEY,
+  PRIVACY_PREFERENCES_STORE_KEY,
   SCHEDULE_PREFERENCES_STORE_KEY,
   THEME_PREFERENCES_STORE_KEY,
 } from "./storage";

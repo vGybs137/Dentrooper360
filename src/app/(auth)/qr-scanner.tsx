@@ -1,10 +1,15 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { type Href, useLocalSearchParams, useRouter } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import Animated from "react-native-reanimated";
 
+import {
+  AddClinicAccountChooser,
+  type AddClinicAccountOption,
+} from "@/components/app/AddClinicAccountChooser";
 import { BrandLogo, BRAND_MARK_SIZE, SplashFooter } from "@/components/app/BrandLogo";
 import {
   FeedbackOverlay,
@@ -13,19 +18,36 @@ import {
 import { LoginForm } from "@/components/app/LoginForm";
 import { QrViewfinder } from "@/components/app/QrViewfinder";
 import { ThemedView } from "@/components/ui";
+import { queryKeys } from "@/constants/queryKeys";
+import { canonicalCustomerId, sameCustomerId } from "@/helpers/auth/customerId";
 import { getDeviceInfo, getOrCreateDeviceId } from "@/helpers/auth/deviceId";
 import { isFromOnboarding } from "@/helpers/ui/routeParams";
 import { useLoginLogoRestLayout } from "@/hooks/auth/useAuthLogoRestOffset";
 import { usePairMutation } from "@/hooks/auth/usePairMutation";
 import { useQrScannerMotion } from "@/hooks/auth/useQrScannerMotion";
-import { useRestoreOnboarding } from "@/stores";
+import { useClinicsList } from "@/hooks/auth/useClinicsList";
+import { useCustomerId, useRestoreOnboarding } from "@/stores";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
 const VIEWFINDER_MAX = 280;
 
+function clinicChooserLabel(
+  customerId: string,
+  displayName: string | null | undefined,
+  t: (key: string, options?: Record<string, unknown>) => string,
+): string {
+  const name = displayName?.trim();
+  if (name) {
+    return name;
+  }
+  return t("settings:clinics.fallbackName", {
+    idPrefix: customerId.length > 8 ? customerId.slice(0, 8) : customerId,
+  });
+}
+
 export default function QrScannerScreen() {
-  const { t } = useTranslation(["auth", "common"]);
+  const { t } = useTranslation(["auth", "common", "settings"]);
   const router = useRouter();
   const { from, mode } = useLocalSearchParams<{
     from?: string | string[];
@@ -36,6 +58,8 @@ export default function QrScannerScreen() {
     (Array.isArray(mode) ? mode[0] : mode)?.toLowerCase() === "add";
   const native = useNativeColors();
   const restoreOnboarding = useRestoreOnboarding();
+  const activeCustomerId = useCustomerId();
+  const clinicsQuery = useClinicsList();
   const { width: windowWidth } = useWindowDimensions();
   const onLoginLogoRestLayout = useLoginLogoRestLayout();
   const scanInset = semantic.space.inline.default;
@@ -48,9 +72,14 @@ export default function QrScannerScreen() {
   const [scanFeedback, setScanFeedback] = useState<FeedbackOverlayProps | null>(
     null,
   );
+  const [pairedCustomerId, setPairedCustomerId] = useState<string | null>(null);
+  const [selectedLoginCustomerId, setSelectedLoginCustomerId] = useState<
+    string | null
+  >(null);
   const latestBarcodeRef = useRef<string | null>(null);
 
   const pairMutation = usePairMutation();
+  const queryClient = useQueryClient();
 
   const GUID_RE = useMemo(
     () =>
@@ -112,13 +141,21 @@ export default function QrScannerScreen() {
   }
 
   const leaveScanner = useCallback(() => {
-    if (fromOnboarding) {
+    if (fromOnboarding || isAddClinic) {
+      if (router.canGoBack()) {
+        router.back();
+        return;
+      }
+      if (isAddClinic) {
+        router.replace("/(tabs)/settings" as Href);
+        return;
+      }
       router.back();
       return;
     }
 
     router.replace("/(auth)/login" as Href);
-  }, [fromOnboarding, router]);
+  }, [fromOnboarding, isAddClinic, router]);
 
   const {
     status,
@@ -139,6 +176,51 @@ export default function QrScannerScreen() {
     setScanFeedback(null);
     latestBarcodeRef.current = null;
   }, []);
+
+  const accountOptions = useMemo((): AddClinicAccountOption[] => {
+    if (!pairedCustomerId) {
+      return [];
+    }
+
+    const clinics = clinicsQuery.data?.clinics ?? [];
+    const options: AddClinicAccountOption[] = [];
+
+    if (activeCustomerId) {
+      const current = clinics.find((clinic) =>
+        sameCustomerId(clinic.customerId, activeCustomerId),
+      );
+      options.push({
+        customerId: activeCustomerId,
+        label: t("auth:qr.currentAccountLabel", {
+          clinic: clinicChooserLabel(
+            activeCustomerId,
+            current?.clinicDisplayName,
+            t,
+          ),
+        }),
+        isCurrent: true,
+      });
+    }
+
+    if (!sameCustomerId(pairedCustomerId, activeCustomerId)) {
+      const paired = clinics.find((clinic) =>
+        sameCustomerId(clinic.customerId, pairedCustomerId),
+      );
+      options.push({
+        customerId: pairedCustomerId,
+        label: t("auth:qr.newAccountLabel", {
+          clinic: clinicChooserLabel(
+            pairedCustomerId,
+            paired?.clinicDisplayName,
+            t,
+          ),
+        }),
+        isNew: true,
+      });
+    }
+
+    return options;
+  }, [activeCustomerId, clinicsQuery.data?.clinics, pairedCustomerId, t]);
 
   const handleBarcodeScanned = useCallback(
     async (result: { data?: string | null } | null) => {
@@ -181,6 +263,8 @@ export default function QrScannerScreen() {
       try {
         const deviceId = await getOrCreateDeviceId();
         const { deviceName, platform, version } = getDeviceInfo();
+        const pairedId =
+          canonicalCustomerId(validated.customerId) ?? validated.customerId;
 
         await pairMutation.mutateAsync({
           customerId: validated.customerId,
@@ -203,11 +287,14 @@ export default function QrScannerScreen() {
           onContinue: () => {
             setScanFeedback(null);
             if (isAddClinic) {
-              router.replace({
-                pathname: "/(auth)/login",
-                params: { customerId: validated.customerId, from: "add-clinic" },
-              } as Href);
-              return;
+              setPairedCustomerId(pairedId);
+              setSelectedLoginCustomerId(null);
+              void queryClient.invalidateQueries({
+                queryKey: queryKeys.auth.clinics,
+              });
+              void queryClient.invalidateQueries({
+                queryKey: queryKeys.auth.clinicRegistry,
+              });
             }
             simulateScan();
           },
@@ -224,13 +311,35 @@ export default function QrScannerScreen() {
         });
       }
     },
-    [dismissFeedback, isAddClinic, pairMutation, router, simulateScan, status, t],
+    [
+      dismissFeedback,
+      isAddClinic,
+      pairMutation,
+      queryClient,
+      simulateScan,
+      status,
+      t,
+    ],
   );
 
   const frameColor =
     status === "paired"
       ? native.success.DEFAULT
       : native.brand.default;
+
+  const showAddChooser =
+    isAddClinic && status === "paired" && selectedLoginCustomerId == null;
+  const showLogin =
+    status === "paired" &&
+    (!isAddClinic || selectedLoginCustomerId != null);
+
+  const loginLogo = fromOnboarding ? (
+    <View style={{ height: BRAND_MARK_SIZE }} />
+  ) : (
+    <View className="items-center" onLayout={onLoginLogoRestLayout}>
+      <BrandLogo showWordmark={false} />
+    </View>
+  );
 
   return (
     <ThemedView
@@ -246,18 +355,21 @@ export default function QrScannerScreen() {
       variant="screen"
     >
       {fromOnboarding ? null : <SplashFooter />}
-      {status === "paired" ? (
+      {showAddChooser ? (
+        <AddClinicAccountChooser
+          contentStyle={loginStyle}
+          onCancel={leaveScanner}
+          onSelect={setSelectedLoginCustomerId}
+          options={accountOptions}
+        />
+      ) : null}
+      {showLogin ? (
         <LoginForm
           contentStyle={loginStyle}
-          logo={
-            fromOnboarding ? (
-              <View style={{ height: BRAND_MARK_SIZE }} />
-            ) : (
-              <View className="items-center" onLayout={onLoginLogoRestLayout}>
-                <BrandLogo showWordmark={false} />
-              </View>
-            )
+          customerId={
+            isAddClinic ? selectedLoginCustomerId : undefined
           }
+          logo={loginLogo}
         />
       ) : null}
 

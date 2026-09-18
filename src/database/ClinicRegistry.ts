@@ -2,7 +2,10 @@ import { CLINIC_REGISTRY_KEY } from "@/constants/storage";
 import { canonicalCustomerId } from "@/helpers/auth/customerId";
 import { getItem, setItem } from "@/security/vault/secureStorage";
 
-import { clinicDbNameForCustomer, LEGACY_CLINIC_DB_NAME } from "./clinicDbNames";
+import {
+  clinicDbNameForCustomer,
+  LEGACY_CLINIC_DB_NAME,
+} from "./clinicDbNames";
 import { sortClinicsByLru } from "./clinicLru";
 
 export type ClinicRegistryEntry = {
@@ -13,6 +16,10 @@ export type ClinicRegistryEntry = {
   lastSuccessfulSyncAt: string | null;
   syncScope: string | null;
   scopeVersion: number | null;
+  /** Last signed-in provider display name for this clinic on this device. */
+  lastUserFullName: string | null;
+  /** Last signed-in provider email for this clinic on this device. */
+  lastUserEmail: string | null;
 };
 
 export type ClinicRegistryState = {
@@ -65,6 +72,9 @@ function preferRegistryEntry(
     syncScope: incoming.syncScope ?? current.syncScope,
     scopeVersion: incoming.scopeVersion ?? current.scopeVersion,
     dbName: current.dbName || incoming.dbName,
+    lastUserFullName:
+      incoming.lastUserFullName ?? current.lastUserFullName ?? null,
+    lastUserEmail: incoming.lastUserEmail ?? current.lastUserEmail ?? null,
   };
 }
 
@@ -75,12 +85,18 @@ export function canonicalizeClinicRegistry(
   const clinics: Record<string, ClinicRegistryEntry> = {};
 
   for (const [key, entry] of Object.entries(state.clinics)) {
-    const id = canonicalCustomerId(entry.customerId) ?? canonicalCustomerId(key);
+    const id =
+      canonicalCustomerId(entry.customerId) ?? canonicalCustomerId(key);
     if (!id) {
       continue;
     }
 
-    const next = { ...entry, customerId: id };
+    const next = {
+      ...entry,
+      customerId: id,
+      lastUserFullName: entry.lastUserFullName ?? null,
+      lastUserEmail: entry.lastUserEmail ?? null,
+    };
     const existing = clinics[id];
     clinics[id] = existing ? preferRegistryEntry(existing, next) : next;
   }
@@ -151,6 +167,8 @@ export async function getOrCreateClinicRegistryEntry(
     lastSuccessfulSyncAt: null,
     syncScope: null,
     scopeVersion: null,
+    lastUserFullName: null,
+    lastUserEmail: null,
   };
 
   state.clinics[id] = entry;
@@ -209,7 +227,43 @@ export async function markClinicSynced(
   await saveClinicRegistry(state);
 }
 
-export async function removeClinicRegistryEntry(customerId: string): Promise<void> {
+/**
+ * Remembers the signed-in provider profile for a clinic so Settings can show
+ * user identity instead of a raw customer id.
+ */
+export async function rememberClinicUserProfile(
+  customerId: string,
+  profile: { fullName?: string | null; email?: string | null },
+): Promise<void> {
+  const id = canonicalCustomerId(customerId);
+  if (!id) {
+    return;
+  }
+
+  const fullName = profile.fullName?.trim() || null;
+  const email = profile.email?.trim() || null;
+  if (!fullName && !email) {
+    return;
+  }
+
+  await getOrCreateClinicRegistryEntry(id);
+  const state = await loadClinicRegistry();
+  const entry = state.clinics[id];
+  if (!entry) {
+    return;
+  }
+
+  state.clinics[id] = {
+    ...entry,
+    lastUserFullName: fullName ?? entry.lastUserFullName,
+    lastUserEmail: email ?? entry.lastUserEmail,
+  };
+  await saveClinicRegistry(state);
+}
+
+export async function removeClinicRegistryEntry(
+  customerId: string,
+): Promise<void> {
   const id = canonicalCustomerId(customerId);
   if (!id) {
     return;
@@ -236,7 +290,9 @@ export { sortClinicsByLru } from "./clinicLru";
 /** Warm clinics oldest-first (LRU victims). Null lastOpenedAt sorts first. */
 export async function listWarmClinicsByLru(): Promise<ClinicRegistryEntry[]> {
   const state = await loadClinicRegistry();
-  return sortClinicsByLru(Object.values(state.clinics).filter((entry) => entry.isWarm));
+  return sortClinicsByLru(
+    Object.values(state.clinics).filter((entry) => entry.isWarm),
+  );
 }
 
 export async function isClinicWarm(customerId: string): Promise<boolean> {

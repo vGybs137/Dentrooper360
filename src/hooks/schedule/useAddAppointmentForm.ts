@@ -18,7 +18,7 @@ import { requestSync } from "@/helpers/sync/requestSync";
 import { useDayFreeHours } from "@/hooks/schedule/useDayFreeHours";
 import { t } from "@/i18n";
 import {
-  ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
+  getDefaultAppointmentDurationMinutes,
   resolveDefaultLocationId,
   useAddAppointmentIsPresented,
   useAddAppointmentSlot,
@@ -254,7 +254,7 @@ export function useAddAppointmentForm() {
       form.setValue(
         "endTime",
         dayjs(time)
-          .add(ADD_APPOINTMENT_SLOT_DURATION_MINUTES, "minute")
+          .add(getDefaultAppointmentDurationMinutes(), "minute")
           .toDate(),
         {
           shouldDirty: true,

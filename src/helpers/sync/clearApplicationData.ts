@@ -5,6 +5,7 @@ import { waitForAllClinicSyncsIdle } from "@/database/synchronize";
 import { applyRtlForLocale } from "@/helpers/i18n/applyRtl";
 import { changeAppLanguage } from "@/i18n";
 import { DEFAULT_LOCALE } from "@/i18n/locales";
+import { DEFAULT_PATIENT_COUNTRY_CODE } from "@/constants/patientForm";
 import {
   applyThemeColorScheme,
   useAddAppointmentStore,
@@ -12,6 +13,8 @@ import {
   useAuthStore,
   useCalendarSelectionStore,
   useLocalePreferencesStore,
+  usePatientPreferencesStore,
+  usePrivacyPreferencesStore,
   useSchedulePreferencesStore,
   useScheduleViewModeStore,
   useSyncStatusStore,
@@ -45,8 +48,19 @@ export async function clearApplicationData(): Promise<void> {
     weekStartsOn: 1,
     lastViewMode: "month",
     defaultLocationId: null,
+    defaultAppointmentDurationMinutes: 60,
   });
   await useSchedulePreferencesStore.persist.clearStorage();
+
+  usePatientPreferencesStore.setState({
+    defaultCountryCode: DEFAULT_PATIENT_COUNTRY_CODE,
+  });
+  await usePatientPreferencesStore.persist.clearStorage();
+
+  usePrivacyPreferencesStore.setState({
+    hideInAppSwitcher: true,
+  });
+  await usePrivacyPreferencesStore.persist.clearStorage();
 
   useThemePreferencesStore.setState({
     mode: "system",

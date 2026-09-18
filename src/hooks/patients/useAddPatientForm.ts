@@ -9,9 +9,6 @@ import {
 import { Alert } from "react-native";
 import { useForm, useWatch } from "react-hook-form";
 
-import {
-  DEFAULT_PATIENT_COUNTRY_CODE,
-} from "@/constants/patientForm";
 import type Appointment from "@/database/models/Appointment";
 import type Patient from "@/database/models/Patient";
 import { combineDateAndTime } from "@/helpers/schedule/appointmentDate";
@@ -37,7 +34,8 @@ import {
   useAddPatientStore,
 } from "@/stores/addPatientStore";
 import {
-  ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
+  getDefaultAppointmentDurationMinutes,
+  getDefaultPatientCountryCode,
   resolveDefaultLocationId,
   useAuthUser,
   useSchedulePreferencesStore,
@@ -77,7 +75,7 @@ function buildDefaultValues(): AddPatientFields {
     lastName: "",
     age: "",
     gender: "",
-    countryCode: DEFAULT_PATIENT_COUNTRY_CODE,
+    countryCode: getDefaultPatientCountryCode(),
     phoneNumber: "",
     emailAddress: "",
     address: "",
@@ -89,7 +87,7 @@ function buildDefaultValues(): AddPatientFields {
     locationId: useSchedulePreferencesStore.getState().defaultLocationId ?? "",
     startTime: start,
     endTime: dayjs(start)
-      .add(ADD_APPOINTMENT_SLOT_DURATION_MINUTES, "minute")
+      .add(getDefaultAppointmentDurationMinutes(), "minute")
       .toDate(),
     description: "",
   };
@@ -235,7 +233,7 @@ export function useAddPatientForm() {
           lastName: record.lastName?.trim() ?? "",
           age: formatAgeInput(record.birthDate),
           gender: record.gender?.trim() ?? "",
-          countryCode: record.countryCode?.trim() || DEFAULT_PATIENT_COUNTRY_CODE,
+          countryCode: record.countryCode?.trim() || getDefaultPatientCountryCode(),
           phoneNumber: record.phoneNumber?.trim() ?? "",
           emailAddress: record.emailAddress?.trim() ?? "",
           address: record.address?.trim() ?? "",
@@ -248,7 +246,7 @@ export function useAddPatientForm() {
             useSchedulePreferencesStore.getState().defaultLocationId ?? "",
           startTime: start,
           endTime: dayjs(start)
-            .add(ADD_APPOINTMENT_SLOT_DURATION_MINUTES, "minute")
+            .add(getDefaultAppointmentDurationMinutes(), "minute")
             .toDate(),
           description: "",
         });
@@ -404,7 +402,7 @@ export function useAddPatientForm() {
       form.setValue(
         "endTime",
         dayjs(time)
-          .add(ADD_APPOINTMENT_SLOT_DURATION_MINUTES, "minute")
+          .add(getDefaultAppointmentDurationMinutes(), "minute")
           .toDate(),
         {
           shouldDirty: true,

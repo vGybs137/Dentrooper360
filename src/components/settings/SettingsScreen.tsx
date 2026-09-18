@@ -1,6 +1,5 @@
 import { useSegments } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { useWindowDimensions } from "react-native";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -8,23 +7,24 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText, ThemedView } from "@/components/ui";
 import { getWebTabBarInset } from "@/constants/navigation";
 import { semantic } from "@/tokens";
 
-import { SettingsClinicsSection } from "./SettingsClinicsSection";
-import { SettingsPreferencesSection } from "./SettingsPreferencesSection";
-import { SettingsSecuritySection } from "./SettingsSecuritySection";
+import { SettingsAboutSection } from "./SettingsAboutSection";
+import { SettingsAccountSection } from "./SettingsAccountSection";
+import { SettingsAppearanceSection } from "./SettingsAppearanceSection";
+import { SettingsPatientsSection } from "./SettingsPatientsSection";
+import { SettingsPrivacySection } from "./SettingsPrivacySection";
 import { SettingsProfileCard } from "./SettingsProfileCard";
+import { SettingsScheduleSection } from "./SettingsScheduleSection";
+import { SettingsSecuritySection } from "./SettingsSecuritySection";
 import { SettingsSyncSection } from "./SettingsSyncSection";
 
 export function SettingsScreen() {
   const { t } = useTranslation("settings");
   const segments = useSegments();
-  const insets = useSafeAreaInsets();
-  const { height: windowHeight } = useWindowDimensions();
   const scrollY = useSharedValue(0);
 
   const bottomInset = getWebTabBarInset(segments[0]);
@@ -35,7 +35,6 @@ export function SettingsScreen() {
   const titleBlockHeight =
     titleTopPadding + displayLineHeight + titleBottomPadding;
 
-  const listViewportHeight = windowHeight - insets.top;
   const contentBottomPadding = semantic.space.page + bottomInset;
 
   const scrollHandler = useAnimatedScrollHandler({
@@ -63,45 +62,47 @@ export function SettingsScreen() {
       scroll={false}
       variant="screen"
     >
-        <Animated.ScrollView
-          contentContainerStyle={{
-            paddingBottom: contentBottomPadding,
-            paddingHorizontal: semantic.space.inline.compact,
-            // Same as Search: enough room to scroll the large title fully away.
-            minHeight: listViewportHeight + titleBlockHeight,
-          }}
-          keyboardShouldPersistTaps="handled"
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
-          style={{ flex: 1 }}
+      <Animated.ScrollView
+        contentContainerStyle={{
+          paddingBottom: contentBottomPadding,
+          paddingHorizontal: semantic.space.inline.compact,
+        }}
+        keyboardShouldPersistTaps="handled"
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        style={{ flex: 1 }}
+      >
+        <Animated.View
+          style={[
+            {
+              paddingTop: titleTopPadding,
+              paddingBottom: titleBottomPadding,
+            },
+            titleAnimatedStyle,
+          ]}
         >
-          <Animated.View
-            style={[
-              {
-                paddingTop: titleTopPadding,
-                paddingBottom: titleBottomPadding,
-              },
-              titleAnimatedStyle,
-            ]}
-          >
-            <ThemedText align="center" variant="display">
-              {t("title")}
-            </ThemedText>
-          </Animated.View>
+          <ThemedText align="center" variant="display">
+            {t("title")}
+          </ThemedText>
+        </Animated.View>
 
-          <ThemedView
-            space="comfortable"
-            style={{ marginTop: semantic.space.section }}
-            variant="stack"
-          >
-            <SettingsProfileCard />
-            <SettingsClinicsSection />
-            <SettingsSecuritySection />
-            <SettingsPreferencesSection />
-            <SettingsSyncSection />
-          </ThemedView>
-        </Animated.ScrollView>
+        <ThemedView
+          space="comfortable"
+          style={{ marginTop: semantic.space.section }}
+          variant="stack"
+        >
+          <SettingsProfileCard />
+          <SettingsAppearanceSection />
+          <SettingsScheduleSection />
+          <SettingsPatientsSection />
+          <SettingsSecuritySection />
+          <SettingsPrivacySection />
+          <SettingsSyncSection />
+          <SettingsAccountSection />
+          <SettingsAboutSection />
+        </ThemedView>
+      </Animated.ScrollView>
     </ThemedView>
   );
 }

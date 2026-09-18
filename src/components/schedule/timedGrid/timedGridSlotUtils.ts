@@ -1,4 +1,4 @@
-import { ADD_APPOINTMENT_SLOT_DURATION_MINUTES } from "@/stores/addAppointmentStore";
+import { getDefaultAppointmentDurationMinutes } from "@/stores/schedulePreferencesStore";
 import {
   MINUTES_PER_HOUR,
   parseDayKey,
@@ -44,7 +44,7 @@ export function snapMinutesToGrid(
   const windowStart = startHour * MINUTES_PER_HOUR;
   const windowEnd =
     (endHour + 1) * MINUTES_PER_HOUR -
-    ADD_APPOINTMENT_SLOT_DURATION_MINUTES;
+    getDefaultAppointmentDurationMinutes();
   const snapped = Math.floor(minutes / snapMinutes) * snapMinutes;
   return Math.max(windowStart, Math.min(snapped, windowEnd));
 }

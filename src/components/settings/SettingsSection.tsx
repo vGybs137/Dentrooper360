@@ -44,12 +44,12 @@ export function SettingsSection({
 
 export function SettingsRowLabel({
   title,
-  description,
   icon,
+  description,
 }: {
   title: string;
-  description: string;
   icon: SettingsSymbolName;
+  description?: string;
 }) {
   return (
     <View
@@ -57,7 +57,7 @@ export function SettingsRowLabel({
         flex: 1,
         minWidth: 0,
         flexDirection: "row",
-        alignItems: "flex-start",
+        alignItems: description ? "flex-start" : "center",
         gap: semantic.space.gap.default,
       }}
     >
@@ -67,48 +67,47 @@ export function SettingsRowLabel({
           height: semantic.size.icon,
           alignItems: "center",
           justifyContent: "center",
-          marginTop: 2,
         }}
       >
         <ThemedIcon name={icon} size="sm" />
       </View>
-      <View
-        style={{
-          flex: 1,
-          minWidth: 0,
-          gap: semantic.space.gap.compact,
-        }}
-      >
-        <ThemedText className="font-semibold" numberOfLines={1} variant="body">
+      <View style={{ flex: 1, minWidth: 0, gap: semantic.space.gap.compact }}>
+        <ThemedText
+          className="font-semibold"
+          numberOfLines={1}
+          variant="body"
+        >
           {title}
         </ThemedText>
-        <ThemedText tone="muted" variant="label">
-          {description}
-        </ThemedText>
+        {description ? (
+          <ThemedText numberOfLines={1} tone="muted" variant="label">
+            {description}
+          </ThemedText>
+        ) : null}
       </View>
     </View>
   );
 }
 
-const settingsRowContentStyle = {
+export const settingsRowContentStyle = {
   flexDirection: "row" as const,
   alignItems: "center" as const,
   gap: semantic.space.gap.default,
   paddingHorizontal: semantic.space.inline.comfortable,
-  paddingVertical: semantic.space.stack.default,
-  minHeight: semantic.size.touch,
+  paddingVertical: semantic.space.inset.comfortable,
+  minHeight: semantic.size["control-lg"],
 };
 
 export function SettingsRow({
   title,
-  description,
   icon,
+  description,
   trailing,
   last = false,
 }: {
   title: string;
-  description: string;
   icon: SettingsSymbolName;
+  description?: string;
   trailing: ReactNode;
   last?: boolean;
 }) {

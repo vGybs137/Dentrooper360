@@ -16,6 +16,13 @@ export type DefaultCalendarView = "last" | ScheduleViewMode;
 
 export type HourFormat = "12h" | "24h";
 
+export const DEFAULT_APPOINTMENT_DURATION_OPTIONS = [
+  15, 30, 45, 60, 90,
+] as const;
+
+export type DefaultAppointmentDurationMinutes =
+  (typeof DEFAULT_APPOINTMENT_DURATION_OPTIONS)[number];
+
 type PersistedSchedulePreferences = {
   defaultCalendarView: DefaultCalendarView;
   hourFormat: HourFormat;
@@ -24,6 +31,8 @@ type PersistedSchedulePreferences = {
   lastViewMode: ScheduleViewMode;
   /** Preferred location for new appointments (quick add + add modal). */
   defaultLocationId: string | null;
+  /** Default length for new appointment slots. */
+  defaultAppointmentDurationMinutes: DefaultAppointmentDurationMinutes;
 };
 
 type SchedulePreferencesState = PersistedSchedulePreferences & {
@@ -34,6 +43,9 @@ type SchedulePreferencesState = PersistedSchedulePreferences & {
   setWeekStartsOn: (value: WeekdayIndex) => void;
   setLastViewMode: (value: ScheduleViewMode) => void;
   setDefaultLocationId: (value: string | null) => void;
+  setDefaultAppointmentDurationMinutes: (
+    value: DefaultAppointmentDurationMinutes,
+  ) => void;
 };
 
 const securePersistStorage: PersistStorage<PersistedSchedulePreferences> =
@@ -43,6 +55,14 @@ const securePersistStorage: PersistStorage<PersistedSchedulePreferences> =
     removeItem: (name) => setItem(name, null),
   }))!;
 
+function isDurationOption(
+  value: number,
+): value is DefaultAppointmentDurationMinutes {
+  return (DEFAULT_APPOINTMENT_DURATION_OPTIONS as readonly number[]).includes(
+    value,
+  );
+}
+
 export const useSchedulePreferencesStore = create<SchedulePreferencesState>()(
   persist(
     (set, get) => ({
@@ -51,6 +71,7 @@ export const useSchedulePreferencesStore = create<SchedulePreferencesState>()(
       weekStartsOn: 1,
       lastViewMode: "month",
       defaultLocationId: null,
+      defaultAppointmentDurationMinutes: 60,
       hasHydrated: false,
       setHasHydrated: (value) => set({ hasHydrated: value }),
       setDefaultCalendarView: (defaultCalendarView) => {
@@ -73,6 +94,17 @@ export const useSchedulePreferencesStore = create<SchedulePreferencesState>()(
         if (get().defaultLocationId === defaultLocationId) return;
         set({ defaultLocationId });
       },
+      setDefaultAppointmentDurationMinutes: (
+        defaultAppointmentDurationMinutes,
+      ) => {
+        if (
+          get().defaultAppointmentDurationMinutes ===
+          defaultAppointmentDurationMinutes
+        ) {
+          return;
+        }
+        set({ defaultAppointmentDurationMinutes });
+      },
     }),
     {
       name: SCHEDULE_PREFERENCES_STORE_KEY,
@@ -83,13 +115,28 @@ export const useSchedulePreferencesStore = create<SchedulePreferencesState>()(
         weekStartsOn,
         lastViewMode,
         defaultLocationId,
+        defaultAppointmentDurationMinutes,
       }) => ({
         defaultCalendarView,
         hourFormat,
         weekStartsOn,
         lastViewMode,
         defaultLocationId,
+        defaultAppointmentDurationMinutes,
       }),
+      merge: (persisted, current) => {
+        const stored =
+          (persisted as Partial<PersistedSchedulePreferences> | undefined) ??
+          {};
+        const duration = stored.defaultAppointmentDurationMinutes ?? 60;
+        return {
+          ...current,
+          ...stored,
+          defaultAppointmentDurationMinutes: isDurationOption(duration)
+            ? duration
+            : 60,
+        };
+      },
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },
@@ -111,6 +158,17 @@ export function useWeekStartsOn() {
 
 export function useDefaultLocationId() {
   return useSchedulePreferencesStore((state) => state.defaultLocationId);
+}
+
+export function useDefaultAppointmentDurationMinutes() {
+  return useSchedulePreferencesStore(
+    (state) => state.defaultAppointmentDurationMinutes,
+  );
+}
+
+export function getDefaultAppointmentDurationMinutes(): DefaultAppointmentDurationMinutes {
+  return useSchedulePreferencesStore.getState()
+    .defaultAppointmentDurationMinutes;
 }
 
 export function useSchedulePreferencesHasHydrated() {
