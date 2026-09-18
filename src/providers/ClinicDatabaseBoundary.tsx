@@ -6,6 +6,7 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 import { ThemedText } from "@/components/ui";
 import { useClinicSession } from "@/providers/ClinicSessionProvider";
+import { useIsSwitchingClinic } from "@/stores";
 import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
@@ -36,8 +37,13 @@ export function useIsOnClinicAppRoute(): boolean {
  */
 export function ClinicDatabaseBoundary({ children }: { children: ReactNode }) {
   const { customerId, database, isDatabaseReady } = useClinicSession();
+  const isSwitchingClinic = useIsSwitchingClinic();
 
   if (!isDatabaseReady || !database || !customerId) {
+    // ClinicSwitchOverlay already covers the handoff — avoid a second spinner.
+    if (isSwitchingClinic) {
+      return <View style={{ flex: 1 }} />;
+    }
     return <ClinicSessionOpening />;
   }
 
