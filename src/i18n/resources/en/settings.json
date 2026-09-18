@@ -58,7 +58,6 @@
     "fifteenMinutes": "15 minutes"
   },
   "preferences": {
-    "section": "User preferences",
     "appearance": {
       "label": "Appearance",
       "system": "System",
@@ -91,6 +90,47 @@
       "ar": "العربية"
     },
     "languageDesc": "App display language"
+  },
+  "appearance": {
+    "section": "Appearance"
+  },
+  "schedule": {
+    "section": "Schedule",
+    "defaultLocation": {
+      "label": "Default location",
+      "auto": "First available",
+      "desc": "Used for new appointments and patients"
+    },
+    "defaultDuration": {
+      "label": "Default duration",
+      "desc": "Length of new appointment slots",
+      "minutes": "{{count}} min"
+    }
+  },
+  "patients": {
+    "section": "Patients",
+    "defaultCountryCode": {
+      "label": "Default country code",
+      "desc": "Pre-filled when adding a patient"
+    }
+  },
+  "privacy": {
+    "section": "Privacy",
+    "hideInAppSwitcher": "Hide content in app switcher",
+    "hideInAppSwitcherOnDesc": "Blur clinic data when the app is in the background",
+    "hideInAppSwitcherOffDesc": "App content may appear in the app switcher"
+  },
+  "about": {
+    "section": "About",
+    "appName": "App",
+    "version": "Version",
+    "build": "Build"
+  },
+  "account": {
+    "section": "Account",
+    "logoutDesc": "Sign out of this device",
+    "removeClinicDesc": "Unpair this clinic and wipe local data on this device",
+    "removing": "Removing…"
   },
   "sync": {
     "section": "Sync & data",

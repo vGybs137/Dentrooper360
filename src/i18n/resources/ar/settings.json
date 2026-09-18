@@ -58,7 +58,6 @@
     "fifteenMinutes": "15 دقيقة"
   },
   "preferences": {
-    "section": "تفضيلات المستخدم",
     "appearance": {
       "label": "المظهر",
       "system": "النظام",
@@ -91,6 +90,47 @@
       "ar": "العربية"
     },
     "languageDesc": "لغة عرض التطبيق"
+  },
+  "appearance": {
+    "section": "المظهر"
+  },
+  "schedule": {
+    "section": "الجدول",
+    "defaultLocation": {
+      "label": "الموقع الافتراضي",
+      "auto": "أول متاح",
+      "desc": "يُستخدم للمواعيد والمرضى الجدد"
+    },
+    "defaultDuration": {
+      "label": "المدة الافتراضية",
+      "desc": "طول فترات المواعيد الجديدة",
+      "minutes": "{{count}} د"
+    }
+  },
+  "patients": {
+    "section": "المرضى",
+    "defaultCountryCode": {
+      "label": "رمز الدولة الافتراضي",
+      "desc": "يُملأ مسبقًا عند إضافة مريض"
+    }
+  },
+  "privacy": {
+    "section": "الخصوصية",
+    "hideInAppSwitcher": "إخفاء المحتوى في مبدّل التطبيقات",
+    "hideInAppSwitcherOnDesc": "طمس بيانات العيادة عندما يكون التطبيق في الخلفية",
+    "hideInAppSwitcherOffDesc": "قد يظهر محتوى التطبيق في مبدّل التطبيقات"
+  },
+  "about": {
+    "section": "حول",
+    "appName": "التطبيق",
+    "version": "الإصدار",
+    "build": "البناء"
+  },
+  "account": {
+    "section": "الحساب",
+    "logoutDesc": "تسجيل الخروج من هذا الجهاز",
+    "removeClinicDesc": "إلغاء ربط هذه العيادة ومسح البيانات المحلية على هذا الجهاز",
+    "removing": "جارٍ الإزالة…"
   },
   "sync": {
     "section": "المزامنة والبيانات",

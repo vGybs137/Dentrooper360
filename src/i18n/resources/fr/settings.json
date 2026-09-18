@@ -58,7 +58,6 @@
     "fifteenMinutes": "15 minutes"
   },
   "preferences": {
-    "section": "Préférences utilisateur",
     "appearance": {
       "label": "Apparence",
       "system": "Système",
@@ -91,6 +90,47 @@
       "ar": "العربية"
     },
     "languageDesc": "Langue d'affichage de l'application"
+  },
+  "appearance": {
+    "section": "Apparence"
+  },
+  "schedule": {
+    "section": "Agenda",
+    "defaultLocation": {
+      "label": "Lieu par défaut",
+      "auto": "Premier disponible",
+      "desc": "Utilisé pour les nouveaux rendez-vous et patients"
+    },
+    "defaultDuration": {
+      "label": "Durée par défaut",
+      "desc": "Durée des nouveaux créneaux de rendez-vous",
+      "minutes": "{{count}} min"
+    }
+  },
+  "patients": {
+    "section": "Patients",
+    "defaultCountryCode": {
+      "label": "Indicatif téléphonique par défaut",
+      "desc": "Prérempli lors de l'ajout d'un patient"
+    }
+  },
+  "privacy": {
+    "section": "Confidentialité",
+    "hideInAppSwitcher": "Masquer le contenu dans le multitâche",
+    "hideInAppSwitcherOnDesc": "Floute les données de la clinique lorsque l'application est en arrière-plan",
+    "hideInAppSwitcherOffDesc": "Le contenu de l'application peut apparaître dans le multitâche"
+  },
+  "about": {
+    "section": "À propos",
+    "appName": "Application",
+    "version": "Version",
+    "build": "Build"
+  },
+  "account": {
+    "section": "Compte",
+    "logoutDesc": "Se déconnecter de cet appareil",
+    "removeClinicDesc": "Dissocier cette clinique et effacer les données locales sur cet appareil",
+    "removing": "Retrait…"
   },
   "sync": {
     "section": "Sync & données",

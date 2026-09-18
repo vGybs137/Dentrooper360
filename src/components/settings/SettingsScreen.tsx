@@ -1,6 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { type Href, useRouter, useSegments } from "expo-router";
-import { useState } from "react";
+import { useSegments } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Animated, {
   Extrapolation,
@@ -10,26 +8,24 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 
-import { logout } from "@/api";
-import { Button, DeleteConfirmationDialog, ThemedText, ThemedView } from "@/components/ui";
+import { ThemedText, ThemedView } from "@/components/ui";
 import { getWebTabBarInset } from "@/constants/navigation";
-import { useSyncStatus } from "@/hooks/sync/useSyncStatus";
 import { semantic } from "@/tokens";
-import { ApiError } from "@/types/api";
 
-import { SettingsPreferencesSection } from "./SettingsPreferencesSection";
-import { SettingsSecuritySection } from "./SettingsSecuritySection";
+import { SettingsAboutSection } from "./SettingsAboutSection";
+import { SettingsAccountSection } from "./SettingsAccountSection";
+import { SettingsAppearanceSection } from "./SettingsAppearanceSection";
+import { SettingsPatientsSection } from "./SettingsPatientsSection";
+import { SettingsPrivacySection } from "./SettingsPrivacySection";
 import { SettingsProfileCard } from "./SettingsProfileCard";
+import { SettingsScheduleSection } from "./SettingsScheduleSection";
+import { SettingsSecuritySection } from "./SettingsSecuritySection";
 import { SettingsSyncSection } from "./SettingsSyncSection";
 
 export function SettingsScreen() {
-  const { t } = useTranslation(["settings", "a11y"]);
-  const router = useRouter();
-  const queryClient = useQueryClient();
+  const { t } = useTranslation("settings");
   const segments = useSegments();
   const scrollY = useSharedValue(0);
-  const { hasUnsynced } = useSyncStatus();
-  const [logoutVisible, setLogoutVisible] = useState(false);
 
   const bottomInset = getWebTabBarInset(segments[0]);
 
@@ -40,28 +36,6 @@ export function SettingsScreen() {
     titleTopPadding + displayLineHeight + titleBottomPadding;
 
   const contentBottomPadding = semantic.space.page + bottomInset;
-
-  const logoutMutation = useMutation({
-    mutationFn: logout,
-    onSuccess: () => {
-      setLogoutVisible(false);
-      queryClient.clear();
-      router.replace("/(auth)/login" as Href);
-    },
-  });
-
-  const logoutError =
-    logoutMutation.error instanceof ApiError
-      ? logoutMutation.error.message
-      : logoutMutation.isError
-        ? t("settings:profile.logoutError")
-        : undefined;
-
-  const logoutMessage = hasUnsynced
-    ? t("settings:profile.logoutMessageUnsynced")
-    : t("settings:profile.logoutMessage");
-
-  const canLogout = !logoutMutation.isPending;
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -109,7 +83,7 @@ export function SettingsScreen() {
           ]}
         >
           <ThemedText align="center" variant="display">
-            {t("settings:title")}
+            {t("title")}
           </ThemedText>
         </Animated.View>
 
@@ -119,55 +93,16 @@ export function SettingsScreen() {
           variant="stack"
         >
           <SettingsProfileCard />
+          <SettingsAppearanceSection />
+          <SettingsScheduleSection />
+          <SettingsPatientsSection />
           <SettingsSecuritySection />
-          <SettingsPreferencesSection />
+          <SettingsPrivacySection />
           <SettingsSyncSection />
-
-          <Button
-            accessibilityLabel={t("a11y:logOut")}
-            accessibilityState={{ disabled: !canLogout }}
-            disabled={!canLogout}
-            label={
-              logoutMutation.isPending
-                ? t("settings:profile.signingOut")
-                : t("settings:profile.logoutTitle")
-            }
-            onPress={() => {
-              if (!canLogout) {
-                return;
-              }
-              logoutMutation.reset();
-              setLogoutVisible(true);
-            }}
-            textClassName="font-semibold"
-            tone="alert"
-            variant="ghost"
-          />
-          {logoutError ? (
-            <ThemedText align="center" tone="alert" variant="label">
-              {logoutError}
-            </ThemedText>
-          ) : null}
+          <SettingsAccountSection />
+          <SettingsAboutSection />
         </ThemedView>
       </Animated.ScrollView>
-
-      <DeleteConfirmationDialog
-        confirming={logoutMutation.isPending}
-        confirmingLabel={t("settings:profile.signingOut")}
-        confirmLabel={t("settings:profile.logoutConfirm")}
-        message={logoutMessage}
-        onCancel={() => {
-          if (logoutMutation.isPending) {
-            return;
-          }
-          setLogoutVisible(false);
-        }}
-        onConfirm={() => {
-          logoutMutation.mutate();
-        }}
-        title={t("settings:profile.logoutTitle")}
-        visible={logoutVisible}
-      />
     </ThemedView>
   );
 }

@@ -5,10 +5,8 @@ import { useNativeColors } from "@/theme";
 import { semantic } from "@/tokens";
 
 import { Button, ThemedText } from "@/components/ui";
-import {
-  ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
-  useAddAppointmentStore,
-} from "@/stores/addAppointmentStore";
+import { useAddAppointmentStore } from "@/stores/addAppointmentStore";
+import { useDefaultAppointmentDurationMinutes } from "@/stores/schedulePreferencesStore";
 import {
   minutesSpanToHeight,
   minutesToYInWorkingWindow,
@@ -34,13 +32,14 @@ function TimedGridSelectedSlotComponent({
   const { t } = useTranslation("a11y");
   const native = useNativeColors();
   const open = useAddAppointmentStore((state) => state.open);
+  const durationMinutes = useDefaultAppointmentDurationMinutes();
 
   const top =
     topInset +
     minutesToYInWorkingWindow(startMinutes, startHour, pxPerMinute, hourGap);
   const height = minutesSpanToHeight(
     startMinutes,
-    startMinutes + ADD_APPOINTMENT_SLOT_DURATION_MINUTES,
+    startMinutes + durationMinutes,
     pxPerMinute,
     hourGap,
   );

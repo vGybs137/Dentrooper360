@@ -45,9 +45,11 @@ export function SettingsSection({
 export function SettingsRowLabel({
   title,
   icon,
+  description,
 }: {
   title: string;
   icon: SettingsSymbolName;
+  description?: string;
 }) {
   return (
     <View
@@ -55,7 +57,7 @@ export function SettingsRowLabel({
         flex: 1,
         minWidth: 0,
         flexDirection: "row",
-        alignItems: "center",
+        alignItems: description ? "flex-start" : "center",
         gap: semantic.space.gap.default,
       }}
     >
@@ -69,14 +71,20 @@ export function SettingsRowLabel({
       >
         <ThemedIcon name={icon} size="sm" />
       </View>
-      <ThemedText
-        className="font-semibold"
-        numberOfLines={1}
-        style={{ flex: 1, minWidth: 0 }}
-        variant="body"
-      >
-        {title}
-      </ThemedText>
+      <View style={{ flex: 1, minWidth: 0, gap: semantic.space.gap.compact }}>
+        <ThemedText
+          className="font-semibold"
+          numberOfLines={1}
+          variant="body"
+        >
+          {title}
+        </ThemedText>
+        {description ? (
+          <ThemedText numberOfLines={1} tone="muted" variant="label">
+            {description}
+          </ThemedText>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -93,18 +101,24 @@ export const settingsRowContentStyle = {
 export function SettingsRow({
   title,
   icon,
+  description,
   trailing,
   last = false,
 }: {
   title: string;
   icon: SettingsSymbolName;
+  description?: string;
   trailing: ReactNode;
   last?: boolean;
 }) {
   return (
     <View className={cn(!last && "border-b border-border-subtle")}>
       <View style={settingsRowContentStyle}>
-        <SettingsRowLabel icon={icon} title={title} />
+        <SettingsRowLabel
+          description={description}
+          icon={icon}
+          title={title}
+        />
         <View style={{ flexShrink: 0, justifyContent: "center" }}>
           {trailing}
         </View>

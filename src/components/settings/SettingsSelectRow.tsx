@@ -20,6 +20,7 @@ const OPTION_ROW_HEIGHT = 44;
 export function SettingsSelectRow<T extends string | number>({
   title,
   icon,
+  description,
   options,
   value,
   onChange,
@@ -30,6 +31,7 @@ export function SettingsSelectRow<T extends string | number>({
 }: {
   title: string;
   icon: SettingsSymbolName;
+  description?: string;
   options: readonly SettingsSelectOption<T>[];
   value: T;
   onChange: (value: T) => void;
@@ -64,8 +66,17 @@ export function SettingsSelectRow<T extends string | number>({
         tone="neutral"
         variant="ghost"
       >
-        <View style={{ width: "100%", ...settingsRowContentStyle }}>
-          <SettingsRowLabel icon={icon} title={title} />
+        <View
+          style={{
+            width: "100%",
+            ...settingsRowContentStyle,
+          }}
+        >
+          <SettingsRowLabel
+            description={description}
+            icon={icon}
+            title={title}
+          />
           <View
             style={{
               flexShrink: 0,

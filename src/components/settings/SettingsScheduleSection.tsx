@@ -2,47 +2,49 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
-  appearanceIcon,
   calendarIcon,
   clockIcon,
-  languageIcon,
+  locationIcon,
   weekStartIcon,
 } from "@/constants";
 import type { WeekdayIndex } from "@/helpers/schedule/calendar";
+import { useAppointmentFormOptions } from "@/hooks/schedule/useAppointmentFormOptions";
 import {
   applyScheduleViewPreference,
+  DEFAULT_APPOINTMENT_DURATION_OPTIONS,
   setScheduleViewMode,
-  useLocalePreferencesStore,
   useSchedulePreferencesStore,
-  useThemePreferencesStore,
+  type DefaultAppointmentDurationMinutes,
   type DefaultCalendarView,
   type HourFormat,
-  type LocaleMode,
-  type ThemeMode,
 } from "@/stores";
 
 import { SettingsSection } from "./SettingsSection";
 import { SettingsSelectRow } from "./SettingsSelectRow";
 
-type PreferenceSelectKey =
-  | "language"
-  | "appearance"
+const AUTO_LOCATION_VALUE = "";
+
+type ScheduleSelectKey =
   | "defaultView"
   | "hourFormat"
-  | "weekStartsOn";
+  | "weekStartsOn"
+  | "defaultLocation"
+  | "defaultDuration";
 
-export function SettingsPreferencesSection() {
+export function SettingsScheduleSection() {
   const { t } = useTranslation(["settings", "navigation"]);
-  const mode = useThemePreferencesStore((state) => state.mode);
-  const setMode = useThemePreferencesStore((state) => state.setMode);
-  const localeMode = useLocalePreferencesStore((state) => state.mode);
-  const setLocaleMode = useLocalePreferencesStore((state) => state.setMode);
   const defaultCalendarView = useSchedulePreferencesStore(
     (state) => state.defaultCalendarView,
   );
   const hourFormat = useSchedulePreferencesStore((state) => state.hourFormat);
   const weekStartsOn = useSchedulePreferencesStore(
     (state) => state.weekStartsOn,
+  );
+  const defaultLocationId = useSchedulePreferencesStore(
+    (state) => state.defaultLocationId,
+  );
+  const defaultAppointmentDurationMinutes = useSchedulePreferencesStore(
+    (state) => state.defaultAppointmentDurationMinutes,
   );
   const setDefaultCalendarView = useSchedulePreferencesStore(
     (state) => state.setDefaultCalendarView,
@@ -53,40 +55,18 @@ export function SettingsPreferencesSection() {
   const setWeekStartsOn = useSchedulePreferencesStore(
     (state) => state.setWeekStartsOn,
   );
+  const setDefaultLocationId = useSchedulePreferencesStore(
+    (state) => state.setDefaultLocationId,
+  );
+  const setDefaultAppointmentDurationMinutes = useSchedulePreferencesStore(
+    (state) => state.setDefaultAppointmentDurationMinutes,
+  );
+  const { locations } = useAppointmentFormOptions({
+    loadPatients: false,
+    enabled: true,
+  });
   const [expandedSelect, setExpandedSelect] =
-    useState<PreferenceSelectKey | null>(null);
-  const [snapAppearanceClosed, setSnapAppearanceClosed] = useState(false);
-
-  const appearanceOptions = useMemo(
-    () => [
-      {
-        value: "system" as const,
-        label: t("settings:preferences.appearance.system"),
-      },
-      {
-        value: "light" as const,
-        label: t("settings:preferences.appearance.light"),
-      },
-      {
-        value: "dark" as const,
-        label: t("settings:preferences.appearance.dark"),
-      },
-    ],
-    [t],
-  );
-
-  const languageOptions = useMemo(
-    () => [
-      {
-        value: "system" as const,
-        label: t("settings:preferences.language.system"),
-      },
-      { value: "en" as const, label: t("settings:preferences.language.en") },
-      { value: "fr" as const, label: t("settings:preferences.language.fr") },
-      { value: "ar" as const, label: t("settings:preferences.language.ar") },
-    ],
-    [t],
-  );
+    useState<ScheduleSelectKey | null>(null);
 
   const defaultViewOptions = useMemo(
     () => [
@@ -138,16 +118,33 @@ export function SettingsPreferencesSection() {
     [t],
   );
 
-  function toggleSelect(key: PreferenceSelectKey) {
-    if (key === "appearance") {
-      setSnapAppearanceClosed(false);
-    }
-    setExpandedSelect((current) => (current === key ? null : key));
-  }
+  const locationOptions = useMemo(
+    () => [
+      {
+        value: AUTO_LOCATION_VALUE,
+        label: t("settings:schedule.defaultLocation.auto"),
+      },
+      ...locations.map((location) => ({
+        value: location.id,
+        label: location.name,
+      })),
+    ],
+    [locations, t],
+  );
 
-  function handleAppearanceChange(next: ThemeMode) {
-    setSnapAppearanceClosed(true);
-    setMode(next);
+  const durationOptions = useMemo(
+    () =>
+      DEFAULT_APPOINTMENT_DURATION_OPTIONS.map((minutes) => ({
+        value: minutes,
+        label: t("settings:schedule.defaultDuration.minutes", {
+          count: minutes,
+        }),
+      })),
+    [t],
+  );
+
+  function toggleSelect(key: ScheduleSelectKey) {
+    setExpandedSelect((current) => (current === key ? null : key));
   }
 
   function handleDefaultCalendarViewChange(next: DefaultCalendarView) {
@@ -159,28 +156,20 @@ export function SettingsPreferencesSection() {
     setScheduleViewMode(next);
   }
 
+  function handleLocationChange(next: string) {
+    setDefaultLocationId(next === AUTO_LOCATION_VALUE ? null : next);
+  }
+
+  const locationValue =
+    defaultLocationId &&
+    locations.some((location) => location.id === defaultLocationId)
+      ? defaultLocationId
+      : AUTO_LOCATION_VALUE;
+
   return (
-    <SettingsSection label={t("settings:preferences.section")}>
-      <SettingsSelectRow<LocaleMode>
-        title={t("settings:preferences.language.label")}
-        icon={languageIcon}
-        options={languageOptions}
-        value={localeMode}
-        onChange={setLocaleMode}
-        expanded={expandedSelect === "language"}
-        onToggle={() => toggleSelect("language")}
-      />
-      <SettingsSelectRow<ThemeMode>
-        title={t("settings:preferences.appearance.label")}
-        icon={appearanceIcon}
-        options={appearanceOptions}
-        value={mode}
-        onChange={handleAppearanceChange}
-        expanded={expandedSelect === "appearance"}
-        instantCollapse={snapAppearanceClosed}
-        onToggle={() => toggleSelect("appearance")}
-      />
+    <SettingsSection label={t("settings:schedule.section")}>
       <SettingsSelectRow<DefaultCalendarView>
+        description={t("settings:preferences.defaultViewDesc")}
         title={t("settings:preferences.defaultView.label")}
         icon={calendarIcon}
         options={defaultViewOptions}
@@ -190,6 +179,7 @@ export function SettingsPreferencesSection() {
         onToggle={() => toggleSelect("defaultView")}
       />
       <SettingsSelectRow<HourFormat>
+        description={t("settings:preferences.hourFormatDesc")}
         title={t("settings:preferences.hourFormat.label")}
         icon={clockIcon}
         options={hourFormatOptions}
@@ -199,14 +189,35 @@ export function SettingsPreferencesSection() {
         onToggle={() => toggleSelect("hourFormat")}
       />
       <SettingsSelectRow<WeekdayIndex>
+        description={t("settings:preferences.weekStartsOnDesc")}
         title={t("settings:preferences.weekStartsOn.label")}
         icon={weekStartIcon}
-        last
         options={weekStartOptions}
         value={weekStartsOn === 0 ? 0 : 1}
         onChange={setWeekStartsOn}
         expanded={expandedSelect === "weekStartsOn"}
         onToggle={() => toggleSelect("weekStartsOn")}
+      />
+      <SettingsSelectRow<string>
+        description={t("settings:schedule.defaultLocation.desc")}
+        title={t("settings:schedule.defaultLocation.label")}
+        icon={locationIcon}
+        options={locationOptions}
+        value={locationValue}
+        onChange={handleLocationChange}
+        expanded={expandedSelect === "defaultLocation"}
+        onToggle={() => toggleSelect("defaultLocation")}
+      />
+      <SettingsSelectRow<DefaultAppointmentDurationMinutes>
+        description={t("settings:schedule.defaultDuration.desc")}
+        title={t("settings:schedule.defaultDuration.label")}
+        icon={clockIcon}
+        last
+        options={durationOptions}
+        value={defaultAppointmentDurationMinutes}
+        onChange={setDefaultAppointmentDurationMinutes}
+        expanded={expandedSelect === "defaultDuration"}
+        onToggle={() => toggleSelect("defaultDuration")}
       />
     </SettingsSection>
   );

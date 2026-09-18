@@ -249,3 +249,9 @@ export const balanceIcon = {
   android: "payments",
   web: "payments",
 } as const;
+
+export const privacyShieldIcon = {
+  ios: "eye.slash.fill",
+  android: "visibility_off",
+  web: "visibility_off",
+} as const;

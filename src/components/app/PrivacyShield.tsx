@@ -10,6 +10,7 @@ import {
 } from "react-native";
 
 import { useNativeColors } from "@/theme";
+import { useHideInAppSwitcher } from "@/stores/privacyPreferencesStore";
 import { useResolvedTheme } from "@/stores/themePreferencesStore";
 import { semantic } from "@/tokens";
 
@@ -19,15 +20,21 @@ const ANDROID_CAPTURE_KEY = "privacy-shield";
  * Hides app content in the app switcher and while backgrounded.
  * Native ScreenCapture handles the OS snapshot; the Modal covers every route
  * for the in-app transition. No patient data is rendered here.
+ * Gated by privacy preference `hideInAppSwitcher` (default on).
  */
 export function PrivacyShield() {
   const native = useNativeColors();
   const resolved = useResolvedTheme();
+  const hideInAppSwitcher = useHideInAppSwitcher();
   const [obscured, setObscured] = useState(
     AppState.currentState === "background",
   );
 
   useEffect(() => {
+    if (!hideInAppSwitcher) {
+      return;
+    }
+
     let cancelled = false;
 
     void (async () => {
@@ -57,9 +64,14 @@ export function PrivacyShield() {
         void ScreenCapture.allowScreenCaptureAsync(ANDROID_CAPTURE_KEY);
       }
     };
-  }, []);
+  }, [hideInAppSwitcher]);
 
   useEffect(() => {
+    if (!hideInAppSwitcher) {
+      setObscured(false);
+      return;
+    }
+
     // inactive also covers Face ID / system sheets; only background the Modal.
     // Native ScreenCapture still blurs the app-switcher snapshot on resign-active.
     const subscription = AppState.addEventListener("change", (nextState) => {
@@ -68,7 +80,11 @@ export function PrivacyShield() {
     return () => {
       subscription.remove();
     };
-  }, []);
+  }, [hideInAppSwitcher]);
+
+  if (!hideInAppSwitcher) {
+    return null;
+  }
 
   return (
     <Modal

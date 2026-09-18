@@ -3,6 +3,7 @@ import { create } from "zustand";
 
 import { defaultAppointmentStart } from "@/helpers/schedule/createAppointment";
 import type { PatientCardData } from "@/helpers/patients/patientDisplay";
+import { getDefaultAppointmentDurationMinutes } from "@/stores/schedulePreferencesStore";
 
 export type AppointmentSlot = {
   start: Date;
@@ -11,6 +12,7 @@ export type AppointmentSlot = {
 
 export type AddAppointmentStep = "patient" | "details";
 
+/** @deprecated Prefer getDefaultAppointmentDurationMinutes() for live preference. */
 export const ADD_APPOINTMENT_SLOT_DURATION_MINUTES = 60;
 
 export type EditAppointmentDraft = {
@@ -53,7 +55,7 @@ function buildSlot(start: Date): AppointmentSlot {
   return {
     start,
     end: dayjs(start)
-      .add(ADD_APPOINTMENT_SLOT_DURATION_MINUTES, "minute")
+      .add(getDefaultAppointmentDurationMinutes(), "minute")
       .toDate(),
   };
 }
