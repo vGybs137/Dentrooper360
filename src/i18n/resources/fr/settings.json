@@ -9,7 +9,9 @@
     "logoutConfirm": "Oui, se déconnecter",
     "logoutMessage": "Voulez-vous vraiment vous déconnecter de cet appareil ?",
     "logoutMessageUnsynced": "Des modifications locales n'ont pas encore été synchronisées. La déconnexion tentera d'abord une synchronisation, puis effacera cet appareil même en cas d'échec.",
-    "logoutError": "Impossible de terminer la déconnexion. Veuillez réessayer."
+    "logoutError": "Impossible de terminer la déconnexion. Veuillez réessayer.",
+    "addAccount": "Ajouter un compte",
+    "addAccountDescription": "Associer un autre compte de clinique à cet appareil"
   },
   "clinics": {
     "section": "Cliniques",
@@ -35,6 +37,7 @@
       "noActive": "Aucune clinique active n'est associée à cet appareil.",
       "disabled": "Le changement de clinique est désactivé sur cette version.",
       "notMember": "Vous n'êtes pas membre de la clinique demandée.",
+      "sessionRequired": "Connectez-vous une fois à ce compte pour activer le basculement depuis les Paramètres.",
       "syncBeforeSwitch": "Synchronisez la clinique actuelle avant de changer. Les modifications locales n'ont pas pu être envoyées.",
       "stillPending": "Synchronisez la clinique actuelle avant de changer. Des modifications locales sont encore en attente.",
       "coldNeedsOnline": "Les données locales de cette clinique ont été effacées pour libérer de l'espace. Connectez-vous pour les télécharger à nouveau."
