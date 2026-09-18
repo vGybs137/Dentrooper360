@@ -1,10 +1,14 @@
-export { clinicDatabaseManager } from "./ClinicDatabaseManager";
-export type { DemoteClinicResult } from "./ClinicDatabaseManager";
 export {
   assertClinicSyncBinding,
   readAccessTokenCustomerId,
   type SynchronizeOptions,
 } from "./assertClinicSyncBinding";
+export { clinicDatabaseManager } from "./ClinicDatabaseManager";
+export type { DemoteClinicResult } from "./ClinicDatabaseManager";
+export {
+  clinicDbNameForCustomer,
+  LEGACY_CLINIC_DB_NAME,
+} from "./clinicDbNames";
 export { sortClinicsByLru } from "./clinicLru";
 export {
   clearClinicRegistry,
@@ -17,10 +21,10 @@ export {
   loadClinicRegistry,
   markClinicCold,
   markClinicSynced,
+  rememberClinicUserProfile,
   type ClinicRegistryEntry,
   type ClinicRegistryState,
 } from "./ClinicRegistry";
-export { clinicDbNameForCustomer, LEGACY_CLINIC_DB_NAME } from "./clinicDbNames";
 export {
   isClinicSyncInFlight,
   waitForAllClinicSyncsIdle,

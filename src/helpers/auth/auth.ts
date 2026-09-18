@@ -1,4 +1,4 @@
-import { canonicalCustomerId } from "@/helpers/auth/customerId";
+import { canonicalCustomerId, sameCustomerId } from "@/helpers/auth/customerId";
 import { hydrateAuthStore, useAuthStore } from "@/stores";
 import type {
   AuthSession,
@@ -80,14 +80,17 @@ export function mapAuthSession(session: WireAuthSession): AuthSession {
 export function mapPairResponse(response: WirePairResponse): PairResponse {
   return {
     deviceId: response.device_id,
-    customerId: canonicalCustomerId(response.customer_id) ?? response.customer_id,
+    customerId:
+      canonicalCustomerId(response.customer_id) ?? response.customer_id,
     pairedAt: new Date(response.paired_at),
     pairKind: response.pair_kind,
     deviceApiKey: response.device_api_key,
   };
 }
 
-export function mapClinicMembership(clinic: WireClinicMembership): ClinicMembership {
+export function mapClinicMembership(
+  clinic: WireClinicMembership,
+): ClinicMembership {
   return {
     customerId: canonicalCustomerId(clinic.customer_id) ?? clinic.customer_id,
     providerId: clinic.provider_id,
@@ -152,9 +155,24 @@ export async function persistSession(
   await hydrateAuthStore();
 
   const store = useAuthStore.getState();
+  const previousCustomerId = store.customerId;
+  const previousRefresh = store.refreshToken;
   const resolvedCustomerId =
     canonicalCustomerId(session.user.customerId) ??
     canonicalCustomerId(customerId);
+
+  if (
+    previousCustomerId &&
+    previousRefresh &&
+    resolvedCustomerId &&
+    !sameCustomerId(previousCustomerId, resolvedCustomerId)
+  ) {
+    const { persistClinicRefreshToken } = await import(
+      "@/security/vault/clinicRefreshTokenVault"
+    );
+    await persistClinicRefreshToken(previousCustomerId, previousRefresh);
+  }
+
   if (resolvedCustomerId) {
     store.setCustomerId(resolvedCustomerId);
   } else if (customerId !== undefined) {
@@ -163,8 +181,25 @@ export async function persistSession(
 
   store.setSession(session);
 
+  if (resolvedCustomerId && session.user) {
+    const { rememberClinicUserProfile } = await import(
+      "@/database/ClinicRegistry"
+    );
+    await rememberClinicUserProfile(resolvedCustomerId, {
+      fullName: session.user.fullName,
+      email: session.user.email,
+    });
+  }
+
   const { persistRefreshTokenSecurely } = await import(
     "@/security/vault/refreshTokenVault"
   );
   await persistRefreshTokenSecurely(session.refreshToken);
+
+  if (resolvedCustomerId) {
+    const { persistClinicRefreshToken } = await import(
+      "@/security/vault/clinicRefreshTokenVault"
+    );
+    await persistClinicRefreshToken(resolvedCustomerId, session.refreshToken);
+  }
 }
