@@ -136,18 +136,23 @@ type LoginFormProps = {
   logo?: ReactNode;
   contentStyle?: ComponentProps<typeof Animated.View>["style"];
   onFieldsLayout?: (height: number) => void;
+  /** When set, login targets this clinic without flipping the store until success. */
+  customerId?: string | null;
 };
 
 export function LoginForm({
   logo,
   contentStyle,
   onFieldsLayout,
+  customerId,
 }: LoginFormProps) {
   const { t } = useTranslation(["auth", "a11y", "common"]);
   const insets = useSafeAreaInsets();
   const footerOffset = useSplashFooterOffset();
   const native = useNativeColors();
-  const login = useLoginForm();
+  const login = useLoginForm(
+    customerId !== undefined ? { customerId } : undefined,
+  );
   const { formState } = login.form;
   const [focusedField, setFocusedField] = useState<
     "username" | "password" | null
