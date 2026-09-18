@@ -120,11 +120,6 @@ export function SettingsSyncSection() {
       <SettingsSection label={t("settings:sync.section")}>
         <SettingsRow
           title={t("settings:sync.connection")}
-          description={
-            isOffline
-              ? t("settings:sync.connectionOfflineDesc")
-              : t("settings:sync.connectionOnlineDesc")
-          }
           icon={wifiIcon}
           trailing={
             <ThemedText tone={isOffline ? "alert" : "success"} variant="label">
@@ -134,11 +129,6 @@ export function SettingsSyncSection() {
         />
         <SettingsRow
           title={t("settings:sync.localChanges")}
-          description={
-            hasUnsynced
-              ? t("settings:sync.localChangesPendingDesc")
-              : t("settings:sync.localChangesUpToDateDesc")
-          }
           icon={pendingChangesIcon}
           trailing={
             <ThemedText tone={hasUnsynced ? "brand" : "muted"} variant="label">
@@ -150,7 +140,6 @@ export function SettingsSyncSection() {
         />
         <SettingsRow
           title={t("settings:sync.lastSynced")}
-          description={t("settings:sync.lastSyncedDesc")}
           icon={clockIcon}
           trailing={
             <ThemedText tone="muted" variant="label">
@@ -160,11 +149,6 @@ export function SettingsSyncSection() {
         />
         <SettingsRow
           title={t("settings:sync.wifiOnly")}
-          description={
-            syncWifiOnly
-              ? t("settings:sync.wifiOnlyOnDesc")
-              : t("settings:sync.wifiOnlyOffDesc")
-          }
           icon={wifiIcon}
           trailing={
             <Switch
@@ -181,13 +165,6 @@ export function SettingsSyncSection() {
         />
         <SettingsRow
           title={t("settings:sync.syncData")}
-          description={
-            isOffline
-              ? t("settings:sync.unavailableOffline")
-              : blockedByWifiOnly
-                ? t("settings:sync.connectWifi")
-                : t("settings:sync.forceSyncDesc")
-          }
           icon={syncIcon}
           trailing={
             <Button
@@ -218,7 +195,6 @@ export function SettingsSyncSection() {
         {/* Temporary: remove once no longer needed for local wipe / support. */}
         <SettingsRow
           title={t("settings:sync.clearData")}
-          description={t("settings:sync.clearDataDesc")}
           icon={deleteIcon}
           last
           trailing={

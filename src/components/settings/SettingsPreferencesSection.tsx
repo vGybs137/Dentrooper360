@@ -163,7 +163,6 @@ export function SettingsPreferencesSection() {
     <SettingsSection label={t("settings:preferences.section")}>
       <SettingsSelectRow<LocaleMode>
         title={t("settings:preferences.language.label")}
-        description={t("settings:preferences.languageDesc")}
         icon={languageIcon}
         options={languageOptions}
         value={localeMode}
@@ -173,7 +172,6 @@ export function SettingsPreferencesSection() {
       />
       <SettingsSelectRow<ThemeMode>
         title={t("settings:preferences.appearance.label")}
-        description={t("settings:preferences.appearanceDesc")}
         icon={appearanceIcon}
         options={appearanceOptions}
         value={mode}
@@ -184,7 +182,6 @@ export function SettingsPreferencesSection() {
       />
       <SettingsSelectRow<DefaultCalendarView>
         title={t("settings:preferences.defaultView.label")}
-        description={t("settings:preferences.defaultViewDesc")}
         icon={calendarIcon}
         options={defaultViewOptions}
         value={defaultCalendarView}
@@ -194,7 +191,6 @@ export function SettingsPreferencesSection() {
       />
       <SettingsSelectRow<HourFormat>
         title={t("settings:preferences.hourFormat.label")}
-        description={t("settings:preferences.hourFormatDesc")}
         icon={clockIcon}
         options={hourFormatOptions}
         value={hourFormat}
@@ -204,7 +200,6 @@ export function SettingsPreferencesSection() {
       />
       <SettingsSelectRow<WeekdayIndex>
         title={t("settings:preferences.weekStartsOn.label")}
-        description={t("settings:preferences.weekStartsOnDesc")}
         icon={weekStartIcon}
         last
         options={weekStartOptions}

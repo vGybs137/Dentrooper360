@@ -113,11 +113,6 @@ export function SettingsSecuritySection() {
     <SettingsSection label={t("settings:security.section")}>
       {showBiometricLogin ? (
         <SettingsRow
-          description={
-            biometricLoginEnabled
-              ? t("settings:security.biometricLoginOnDesc")
-              : t("settings:security.biometricLoginOffDesc")
-          }
           icon={fingerprintIcon}
           last={!showAppLock}
           title={t("settings:security.biometricLogin")}
@@ -141,11 +136,6 @@ export function SettingsSecuritySection() {
       {showAppLock ? (
       <>
       <SettingsRow
-        description={
-          enabled
-            ? t("settings:security.appLockOnDesc")
-            : t("settings:security.appLockOffDesc")
-        }
         icon={lockIcon}
         last={!enabled}
         title={t("settings:security.appLock")}
@@ -167,7 +157,6 @@ export function SettingsSecuritySection() {
       />
       {enabled ? (
         <SettingsSelectRow
-          description={t("settings:security.timeoutDesc")}
           expanded={expanded}
           icon={clockIcon}
           last

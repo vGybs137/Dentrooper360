@@ -44,11 +44,9 @@ export function SettingsSection({
 
 export function SettingsRowLabel({
   title,
-  description,
   icon,
 }: {
   title: string;
-  description: string;
   icon: SettingsSymbolName;
 }) {
   return (
@@ -57,7 +55,7 @@ export function SettingsRowLabel({
         flex: 1,
         minWidth: 0,
         flexDirection: "row",
-        alignItems: "flex-start",
+        alignItems: "center",
         gap: semantic.space.gap.default,
       }}
     >
@@ -67,47 +65,38 @@ export function SettingsRowLabel({
           height: semantic.size.icon,
           alignItems: "center",
           justifyContent: "center",
-          marginTop: 2,
         }}
       >
         <ThemedIcon name={icon} size="sm" />
       </View>
-      <View
-        style={{
-          flex: 1,
-          minWidth: 0,
-          gap: semantic.space.gap.compact,
-        }}
+      <ThemedText
+        className="font-semibold"
+        numberOfLines={1}
+        style={{ flex: 1, minWidth: 0 }}
+        variant="body"
       >
-        <ThemedText className="font-semibold" numberOfLines={1} variant="body">
-          {title}
-        </ThemedText>
-        <ThemedText tone="muted" variant="label">
-          {description}
-        </ThemedText>
-      </View>
+        {title}
+      </ThemedText>
     </View>
   );
 }
 
-const settingsRowContentStyle = {
+export const settingsRowContentStyle = {
   flexDirection: "row" as const,
   alignItems: "center" as const,
   gap: semantic.space.gap.default,
   paddingHorizontal: semantic.space.inline.comfortable,
-  paddingVertical: semantic.space.stack.default,
-  minHeight: semantic.size.touch,
+  paddingVertical: semantic.space.inset.comfortable,
+  minHeight: semantic.size["control-lg"],
 };
 
 export function SettingsRow({
   title,
-  description,
   icon,
   trailing,
   last = false,
 }: {
   title: string;
-  description: string;
   icon: SettingsSymbolName;
   trailing: ReactNode;
   last?: boolean;
@@ -115,11 +104,7 @@ export function SettingsRow({
   return (
     <View className={cn(!last && "border-b border-border-subtle")}>
       <View style={settingsRowContentStyle}>
-        <SettingsRowLabel
-          description={description}
-          icon={icon}
-          title={title}
-        />
+        <SettingsRowLabel icon={icon} title={title} />
         <View style={{ flexShrink: 0, justifyContent: "center" }}>
           {trailing}
         </View>

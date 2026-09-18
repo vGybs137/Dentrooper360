@@ -10,6 +10,7 @@ import { cn } from "@/helpers/ui/cn";
 
 import {
   SettingsRowLabel,
+  settingsRowContentStyle,
   type SettingsSelectOption,
   type SettingsSymbolName,
 } from "./SettingsSection";
@@ -18,7 +19,6 @@ const OPTION_ROW_HEIGHT = 44;
 
 export function SettingsSelectRow<T extends string | number>({
   title,
-  description,
   icon,
   options,
   value,
@@ -29,7 +29,6 @@ export function SettingsSelectRow<T extends string | number>({
   instantCollapse = false,
 }: {
   title: string;
-  description: string;
   icon: SettingsSymbolName;
   options: readonly SettingsSelectOption<T>[];
   value: T;
@@ -65,22 +64,8 @@ export function SettingsSelectRow<T extends string | number>({
         tone="neutral"
         variant="ghost"
       >
-        <View
-          style={{
-            width: "100%",
-            minHeight: semantic.size.touch,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: semantic.space.gap.default,
-            paddingHorizontal: semantic.space.inline.comfortable,
-            paddingVertical: semantic.space.stack.default,
-          }}
-        >
-          <SettingsRowLabel
-            description={description}
-            icon={icon}
-            title={title}
-          />
+        <View style={{ width: "100%", ...settingsRowContentStyle }}>
+          <SettingsRowLabel icon={icon} title={title} />
           <View
             style={{
               flexShrink: 0,
