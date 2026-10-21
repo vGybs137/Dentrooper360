@@ -9,6 +9,7 @@ import { closeClinicDatabase } from "./closeClinicDatabase";
 import {
   deleteClinicSqliteFiles,
   getFreeDiskBytes,
+  queuePendingClinicSqliteDeletes,
 } from "./clinicSqliteFiles";
 import {
   clearClinicRegistry,
@@ -22,6 +23,7 @@ import {
   removeClinicRegistryEntry,
   type ClinicRegistryEntry,
 } from "./ClinicRegistry";
+import { LEGACY_CLINIC_DB_NAME } from "./clinicDbNames";
 import { waitForClinicSyncIdle } from "./clinicSyncLock";
 import { createClinicDatabase } from "./createClinicDatabase";
 import {
@@ -47,9 +49,23 @@ class ClinicDatabaseManager {
   private readonly openDatabases = new Map<string, Database>();
   private readonly inFlightOpens = new Map<string, Promise<Database>>();
   private enforceBudgetChain: Promise<void> = Promise.resolve();
+  /** When true, refuse new opens so wipe/remove can close + unlink files. */
+  private exclusiveWipe = false;
 
   getActiveCustomerId(): string | null {
     return this.activeCustomerId;
+  }
+
+  beginExclusiveWipe(): void {
+    this.exclusiveWipe = true;
+  }
+
+  endExclusiveWipe(): void {
+    this.exclusiveWipe = false;
+  }
+
+  isExclusiveWipe(): boolean {
+    return this.exclusiveWipe;
   }
 
   /** Map handles opened under a differently cased id onto the canonical key. */
@@ -148,6 +164,12 @@ class ClinicDatabaseManager {
   }
 
   async getOrOpen(customerId: string): Promise<Database> {
+    if (this.exclusiveWipe) {
+      throw new Error(
+        "Clinic database opens are suspended while local data is being cleared.",
+      );
+    }
+
     const id = this.adoptId(customerId);
     const existing = this.openDatabases.get(id);
     if (existing) {
@@ -329,6 +351,13 @@ class ClinicDatabaseManager {
     }
   }
 
+  private async unlinkClinicFiles(dbName: string): Promise<void> {
+    const deleted = await deleteClinicSqliteFiles(dbName);
+    if (!deleted) {
+      await queuePendingClinicSqliteDeletes([dbName]);
+    }
+  }
+
   async deleteClinicData(customerId: string): Promise<void> {
     const id = this.adoptId(customerId);
     await waitForClinicSyncIdle(id);
@@ -349,7 +378,7 @@ class ClinicDatabaseManager {
     const entry = registry.clinics[id];
     await this.closeOpenHandle(id);
     if (entry?.dbName) {
-      await deleteClinicSqliteFiles(entry.dbName);
+      await this.unlinkClinicFiles(entry.dbName);
     }
 
     if (this.activeCustomerId === id) {
@@ -362,6 +391,8 @@ class ClinicDatabaseManager {
   /**
    * Support / settings wipe: wait for sync idle, close + delete every known clinic
    * file, then clear registry. Unsynced rows are intentionally discarded.
+   * Caller should hold {@link beginExclusiveWipe} and clear auth customerId first
+   * so ClinicSessionProvider does not reopen a connection mid-wipe.
    */
   async resetAll(): Promise<void> {
     const warmIds = await listWarmClinicIds();
@@ -373,17 +404,31 @@ class ClinicDatabaseManager {
       ...(this.activeCustomerId ? [this.activeCustomerId] : []),
     ]);
 
+    const dbNames = new Set<string>([LEGACY_CLINIC_DB_NAME]);
     for (const customerId of customerIds) {
       await waitForClinicSyncIdle(customerId);
       const entry = registry.clinics[customerId];
-      await this.closeOpenHandle(customerId);
       if (entry?.dbName) {
-        await deleteClinicSqliteFiles(entry.dbName);
+        dbNames.add(entry.dbName);
       }
+      await this.closeOpenHandle(customerId);
+    }
+
+    // Drop any handles that arrived under alternate keys.
+    for (const customerId of [...this.openDatabases.keys()]) {
+      await this.closeOpenHandle(customerId);
     }
 
     this.openDatabases.clear();
     this.activeCustomerId = null;
+
+    // Brief pause so native SQLite can finish releasing file locks after close.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    for (const dbName of dbNames) {
+      await this.unlinkClinicFiles(dbName);
+    }
+
     await clearClinicRegistry();
   }
 

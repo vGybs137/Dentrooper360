@@ -20,12 +20,14 @@ export {
 export {
   ClinicSwitchError,
   switchClinic,
+  activateClinicFromStoredRefresh,
   type SwitchClinicOptions,
 } from "@/session/switchClinic";
 export {
   RemoveClinicError,
   removeClinic,
   type RemoveClinicResult,
+  type RemoveClinicOptions,
 } from "@/session/removeClinic";
 export {
   canEnterApp,

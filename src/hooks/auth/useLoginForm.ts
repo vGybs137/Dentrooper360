@@ -75,6 +75,30 @@ export function useLoginForm(options?: { customerId?: string | null }) {
         : undefined);
 
   useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+    void (async () => {
+      const {
+        FORCE_CLEAR_APPLICATION_DATA_ON_LAUNCH,
+        clearApplicationData,
+      } = await import("@/helpers/sync/clearApplicationData");
+
+      if (FORCE_CLEAR_APPLICATION_DATA_ON_LAUNCH) {
+        console.warn("[wipe] Clearing all local application data…");
+        await clearApplicationData();
+        router.replace("/(auth)/onboarding" as Href);
+        return;
+      }
+
+      const { reconcilePairedClinicBinding } = await import(
+        "@/helpers/auth/reconcilePairedClinicBinding"
+      );
+      await reconcilePairedClinicBinding();
+    })();
+  }, [hasHydrated, router]);
+
+  useEffect(() => {
     if (!isAppReady) return;
     void prepareScheduleAppointments();
   }, [isAppReady]);

@@ -46,6 +46,7 @@ export default function Index() {
   const isMountedRef = useRef(true);
   const [isEntering, setIsEntering] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
+  const [pairingReconciled, setPairingReconciled] = useState(false);
   const {
     isPending: isValidatingSession,
     isSuccess: isSessionValid,
@@ -105,6 +106,51 @@ export default function Index() {
     let cancelled = false;
 
     if (!hasHydrated || !syncStatusHydrated) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setPairingReconciled(false);
+    void (async () => {
+      const { flushPendingClinicSqliteDeletes } = await import(
+        "@/database/clinicSqliteFiles"
+      );
+      await flushPendingClinicSqliteDeletes();
+
+      const {
+        FORCE_CLEAR_APPLICATION_DATA_ON_LAUNCH,
+        clearApplicationData,
+      } = await import("@/helpers/sync/clearApplicationData");
+
+      if (FORCE_CLEAR_APPLICATION_DATA_ON_LAUNCH) {
+        console.warn("[wipe] Clearing all local application data…");
+        await clearApplicationData();
+        if (!cancelled) {
+          setPairingReconciled(true);
+          router.replace("/(auth)/onboarding" as Href);
+        }
+        return;
+      }
+
+      const { reconcilePairedClinicBinding } = await import(
+        "@/helpers/auth/reconcilePairedClinicBinding"
+      );
+      await reconcilePairedClinicBinding();
+      if (!cancelled) {
+        setPairingReconciled(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hasHydrated, syncStatusHydrated, router]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!hasHydrated || !syncStatusHydrated || !pairingReconciled) {
       return () => {
         cancelled = true;
       };
@@ -247,6 +293,7 @@ export default function Index() {
     isSyncFailed,
     isRestoring,
     isValidatingSession,
+    pairingReconciled,
     router,
     syncStatusHydrated,
   ]);

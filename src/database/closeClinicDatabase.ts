@@ -11,12 +11,14 @@ type SqliteDispatcher = {
 };
 
 /**
- * Best-effort close of a Watermelon JSI connection so the SQLite file can be unlinked.
- * Uses the private dispatcher `unsafeClose` (not part of the public adapter API).
+ * Best-effort close of a Watermelon connection so the SQLite file can be unlinked.
+ * JSI exposes `unsafeClose`; the Android async bridge does not — callers must
+ * queue file deletes for the next cold start when close is unavailable.
  */
 export async function closeClinicDatabase(database: Database): Promise<void> {
   const adapter = database.adapter as {
     _dispatcher?: SqliteDispatcher;
+    _dispatcherType?: string;
   };
 
   const dispatcher = adapter._dispatcher;

@@ -6,6 +6,7 @@ import {
   RemoveClinicError,
   removeClinic,
 } from "@/session/removeClinic";
+import { useAuthStore } from "@/stores";
 
 export function removeClinicErrorMessage(error: unknown): string {
   if (error instanceof RemoveClinicError) {
@@ -22,11 +23,24 @@ export function useRemoveClinicMutation() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: (customerId: string) => removeClinic(customerId),
+    mutationFn: (customerId: string) =>
+      removeClinic(customerId, { queryClient }),
     onSuccess: async (result) => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.auth.clinics });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.auth.clinicRegistry,
+      });
+
+      if (result.switchedToCustomerId) {
+        router.replace("/(tabs)/schedule" as Href);
+        return;
+      }
+
       if (result.clearedActiveSession) {
-        router.replace("/(auth)/login" as Href);
+        const customerId = useAuthStore.getState().customerId;
+        router.replace(
+          (customerId ? "/(auth)/login" : "/(auth)/onboarding") as Href,
+        );
       }
     },
   });

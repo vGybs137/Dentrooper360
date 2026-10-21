@@ -1,15 +1,23 @@
 import { clearDeviceId } from "@/helpers/auth/deviceId";
 import { toDayKey, todayCalendarDate } from "@/helpers/schedule/calendar";
+import {
+  clearClinicRegistry,
+  loadClinicRegistry,
+} from "@/database/ClinicRegistry";
 import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import { waitForAllClinicSyncsIdle } from "@/database/synchronize";
 import { applyRtlForLocale } from "@/helpers/i18n/applyRtl";
 import { changeAppLanguage } from "@/i18n";
 import { DEFAULT_LOCALE } from "@/i18n/locales";
 import { DEFAULT_PATIENT_COUNTRY_CODE } from "@/constants/patientForm";
+import { DEFAULT_APP_LOCK_TIMEOUT_MS } from "@/security/biometric/shouldLockSession";
+import { clearDeviceApiKey } from "@/security/pairing/pairingVault";
+import { clearClinicRefreshToken } from "@/security/vault/clinicRefreshTokenVault";
 import {
   applyThemeColorScheme,
   useAddAppointmentStore,
   useAddPatientStore,
+  useAppLockStore,
   useAuthStore,
   useCalendarSelectionStore,
   useLocalePreferencesStore,
@@ -22,18 +30,52 @@ import {
 } from "@/stores";
 
 /**
- * Temporary local wipe for development / support.
- * Drains in-flight syncs, resets every known clinic WatermelonDB + registry,
- * then clears auth / preference stores and device id.
- * Caller should clear React Query and navigate away after this resolves.
+ * Set true to wipe all local app data on the next cold start, then set false.
+ * Used when the device is stuck unpaired and Settings is unreachable.
+ */
+export const FORCE_CLEAR_APPLICATION_DATA_ON_LAUNCH = false;
+
+/**
+ * Local wipe for development / support / recovery.
+ * Drains in-flight syncs, deletes every known clinic DB + registry, clears
+ * pairing secrets, auth / preference stores, and device id.
+ * Caller should clear React Query and navigate to onboarding after this resolves.
  */
 export async function clearApplicationData(): Promise<void> {
   await waitForAllClinicSyncsIdle();
-  await clinicDatabaseManager.resetAll();
 
-  const { clearAllSecurityState } = await import("@/security/session/sessionVault");
-  await clearAllSecurityState();
-  await useAuthStore.persist.clearStorage();
+  const registry = await loadClinicRegistry();
+  const customerIds = new Set<string>();
+  for (const id of Object.keys(registry.clinics)) {
+    customerIds.add(id);
+  }
+  const activeCustomerId = useAuthStore.getState().customerId;
+  if (activeCustomerId) {
+    customerIds.add(activeCustomerId);
+  }
+
+  for (const customerId of customerIds) {
+    await clearDeviceApiKey(customerId);
+    await clearClinicRefreshToken(customerId);
+  }
+
+  // Stop ClinicSessionProvider from reopening SQLite while we unlink files.
+  clinicDatabaseManager.beginExclusiveWipe();
+  try {
+    useAuthStore.getState().setCustomerId(null);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    await clinicDatabaseManager.resetAll();
+    await clearClinicRegistry();
+
+    const { clearAllSecurityState } = await import(
+      "@/security/session/sessionVault"
+    );
+    await clearAllSecurityState();
+    await useAuthStore.persist.clearStorage();
+  } finally {
+    clinicDatabaseManager.endExclusiveWipe();
+  }
 
   useSyncStatusStore.setState({
     lastSuccessfulSyncAt: null,
@@ -77,6 +119,18 @@ export async function clearApplicationData(): Promise<void> {
   await changeAppLanguage(DEFAULT_LOCALE);
   applyRtlForLocale(DEFAULT_LOCALE);
   await useLocalePreferencesStore.persist.clearStorage();
+
+  useAppLockStore.setState({
+    enabled: false,
+    timeoutMs: DEFAULT_APP_LOCK_TIMEOUT_MS,
+    biometricLoginEnabled: false,
+    biometricLoginDeclined: false,
+    isLocked: false,
+    lastUnlockedAt: null,
+    backgroundedAt: null,
+    passwordFallback: false,
+  });
+  await useAppLockStore.persist.clearStorage();
 
   useAddAppointmentStore.getState().dismissImmediately();
   useAddPatientStore.setState({

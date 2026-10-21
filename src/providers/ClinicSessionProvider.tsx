@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
+import { flushPendingClinicSqliteDeletes } from "@/database/clinicSqliteFiles";
 import { clearScheduleAppointmentsPrefetch } from "@/helpers/schedule/prefetchScheduleAppointments";
 import {
   hydrateActiveClinicSyncStatus,
@@ -95,13 +96,27 @@ export function ClinicSessionProvider({ children }: ClinicSessionProviderProps) 
     let cancelled = false;
 
     async function openClinicDatabase() {
-      if (!hasHydrated || !customerId) {
+      if (!hasHydrated) {
+        return;
+      }
+
+      // Unlink SQLite files left locked by a previous wipe/remove before opening.
+      await flushPendingClinicSqliteDeletes();
+      if (cancelled) {
+        return;
+      }
+
+      if (!customerId) {
         if (!cancelled) {
           setDatabase(null);
           setReadyCustomerId(null);
         }
         clearScheduleAppointmentsPrefetch();
         void hydrateActiveClinicSyncStatus(null);
+        return;
+      }
+
+      if (clinicDatabaseManager.isExclusiveWipe()) {
         return;
       }
 

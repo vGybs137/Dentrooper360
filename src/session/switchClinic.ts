@@ -143,6 +143,69 @@ async function restoreClinicFromStoredRefresh(
 }
 
 /**
+ * Activate a clinic from its stored refresh token without draining another clinic.
+ * Used after the previous active clinic was removed (its DB is already gone).
+ */
+export async function activateClinicFromStoredRefresh({
+  targetCustomerId,
+  queryClient,
+  skipSync = false,
+}: SwitchClinicOptions): Promise<void> {
+  const targetId = canonicalCustomerId(targetCustomerId) ?? targetCustomerId;
+  const switchUi = useClinicSwitchStore.getState();
+  const targetRefresh = await readClinicRefreshToken(targetId);
+
+  if (!targetRefresh) {
+    throw new ClinicSwitchError(t("settings:clinics.error.sessionRequired"));
+  }
+
+  switchUi.beginSwitch();
+  stopPeriodicSync();
+  stopConnectivitySync();
+
+  try {
+    const deviceId = await getOrCreateDeviceId();
+    const response = await httpClient.post<WireAuthSession>(
+      AUTH_REFRESH_PATH,
+      { refresh_token: targetRefresh, device_id: deviceId },
+      { skipAuth: true },
+    );
+    const session = mapAuthSession(response.data);
+    const { shouldSync } = await finishClinicHandoff(
+      targetId,
+      session,
+      queryClient,
+      skipSync,
+    );
+
+    switchUi.endSwitch();
+
+    if (shouldSync) {
+      await synchronize(targetId);
+    }
+  } catch (error) {
+    const fallbackCustomerId = useAuthStore.getState().customerId;
+    if (fallbackCustomerId) {
+      try {
+        await clinicDatabaseManager.ensureActive(fallbackCustomerId);
+        await hydrateActiveClinicSyncStatus(fallbackCustomerId);
+      } catch {
+        // Best-effort restore; surface the original error.
+      }
+    }
+
+    const message =
+      error instanceof ClinicSwitchError
+        ? error.message
+        : error instanceof Error && error.message.trim()
+          ? error.message
+          : t("settings:clinics.switchErrorGeneric");
+    switchUi.failSwitch(message);
+    throw error;
+  }
+}
+
+/**
  * Ordered clinic switch / account activate protocol.
  * Prefer membership switch; otherwise restore a stored per-clinic session.
  * The switching overlay ends as soon as the target DB is active so the UI can
