@@ -14,7 +14,6 @@ import { clinicDatabaseManager } from "@/database/ClinicDatabaseManager";
 import { getOrCreateClinicRegistryEntry } from "@/database/ClinicRegistry";
 import { synchronize } from "@/database/synchronize";
 import { getOrCreateDeviceId } from "@/helpers/auth/deviceId";
-import { storeDeviceApiKey } from "@/security/pairing/pairingVault";
 
 import {
   mapAuthSession,
@@ -118,7 +117,6 @@ export async function pairDevice(
   );
 
   const pairResponse = mapPairResponse(response.data);
-  await storeDeviceApiKey(pairResponse.customerId, pairResponse.deviceApiKey);
 
   const activate = options?.activate !== false;
   if (activate) {

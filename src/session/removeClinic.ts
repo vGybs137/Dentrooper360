@@ -7,7 +7,6 @@ import { waitForClinicSyncIdle } from "@/database/clinicSyncLock";
 import { hasUnsyncedChanges, synchronize } from "@/database/synchronize";
 import { sameCustomerId } from "@/helpers/auth/customerId";
 import { getOrCreateDeviceId } from "@/helpers/auth/deviceId";
-import { clearDeviceApiKey } from "@/security/pairing/pairingVault";
 import {
   clearClinicRefreshToken,
   readClinicRefreshToken,
@@ -146,7 +145,6 @@ export async function removeClinic(
     }
   }
 
-  await clearDeviceApiKey(normalized);
   await clearClinicRefreshToken(normalized);
 
   // File unlink only — do not call synchronize after this.

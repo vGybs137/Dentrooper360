@@ -1,6 +1,5 @@
 import { loadClinicRegistry } from "@/database/ClinicRegistry";
 import { canonicalCustomerId, sameCustomerId } from "@/helpers/auth/customerId";
-import { getDeviceApiKey } from "@/security/pairing/pairingVault";
 import { useAuthStore } from "@/stores";
 
 /**
@@ -8,7 +7,7 @@ import { useAuthStore } from "@/stores";
  * without clearing pairing (login then 401s "not paired to this clinic").
  *
  * - If other clinics remain locally, rebind customerId to the most recently opened.
- * - If none remain and this id has no device API key, clear all pairing state.
+ * - If none remain, treat the device as unpaired and clear pairing state.
  */
 export async function reconcilePairedClinicBinding(): Promise<void> {
   const store = useAuthStore.getState();
@@ -38,11 +37,6 @@ export async function reconcilePairedClinicBinding(): Promise<void> {
       await clearSession();
       useAuthStore.getState().setCustomerId(nextId);
     }
-    return;
-  }
-
-  const apiKey = await getDeviceApiKey(id);
-  if (apiKey) {
     return;
   }
 

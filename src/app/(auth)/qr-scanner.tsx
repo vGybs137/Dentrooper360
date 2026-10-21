@@ -21,6 +21,7 @@ import { ThemedView } from "@/components/ui";
 import { queryKeys } from "@/constants/queryKeys";
 import { canonicalCustomerId, sameCustomerId } from "@/helpers/auth/customerId";
 import { getDeviceInfo, getOrCreateDeviceId } from "@/helpers/auth/deviceId";
+import { parseValidatedQrPayload } from "@/helpers/auth/parseValidatedQrPayload";
 import { isFromOnboarding } from "@/helpers/ui/routeParams";
 import { useLoginLogoRestLayout } from "@/hooks/auth/useAuthLogoRestOffset";
 import { usePairMutation } from "@/hooks/auth/usePairMutation";
@@ -81,64 +82,12 @@ export default function QrScannerScreen() {
   const pairMutation = usePairMutation();
   const queryClient = useQueryClient();
 
-  const GUID_RE = useMemo(
-    () =>
-      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
-    [],
-  );
-
   const handleRequestCamera = useCallback(() => {
     if (cameraPermission?.granted) {
       return;
     }
     void requestCameraPermission();
   }, [cameraPermission?.granted, requestCameraPermission]);
-
-  type ValidatedQrPayload = {
-    customerId: string;
-    productId: string;
-    xApiKey: string;
-  };
-
-  function parseValidatedQrPayload(data: string): ValidatedQrPayload | null {
-    if (!data) {
-      return null;
-    }
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(data);
-    } catch {
-      return null;
-    }
-
-    if (!parsed || typeof parsed !== "object") {
-      return null;
-    }
-
-    const record = parsed as Record<string, unknown>;
-    const registrationKey = record.registration_key;
-    const xApiKey = record.x_api_key;
-
-    if (typeof registrationKey !== "string" || typeof xApiKey !== "string") {
-      return null;
-    }
-
-    if (!GUID_RE.test(xApiKey)) {
-      return null;
-    }
-
-    const [customerId, productId] = registrationKey.split("|");
-    if (!customerId || !productId) {
-      return null;
-    }
-
-    if (!GUID_RE.test(customerId) || !GUID_RE.test(productId)) {
-      return null;
-    }
-
-    return { customerId, productId, xApiKey };
-  }
 
   const leaveScanner = useCallback(() => {
     if (fromOnboarding || isAddClinic) {
@@ -273,7 +222,6 @@ export default function QrScannerScreen() {
           deviceName,
           platform,
           version,
-          xApiKey: validated.xApiKey,
           activate: !isAddClinic,
         });
 

@@ -3,5 +3,4 @@ export type PairResponse = {
   customerId: string;
   pairedAt: Date;
   pairKind: "first" | "additional";
-  deviceApiKey: string;
 };

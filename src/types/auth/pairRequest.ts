@@ -5,5 +5,4 @@ export type PairRequest = {
   deviceName?: string | null;
   platform?: string | null;
   version?: string | null;
-  xApiKey: string;
 };

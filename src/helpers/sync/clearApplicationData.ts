@@ -11,7 +11,6 @@ import { changeAppLanguage } from "@/i18n";
 import { DEFAULT_LOCALE } from "@/i18n/locales";
 import { DEFAULT_PATIENT_COUNTRY_CODE } from "@/constants/patientForm";
 import { DEFAULT_APP_LOCK_TIMEOUT_MS } from "@/security/biometric/shouldLockSession";
-import { clearDeviceApiKey } from "@/security/pairing/pairingVault";
 import { clearClinicRefreshToken } from "@/security/vault/clinicRefreshTokenVault";
 import {
   applyThemeColorScheme,
@@ -55,7 +54,6 @@ export async function clearApplicationData(): Promise<void> {
   }
 
   for (const customerId of customerIds) {
-    await clearDeviceApiKey(customerId);
     await clearClinicRefreshToken(customerId);
   }
 

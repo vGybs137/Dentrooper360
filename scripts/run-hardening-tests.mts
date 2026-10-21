@@ -9,6 +9,7 @@ const tests = [
   "src/database/warmClinicPolicy.test.ts",
   "src/database/readAccessTokenCustomerId.test.ts",
   "src/helpers/auth/customerId.test.ts",
+  "src/helpers/auth/parseValidatedQrPayload.test.ts",
   "src/database/sortClinicsByLru.test.ts",
   "src/constants/multiClinicFlags.test.ts",
   "src/security/biometric/shouldLockSession.test.ts",

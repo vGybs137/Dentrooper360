@@ -38,14 +38,11 @@ export {
   type AuthGateState,
 } from "@/security/gates/authGate";
 export {
-  clearDeviceApiKey,
   clearDeviceId,
-  getDeviceApiKey,
   getDeviceInfo,
   getOrCreateDeviceId,
   getPairedCustomerId,
   setPairedCustomerId,
-  storeDeviceApiKey,
 } from "@/security/pairing/pairingVault";
 export {
   clearAllSecurityState,
